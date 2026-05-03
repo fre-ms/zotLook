@@ -1,6 +1,6 @@
 # Zotero7QuickLook
 
-A Zotero 7/8 plugin for macOS that lets you preview attachments with QuickLook by pressing **Space** — just like in Finder.
+A macOS plugin for Zotero 7 and later (tested on 7, 8, and 9) that lets you preview attachments with QuickLook by pressing **Space** — just like in Finder.
 
 Spiritual successor to [ZoteroQuickLook](https://github.com/mronkko/ZoteroQuickLook), which supported Zotero 4–6 but broke with Zotero 7's new plugin architecture.
 
