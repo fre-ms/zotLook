@@ -40,8 +40,8 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
   Q._getAttachmentPath = async () => '/lib/paper.pdf';
   Q._showProgress = () => ({});
   Q._closeProgress = () => {};
-  Q._runProcess = async (cmd, args) => {
-    calls.push({ cmd, args });
+  Q._runProcess = async (cmd, args, options) => {
+    calls.push({ cmd, args, options });
     // What the renderer prints: page sizes for the sheet to be built around
     return { exitCode, stdout: JSON.stringify({
       pageCount: 3, columns: 3, width: 833,
@@ -65,6 +65,8 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
      'thumbnails go beside the sheet, in a directory named after it');
   eq(columns, '5', 'the default column count');
   eq(maxPages, '0', 'no page limit by default');
+  // The manifest arrives on stdout, so it has to be asked for
+  eq(calls[0].options.captureOutput, true, 'the renderer output is captured');
   ok(out.endsWith('.html'), 'the caller gets the sheet itself back');
 
   // The renderer no longer writes any HTML; the plugin does, from sheet.js

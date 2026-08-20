@@ -79,8 +79,34 @@ var ZotLook = {
 		},
 	],
 
+	/** The last lines this plugin logged, kept for _writeFailureReport. */
+	_recentLog: [],
+
 	log(msg) {
 		Zotero.debug("zotLook: " + msg);
+		// Zotero's debug output is shared with every other plugin, and a
+		// chatty one drowns this out entirely — so keep our own last words
+		this._recentLog.push(new Date().toISOString() + "  " + msg);
+		if (this._recentLog.length > 200) this._recentLog.shift();
+	},
+
+	/**
+	 * Writes what the plugin logged just before something failed, next to the
+	 * files it was working on. Somebody reporting "it does not work" can then
+	 * send this instead of a debug log with everyone else's noise in it.
+	 */
+	async _writeFailureReport(what) {
+		try {
+			let dir = this._getTempDirPath();
+			await IOUtils.makeDirectory(dir, { ignoreExisting: true });
+			await IOUtils.writeUTF8(
+				PathUtils.join(dir, "last-failure.log"),
+				"zotLook " + (this.version || "?") + " — " + what + "\n\n" +
+					this._recentLog.join("\n") + "\n"
+			);
+		} catch (e) {
+			this.log("Could not write the failure report: " + e);
+		}
 	},
 
 	/** Whether this platform has a preview mechanism to drive at all. */
@@ -692,6 +718,7 @@ var ZotLook = {
 
 			if (!manifest || !manifest.pages.length) {
 				this.log("No pages could be rendered");
+				await this._writeFailureReport("the contact sheet drew nothing");
 				return null;
 			}
 
@@ -727,6 +754,7 @@ var ZotLook = {
 			);
 		} catch (e) {
 			this.log("Contact sheet generation error: " + e);
+			await this._writeFailureReport("the contact sheet threw: " + e);
 			return null;
 		} finally {
 			this._closeProgress(progress);
@@ -750,6 +778,7 @@ var ZotLook = {
 	 * page rotation for free and spreads the pages across every core.
 	 */
 	async _renderPagesNatively(pdfPath, imageDir, maxColumns, maxPages) {
+		this.log("Rendering through the bundled binary");
 		let binary = await this._ensureBinary("contactsheet");
 		if (!binary) {
 			this.log("Contact sheet binary not available");
@@ -759,7 +788,12 @@ var ZotLook = {
 		let result = await this._runProcess(
 			binary,
 			[pdfPath, imageDir, String(maxColumns), String(maxPages)],
-			{ timeoutMs: this.CONTACT_SHEET_TIMEOUT_MS }
+			{
+				timeoutMs: this.CONTACT_SHEET_TIMEOUT_MS,
+				// The binary reports what it drew on stdout; without this the
+				// manifest never arrives and no sheet is ever written
+				captureOutput: true,
+			}
 		);
 		if (result.exitCode !== 0) {
 			this.log("Renderer failed with code " + result.exitCode);
@@ -769,7 +803,10 @@ var ZotLook = {
 		try {
 			return JSON.parse(result.stdout);
 		} catch (e) {
-			this.log("Renderer produced no usable manifest: " + e);
+			this.log(
+				"Renderer produced no usable manifest: " + e +
+				" — output was: " + JSON.stringify(result.stdout)
+			);
 			return null;
 		}
 	},
@@ -860,6 +897,8 @@ var ZotLook = {
 			// to render at — so every worker opens first and is told the width
 			// once they all have. Opening cost about 59 ms in measurement.
 			let handOutPages = () => {
+				this.log("Handing out " + manifest.renderCount +
+					" pages at " + manifest.width + " px");
 				let slices = this._pageSlices(manifest.renderCount, workers.length);
 				workers.forEach((worker, index) => {
 					worker.postMessage({
@@ -875,6 +914,8 @@ var ZotLook = {
 				let message = event.data;
 
 				if (message.type === "opened") {
+					this.log("Renderer opened the document: " +
+						message.pageCount + " pages");
 					if (!manifest) {
 						let count = maxPages > 0
 							? Math.min(message.pageCount, maxPages)
@@ -946,9 +987,11 @@ var ZotLook = {
 			}
 
 			if (!workers.length) {
+				this.log("No renderer could be started at all");
 				finish(null);
 				return;
 			}
+			this.log("Started " + workers.length + " pdf.js renderers");
 
 			// Structured cloning rather than a transfer: every worker parses
 			// the document for itself, so every worker needs its own copy
@@ -1061,19 +1104,47 @@ var ZotLook = {
 	 * With timeoutMs the process is killed once the deadline passes and the
 	 * result carries exitCode -1, so a runaway render cannot hang the plugin.
 	 */
-	async _runProcess(command, args, { timeoutMs = 0 } = {}) {
+	/**
+	 * Everything a process writes to stdout, read as it comes rather than
+	 * afterwards: a renderer reporting on a thousand pages can fill the pipe,
+	 * and a full pipe blocks the very process we are waiting to finish.
+	 */
+	async _readPipe(pipe) {
+		if (!pipe) return "";
+		let text = "";
+		try {
+			for (;;) {
+				let chunk = await pipe.readString();
+				if (!chunk) break;
+				text += chunk;
+			}
+		} catch (e) {
+			this.log("Could not read process output: " + e);
+		}
+		return text;
+	},
+
+	async _runProcess(command, args, { timeoutMs = 0, captureOutput = false } = {}) {
 		const { Subprocess } = this._subprocess();
 		let proc = await Subprocess.call({
 			command: command,
 			arguments: args,
 		});
 
-		if (!timeoutMs) return proc.wait();
+		// Started before the wait, not after, so the pipe keeps draining
+		let output = captureOutput ? this._readPipe(proc.stdout) : null;
+		let withOutput = async (promise) => {
+			let result = await promise;
+			if (captureOutput) result.stdout = await output;
+			return result;
+		};
+
+		if (!timeoutMs) return withOutput(proc.wait());
 
 		let timer = null;
 		let timedOut = false;
 		try {
-			return await Promise.race([
+			return await withOutput(Promise.race([
 				proc.wait(),
 				new Promise((resolve) => {
 					timer = setTimeout(() => {
@@ -1089,7 +1160,7 @@ var ZotLook = {
 						resolve({ exitCode: -1 });
 					}, timeoutMs);
 				}),
-			]);
+			]));
 		} finally {
 			if (timer !== null) clearTimeout(timer);
 			if (timedOut) this.log("Killed " + command + " after timeout");
