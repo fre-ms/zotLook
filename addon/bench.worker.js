@@ -5,6 +5,8 @@
 // Renders pages with the pdf.js build Zotero already ships and reports how
 // long each step takes, so the choice between the Swift renderer and a
 // portable one can be made on numbers rather than expectation.
+//
+// Spawned as a module worker: a classic worker may not import() at all.
 
 const PDF_JS = "resource://zotero/reader/pdf/build/pdf.mjs";
 const PDF_WORKER = "resource://zotero/reader/pdf/build/pdf.worker.mjs";
@@ -14,12 +16,9 @@ let pdfjs = null;
 async function loadPdfjs() {
 	if (pdfjs) return pdfjs;
 	pdfjs = await import(PDF_JS);
-	// pdf.js normally spawns a worker of its own; inside a worker that would be
-	// a nested one. Point it at the shipped build and let it decide.
-	// If this throws, pdf.js falls back to rendering on this thread, which is
-	// fine for a measurement
-	// If setting this throws, pdf.js falls back to rendering on this thread,
-	// which is fine for a measurement
+	// pdf.js normally spawns a worker of its own; inside a worker that would
+	// be a nested one. Point it at the shipped build and let it decide. If
+	// that throws, pdf.js renders on this thread, which is fine to measure.
 	try {
 		pdfjs.GlobalWorkerOptions.workerSrc = PDF_WORKER;
 	} catch (e) {

@@ -800,9 +800,26 @@ var ZotLook = {
 		const MAX_PAGES = 20;
 		const WIDTH = 500;
 
+		// The debug output cannot carry this: other plugins flood it and the
+		// viewer truncates. Every path through here leaves a file behind, so
+		// a run that produces nothing at all means it never started.
+		let writeReport = async (report) => {
+			try {
+				let dir = this._getTempDirPath();
+				await IOUtils.makeDirectory(dir, { ignoreExisting: true });
+				await IOUtils.writeUTF8(
+					PathUtils.join(dir, "bench-result.json"),
+					JSON.stringify(report, null, 2)
+				);
+			} catch (e) {
+				this.log("BENCH: could not write the report: " + e);
+			}
+		};
+
 		let chosen = await this._pickPdfAttachment(items);
 		if (!chosen) {
 			this.log("BENCH: no PDF selected");
+			await writeReport({ ok: false, error: "no PDF among the selection" });
 			return false;
 		}
 
@@ -814,6 +831,7 @@ var ZotLook = {
 			bytes = await IOUtils.read(source);
 		} catch (e) {
 			this.log("BENCH: could not read the file: " + e);
+			await writeReport({ ok: false, error: "read failed: " + e });
 			return false;
 		}
 
@@ -825,25 +843,22 @@ var ZotLook = {
 				});
 			} catch (e) {
 				this.log("BENCH: could not start the worker: " + e);
+				writeReport({ ok: false, error: "worker start failed: " + e });
 				resolve(false);
 				return;
 			}
 
-			let started = Date.now();
-			let writeReport = async (report) => {
-				try {
-					let dir = this._getTempDirPath();
-					await IOUtils.makeDirectory(dir, { ignoreExisting: true });
-					await IOUtils.writeUTF8(
-						PathUtils.join(dir, "bench-result.json"),
-						JSON.stringify(report, null, 2)
-					);
-				} catch (e) {
-					this.log("BENCH: could not write the report: " + e);
-				}
-			};
+			// A worker that answers nothing would otherwise leave no trace
+			let timer = setTimeout(async () => {
+				this.log("BENCH: the worker did not answer");
+				await writeReport({ ok: false, error: "no answer within 120 s" });
+				worker.terminate();
+				resolve(false);
+			}, 120000);
 
+			let started = Date.now();
 			worker.addEventListener("message", async (event) => {
+				clearTimeout(timer);
 				let r = event.data;
 				r.wallMs = Date.now() - started;
 				await writeReport({
@@ -897,6 +912,7 @@ var ZotLook = {
 			});
 
 			worker.addEventListener("error", async (e) => {
+				clearTimeout(timer);
 				let detail = (e.message || "") + " @ " + (e.filename || "") +
 					":" + (e.lineno || "");
 				this.log("BENCH: worker error — " + detail);
