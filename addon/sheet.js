@@ -70,15 +70,22 @@ var ZotLookSheet = {
 				'">\n<div class="label">' +
 				entry.page +
 				"</div>";
-			// target="_blank" is what keeps the sheet alive under GNOME
-			// Sushi. Its WebKit view really follows links, unlike QuickLook,
-			// and it cannot load a zotero: URL — the load fails and Sushi
-			// replaces the whole preview with an error box. Asking for a new
-			// window instead makes it raise "create", which Sushi does not
-			// handle, so the click does nothing and the sheet stays up.
-			// Everywhere the link does work it still works: zotero://open-pdf
-			// carries no content, it performs an action, so it does not matter
-			// which context loads it.
+			// target="_blank" does two different jobs, and both were
+			// measured by clicking the four combinations in a real preview.
+			//
+			// Under GNOME Sushi it keeps the sheet alive. Its WebKit view
+			// really follows links and cannot load a zotero: URL; the load
+			// fails, and a failed load is how it reports that it cannot show
+			// the file at all, so a click replaced the sheet with an error
+			// box. A new-window request raises "create" instead, which Sushi
+			// does not handle, so the click does nothing and the sheet stays.
+			//
+			// Under Quick Look it is what makes the links work at all.
+			// Ordinary navigation is refused there — the click just beeps —
+			// but a new-window request is handed to the system handler,
+			// whatever the scheme: zotero: opens the reader at that page,
+			// http: opens the browser. The preview closes as it hands over.
+			// Without target the same link does nothing but beep.
 			let inner = linkBase
 				? '<a target="_blank" href="' +
 					this.escape(linkBase) +

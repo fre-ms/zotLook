@@ -20,11 +20,11 @@ The plugin ID is `zotlook@fre.ms`, distinct from Chapron's, so the two install s
 
 - **Space** — Toggle QuickLook preview on the selected item (prefers PDF, then EPUB, over other attachments)
 - **Shift+Space** — Preview the notes attached to the selected item
-- **Ctrl+Shift+Space** — Preview a PDF as a contact sheet (grid of page thumbnails, adaptive layout for few-page PDFs)
+- **Ctrl+Shift+Space** — Preview a PDF as a contact sheet (grid of page thumbnails, adaptive layout for few-page PDFs); clicking a page opens it in Zotero's reader
 - **Escape** — Close the preview
 - **Right-click → Quick Look** — Context menu entry
 - **Right-click → Quick Look Contact Sheet** — Context menu entry, shown only when the selection actually contains a PDF
-- **Shift+Alt+Space** (Option on macOS) — the same sheet in a Zotero window, where clicking a page opens it in the reader at that page (also in the context menu)
+- **Shift+Alt+Space** (Option on macOS) — the same sheet in a Zotero window, which stays open beside the reader (also in the context menu)
 - Works with PDFs, images, HTML, EPUBs, and any file type the system's preview panel supports
 - Selecting a parent item previews one of its attachments; which one is configurable under **Settings → zotLook** — either by a reorderable type ranking (PDF, EPUB, HTML, image, video, anything else) or simply the first attachment the item lists
 - EPUB files are rendered on the fly into a single styled HTML page (Palatino, 80 px margin, book-width column), with the book's own stylesheets loaded so layout and typography are preserved — switchable off under **Settings → zotLook** if a Quick Look extension handles EPUB better
@@ -180,9 +180,17 @@ There is therefore no page limit by default. One can be set under **Settings →
 
 Each thumbnail is wrapped in a link to `zotero://open-pdf/…?page=N`, so clicking a page opens it in Zotero's reader at that page.
 
-QuickLook itself ignores those links: previews are rendered with **JavaScript disabled**, in-page navigation blocked, and clicks on links are not handed to the system — measured by serving a probe page over a local HTTP server and watching which requests arrived. (The same measurement confirmed that previews *do* load files sitting next to the HTML, which is what both the contact sheet and the EPUB preview rely on.)
+Quick Look renders previews with **JavaScript disabled** and refuses ordinary navigation — measured by serving a probe page over a local HTTP server and watching which requests arrived. (The same measurement confirmed that previews *do* load files sitting next to the HTML, which is what both the contact sheet and the EPUB preview rely on.)
 
-The links are still worth having. QuickLook offers to open an HTML preview in the browser, and there they work, because the `zotero://` scheme is registered to Zotero. They also work in the window the context menu offers, which is `Zotero.openInViewer` — an ordinary browser window. Where they are inert they are also invisible, being styled without underline or colour, so one sheet serves every route.
+A **new-window request** is a different path through WebKit, and Quick Look does hand those to the system handler. That is what the links carry `target="_blank"` for, and it was measured by clicking all four combinations in a real preview:
+
+| link | in Quick Look |
+|---|---|
+| `zotero:` with `target="_blank"` | opens the reader at that page; the preview closes |
+| `zotero:` without it | a beep, nothing else |
+| `http:` with `target="_blank"` | opens the browser |
+
+So a click on a thumbnail goes straight to the page in Zotero's reader. The attribute is there for GNOME Sushi's sake, where it stops a click from taking the preview down; on macOS it turned out to be what makes the links work at all. They also work in the window the context menu offers, which is `Zotero.openInViewer` — and that window stays open beside the reader, which is the reason to have it. The links are styled without underline or colour, so one sheet serves every route.
 
 Sushi is the awkward one: its WebKit view really does follow links, and it cannot load a `zotero:` URL. The load fails, and a failed load is how Sushi's renderer reports that it cannot show the file at all — so a click replaced the whole sheet with "Unable to display". The links therefore carry `target="_blank"`. WebKit then raises `create` instead of navigating, Sushi has no handler for it, and the click does nothing while the sheet stays up. Nothing is lost where the links do work: `zotero://open-pdf` is a `noContent` handler that performs an action rather than returning a page, so it does not care which context loads it. Pages are rendered from the crop box with their `/Rotate` entry applied, so landscape and rotated scans appear the right way round. Generation runs under a 60-second deadline and shows a progress window while it works.
 

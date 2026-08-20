@@ -629,11 +629,12 @@ var ZotLook = {
 	 * The same contact sheet, shown in Zotero's own viewer window instead of
 	 * QuickLook.
 	 *
-	 * QuickLook renders previews with JavaScript disabled and does not act on
-	 * links, so the per-page links are inert there — but they are not wasted:
-	 * QuickLook offers to open an HTML preview in the browser, and from there
-	 * they work, as they do in this window. Sushi does follow links, which is
-	 * why they open in a new context; see the comment in ZotLookSheet.html.
+	 * The per-page links work in both, by different routes. Quick Look
+	 * refuses ordinary navigation but hands a new-window request to the
+	 * system handler, so a click there opens the reader and closes the
+	 * preview as it goes. This window keeps the sheet up alongside the
+	 * reader, which is the reason to have it. See the comment in
+	 * ZotLookSheet.html for what the target attribute is doing.
 	 */
 	async _openContactSheetInViewer(items) {
 		return this._withLaunchGuard(async () => {
