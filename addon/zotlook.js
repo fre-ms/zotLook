@@ -651,6 +651,7 @@ var ZotLook = {
 		let imageDir = PathUtils.join(tempDir, imageDirName);
 
 		this.log("Generating contact sheet for: " + pdfPath);
+		let started = Date.now();
 
 		// Rendering is CPU-bound and can run for many seconds on a long PDF,
 		// so tell the user something is happening
@@ -693,6 +694,14 @@ var ZotLook = {
 				this.log("No pages could be rendered");
 				return null;
 			}
+
+			// Worth having in the log: it is the only figure that says
+			// whether the renderer in use is fast enough on this machine
+			this.log(
+				"Rendered " + manifest.pages.length + " pages in " +
+				(Date.now() - started) + " ms via " +
+				(this._useNativeRenderer() ? "the bundled binary" : "pdf.js")
+			);
 
 			let rendered = manifest.pages.length;
 			let notice = rendered < manifest.pageCount
