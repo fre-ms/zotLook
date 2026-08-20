@@ -163,11 +163,15 @@ self.addEventListener("message", async (event) => {
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 			// Annotations are what this whole exercise is about, so render them
+			// Not print intent: pdf.js only paints an annotation for printing
+			// when its PRINT flag is set, and Zotero's exported highlights
+			// carry no flags at all — under which pdf.js treats them as
+			// viewable but not printable, so they vanish without a word.
 			await page.render({
 				canvasContext: ctx,
 				viewport: scaled,
-				intent: "print",
-				annotationMode: 2,
+				intent: "display",
+				annotationMode: 1,
 			}).promise;
 
 			let blob = await canvas.convertToBlob({
