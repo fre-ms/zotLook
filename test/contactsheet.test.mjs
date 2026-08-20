@@ -154,5 +154,86 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
   eq(await R._pickPdfAttachment([parent(['A', 'B'])]), null, 'nothing resolvable yields nothing');
 }
 
+// ── the sheet shows annotations too ───────────────────────────────────
+// Space and Option+Space must not disagree about what the document looks like,
+// and on a sheet of every page the marked-up ones are what one is looking for.
+{
+  const withAnnotations = (annotations, exported = []) => {
+    const attachment = {
+      id: 3, key: 'ANNKEY', libraryID: 1,
+      isNote: () => false, isAttachment: () => true,
+      isPDFAttachment: () => true, attachmentFilename: 'paper.pdf',
+      getAnnotations: () => annotations,
+    };
+    const calls = [];
+    const { ZotLook: Q } = loadPlugin({
+      IOUtils: { exists: async () => false, makeDirectory: async () => {},
+                 write: async () => {}, setPermissions: async () => {} },
+      zotero: {
+        Libraries: { get: () => ({ isGroup: false }) },
+        PDFWorker: { export: async (id, path) => { exported.push(path); } },
+      },
+    });
+    Q.version = '1.1.0';
+    Q._getTempDirPath = () => '/tmp/zt';
+    Q._getAttachmentPath = async () => '/lib/paper.pdf';
+    Q._ensureBinary = async () => '/tmp/zt/contactsheet-1.1.0';
+    Q._showProgress = () => ({}); Q._closeProgress = () => {};
+    Q._runProcess = async (cmd, args) => { calls.push(args); return { exitCode: 0 }; };
+    return { Q, calls, attachment, exported };
+  };
+
+  {
+    const exported = [];
+    const { Q, calls, attachment } = withAnnotations([{ dateModified: '2026-01-01' }], exported);
+    const out = await Q._buildContactSheet([attachment]);
+    ok(out, 'a sheet is produced');
+    eq(exported.length, 1, 'the annotated copy was exported');
+    eq(calls[0][0], exported[0], 'and it is what the renderer is given');
+    ok(!calls[0][0].includes('/lib/'), 'not the stored file');
+  }
+
+  {
+    const exported = [];
+    const { Q, calls, attachment } = withAnnotations([], exported);
+    await Q._buildContactSheet([attachment]);
+    eq(exported.length, 0, 'an unannotated PDF is not exported');
+    eq(calls[0][0], '/lib/paper.pdf', 'and the stored file is rendered');
+  }
+
+  // The sheet keeps one name either way, so toggling the setting does not
+  // leave a second file behind
+  {
+    const a = await withAnnotations([{ dateModified: '2026-01-01' }]).Q
+      ._buildContactSheet([withAnnotations([]).attachment]);
+    const b = await withAnnotations([]).Q
+      ._buildContactSheet([withAnnotations([]).attachment]);
+    eq(a, b, 'the sheet is named after the source, not after what was rendered');
+  }
+
+  // Turning annotations off reaches the sheet as well
+  {
+    const exported = [];
+    const { attachment } = withAnnotations([]);
+    const calls = [];
+    const { ZotLook: Q } = loadPlugin({
+      prefValues: { 'extensions.zotlook.previewAnnotations': false },
+      IOUtils: { exists: async () => false, makeDirectory: async () => {} },
+      zotero: { Libraries: { get: () => ({ isGroup: false }) },
+                PDFWorker: { export: async (i, p) => { exported.push(p); } } },
+    });
+    Q.version = '1.1.0';
+    Q._getTempDirPath = () => '/tmp/zt';
+    Q._getAttachmentPath = async () => '/lib/paper.pdf';
+    Q._ensureBinary = async () => '/tmp/zt/contactsheet-1.1.0';
+    Q._showProgress = () => ({}); Q._closeProgress = () => {};
+    Q._runProcess = async (cmd, args) => { calls.push(args); return { exitCode: 0 }; };
+    attachment.getAnnotations = () => [{ dateModified: '2026-01-01' }];
+    await Q._buildContactSheet([attachment]);
+    eq(exported.length, 0, 'the setting switches it off for the sheet too');
+    eq(calls[0][0], '/lib/paper.pdf', 'so the stored file is rendered');
+  }
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

@@ -630,17 +630,20 @@ var ZotLook = {
 			return null;
 		}
 
-		// Generate contact sheet for the first PDF
-		let pdfPath = chosen.path;
+		// Render the annotated copy where there is one: on a sheet of every
+		// page, the marked-up ones are exactly what makes it worth scanning.
+		let pdfPath = (await this._annotatedCopy(chosen.item)) || chosen.path;
 		let tempDir = this._getTempDirPath();
 		await IOUtils.makeDirectory(tempDir, { ignoreExisting: true });
 
 		// Name the output after the source so a second contact sheet does not
 		// overwrite one that QuickLook may still have open
+		// Named after the source rather than after what is rendered, so the
+		// sheet keeps one name whether or not annotations were drawn in
 		let outputPath = PathUtils.join(
 			tempDir,
 			"contactsheet_" +
-				ZotLookUtil.safeName(PathUtils.filename(pdfPath), 60) +
+				ZotLookUtil.safeName(PathUtils.filename(chosen.path), 60) +
 				".html"
 		);
 
