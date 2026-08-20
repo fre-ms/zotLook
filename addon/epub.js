@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-/* global Zotero, PathUtils, IOUtils, ZotLookUtil */
+/* global Zotero, PathUtils, IOUtils, Services, ZotLookUtil */
 
 /**
  * Renders an epub into a single HTML page that QuickLook can display.
@@ -139,6 +139,31 @@ var ZotLookEpub = {
 		);
 	},
 
+	/**
+	 * The extractor for this platform. /usr/bin/unzip is where macOS and the
+	 * Linux distributions keep it, but it is not a Windows tool; there bsdtar
+	 * has shipped with the system since Windows 10, and it reads zip
+	 * archives — the epub container included — detecting the format itself.
+	 */
+	_unpackCommand(epubPath, extractDir) {
+		if (Zotero.isWin) {
+			let root = "C:\\Windows";
+			try {
+				root = Services.env.get("SystemRoot") || root;
+			} catch (e) {
+				// Services.env is a recent arrival; the default serves
+			}
+			return {
+				command: root + "\\System32\\tar.exe",
+				args: ["-xf", epubPath, "-C", extractDir],
+			};
+		}
+		return {
+			command: "/usr/bin/unzip",
+			args: ["-o", "-q", epubPath, "-d", extractDir],
+		};
+	},
+
 	async _unpack(epubPath, extractDir, env) {
 		try {
 			await IOUtils.remove(extractDir, {
@@ -152,11 +177,10 @@ var ZotLookEpub = {
 
 		this.log("Extracting: " + epubPath);
 		try {
-			let result = await env.runProcess(
-				"/usr/bin/unzip",
-				["-o", "-q", epubPath, "-d", extractDir],
-				{ timeoutMs: this.UNZIP_TIMEOUT_MS }
-			);
+			let { command, args } = this._unpackCommand(epubPath, extractDir);
+			let result = await env.runProcess(command, args, {
+				timeoutMs: this.UNZIP_TIMEOUT_MS,
+			});
 			if (result.exitCode !== 0) {
 				this.log("unzip failed with code " + result.exitCode);
 				return false;
