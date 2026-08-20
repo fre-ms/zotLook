@@ -10,6 +10,7 @@
 
 const PDF_JS = "resource://zotero/reader/pdf/build/pdf.mjs";
 const PDF_WORKER = "resource://zotero/reader/pdf/build/pdf.worker.mjs";
+const PDF_WEB = "resource://zotero/reader/pdf/web/";
 
 let pdfjs = null;
 
@@ -96,11 +97,12 @@ stage("worker running");
 
 self.addEventListener("message", async (event) => {
 	let report = { ok: false, stage: "done", steps: {}, pages: [], error: null };
-	let sample = null;
+	let samples = [];
 
 	try {
 		let payload = event.data || {};
-		let { data, maxPages, width, quality } = payload;
+		let { data, maxPages, width, quality, samplePages } = payload;
+		let wanted = new Set(samplePages || [1]);
 		stage("message received", { bytes: data ? data.byteLength : null });
 		if (!data) throw new Error("no PDF data in the message");
 
@@ -119,6 +121,23 @@ self.addEventListener("message", async (event) => {
 			isEvalSupported: false,
 			CanvasFactory: OffscreenCanvasFactory,
 			FilterFactory: NoFilterFactory,
+
+			// A worker has no FontFace registry, so pdf.js has to draw glyph
+			// outlines itself. Left at its default it renders text as blocks.
+			disableFontFace: true,
+			useSystemFonts: false,
+
+			// Zotero ships the substitution fonts, character maps and wasm the
+			// renderer falls back on; without these, anything with an unusual
+			// encoding or a JPEG 2000 image would come out wrong.
+			standardFontDataUrl: PDF_WEB + "standard_fonts/",
+			cMapUrl: PDF_WEB + "cmaps/",
+			cMapPacked: true,
+			wasmUrl: PDF_WEB + "wasm/",
+
+			// Stated outright: pdf.js would otherwise work this out from
+			// document.baseURI, which does not exist here.
+			useWorkerFetch: false,
 		}).promise;
 		report.steps.openMs = Date.now() - t1;
 		report.pageCount = doc.numPages;
@@ -157,9 +176,9 @@ self.addEventListener("message", async (event) => {
 			});
 			report.pages.push({ page: i, ms: Date.now() - tp, bytes: blob.size });
 
-			if (i === 1) {
-				sample = await blob.arrayBuffer();
-				stage("first page rendered", { ms: report.pages[0].ms });
+			if (wanted.has(i)) {
+				samples.push({ page: i, buffer: await blob.arrayBuffer() });
+				stage("page " + i + " rendered", { ms: report.pages[i - 1].ms });
 			}
 			page.cleanup();
 		}
@@ -170,6 +189,9 @@ self.addEventListener("message", async (event) => {
 		report.error = String(e && e.stack ? e.stack : e);
 	}
 
-	report.sample = sample;
-	self.postMessage(report, sample ? [sample] : []);
+	report.samples = samples;
+	self.postMessage(
+		report,
+		samples.map((s) => s.buffer)
+	);
 });

@@ -884,7 +884,7 @@ var ZotLook = {
 					stage: r.stage || "?",
 					ms: r.wallMs,
 					detail: Object.keys(r)
-						.filter((k) => !["stage", "wallMs", "sample", "pages"].includes(k))
+						.filter((k) => !["stage", "wallMs", "samples", "pages"].includes(k))
 						.reduce((o, k) => Object.assign(o, { [k]: r[k] }), {}),
 				});
 				await writeReport({
@@ -923,18 +923,23 @@ var ZotLook = {
 					Math.round((median * 300) / 1000) + " s"
 				);
 
-				// Write the first page out so the annotations can be eyeballed
-				if (r.sample) {
+				// Write the sample pages out so the result can be eyeballed —
+				// text and annotations are what a timing cannot tell us
+				let written = [];
+				for (let sample of r.samples || []) {
 					try {
 						let dir = this._getTempDirPath();
 						await IOUtils.makeDirectory(dir, { ignoreExisting: true });
-						let out = PathUtils.join(dir, "bench-page1.jpg");
-						await IOUtils.write(out, new Uint8Array(r.sample));
-						this.log("BENCH: first page written to " + out);
-						await this._launchPreview([out]);
+						let out = PathUtils.join(dir, "bench-page" + sample.page + ".jpg");
+						await IOUtils.write(out, new Uint8Array(sample.buffer));
+						written.push(out);
 					} catch (e) {
 						this.log("BENCH: could not write the sample: " + e);
 					}
+				}
+				if (written.length) {
+					this.log("BENCH: samples written to " + written.join(", "));
+					await this._launchPreview(written);
 				}
 
 				worker.terminate();
@@ -956,7 +961,14 @@ var ZotLook = {
 			});
 
 			worker.postMessage(
-				{ data: bytes.buffer, maxPages: MAX_PAGES, width: WIDTH, quality: 0.7 },
+				{
+					data: bytes.buffer,
+					maxPages: MAX_PAGES,
+					width: WIDTH,
+					quality: 0.7,
+					// Page 3 carries the most highlights in the test document
+					samplePages: [1, 3],
+				},
 				[bytes.buffer]
 			);
 		});
