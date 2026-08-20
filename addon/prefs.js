@@ -38,3 +38,10 @@ pref("extensions.zotlook.epubOwnRenderer", true);
 // preview shows an unmarked document. Exporting a copy with them drawn in is
 // skipped entirely for attachments that have none.
 pref("extensions.zotlook.previewAnnotations", true);
+
+// Which renderer draws the contact sheet. "auto" uses the bundled binary on
+// macOS and pdf.js elsewhere, which is what everyone wants; "portable" forces
+// pdf.js. Deliberately absent from the preference pane — it exists so the
+// portable renderer can be exercised on a Mac, where it would otherwise never
+// run and so never be tested by anyone able to fix it.
+pref("extensions.zotlook.renderer", "auto");

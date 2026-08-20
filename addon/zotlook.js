@@ -675,7 +675,7 @@ var ZotLook = {
 
 			// PDFKit is several times faster where it can be built, so macOS
 			// keeps it; pdf.js is what makes the sheet exist anywhere else.
-			let manifest = Zotero.isMac
+			let manifest = this._useNativeRenderer()
 				? await this._renderPagesNatively(
 					pdfPath,
 					imageDir,
@@ -724,6 +724,16 @@ var ZotLook = {
 		}
 
 		return outputPath;
+	},
+
+	/**
+	 * Whether to render through the bundled binary. Only macOS ships one, and
+	 * the hidden renderer preference can force the portable path there so it
+	 * can be tried out by someone in a position to fix it.
+	 */
+	_useNativeRenderer() {
+		if (!Zotero.isMac) return false;
+		return this._pref("renderer", "auto") !== "portable";
 	},
 
 	/**

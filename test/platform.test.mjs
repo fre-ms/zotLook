@@ -7,10 +7,10 @@ const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++
   console.log((ok?'ok  ':'FAIL')+'  '+l+(ok?'':`  (got ${JSON.stringify(g)}, want ${JSON.stringify(w)})`));};
 const ok=(c,l)=>eq(!!c,true,l);
 
-const on = (platform) => {
+const on = (platform, prefValues = {}) => {
   const flags = { isMac: false, isLinux: false, isWin: false };
   flags['is' + platform] = true;
-  const { ZotLook: Q } = loadPlugin({ zotero: flags });
+  const { ZotLook: Q } = loadPlugin({ zotero: flags, prefValues });
   Q._ensureBinary = async (name) => '/tmp/zt/' + name + '-1.1.0';
   return Q;
 };
@@ -77,6 +77,14 @@ const on = (platform) => {
   eq(mac._contactSheetPreviewable(), true, 'QuickLook can show it');
   eq(linux._contactSheetPreviewable(), true, 'Sushi can show it');
   eq(win._contactSheetPreviewable(), false, 'nothing on Windows can');
+  // Which renderer draws it, and the hidden switch that forces the portable
+  // one so it can be tried on a Mac — where it would otherwise never run
+  eq(mac._useNativeRenderer(), true, 'macOS renders through the binary');
+  eq(linux._useNativeRenderer(), false, 'Linux through pdf.js');
+  eq(win._useNativeRenderer(), false, 'Windows likewise');
+  eq(on('Mac', { 'extensions.zotlook.renderer': 'portable' })._useNativeRenderer(),
+     false, 'and the switch forces pdf.js on a Mac');
+
   const quickLookSheet = mac.MENU_ITEMS.find(e => e.needsSystemPreview);
   ok(quickLookSheet, 'the QuickLook sheet is marked as needing one');
   const pdf = { isNote: () => false, isAttachment: () => true,
