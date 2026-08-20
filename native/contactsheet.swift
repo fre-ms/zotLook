@@ -10,8 +10,12 @@
 // whereas the same book here yields roughly 20 KB of HTML next to its images,
 // and the images are decoded only as they scroll into view.
 //
-// Pages render concurrently. CGPDFDocument is not thread-safe, so each worker
-// opens its own handle to the same file; that took the 300-page book from 44 s
+// Pages are drawn through PDFKit rather than CGContext.drawPDFPage, which
+// renders only a page's content stream and silently omits its annotations —
+// so a sheet of a PDF exported with Zotero's highlights showed none of them.
+//
+// Pages render concurrently. A PDF document handle is not thread-safe, so each
+// worker opens its own on the same file; that took the 300-page book from 44 s
 // to about 7 s on ten cores.
 //
 // Usage: contactsheet <input.pdf> <output.html> [columns] [max_pages] [link_base]
@@ -24,6 +28,7 @@
 // nothing, so they cost nothing where they are inert.
 
 import Foundation
+import PDFKit
 import CoreGraphics
 import ImageIO
 import Dispatch
@@ -41,10 +46,8 @@ let maxPages = CommandLine.arguments.count > 4 ? Int(CommandLine.arguments[4]) ?
 // Empty means the thumbnails are not clickable
 let linkBase = CommandLine.arguments.count > 5 ? CommandLine.arguments[5] : ""
 
-func openDocument() -> CGPDFDocument? {
-    guard let url = CFURLCreateWithFileSystemPath(
-        nil, inputPath as CFString, .cfurlposixPathStyle, false) else { return nil }
-    return CGPDFDocument(url)
+func openDocument() -> PDFDocument? {
+    PDFDocument(url: URL(fileURLWithPath: inputPath))
 }
 
 guard let probe = openDocument() else {
@@ -52,7 +55,7 @@ guard let probe = openDocument() else {
     exit(1)
 }
 
-let pageCount = probe.numberOfPages
+let pageCount = probe.pageCount
 guard pageCount > 0 else {
     fputs("Error: PDF has no pages\n", stderr)
     exit(1)
@@ -82,20 +85,20 @@ do {
 }
 
 /// Rendered size of a page, honouring its crop box and /Rotate entry.
-func displaySize(_ page: CGPDFPage, width: Int) -> (CGRect, Int)? {
-    let box = page.getBoxRect(.cropBox)
+/// PDFKit applies the rotation when drawing, so only the extent has to be
+/// swapped for a page turned a quarter round.
+func displaySize(_ page: PDFPage, width: Int) -> (visible: CGSize, height: Int)? {
+    let box = page.bounds(for: .cropBox)
     guard box.width > 0, box.height > 0 else { return nil }
-    var angle = Int(page.rotationAngle) % 360
-    if angle < 0 { angle += 360 }
-    let quarterTurned = (angle == 90 || angle == 270)
-    let visibleWidth = quarterTurned ? box.height : box.width
-    let visibleHeight = quarterTurned ? box.width : box.height
-    let scale = CGFloat(width) / visibleWidth
-    return (box, max(1, Int((visibleHeight * scale).rounded())))
+    let quarterTurned = (abs(page.rotation) % 180) == 90
+    let visible = CGSize(width: quarterTurned ? box.height : box.width,
+                         height: quarterTurned ? box.width : box.height)
+    let scale = CGFloat(width) / visible.width
+    return (visible, max(1, Int((visible.height * scale).rounded())))
 }
 
 let workers = min(ProcessInfo.processInfo.activeProcessorCount, renderCount)
-var documents: [CGPDFDocument] = []
+var documents: [PDFDocument] = []
 for _ in 0..<workers {
     guard let doc = openDocument() else {
         fputs("Error: Cannot reopen PDF for concurrent rendering\n", stderr)
@@ -115,8 +118,8 @@ DispatchQueue.concurrentPerform(iterations: workers) { worker in
     while pageNum <= renderCount {
         defer { pageNum += workers }
 
-        guard let page = document.page(at: pageNum),
-              let (_, height) = displaySize(page, width: renderWidth) else { continue }
+        guard let page = document.page(at: pageNum - 1),
+              let (visible, height) = displaySize(page, width: renderWidth) else { continue }
 
         guard let ctx = CGContext(
             data: nil,
@@ -131,15 +134,11 @@ DispatchQueue.concurrentPerform(iterations: workers) { worker in
         ctx.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
         ctx.fill(CGRect(x: 0, y: 0, width: renderWidth, height: height))
 
-        // CoreGraphics builds the transform: it maps the crop box into our
-        // bitmap and applies the page's own rotation, which a manual
-        // scale/translate does not.
-        ctx.concatenate(page.getDrawingTransform(
-            .cropBox,
-            rect: CGRect(x: 0, y: 0, width: CGFloat(renderWidth), height: CGFloat(height)),
-            rotate: 0,
-            preserveAspectRatio: true))
-        ctx.drawPDFPage(page)
+        // PDFPage.draw renders the page together with its annotations and
+        // applies the page rotation, so only the scale has to be set up here.
+        ctx.scaleBy(x: CGFloat(renderWidth) / visible.width,
+                    y: CGFloat(height) / visible.height)
+        page.draw(with: .cropBox, to: ctx)
 
         guard let image = ctx.makeImage() else { continue }
 
