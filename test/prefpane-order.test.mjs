@@ -9,7 +9,7 @@ const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++
   console.log((ok?'ok  ':'FAIL')+'  '+l+(ok?'':`  (got ${JSON.stringify(g)}, want ${JSON.stringify(w)})`));};
 const ok=(c,l)=>eq(!!c,true,l);
 
-async function openPane(prefs = {}) {
+async function openPane(prefs = {}, isMac = true) {
   const { DOMParser } = await import('linkedom');
   // Zotero resolves the html: prefix; linkedom needs it stripped
   const fragment = fs.readFileSync(ADDON + 'prefs-pane.xhtml', 'utf8')
@@ -23,7 +23,7 @@ async function openPane(prefs = {}) {
   const store = { ...prefs };
   const Zotero = {
     debug: () => {},
-    isMac: true,
+    isMac,
     getMainWindow: () => null,
     Prefs: {
       get: (n) => store[n],
@@ -37,6 +37,28 @@ async function openPane(prefs = {}) {
     Zotero, ZotLookUtil, doc, { document: doc },
     class { observe() {} disconnect() {} });
   return { doc, store };
+}
+
+// ── "Restore defaults" has to offer a shortcut that can actually fire ──
+// The pane writes an explicit value rather than clearing the preference, so
+// its idea of the default is what the user ends up with — and Alt+Space, the
+// old one, is the window menu on GNOME and on Windows, taken by the window
+// manager before Zotero sees the key.
+{
+  const { ZotLookUtil: U } = loadPlugin();
+  for (const isMac of [true, false]) {
+    const { doc, store } = await openPane({}, isMac);
+    doc.getElementById('zotlook-reset-shortcuts')
+       .dispatchEvent(new doc.defaultView.Event('command'));
+    eq(store['extensions.zotlook.key.contactSheet'], 'Ctrl+Shift+Space',
+       `${isMac ? 'macOS' : 'Linux'}: reset offers the shipped shortcut`);
+    eq(store['extensions.zotlook.key.preview'], U.defaultShortcut('key.preview'),
+       'and the other actions get theirs');
+    // Only how it is written differs: keycap symbols are a Mac convention
+    eq(doc.getElementById('zotlook-key-contactSheet').getAttribute('label'),
+       isMac ? '\u2303\u21e7Space' : 'Ctrl+Shift+Space',
+       'the button face is written the way that platform writes it');
+  }
 }
 
 const typesInOrder = (doc) =>

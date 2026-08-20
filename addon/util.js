@@ -194,8 +194,34 @@ var ZotLookUtil = {
 
 	MODIFIERS: ["Ctrl", "Alt", "Shift", "Meta"],
 
-	// Displayed the way macOS writes them
+	// Displayed the way macOS writes them; elsewhere the names are spelled out
 	MODIFIER_SYMBOLS: { Ctrl: "\u2303", Alt: "\u2325", Shift: "\u21e7", Meta: "\u2318" },
+	MODIFIER_NAMES: { Ctrl: "Ctrl", Alt: "Alt", Shift: "Shift", Meta: "Super" },
+
+	/**
+	 * The shortcut this plugin ships for each action, and the list the
+	 * settings pane reads for "Restore defaults" — the pane stores an explicit
+	 * value rather than clearing the preference, so its idea of the default
+	 * has to be the same one. prefs.js repeats these for Gecko's preference
+	 * parser, and a test holds the two together.
+	 *
+	 * Every one of them has to survive a window manager, which takes its own
+	 * combinations before the application is asked at all. That rules out
+	 * Alt+Space, the window menu on GNOME and on Windows, and it is why the
+	 * contact sheet sits on Ctrl+Shift+Space: free on all three systems, where
+	 * plain Ctrl+Space is the input-method toggle on two of them.
+	 */
+	SHORTCUT_DEFAULTS: {
+		"key.preview": "Space",
+		"key.notes": "Shift+Space",
+		"key.contactSheet": "Ctrl+Shift+Space",
+		"key.contactSheetWindow": "Shift+Alt+Space",
+	},
+
+	/** The shipped shortcut for one action, or "" if there is no such action. */
+	defaultShortcut(pref) {
+		return this.SHORTCUT_DEFAULTS[pref] || "";
+	},
 
 	/**
 	 * Parses a stored shortcut such as "Alt+Space" or "Meta+y".
@@ -242,17 +268,20 @@ var ZotLookUtil = {
 	},
 
 	/**
-	 * Human-readable form, e.g. "⌥Space" or "⌘Y".
+	 * Human-readable form: "⌥Space" or "⌘Y" on macOS, "Alt+Space" elsewhere.
+	 * The symbols are what a Mac user reads on their own keycaps and nothing
+	 * else; on Linux and Windows they are four characters nobody can name.
 	 */
-	describeShortcut(binding) {
+	describeShortcut(binding, isMac = true) {
 		if (!binding) return "";
-		let symbols = this.MODIFIERS.filter((m) => binding[m.toLowerCase()])
-			.map((m) => this.MODIFIER_SYMBOLS[m])
-			.join("");
+		let held = this.MODIFIERS.filter((m) => binding[m.toLowerCase()]);
 		let target = binding.code
 			? binding.code.replace(/^Key/, "")
 			: (binding.key || "").toUpperCase();
-		return symbols + target;
+		if (isMac) {
+			return held.map((m) => this.MODIFIER_SYMBOLS[m]).join("") + target;
+		}
+		return held.map((m) => this.MODIFIER_NAMES[m]).concat(target).join("+");
 	},
 
 	/**

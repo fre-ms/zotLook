@@ -7,7 +7,7 @@ const ok = (c,l)=>eq(!!c,true,l);
 
 // ── keyboard binding table ────────────────────────────────────────────
 {
-  const { ZotLook: Q } = loadPlugin();
+  const { ZotLook: Q, ZotLookUtil: U } = loadPlugin();
   const opened = [];
   for (const m of ['_openQuickLook','_openNotePreview','_openContactSheet',
                    '_openContactSheetInViewer']) Q[m] = () => opened.push(m);
@@ -22,11 +22,18 @@ const ok = (c,l)=>eq(!!c,true,l);
 
   eq(press({code:'Space'}).opened, '_openQuickLook', 'Space previews');
   eq(press({code:'Space', shiftKey:true}).opened, '_openNotePreview', 'Shift+Space previews notes');
-  eq(press({code:'Space', altKey:true}).opened, '_openContactSheet', 'Option+Space builds a contact sheet');
+  // Pressed as shipped rather than as a literal, so changing the default
+  // cannot leave this asserting a combination nothing is bound to any more
+  const sheetKey = U.parseShortcut(U.defaultShortcut('key.contactSheet'));
+  eq(press({ code: sheetKey.code, ctrlKey: !!sheetKey.ctrl, shiftKey: !!sheetKey.shift,
+             altKey: !!sheetKey.alt, metaKey: !!sheetKey.meta }).opened,
+     '_openContactSheet',
+     `${U.defaultShortcut('key.contactSheet')} builds a contact sheet`);
   eq(press({code:'Space'}).prevented, true, 'a matched key is consumed');
 
   // exact modifier matching: no combination reaches two entries or the wrong one
-  eq(press({code:'Space', ctrlKey:true}).opened, null, 'Ctrl+Space ignored');
+  eq(press({code:'Space', ctrlKey:true}).opened, null,
+     'Ctrl+Space ignored: it toggles the input method on Linux');
   eq(press({code:'Space', metaKey:true}).opened, null, 'Cmd+Space ignored (Spotlight)');
   eq(press({code:'Space', shiftKey:true, altKey:true}).opened, '_openContactSheetInViewer',
      'Shift+Option+Space opens the sheet in a window');

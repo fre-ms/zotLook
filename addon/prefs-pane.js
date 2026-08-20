@@ -17,13 +17,24 @@
 (function () {
 	const PREF_BRANCH = "extensions.zotlook.";
 
+	// One source of truth for the shipped shortcuts, shared with the plugin:
+	// "Restore defaults" here has to offer the same combination the plugin
+	// listens for.
 	const ACTIONS = [
-		{ key: "preview", pref: "key.preview", default: "Space" },
-		{ key: "notes", pref: "key.notes", default: "Shift+Space" },
-		{ key: "contactSheet", pref: "key.contactSheet", default: "Alt+Space" },
-		{ key: "contactSheetWindow", pref: "key.contactSheetWindow",
-		  default: "Shift+Alt+Space" },
-	];
+		{ key: "preview", pref: "key.preview" },
+		{ key: "notes", pref: "key.notes" },
+		{ key: "contactSheet", pref: "key.contactSheet" },
+		{ key: "contactSheetWindow", pref: "key.contactSheetWindow" },
+	].map((action) =>
+		Object.assign(action, {
+			default: ZotLookUtil.defaultShortcut(action.pref),
+		})
+	);
+
+	/** Shortcut text: Mac keycap symbols there, spelled out everywhere else. */
+	function describe(shortcut) {
+		return ZotLookUtil.describeShortcut(shortcut, !!Zotero.isMac);
+	}
 
 	function getPref(name, fallback) {
 		try {
@@ -82,7 +93,7 @@
 	function refresh(root, button, action) {
 		delete button.dataset.recording;
 		let shortcut = ZotLookUtil.parseShortcut(getPref(action.pref, action.default));
-		let text = shortcut ? ZotLookUtil.describeShortcut(shortcut) : "";
+		let text = shortcut ? describe(shortcut) : "";
 		button.removeAttribute("data-l10n-id");
 		if (text) {
 			button.setAttribute("label", text);
@@ -120,7 +131,7 @@
 			if (!shortcut) return; // modifiers only, so far
 			recorded = shortcut;
 			button.removeAttribute("data-l10n-id");
-			button.setAttribute("label", ZotLookUtil.describeShortcut(shortcut));
+			button.setAttribute("label", describe(shortcut));
 		};
 
 		let onKeyUp = (event) => {
@@ -286,7 +297,7 @@
 		let conflicts = ZotLookUtil.findShortcutConflicts(shortcut, registry);
 		if (!conflicts.length) return null;
 		return {
-			shortcut: ZotLookUtil.describeShortcut(shortcut),
+			shortcut: describe(shortcut),
 			conflicts: conflicts.map((c) => c.label).join(", "),
 		};
 	}

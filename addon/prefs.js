@@ -12,7 +12,12 @@ pref("extensions.zotlook.contactSheetMaxPages", 0);
 // ZotLookUtil.parseShortcut for why both forms exist.
 pref("extensions.zotlook.key.preview", "Space");
 pref("extensions.zotlook.key.notes", "Shift+Space");
-pref("extensions.zotlook.key.contactSheet", "Alt+Space");
+// Not Alt+Space: that is the window menu on GNOME and on Windows, and a window
+// manager takes its combinations before the application is asked, so the
+// shortcut could never fire there. Ctrl+Shift+Space is free on all three
+// systems. Plain Ctrl+Space is not — it toggles the input method on Linux and
+// switches input source on macOS.
+pref("extensions.zotlook.key.contactSheet", "Ctrl+Shift+Space");
 // Shift+Option+Space rather than Ctrl+Option+Space: the latter is the macOS
 // default for cycling input sources, which springs back into life as soon as
 // a second keyboard layout is enabled.

@@ -319,10 +319,10 @@ const Items = { get: (id) => store.get(id) };
   let sheet = 0;
   Q._openContactSheet = () => { sheet++; };
   let prevented = false;
-  Q._onKeyDown({ code:'Space', key:' ', shiftKey:false, altKey:true, metaKey:false, ctrlKey:false,
+  Q._onKeyDown({ code:'Space', key:' ', shiftKey:true, altKey:false, metaKey:false, ctrlKey:true,
     preventDefault(){prevented=true}, stopPropagation(){} }, win('mül'));
   eq({ prevented, sheet }, { prevented: true, sheet: 1 },
-     'Option+Space still works during a search');
+     'Ctrl+Shift+Space still works during a search');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');

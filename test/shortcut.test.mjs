@@ -32,6 +32,12 @@ eq(U.formatShortcut(sc({})), '', 'formatting a shortcut with no key');
 eq(U.describeShortcut(U.parseShortcut('Alt+Space')), '⌥Space', 'option symbol');
 eq(U.describeShortcut(U.parseShortcut('Meta+y')), '⌘Y', 'command symbol, key upper-cased');
 eq(U.describeShortcut(U.parseShortcut('Ctrl+Shift+KeyQ')), '⌃⇧Q', 'KeyQ shown as Q');
+// The symbols are Mac keycaps; elsewhere they are four characters nobody reads
+eq(U.describeShortcut(U.parseShortcut('Ctrl+Shift+Space'), false), 'Ctrl+Shift+Space',
+   'spelled out off macOS');
+eq(U.describeShortcut(U.parseShortcut('Meta+y'), false), 'Super+Y',
+   'and Meta is the Super key there, not Command');
+eq(U.describeShortcut(null, false), '', 'no binding, no text');
 
 // ── shortcutFromEvent ─────────────────────────────────────────────────
 const ev = (o) => ({ key:'', code:'', ctrlKey:false, altKey:false, metaKey:false, shiftKey:false, ...o });
@@ -104,9 +110,13 @@ ok(true, 'no two default shortcuts collide with each other');
 // ── edits take effect without a restart ───────────────────────────────
 {
   const prefs = stubPrefs();
-  const { ZotLook: B } = loadPlugin({ Prefs: prefs });
+  const { ZotLook: B, ZotLookUtil: V } = loadPlugin({ Prefs: prefs });
   B.KEY_ACTIONS.forEach(a => B._observePref(a.pref, () => { B._bindings = null; }));
-  eq(B.bindings.find(b => b.open === '_openContactSheet').alt, true, 'default is Option+Space');
+  const shipped = V.parseShortcut(V.defaultShortcut('key.contactSheet'));
+  const bound = B.bindings.find(b => b.open === '_openContactSheet');
+  eq([bound.ctrl, bound.shift, bound.alt, bound.meta, bound.code],
+     [shipped.ctrl, shipped.shift, shipped.alt, shipped.meta, shipped.code],
+     `the shipped default is bound (${V.defaultShortcut('key.contactSheet')})`);
   prefs.set('extensions.zotlook.key.contactSheet', 'Ctrl+Shift+KeyC');
   const rebound = B.bindings.find(b => b.open === '_openContactSheet');
   eq([rebound.ctrl, rebound.shift, rebound.code], [true, true, 'KeyC'], 'rebinding is picked up live');
@@ -147,6 +157,42 @@ ok(true, 'no two default shortcuts collide with each other');
     eq(clash, undefined,
        `${U.describeShortcut(binding)} (${binding.open}) avoids the macOS defaults`);
   }
+}
+
+// ── and the window manager's, where there is one ──────────────────────
+// A window manager grabs its own combinations before the application sees the
+// key at all, so a default sitting on one can never fire. GNOME and Windows
+// both put the window menu on Alt+Space; GNOME additionally takes Super+Space
+// and Shift+Super+Space for input sources.
+{
+  const { ZotLookUtil: U } = loadPlugin();
+  const grabbed = ['Alt+Space', 'Meta+Space', 'Shift+Meta+Space']
+    .map((s) => U.parseShortcut(s));
+  for (const pref of Object.keys(U.SHORTCUT_DEFAULTS)) {
+    const binding = U.parseShortcut(U.defaultShortcut(pref));
+    const clash = grabbed.find((sys) => U.shortcutsEqual(sys, binding));
+    eq(clash, undefined,
+       `${pref}: ${U.defaultShortcut(pref)} survives the window manager`);
+  }
+}
+
+// ── the shipped list and prefs.js must not drift apart ────────────────
+// The pane's "Restore defaults" reads the first, a fresh profile gets the
+// second, and nothing but this test holds them together.
+{
+  const { ZotLook: Q, ZotLookUtil: U } = loadPlugin();
+  const { defaultPrefs } = await import('./load.mjs');
+  const shipped = defaultPrefs();
+  eq(Object.keys(U.SHORTCUT_DEFAULTS).sort(), Q.KEY_ACTIONS.map((a) => a.pref).sort(),
+     'the list covers exactly the actions that have a shortcut');
+  for (const [pref, value] of Object.entries(U.SHORTCUT_DEFAULTS)) {
+    eq(shipped['extensions.zotlook.' + pref], value,
+       `${pref}: prefs.js and SHORTCUT_DEFAULTS agree on ${value}`);
+    eq(U.defaultShortcut(pref), value, `${pref}: and the lookup returns it`);
+  }
+  eq(U.defaultShortcut('key.nonsense'), '', 'an unknown action has no default');
+  eq(U.defaultShortcut('key.contactSheet'), 'Ctrl+Shift+Space',
+     'the contact sheet is on the one combination free on all three systems');
 }
 
 // ── contact sheet columns ─────────────────────────────────────────────
