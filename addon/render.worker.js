@@ -21,6 +21,16 @@ import * as pdfjs from "resource://zotero/reader/pdf/build/pdf.mjs";
 
 const PDF_WEB = "resource://zotero/reader/pdf/web/";
 
+// pdf.js reads this before it does anything else and throws outright if it is
+// unset — which is what stopped every sheet on this path. It cannot actually
+// start that worker here: it checks the origin against window.location first,
+// and a worker has no window, so it catches its own failure and parses in this
+// thread instead. That is the arrangement the timings were taken under, and it
+// is fine — the concurrency comes from running several of these, not from
+// pdf.js nesting one inside each.
+pdfjs.GlobalWorkerOptions.workerSrc =
+	"resource://zotero/reader/pdf/build/pdf.worker.mjs";
+
 // pdf.js takes these as classes and constructs them itself. Its own defaults
 // reach for document, which a worker has not got.
 class OffscreenCanvasFactory {
