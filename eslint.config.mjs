@@ -1,0 +1,50 @@
+// Static checks for the plugin sources. The one that matters most here is
+// no-undef: a lost function parameter leaves an identifier that still parses
+// but throws at runtime, which `node --check` cannot see.
+export default [
+  {
+    files: ['addon/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: {
+        // Provided by Zotero's plugin sandbox
+        Zotero: 'readonly', ChromeUtils: 'readonly', PathUtils: 'readonly',
+        IOUtils: 'readonly', Services: 'readonly', Localization: 'readonly',
+        DOMParser: 'readonly', fetch: 'readonly', globalThis: 'readonly',
+        setTimeout: 'readonly', clearTimeout: 'readonly',
+        // Browser-ish globals available in the preferences window
+        document: 'readonly', window: 'readonly', MutationObserver: 'readonly',
+        // The plugin's own modules, loaded into one shared scope
+        ZotLook: 'writable', ZotLookUtil: 'writable', ZotLookEpub: 'writable',
+      },
+    },
+    rules: {
+      'no-undef': 'error',
+      'no-unused-vars': ['error', { args: 'none', varsIgnorePattern: '^ZotLook' }],
+      // The sources carry /* global */ comments as documentation; those are
+      // not redeclarations of the environment described above.
+      'no-redeclare': ['error', { builtinGlobals: false }],
+      'no-dupe-keys': 'error',
+      'no-dupe-class-members': 'error',
+      'no-unreachable': 'error',
+      'no-constant-condition': 'error',
+    },
+  },
+  {
+    files: ['test/**/*.mjs', 'eslint.config.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { console: 'readonly', process: 'readonly', globalThis: 'readonly',
+                 setTimeout: 'readonly', clearTimeout: 'readonly', setImmediate: 'readonly',
+                 Event: 'readonly', URL: 'readonly' },
+    },
+    rules: { 'no-undef': 'error', 'no-redeclare': ['error', { builtinGlobals: false }] },
+  },
+  {
+    // The defaults file is evaluated with a pref() function supplied by Zotero
+    files: ['addon/prefs.js'],
+    languageOptions: { globals: { pref: 'readonly' } },
+  },
+];

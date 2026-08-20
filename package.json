@@ -1,0 +1,14 @@
+{
+  "name": "zotlook",
+  "private": true,
+  "description": "Development tooling for the zotLook Zotero plugin. The plugin itself ships no dependencies; linkedom stands in for Gecko's DOM so the parsing and sanitising code can be tested outside Zotero.",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint addon test",
+    "test": "npm run lint && node test/run.mjs"
+  },
+  "devDependencies": {
+    "eslint": "^10.8.1",
+    "linkedom": "^0.18.13"
+  }
+}
