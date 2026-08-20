@@ -77,6 +77,14 @@ var ZotLook = {
 			needsPDF: true,
 			macOnly: true,
 		},
+		// TEMPORARY: measurement entry, removed once the numbers are in
+		{
+			id: "zotlook-bench-menu-item",
+			l10nID: "zotlook-menu-bench",
+			fallback: "zotLook: measure the pdf.js renderer (test)",
+			open: "_benchmarkPdfjs",
+			needsPDF: true,
+		},
 	],
 
 	log(msg) {
@@ -775,6 +783,105 @@ var ZotLook = {
 		let value = Number(this._pref("contactSheetMaxPages", 0));
 		if (!Number.isFinite(value) || value < 0) return 0;
 		return Math.floor(value);
+	},
+
+	// ── Renderer benchmark (temporary) ────────────────────────────────
+
+	/**
+	 * TEMPORARY. Measures the pdf.js build Zotero ships against the bundled
+	 * Swift renderer, which does 300 pages in about 6 s across ten cores.
+	 *
+	 * pdf.js would render on every platform and draw annotations without an
+	 * export, but only a measurement can say whether it is fast enough to
+	 * replace the native path or should only fill in where that cannot run.
+	 * Results go to the debug output; remove this once the numbers are in.
+	 */
+	async _benchmarkPdfjs(items) {
+		const MAX_PAGES = 20;
+		const WIDTH = 500;
+
+		let chosen = await this._pickPdfAttachment(items);
+		if (!chosen) {
+			this.log("BENCH: no PDF selected");
+			return false;
+		}
+
+		let source = (await this._annotatedCopy(chosen.item)) || chosen.path;
+		this.log("BENCH: rendering " + source);
+
+		let bytes;
+		try {
+			bytes = await IOUtils.read(source);
+		} catch (e) {
+			this.log("BENCH: could not read the file: " + e);
+			return false;
+		}
+
+		return new Promise((resolve) => {
+			let worker;
+			try {
+				worker = new ChromeWorker(this.rootURI + "bench.worker.js");
+			} catch (e) {
+				this.log("BENCH: could not start the worker: " + e);
+				resolve(false);
+				return;
+			}
+
+			let started = Date.now();
+			worker.addEventListener("message", async (event) => {
+				let r = event.data;
+				if (!r.ok) {
+					this.log("BENCH: FAILED — " + r.error);
+					worker.terminate();
+					resolve(false);
+					return;
+				}
+
+				let times = r.pages.map((p) => p.ms).sort((a, b) => a - b);
+				let median = times[Math.floor(times.length / 2)];
+				let bytesTotal = r.pages.reduce((sum, p) => sum + p.bytes, 0);
+				this.log(
+					"BENCH: pdf.js " + r.version +
+					" | import " + r.steps.importMs + " ms" +
+					" | open " + r.steps.openMs + " ms" +
+					" | " + r.pages.length + " of " + r.pageCount + " pages in " +
+					r.steps.totalMs + " ms" +
+					" | median/page " + median + " ms" +
+					" | mean size " + Math.round(bytesTotal / r.pages.length / 1024) + " KB" +
+					" | wall " + (Date.now() - started) + " ms" +
+					" | extrapolated 300 pages, one thread: " +
+					Math.round((median * 300) / 1000) + " s"
+				);
+
+				// Write the first page out so the annotations can be eyeballed
+				if (r.sample) {
+					try {
+						let dir = this._getTempDirPath();
+						await IOUtils.makeDirectory(dir, { ignoreExisting: true });
+						let out = PathUtils.join(dir, "bench-page1.jpg");
+						await IOUtils.write(out, new Uint8Array(r.sample));
+						this.log("BENCH: first page written to " + out);
+						await this._launchPreview([out]);
+					} catch (e) {
+						this.log("BENCH: could not write the sample: " + e);
+					}
+				}
+
+				worker.terminate();
+				resolve(true);
+			});
+
+			worker.addEventListener("error", (e) => {
+				this.log("BENCH: worker error — " + (e.message || e.filename));
+				worker.terminate();
+				resolve(false);
+			});
+
+			worker.postMessage(
+				{ data: bytes.buffer, maxPages: MAX_PAGES, width: WIDTH, quality: 0.7 },
+				[bytes.buffer]
+			);
+		});
 	},
 
 	// ── Subprocess helpers ────────────────────────────────────────────

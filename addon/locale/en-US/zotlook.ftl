@@ -2,6 +2,7 @@
 zotlook-menu-preview = Quick Look
 zotlook-menu-contactsheet = Quick Look Contact Sheet
 zotlook-menu-contactsheet-window = Contact Sheet in a Window (clickable)
+zotlook-menu-bench = zotLook: measure the pdf.js renderer (test)
 
 # Progress window shown while a contact sheet is being rendered
 zotlook-progress-headline = Quick Look

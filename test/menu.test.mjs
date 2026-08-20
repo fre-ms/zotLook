@@ -89,7 +89,8 @@ const Items = { get: (id) => store.get(id) };
 
   // ── appended, so Zotero's positional indexing of its own entries holds
   eq(popup.firstElementChild.id, 'zotero-own', "Zotero's own entry stays first");
-  eq(popup.lastElementChild.id, Q.MENU_ITEMS[2].id, 'ours are appended at the end');
+  eq(popup.lastElementChild.id, Q.MENU_ITEMS[Q.MENU_ITEMS.length - 1].id,
+     'ours are appended at the end');
   ok(doc.getElementById(Q.SEPARATOR_ID), 'a separator sets them apart');
 
   // ── a reload must not double the entries up

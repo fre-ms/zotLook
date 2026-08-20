@@ -15,6 +15,7 @@ export default [
         setTimeout: 'readonly', clearTimeout: 'readonly',
         // Browser-ish globals available in the preferences window
         document: 'readonly', window: 'readonly', MutationObserver: 'readonly',
+        ChromeWorker: 'readonly', Worker: 'readonly',
         // The plugin's own modules, loaded into one shared scope
         ZotLook: 'writable', ZotLookUtil: 'writable', ZotLookEpub: 'writable',
       },
@@ -46,5 +47,12 @@ export default [
     // The defaults file is evaluated with a pref() function supplied by Zotero
     files: ['addon/prefs.js'],
     languageOptions: { globals: { pref: 'readonly' } },
+  },
+  {
+    // Worker scripts have their own globals rather than the window's
+    files: ['addon/*.worker.js'],
+    languageOptions: {
+      globals: { self: 'readonly', OffscreenCanvas: 'readonly', postMessage: 'readonly' },
+    },
   },
 ];

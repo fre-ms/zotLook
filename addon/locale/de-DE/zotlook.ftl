@@ -4,6 +4,7 @@
 zotlook-menu-preview = Übersicht
 zotlook-menu-contactsheet = Seitenübersicht
 zotlook-menu-contactsheet-window = Seitenübersicht im Fenster (klickbar)
+zotlook-menu-bench = zotLook: pdf.js-Renderer messen (Test)
 
 # Fortschrittsfenster während die Seitenübersicht erzeugt wird
 zotlook-progress-headline = Übersicht
