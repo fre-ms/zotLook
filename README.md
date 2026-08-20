@@ -1,5 +1,7 @@
 # zotLook
 
+[![CI](https://github.com/fre-ms/zotLook/actions/workflows/ci.yml/badge.svg)](https://github.com/fre-ms/zotLook/actions/workflows/ci.yml)
+
 A plugin for Zotero 7 and later (tested on 7, 8, 9, and 10) that lets you preview attachments by pressing **Space** — just like in Finder. Full support on macOS; on Linux it drives GNOME Sushi.
 
 ### Provenance
@@ -95,6 +97,18 @@ npm test      # lints first, then runs the suites
 The lint step is not decoration: a lost function parameter leaves an identifier
 that still parses but throws at runtime, which `node --check` cannot see and
 which every suite missed for as long as the function around it was stubbed.
+
+CI runs both on every push and pull request. The suites run on Linux, where
+they are platform-independent; the release build runs on macOS, because
+`swiftc`, `lipo` and `codesign` live only there, and it checks that the XPI
+holds every file Zotero needs at its root and that both helper binaries are
+universal and signed. The suites run a second time on that job, where a freshly
+built XPI is present, so the check that `update.json` describes the file that
+was actually produced also runs.
+
+The XPI is not byte-reproducible — zip records modification times — so CI does
+not compare its checksum against the committed `update.json`. What it does
+compare is the version, which is what actually goes stale.
 
 The suite runs the plugin's own source in a scope with Zotero's sandbox globals
 stubbed, so the parsing, sanitising, keyboard, menu and EPUB code can be

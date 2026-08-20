@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push makes an in-flight run obsolete
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      # The EPUB suite unpacks a real fixture with the real tool rather than a
+      # stub, so unzip has to be present
+      - name: Ensure unzip is available
+        run: sudo apt-get install -y --no-install-recommends unzip
+
+      - run: npm ci
+
+      # Runs eslint first: no-undef catches the class of fault that still
+      # parses and only throws when the line is reached
+      - run: npm test
+
+  build:
+    name: Build the XPI
+    # swiftc, lipo and codesign are only on the macOS runners, and the point of
+    # this job is to prove the release build works on a clean machine
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - run: npm ci
+
+      - run: ./build.sh
+
+      - name: Check the package
+        run: |
+          set -euo pipefail
+          version=$(python3 -c 'import json;print(json.load(open("addon/manifest.json"))["version"])')
+          xpi="build/zotlook-${version}.xpi"
+          test -f "$xpi"
+          # addon/ is packaged from its inside, so Zotero finds these at the
+          # root. -Z1 lists bare entry names, so the match can be exact rather
+          # than a regex against a formatted table.
+          unzip -Z1 "$xpi" > "$RUNNER_TEMP/entries.txt"
+          for entry in manifest.json bootstrap.js zotlook.js util.js epub.js \
+                       prefs.js prefs-pane.xhtml prefs-pane.js prefs-pane.css \
+                       contactsheet qlpreview \
+                       locale/en-US/zotlook.ftl locale/de-DE/zotlook.ftl; do
+            grep -Fxq "$entry" "$RUNNER_TEMP/entries.txt" \
+              || { echo "missing from XPI: $entry"; exit 1; }
+          done
+          # Both helpers must be universal and signed, or they will not run on
+          # someone else's Mac
+          for binary in contactsheet qlpreview; do
+            unzip -qo "$xpi" "$binary" -d "$RUNNER_TEMP/check"
+            chmod +x "$RUNNER_TEMP/check/$binary"
+            lipo -info "$RUNNER_TEMP/check/$binary" | grep -q "x86_64 arm64"
+            codesign -v "$RUNNER_TEMP/check/$binary"
+          done
+
+      # With a freshly built XPI present, the release suite also verifies that
+      # update.json describes the file that was actually produced
+      - run: npm test
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zotlook-xpi
+          path: build/*.xpi
+          if-no-files-found: error
