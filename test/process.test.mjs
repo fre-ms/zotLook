@@ -49,6 +49,19 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
   eq(timed.stdout, '{"pageCount":2,"pages":[]}', 'with a deadline set as well');
 }
 {
+  // Subprocess hands back an object from another compartment, and hanging a
+  // property on it through the wrapper fails silently outside strict mode.
+  // A frozen object reproduces that: the result must be built, not decorated.
+  const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
+    call: async () => ({
+      stdout: { readString: async () => '' },
+      wait: async () => Object.freeze({ exitCode: 0 }), kill(){},
+    }) }})}});
+  const res = await Q._runProcess('/bin/x', [], { captureOutput: true });
+  eq(res.stdout, '', 'output survives a result that cannot be written to');
+  eq(res.exitCode, 0, 'and the exit code comes along with it');
+}
+{
   // A process without a pipe, or one that fails mid-read, must not take the
   // whole preview down with it
   const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {

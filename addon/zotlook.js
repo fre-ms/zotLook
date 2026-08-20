@@ -1133,10 +1133,15 @@ var ZotLook = {
 
 		// Started before the wait, not after, so the pipe keeps draining
 		let output = captureOutput ? this._readPipe(proc.stdout) : null;
+
+		// A new object rather than a property hung on the one Subprocess
+		// returns: that object comes from another compartment, and attaching
+		// to it through the wrapper fails silently outside strict mode. It
+		// did exactly that, and the sheet drew nothing with nothing to say.
 		let withOutput = async (promise) => {
 			let result = await promise;
-			if (captureOutput) result.stdout = await output;
-			return result;
+			if (!captureOutput) return result;
+			return { exitCode: result.exitCode, stdout: await output };
 		};
 
 		if (!timeoutMs) return withOutput(proc.wait());
