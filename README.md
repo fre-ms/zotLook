@@ -1,6 +1,6 @@
 # zotLook
 
-A macOS plugin for Zotero 7 and later (tested on 7, 8, 9, and 10) that lets you preview attachments with QuickLook by pressing **Space** — just like in Finder.
+A plugin for Zotero 7 and later (tested on 7, 8, 9, and 10) that lets you preview attachments by pressing **Space** — just like in Finder. Full support on macOS; on Linux it drives GNOME Sushi.
 
 ### Provenance
 
@@ -34,7 +34,7 @@ The plugin ID is `zotlook@fre.ms`, distinct from Chapron's, so the two install s
 
 ## Requirements
 
-- **macOS** (drives the native Quick Look panel)
+- **macOS**, which drives the native Quick Look panel, or **Linux with GNOME Sushi** installed
 - **Zotero 7** or later
 - **macOS 12 (Monterey)** or later (for the contact sheet feature)
 
@@ -124,7 +124,19 @@ Space is ignored while the item list is collecting a find-as-you-type search, so
 
 The plugin registers a keyboard listener on Zotero's items tree. When you press Space, it resolves the file path of the selected item's attachment and launches a small bundled helper, `qlpreview`, which drives `QLPreviewPanel` — the very panel the Finder shows. The subprocess handle is retained so that pressing Space again (or Escape) closes the preview.
 
-The obvious alternative, `/usr/bin/qlmanage -p`, is a debugging tool rather than the Finder's Quick Look, and it cannot show everything the Finder can. On a video it dies outright:
+On Linux the equivalent is GNOME Sushi, reached over D-Bus:
+
+```
+dbus-send --session --dest=org.gnome.NautilusPreviewer \
+  /org/gnome/NautilusPreviewer org.gnome.NautilusPreviewer.ShowFile \
+  string:file:///path int32:0 boolean:true
+```
+
+That request returns at once rather than staying alive for as long as the preview, so there is no process to hold and kill. `ShowFile`'s last argument closes the preview when the same file is already showing, which gives Space the same toggle it has on macOS. Sushi shows one file at a time. KDE has no comparable system-wide preview service — Kiview is a Dolphin extension without an external interface — so nothing is driven there. Windows has no route either: QuickLook for Windows is reachable only through a named pipe, and its Store build is sandboxed away from that.
+
+The contact sheet needs the bundled Swift renderer and is therefore macOS-only; its menu entries hide themselves elsewhere.
+
+The obvious alternative on macOS, `/usr/bin/qlmanage -p`, is a debugging tool rather than the Finder's Quick Look, and it cannot show everything the Finder can. On a video it dies outright:
 
 ```
 NSInternalInconsistencyException

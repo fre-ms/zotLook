@@ -67,6 +67,7 @@ var ZotLook = {
 			fallback: "Quick Look Contact Sheet",
 			open: "_openContactSheet",
 			needsPDF: true,
+			macOnly: true,
 		},
 		{
 			id: "zotlook-contactsheet-window-menu-item",
@@ -74,11 +75,22 @@ var ZotLook = {
 			fallback: "Contact Sheet in a Window (clickable)",
 			open: "_openContactSheetInViewer",
 			needsPDF: true,
+			macOnly: true,
 		},
 	],
 
 	log(msg) {
 		Zotero.debug("zotLook: " + msg);
+	},
+
+	/** Whether this platform has a preview mechanism to drive at all. */
+	_platformSupported() {
+		return !!(Zotero.isMac || Zotero.isLinux);
+	},
+
+	/** The contact sheet needs the bundled renderer, which is macOS-only. */
+	_contactSheetSupported() {
+		return !!Zotero.isMac;
 	},
 
 	init({ id, version, rootURI }) {
@@ -119,8 +131,8 @@ var ZotLook = {
 	},
 
 	addToWindow(window) {
-		if (!Zotero.isMac) {
-			this.log("zotLook is only supported on macOS");
+		if (!this._platformSupported()) {
+			this.log("No preview mechanism on this platform");
 			return;
 		}
 
@@ -460,6 +472,7 @@ var ZotLook = {
 	_menuApplies(entry, items) {
 		items = items || [];
 		if (items.length === 0) return false;
+		if (entry.macOnly && !this._contactSheetSupported()) return false;
 		if (!entry.needsPDF) return true;
 		return this._hasPDF(items);
 	},
@@ -595,6 +608,11 @@ var ZotLook = {
 	 * Renders the contact sheet and returns the path to its HTML, or null.
 	 */
 	async _buildContactSheet(items) {
+		if (!this._contactSheetSupported()) {
+			this.log("The contact sheet renderer is only available on macOS");
+			return null;
+		}
+
 		// Resolve to an attachment item rather than a bare path: the reader
 		// links in the sheet need the item's key and library
 		let chosen = await this._pickPdfAttachment(items);
@@ -943,19 +961,24 @@ var ZotLook = {
 
 		const { Subprocess } = this._subprocess();
 
-		let helper = await this._ensureBinary("qlpreview");
-		let command = helper || "/usr/bin/qlmanage";
-		let args = helper ? [...filePaths] : ["-p", ...filePaths];
-		if (!helper) {
-			this.log("qlpreview unavailable, falling back to qlmanage");
+		let plan = await this._previewCommand(filePaths);
+		if (!plan) {
+			this.log("No preview mechanism on this platform");
+			return;
 		}
-		this.log("Launching: " + command + " " + args.join(" "));
+		this.log("Launching: " + plan.command + " " + plan.arguments.join(" "));
 
 		try {
 			let proc = await Subprocess.call({
-				command: command,
-				arguments: args,
+				command: plan.command,
+				arguments: plan.arguments,
 			});
+
+			// Only a viewer that stays running for as long as the preview is
+			// visible can be tracked and dismissed. A one-shot request hands
+			// the toggling to the viewer itself.
+			if (!plan.holdsProcess) return;
+
 			this._proc = proc;
 			this._isActive = true;
 
@@ -974,6 +997,61 @@ var ZotLook = {
 			this._isActive = false;
 			this._proc = null;
 		}
+	},
+
+	/**
+	 * How this platform shows a preview.
+	 *
+	 * macOS drives QLPreviewPanel through the bundled helper. GNOME's Sushi is
+	 * the closest equivalent elsewhere and is reached over D-Bus; its ShowFile
+	 * takes a "close if already shown" flag, which gives the same toggle Space
+	 * has on macOS without a process to hold open. KDE has no comparable
+	 * system-wide preview service, so there is nothing to drive there.
+	 *
+	 * @returns {Promise<{command: string, arguments: string[],
+	 *          holdsProcess: boolean}|null>}
+	 */
+	async _previewCommand(filePaths) {
+		if (Zotero.isMac) {
+			let helper = await this._ensureBinary("qlpreview");
+			if (helper) {
+				return {
+					command: helper,
+					arguments: [...filePaths],
+					holdsProcess: true,
+				};
+			}
+			this.log("qlpreview unavailable, falling back to qlmanage");
+			return {
+				command: "/usr/bin/qlmanage",
+				arguments: ["-p", ...filePaths],
+				holdsProcess: true,
+			};
+		}
+
+		if (Zotero.isLinux) {
+			if (filePaths.length > 1) {
+				this.log(
+					"Sushi previews one file; showing the first of " +
+						filePaths.length
+				);
+			}
+			return {
+				command: "/usr/bin/dbus-send",
+				arguments: [
+					"--session",
+					"--dest=org.gnome.NautilusPreviewer",
+					"/org/gnome/NautilusPreviewer",
+					"org.gnome.NautilusPreviewer.ShowFile",
+					"string:" + PathUtils.toFileURI(filePaths[0]),
+					"int32:0",
+					"boolean:true",
+				],
+				holdsProcess: false,
+			};
+		}
+
+		return null;
 	},
 
 	_closeQuickLook() {
