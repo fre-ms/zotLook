@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* global Zotero, ChromeUtils, PathUtils, IOUtils, Services, Localization */
 /* global setTimeout, clearTimeout */
+/* global ChromeWorker, Components, OffscreenCanvas */
 /* global ZotLookUtil, ZotLookEpub */
 
 var ZotLook = {
@@ -835,25 +836,26 @@ var ZotLook = {
 			return false;
 		}
 
-		// Gecko refuses to start a worker from a jar: URL, so the script has to
-		// exist as a real file — the same reason the native helpers are
-		// unpacked. Any pdf.js worker would need this in production too.
-		let workerPath = await this._ensureWorkerScript("bench.worker.js");
-		if (!workerPath) {
-			await writeReport({ ok: false, error: "could not unpack the worker" });
-			return false;
+		// The worker constructor rejects jar: and file: alike, so the script is
+		// reachable only through a resource: alias. Whether that can be
+		// registered decides whether a portable renderer could use a worker at
+		// all, so it is part of what this measures.
+		let prefix = this._resourceAlias();
+		if (!prefix) {
+			this.log("BENCH: no worker possible, measuring on this thread");
+			return this._benchmarkOnMainThread(bytes, MAX_PAGES, WIDTH, writeReport);
 		}
 
 		return new Promise((resolve) => {
 			let worker;
 			try {
-				worker = new ChromeWorker(PathUtils.toFileURI(workerPath), {
+				worker = new ChromeWorker(prefix + "bench.worker.js", {
 					type: "module",
 				});
 			} catch (e) {
 				this.log("BENCH: could not start the worker: " + e);
-				writeReport({ ok: false, error: "worker start failed: " + e });
-				resolve(false);
+				this._benchmarkOnMainThread(bytes, MAX_PAGES, WIDTH, writeReport)
+					.then(resolve);
 				return;
 			}
 
@@ -1075,6 +1077,118 @@ var ZotLook = {
 	 * binary's argument contract, and silently reusing the copy an earlier
 	 * version left behind is the same stale-code trap as caching the scripts.
 	 */
+	/**
+	 * TEMPORARY. The same measurement without a worker: pdf.js parses in a
+	 * worker of its own, which is loaded from resource:// and therefore
+	 * allowed, so only the rasterising happens here. It blocks the interface,
+	 * which is why this is a fallback and not the plan — but the per-page cost
+	 * it reports is the number the decision turns on.
+	 */
+	async _benchmarkOnMainThread(bytes, maxPages, width, writeReport) {
+		let report = { ok: false, where: "main thread", steps: {}, pages: [] };
+		try {
+			let t0 = Date.now();
+			let lib = await import(
+				"resource://zotero/reader/pdf/build/pdf.mjs"
+			);
+			report.steps.importMs = Date.now() - t0;
+			report.version = lib.version || "unknown";
+
+			if (typeof OffscreenCanvas === "undefined") {
+				throw new Error("no OffscreenCanvas in this scope");
+			}
+
+			let t1 = Date.now();
+			let doc = await lib.getDocument({
+				data: bytes,
+				isEvalSupported: false,
+			}).promise;
+			report.steps.openMs = Date.now() - t1;
+			report.pageCount = doc.numPages;
+
+			let count = Math.min(doc.numPages, maxPages);
+			for (let i = 1; i <= count; i++) {
+				let tp = Date.now();
+				let page = await doc.getPage(i);
+				let viewport = page.getViewport({
+					scale: width / page.getViewport({ scale: 1 }).width,
+				});
+				let canvas = new OffscreenCanvas(
+					Math.ceil(viewport.width),
+					Math.ceil(viewport.height)
+				);
+				let ctx = canvas.getContext("2d");
+				ctx.fillStyle = "#ffffff";
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				await page.render({
+					canvasContext: ctx,
+					viewport: viewport,
+					intent: "print",
+					annotationMode: 2,
+				}).promise;
+				let blob = await canvas.convertToBlob({
+					type: "image/jpeg",
+					quality: 0.7,
+				});
+				report.pages.push({
+					page: i,
+					ms: Date.now() - tp,
+					bytes: blob.size,
+				});
+				if (i === 1) {
+					let dir = this._getTempDirPath();
+					await IOUtils.write(
+						PathUtils.join(dir, "bench-page1.jpg"),
+						new Uint8Array(await blob.arrayBuffer())
+					);
+				}
+				page.cleanup();
+			}
+			report.steps.totalMs = Date.now() - t0;
+			report.ok = true;
+		} catch (e) {
+			report.error = String(e && e.stack ? e.stack : e);
+		}
+		await writeReport(report);
+		this.log("BENCH: " + JSON.stringify(report.steps));
+		return report.ok;
+	},
+
+	/**
+	 * Maps resource://zotlook/ onto the plugin directory, so a worker can be
+	 * started from a privileged URL. The worker constructor rejects both jar:
+	 * and file:, which leaves this as the only way to run one from an XPI.
+	 * Returns the prefix, or null if the alias could not be registered.
+	 */
+	_resourceAlias() {
+		if (this._resourcePrefix !== undefined) return this._resourcePrefix;
+		this._resourcePrefix = null;
+		try {
+			let handler = Services.io
+				.getProtocolHandler("resource")
+				.QueryInterface(Components.interfaces.nsIResProtocolHandler);
+			handler.setSubstitution("zotlook", Services.io.newURI(this.rootURI));
+			this._resourcePrefix = "resource://zotlook/";
+			this.log("Registered " + this._resourcePrefix);
+		} catch (e) {
+			this.log("Could not register the resource alias: " + e);
+		}
+		return this._resourcePrefix;
+	},
+
+	_dropResourceAlias() {
+		if (!this._resourcePrefix) return;
+		try {
+			Services.io
+				.getProtocolHandler("resource")
+				.QueryInterface(Components.interfaces.nsIResProtocolHandler)
+				.setSubstitution("zotlook", null);
+		} catch (e) {
+			this.log("Could not drop the resource alias: " + e);
+		}
+		this._resourcePrefix = undefined;
+	},
+
 	/**
 	 * Copies a script out of the XPI so a worker can be started from it.
 	 * A jar: URL is refused by the worker constructor; a file: URL is not.
@@ -1620,6 +1734,7 @@ var ZotLook = {
 
 	shutdown() {
 		this._closeQuickLook();
+		this._dropResourceAlias();
 		this._unregisterPreferencePane();
 		this._unwatchPreferences();
 		this._cleanTempDir().catch((e) =>
