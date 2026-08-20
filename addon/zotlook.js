@@ -835,10 +835,19 @@ var ZotLook = {
 			return false;
 		}
 
+		// Gecko refuses to start a worker from a jar: URL, so the script has to
+		// exist as a real file — the same reason the native helpers are
+		// unpacked. Any pdf.js worker would need this in production too.
+		let workerPath = await this._ensureWorkerScript("bench.worker.js");
+		if (!workerPath) {
+			await writeReport({ ok: false, error: "could not unpack the worker" });
+			return false;
+		}
+
 		return new Promise((resolve) => {
 			let worker;
 			try {
-				worker = new ChromeWorker(this.rootURI + "bench.worker.js", {
+				worker = new ChromeWorker(PathUtils.toFileURI(workerPath), {
 					type: "module",
 				});
 			} catch (e) {
@@ -1066,6 +1075,29 @@ var ZotLook = {
 	 * binary's argument contract, and silently reusing the copy an earlier
 	 * version left behind is the same stale-code trap as caching the scripts.
 	 */
+	/**
+	 * Copies a script out of the XPI so a worker can be started from it.
+	 * A jar: URL is refused by the worker constructor; a file: URL is not.
+	 */
+	async _ensureWorkerScript(name) {
+		let tempDir = this._getTempDirPath();
+		let target = PathUtils.join(
+			tempDir,
+			ZotLookUtil.safeName(this.version || "0", 20) + "-" + name
+		);
+		if (await IOUtils.exists(target)) return target;
+
+		try {
+			await IOUtils.makeDirectory(tempDir, { ignoreExisting: true });
+			let response = await fetch(this.rootURI + name);
+			await IOUtils.writeUTF8(target, await response.text());
+			return target;
+		} catch (e) {
+			this.log("Failed to unpack " + name + ": " + e);
+			return null;
+		}
+	},
+
 	async _ensureBinary(name) {
 		let cached = this._binaries.get(name);
 		if (cached && (await IOUtils.exists(cached))) return cached;
