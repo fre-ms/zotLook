@@ -28,31 +28,62 @@ async function loadPdfjs() {
 	return pdfjs;
 }
 
-// pdf.js creates scratch canvases of its own — for scaling inline images,
-// among other things — and its default factory reaches for document, which a
-// worker does not have. Handing it OffscreenCanvas is what makes the shipped
-// build usable off the main thread at all.
+// pdf.js takes these as classes and constructs them itself, under the names
+// CanvasFactory and FilterFactory — an instance under a lower-case name is
+// silently ignored, which is what let the first attempt fail unchanged.
+//
+// The canvas one is what matters: pdf.js creates scratch canvases for scaling
+// inline images, and its default reaches for document, which a worker has not
+// got. The filter one only avoids the same trap for soft masks; returning
+// "none" is what the shipped base class does anyway.
 class OffscreenCanvasFactory {
+	constructor({ enableHWA = false } = {}) {
+		this._willReadFrequently = !enableHWA;
+	}
+
 	create(width, height) {
-		let canvas = new OffscreenCanvas(
-			Math.max(1, width | 0),
-			Math.max(1, height | 0)
-		);
-		return { canvas: canvas, context: canvas.getContext("2d") };
+		if (width <= 0 || height <= 0) throw new Error("Invalid canvas size");
+		let canvas = new OffscreenCanvas(width, height);
+		return {
+			canvas: canvas,
+			context: canvas.getContext("2d", {
+				willReadFrequently: this._willReadFrequently,
+			}),
+		};
 	}
 
 	reset(entry, width, height) {
-		entry.canvas.width = Math.max(1, width | 0);
-		entry.canvas.height = Math.max(1, height | 0);
+		if (!entry.canvas) throw new Error("Canvas is not specified");
+		if (width <= 0 || height <= 0) throw new Error("Invalid canvas size");
+		entry.canvas.width = width;
+		entry.canvas.height = height;
 	}
 
 	destroy(entry) {
-		if (!entry.canvas) return;
-		entry.canvas.width = 0;
-		entry.canvas.height = 0;
+		if (!entry.canvas) throw new Error("Canvas is not specified");
+		entry.canvas.width = entry.canvas.height = 0;
 		entry.canvas = null;
 		entry.context = null;
 	}
+}
+
+class NoFilterFactory {
+	addFilter() {
+		return "none";
+	}
+	addHCMFilter() {
+		return "none";
+	}
+	addAlphaFilter() {
+		return "none";
+	}
+	addLuminosityFilter() {
+		return "none";
+	}
+	addHighlightHCMFilter() {
+		return "none";
+	}
+	destroy() {}
 }
 
 // Each stage is reported as it is reached. A run that stops says where it
@@ -86,7 +117,8 @@ self.addEventListener("message", async (event) => {
 		let doc = await lib.getDocument({
 			data: data,
 			isEvalSupported: false,
-			canvasFactory: new OffscreenCanvasFactory(),
+			CanvasFactory: OffscreenCanvasFactory,
+			FilterFactory: NoFilterFactory,
 		}).promise;
 		report.steps.openMs = Date.now() - t1;
 		report.pageCount = doc.numPages;
