@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-/* global DOMParser */
+/* global DOMParser, btoa */
 
 /**
  * Helpers shared by the preview builders.
@@ -415,5 +415,68 @@ var ZotLookUtil = {
 				return 'url("' + resolved + '")';
 			}
 		);
+	},
+
+	// ── Windows QuickLook ─────────────────────────────────────────────
+
+	QUICKLOOK_MESSAGE_PREFIX: "QuickLook.App.PipeMessages.",
+
+	/**
+	 * One request in QuickLook's pipe protocol: `verb|path|options`. The
+	 * separator cannot collide with the payload — Windows forbids `|` in
+	 * paths — and the trailing field is left empty, exactly as QuickLook's
+	 * own client sends it.
+	 */
+	quickLookPipeLine(verb, path) {
+		return this.QUICKLOOK_MESSAGE_PREFIX + verb + "|" + (path || "") + "|";
+	},
+
+	/**
+	 * The PowerShell stand-in for the ctypes pipe write: resolves the user's
+	 * SID itself — the part a Gecko application cannot reach without ctypes —
+	 * and writes the one complete line the pipe server survives.
+	 *
+	 * Connect() polling a pipe that does not exist ends in a TimeoutException,
+	 * which is how "QuickLook is not running" looks from here; it is renamed
+	 * to a stable marker because the exception's text is localised.
+	 */
+	quickLookFallbackScript(line) {
+		let literal = "'" + String(line).replace(/'/g, "''") + "'";
+		return [
+			"$ErrorActionPreference = 'Stop'",
+			"try {",
+			"  $sid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value",
+			"  $client = New-Object System.IO.Pipes.NamedPipeClientStream('.', ('QuickLook.App.Pipe.' + $sid), [System.IO.Pipes.PipeDirection]::Out)",
+			"  try {",
+			"    $client.Connect(3000)",
+			"    $writer = New-Object System.IO.StreamWriter($client)",
+			"    $writer.WriteLine(" + literal + ")",
+			"    $writer.Flush()",
+			"    $writer.Dispose()",
+			"  } finally { $client.Dispose() }",
+			"  exit 0",
+			"} catch [System.TimeoutException] {",
+			"  [Console]::Error.WriteLine('QuickLookUnreachable: ' + $_.Exception.Message)",
+			"  exit 1",
+			"} catch {",
+			"  [Console]::Error.WriteLine($_.Exception.GetType().Name + ': ' + $_.Exception.Message)",
+			"  exit 1",
+			"}",
+		].join("\n");
+	},
+
+	/**
+	 * Encodes a script for powershell.exe -EncodedCommand: Base64 over
+	 * UTF-16LE. Worth the indirection twice over — the script reaches the
+	 * shell without a file, so no execution policy applies to it, and without
+	 * a command line, so nothing in it has to be quoted for one.
+	 */
+	encodePowerShell(script) {
+		let bytes = "";
+		for (let i = 0; i < script.length; i++) {
+			let unit = script.charCodeAt(i);
+			bytes += String.fromCharCode(unit & 0xff, unit >> 8);
+		}
+		return btoa(bytes);
 	},
 };

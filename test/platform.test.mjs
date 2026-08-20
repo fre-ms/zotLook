@@ -85,32 +85,96 @@ const on = (platform, prefValues = {}) => {
   ok(!plan.arguments.some(a => a.includes('two.html')), 'the rest are not');
 }
 
-// ── Windows has nothing to drive yet ──────────────────────────────────
+// ── Windows writes into QuickLook's named pipe ────────────────────────
+// QuickLook (QL-Win) listens on QuickLook.App.Pipe.<user SID>; one complete
+// UTF-8 line shows the preview, the same line again dismisses it, and a
+// different path switches. Both its builds answer the pipe — the Store
+// package runs full-trust — so no subprocess and no bundled binary are
+// needed: the line is written from the plugin itself via ctypes.
 {
   const Q = on('Win');
-  eq(await Q._previewCommand(['/a/p.pdf']), null, 'no mechanism on Windows');
-  eq(Q._platformSupported(), false, 'so the plugin keeps out of the way there');
+  eq(Q._platformSupported(), true, 'Windows is a supported platform now');
+  Q._winPreview = () => ({
+    pipePath: () => '\\\\.\\pipe\\QuickLook.App.Pipe.S-1-5-21-9' });
+  const plan = await Q._previewCommand(['C:/a/paper.pdf']);
+  ok(plan, 'Windows has a preview mechanism');
+  eq(plan.pipePath, '\\\\.\\pipe\\QuickLook.App.Pipe.S-1-5-21-9',
+     "addressed to this user's QuickLook pipe");
+  eq(plan.pipeLine, 'QuickLook.App.PipeMessages.Toggle|C:/a/paper.pdf|',
+     "one Toggle line, exactly as QuickLook's own client sends it");
+  eq(plan.holdsProcess, false, 'QuickLook itself toggles, so nothing is tracked');
+  eq(plan.command, undefined, 'and no subprocess is involved');
+}
+{
+  // QuickLook shows one file, like Sushi; several cannot all be handed over
+  const Q = on('Win');
+  Q._winPreview = () => ({ pipePath: () => 'P' });
+  const plan = await Q._previewCommand(['C:/a/one.html', 'C:/a/two.html']);
+  ok(plan.pipeLine.includes('one.html'), 'the first file is shown');
+  ok(!plan.pipeLine.includes('two.html'), 'the rest are not');
 }
 
-// ── the contact sheet is built everywhere, but not shown everywhere ───
+// ── without ctypes, PowerShell writes the same line ───────────────────
+// The fallback for the day Gecko drops js-ctypes. The script resolves the
+// user's SID itself — the part of the pipe name a Gecko application cannot
+// otherwise reach — and -EncodedCommand carries it without a file, so no
+// execution policy applies, and without command-line quoting.
+{
+  const Q = on('Win');   // the stubbed ChromeUtils has no ctypes to import
+  const plan = await Q._previewCommand(['C:/a/paper.pdf']);
+  ok(plan.command.toLowerCase().endsWith('powershell.exe'),
+     'PowerShell delivers the fallback');
+  eq(plan.arguments.slice(0, 3),
+     ['-NoProfile', '-NonInteractive', '-EncodedCommand'],
+     'headless, and encoded rather than quoted');
+  const script = Buffer.from(plan.arguments[3], 'base64').toString('utf16le');
+  ok(script.includes(
+       "WriteLine('QuickLook.App.PipeMessages.Toggle|C:/a/paper.pdf|')"),
+     'the decoded script writes the very same line');
+  ok(script.includes('WindowsIdentity'), 'and resolves the SID itself');
+  ok(script.includes('QuickLookUnreachable'),
+     'a dead pipe is renamed to a stable marker, since .NET localises its own');
+  eq(plan.holdsProcess, false, 'one-shot, like the D-Bus route');
+}
+{
+  // A quote in a filename must not end the PowerShell literal around it
+  const Q = on('Win');
+  const plan = await Q._previewCommand(["C:/a/O'Neill.pdf"]);
+  const script = Buffer.from(plan.arguments[3], 'base64').toString('utf16le');
+  ok(script.includes("Toggle|C:/a/O''Neill.pdf|"),
+     "a quote in the path is doubled, PowerShell's own escape");
+}
+{
+  // powershell.exe is found on PATH when it can be, like dbus-send
+  const { ZotLook: Q } = loadPlugin({
+    zotero: { isMac: false, isLinux: false, isWin: true },
+    ChromeUtils: { importESModule: () => ({ Subprocess: {
+      pathSearch: async (bin) => 'D:/shells/' + bin } }) },
+  });
+  const plan = await Q._previewCommand(['C:/a/p.pdf']);
+  eq(plan.command, 'D:/shells/powershell.exe', 'found wherever PATH has it');
+}
+
+// ── the contact sheet is built everywhere, and now shown everywhere ───
 // One renderer for every platform, the pdf.js build Zotero ships. Showing
-// the sheet outside Zotero still needs a preview mechanism, and Windows
-// has none — so there the window route is all that is offered.
+// the sheet outside Zotero needs a preview mechanism, and every platform
+// has one now — QuickLook for Windows renders the sheet's HTML and loads
+// the thumbnails beside it, which was measured before it was enabled.
 {
   const mac = on('Mac'), linux = on('Linux'), win = on('Win');
   eq(mac._contactSheetSupported(), true, 'the contact sheet is built on macOS');
   eq(linux._contactSheetSupported(), true, 'on Linux as well');
-  eq(win._contactSheetSupported(), true, 'and on Windows, for the window route');
+  eq(win._contactSheetSupported(), true, 'and on Windows');
   eq(mac._contactSheetPreviewable(), true, 'QuickLook can show it');
   eq(linux._contactSheetPreviewable(), true, 'Sushi can show it');
-  eq(win._contactSheetPreviewable(), false, 'nothing on Windows can');
+  eq(win._contactSheetPreviewable(), true, 'QuickLook for Windows can show it');
   const quickLookSheet = mac.MENU_ITEMS.find(e => e.needsSystemPreview);
   ok(quickLookSheet, 'the QuickLook sheet is marked as needing one');
   const pdf = { isNote: () => false, isAttachment: () => true,
                 isPDFAttachment: () => true, attachmentFilename: 'a.pdf' };
   eq(mac._menuApplies(quickLookSheet, [pdf]), true, 'shown on macOS with a PDF');
-  eq(linux._menuApplies(quickLookSheet, [pdf]), true, 'and on Linux');
-  eq(win._menuApplies(quickLookSheet, [pdf]), false, 'but not on Windows');
+  eq(linux._menuApplies(quickLookSheet, [pdf]), true, 'on Linux');
+  eq(win._menuApplies(quickLookSheet, [pdf]), true, 'and on Windows');
 
   // The window route needs nothing but Zotero, so it is offered everywhere
   const windowSheet = mac.MENU_ITEMS.find(
@@ -121,7 +185,7 @@ const on = (platform, prefValues = {}) => {
 // ── the window guard follows the platform ─────────────────────────────
 {
   const { DOMParser } = await import('linkedom');
-  for (const [platform, expected] of [['Mac', true], ['Linux', true], ['Win', false]]) {
+  for (const [platform, expected] of [['Mac', true], ['Linux', true], ['Win', true]]) {
     const doc = new DOMParser().parseFromString(
       '<html><body><div id="zotero-items-tree"/><menupopup id="zotero-itemmenu"/></body></html>',
       'text/html');

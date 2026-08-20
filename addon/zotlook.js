@@ -2,7 +2,7 @@
 /* global Zotero, ChromeUtils, PathUtils, IOUtils, Services, Localization */
 /* global setTimeout, clearTimeout */
 /* global ChromeWorker, Components, OffscreenCanvas */
-/* global ZotLookUtil, ZotLookEpub, ZotLookSheet */
+/* global ZotLookUtil, ZotLookEpub, ZotLookSheet, ZotLookWinPreview */
 
 var ZotLook = {
 	id: null,
@@ -116,7 +116,7 @@ var ZotLook = {
 
 	/** Whether this platform has a preview mechanism to drive at all. */
 	_platformSupported() {
-		return !!(Zotero.isMac || Zotero.isLinux);
+		return !!(Zotero.isMac || Zotero.isLinux || Zotero.isWin);
 	},
 
 	/** The contact sheet needs the bundled renderer, which is macOS-only. */
@@ -128,7 +128,9 @@ var ZotLook = {
 
 	/**
 	 * Whether a built sheet can actually be shown outside Zotero. The window
-	 * route works anywhere; QuickLook and Sushi do not exist on Windows.
+	 * route works anywhere; the system previews can all take the sheet's
+	 * HTML — QuickLook for Windows included, whose viewer was measured to
+	 * render the page and load the thumbnails beside it.
 	 */
 	_contactSheetPreviewable() {
 		return this._platformSupported();
@@ -1316,13 +1318,21 @@ var ZotLook = {
 		// is still up; replace it rather than orphaning the process.
 		this._closeQuickLook();
 
-		const { Subprocess } = this._subprocess();
-
 		let plan = await this._previewCommand(filePaths);
 		if (!plan) {
 			this.log("No preview mechanism on this platform");
 			return;
 		}
+
+		// A pipe plan is delivered from this very process — a few Win32
+		// calls, no subprocess — and QuickLook itself provides the toggle,
+		// so like the D-Bus route it leaves nothing to track or kill.
+		if (plan.pipePath) {
+			await this._postPipeMessage(plan);
+			return;
+		}
+
+		const { Subprocess } = this._subprocess();
 		this.log("Launching: " + plan.command + " " + plan.arguments.join(" "));
 
 		try {
@@ -1374,11 +1384,20 @@ var ZotLook = {
 	 * macOS drives QLPreviewPanel through the bundled helper. GNOME's Sushi is
 	 * the closest equivalent elsewhere and is reached over D-Bus; its ShowFile
 	 * takes a "close if already shown" flag, which gives the same toggle Space
-	 * has on macOS without a process to hold open. KDE has no comparable
-	 * system-wide preview service, so there is nothing to drive there.
+	 * has on macOS without a process to hold open. On Windows the equivalent
+	 * is QuickLook (QL-Win), whose named pipe is written to directly — its
+	 * Toggle verb closes on the same file and switches on a different one, so
+	 * this route too holds no process. KDE has no comparable system-wide
+	 * preview service, so there is nothing to drive there.
+	 *
+	 * A subprocess plan carries {command, arguments}; a pipe plan carries
+	 * {pipePath, pipeLine} instead and is delivered in-process. The pipe is
+	 * the way while ctypes exists; the day Gecko drops it, the PowerShell
+	 * fallback does the same write from a shell that can read the user's SID.
 	 *
 	 * @returns {Promise<{command: string, arguments: string[],
-	 *          holdsProcess: boolean}|null>}
+	 *          holdsProcess: boolean} | {pipePath: string, pipeLine: string,
+	 *          holdsProcess: boolean} | null>}
 	 */
 	async _previewCommand(filePaths) {
 		if (Zotero.isMac) {
@@ -1432,7 +1451,87 @@ var ZotLook = {
 			};
 		}
 
+		if (Zotero.isWin) {
+			if (filePaths.length > 1) {
+				this.log(
+					"QuickLook previews one file; showing the first of " +
+						filePaths.length
+				);
+			}
+			let line = ZotLookUtil.quickLookPipeLine("Toggle", filePaths[0]);
+			try {
+				return {
+					pipePath: this._winPreview().pipePath(),
+					pipeLine: line,
+					holdsProcess: false,
+				};
+			} catch (e) {
+				this.log(
+					"Falling back to PowerShell for the pipe write: " + e
+				);
+			}
+			return {
+				command: await this._powershell(),
+				arguments: [
+					"-NoProfile",
+					"-NonInteractive",
+					"-EncodedCommand",
+					ZotLookUtil.encodePowerShell(
+						ZotLookUtil.quickLookFallbackScript(line)
+					),
+				],
+				holdsProcess: false,
+			};
+		}
+
 		return null;
+	},
+
+	/** Overridable for tests, like _subprocess. */
+	_winPreview() {
+		return ZotLookWinPreview;
+	},
+
+	/**
+	 * Where powershell.exe is. Looked up on PATH rather than assumed under
+	 * System32; the conventional location remains the fallback, so a
+	 * stripped-down PATH does not by itself break the preview.
+	 */
+	async _powershell() {
+		const { Subprocess } = this._subprocess();
+		if (Subprocess && typeof Subprocess.pathSearch === "function") {
+			try {
+				return await Subprocess.pathSearch("powershell.exe");
+			} catch (e) {
+				this.log("powershell.exe is not on PATH: " + e);
+			}
+		}
+		return "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
+	},
+
+	/**
+	 * Delivers a pipe plan: one complete line into QuickLook's named pipe,
+	 * from this process. The failure worth naming is the pipe not existing —
+	 * QuickLook simply is not running — which postLine marks on the error.
+	 */
+	async _postPipeMessage(plan) {
+		try {
+			this._winPreview().postLine(plan.pipePath, plan.pipeLine);
+			this.log("Preview request delivered");
+		} catch (e) {
+			this.log("The preview request was refused: " + e);
+			if (e && e.quickLookAbsent) this._logQuickLookMissing();
+			await this._writeFailureReport("the preview request was refused");
+		}
+	},
+
+	_logQuickLookMissing() {
+		this.log(
+			"QuickLook does not appear to be running. Start it — or install " +
+				"it from https://github.com/QL-Win/QuickLook — to preview " +
+				"outside Zotero; the contact sheet in a window works " +
+				"without it."
+		);
 	},
 
 	/**
@@ -1481,13 +1580,18 @@ var ZotLook = {
 			"The preview request was refused (exit " + exitCode + ")" +
 				(complaint ? ": " + complaint : "")
 		);
-		// The one failure worth naming: the service is simply not installed.
+		// The one failure worth naming: the service is simply not there.
 		if (/ServiceUnknown|not provided by any/.test(complaint)) {
 			this.log(
 				"GNOME Sushi does not appear to be installed. Install it " +
 					"(package gnome-sushi) to preview outside Zotero; the " +
 					"contact sheet in a window works without it."
 			);
+		}
+		// The marker the PowerShell fallback prints when the pipe never
+		// answered — its own exception text is localised.
+		if (/QuickLookUnreachable/.test(complaint)) {
+			this._logQuickLookMissing();
 		}
 		await this._writeFailureReport("the preview request was refused");
 	},

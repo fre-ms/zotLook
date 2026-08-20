@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/fre-ms/zotLook/actions/workflows/ci.yml/badge.svg)](https://github.com/fre-ms/zotLook/actions/workflows/ci.yml)
 
-A plugin for Zotero 7 and later (tested on 7, 8, 9, and 10) that lets you preview attachments by pressing **Space**, the way a file manager does. It drives the system's own preview panel: Quick Look on macOS, GNOME Sushi on Linux.
+A plugin for Zotero 7 and later (tested on 7, 8, 9, and 10) that lets you preview attachments by pressing **Space**, the way a file manager does. It drives the system's own preview panel: Quick Look on macOS, GNOME Sushi on Linux, [QuickLook](https://github.com/QL-Win/QuickLook) on Windows.
 
 ### Provenance
 
@@ -36,7 +36,7 @@ The plugin ID is `zotlook@fre.ms`, distinct from Chapron's, so the two install s
 
 ## Requirements
 
-- **macOS**, which drives the native Quick Look panel, or **Linux with GNOME Sushi** installed
+- **macOS**, which drives the native Quick Look panel, **Linux with GNOME Sushi** installed, or **Windows with [QuickLook](https://github.com/QL-Win/QuickLook)** running — its Microsoft Store build and its desktop build answer alike
 - **Zotero 7** or later
 - **macOS 12 (Monterey)** or later for Quick Look itself; the contact sheet is built on every platform
 
@@ -52,7 +52,7 @@ Once installed, Zotero checks this repository for new versions and updates the p
 
 ## Building from source
 
-A release build requires macOS with the Xcode Command Line Tools, which is what compiles the Quick Look helper.
+A release build requires macOS with the Xcode Command Line Tools, which is what compiles the Quick Look helper. That helper is the only compiled piece: the Windows route drives QuickLook's pipe through js-ctypes and ships no binary of its own.
 
 ```bash
 git clone https://github.com/fre-ms/zotLook.git
@@ -153,9 +153,19 @@ dbus-send --session --print-reply --reply-timeout=10000 \
 
 The reply is also the only sign the plugin gets that the preview service answered at all, so the exit status is checked and a refusal — Sushi not installed, most likely — is named in the log rather than swallowed.
 
-The call still returns as soon as the window has been handed its file, rather than staying alive for as long as the preview, so there is no process to hold and kill. `ShowFile`'s last argument closes the preview when the same file is already showing, which gives Space the same toggle it has on macOS. Sushi shows one file at a time. KDE has no comparable system-wide preview service — Kiview is a Dolphin extension without an external interface — so nothing is driven there. Windows has no route either: QuickLook for Windows is reachable only through a named pipe, and its Store build is sandboxed away from that.
+The call still returns as soon as the window has been handed its file, rather than staying alive for as long as the preview, so there is no process to hold and kill. `ShowFile`'s last argument closes the preview when the same file is already showing, which gives Space the same toggle it has on macOS. Sushi shows one file at a time. KDE has no comparable system-wide preview service — Kiview is a Dolphin extension without an external interface — so nothing is driven there.
 
-The contact sheet is built on every platform. Showing it outside Zotero needs Quick Look or Sushi, so on Windows only the window route is offered and the Quick Look entry hides itself.
+On Windows the plugin drives [QuickLook](https://github.com/QL-Win/QuickLook), which listens on a named pipe, `QuickLook.App.Pipe.<user SID>`. One UTF-8 line through it —
+
+```
+QuickLook.App.PipeMessages.Toggle|C:\path\file.pdf|
+```
+
+— shows the preview, the same line again dismisses it, and a different path switches to that file, so Space has its toggle here too, again with no process to hold. The line is written straight from the plugin through js-ctypes — a handful of Win32 calls, no helper binary, no subprocess — with the SID read from the process token. Should Gecko ever drop ctypes, a PowerShell one-liner does the same write; it reaches the shell as `-EncodedCommand`, so no execution policy and no command-line quoting apply to it. An earlier attempt at this integration ([QuickLook #584](https://github.com/QL-Win/QuickLook/issues/584), 2019) foundered on exactly that SID, and this README long repeated its era's conclusion that the Store build was sandboxed away from the pipe. Measured today, neither holds: the Store package declares `runFullTrust` and answers the pipe like the desktop build, and the preview opens without taking focus from Zotero, so the keyboard keeps working where you are.
+
+The pipe server earns one warning. Its reader takes a line per connection and dereferences whatever it got, so a client that connects and sends nothing — a `Test-Path` on the pipe path, any is-it-there probe — kills the listener with it, silently, until QuickLook is restarted. The plugin therefore never probes: every connection it makes carries one complete line, and "QuickLook is not running" is learned from the connect failing, which is when it is named in the log. What QuickLook can show still depends on its own viewers — PDF, images, video and HTML are built in; EPUB is not, which is what the plugin's EPUB conversion is for on Windows too. That conversion unpacks the book with `tar.exe`, the bsdtar Windows has shipped since Windows 10, because `/usr/bin/unzip` is a macOS and Linux address.
+
+The contact sheet is built on every platform and shown on every platform. Enabling that on Windows waited for a measurement: QuickLook's HTML viewer does render the sheet's page and does load the thumbnail files sitting beside it.
 
 The obvious alternative on macOS, `/usr/bin/qlmanage -p`, is a debugging tool rather than the Finder's Quick Look, and it cannot show everything the Finder can. On a video it dies outright:
 
@@ -190,7 +200,7 @@ A **new-window request** is a different path through WebKit, and Quick Look does
 | `zotero:` without it | a beep, nothing else |
 | `http:` with `target="_blank"` | opens the browser |
 
-So a click on a thumbnail goes straight to the page in Zotero's reader. The attribute is there for GNOME Sushi's sake, where it stops a click from taking the preview down; on macOS it turned out to be what makes the links work at all. They also work in the window the context menu offers, which is `Zotero.openInViewer` — and that window stays open beside the reader, which is the reason to have it. The links are styled without underline or colour, so one sheet serves every route.
+So a click on a thumbnail goes straight to the page in Zotero's reader. The attribute is there for GNOME Sushi's sake, where it stops a click from taking the preview down; on macOS it turned out to be what makes the links work at all. They also work in the window the context menu offers, which is `Zotero.openInViewer` — and that window stays open beside the reader, which is the reason to have it. The links are styled without underline or colour, so one sheet serves every route. One cell of this picture is still unmeasured: what a click on a `zotero:` link does inside QuickLook for Windows' viewer. Until it is, the window route is the one route on Windows whose clicks are known to work.
 
 Sushi is the awkward one: its WebKit view really does follow links, and it cannot load a `zotero:` URL. The load fails, and a failed load is how Sushi's renderer reports that it cannot show the file at all — so a click replaced the whole sheet with "Unable to display". The links therefore carry `target="_blank"`. WebKit then raises `create` instead of navigating, Sushi has no handler for it, and the click does nothing while the sheet stays up. Nothing is lost where the links do work: `zotero://open-pdf` is a `noContent` handler that performs an action rather than returning a page, so it does not care which context loads it. Pages are rendered from the crop box with their `/Rotate` entry applied, so landscape and rotated scans appear the right way round. Generation runs under a 60-second deadline and shows a progress window while it works.
 

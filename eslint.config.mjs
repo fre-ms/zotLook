@@ -16,9 +16,10 @@ export default [
         // Browser-ish globals available in the preferences window
         document: 'readonly', window: 'readonly', MutationObserver: 'readonly',
         ChromeWorker: 'readonly', Worker: 'readonly',
+        TextEncoder: 'readonly', btoa: 'readonly',
         // The plugin's own modules, loaded into one shared scope
         ZotLook: 'writable', ZotLookUtil: 'writable', ZotLookEpub: 'writable',
-        ZotLookSheet: 'writable',
+        ZotLookSheet: 'writable', ZotLookWinPreview: 'writable',
       },
     },
     rules: {

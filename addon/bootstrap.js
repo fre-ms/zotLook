@@ -2,11 +2,12 @@
 /* global Services */
 
 // Loaded in dependency order into the shared plugin scope
-var SCRIPTS = ["util.js", "sheet.js", "epub.js", "zotlook.js"];
+var SCRIPTS = ["util.js", "sheet.js", "epub.js", "winpreview.js", "zotlook.js"];
 
 var ZotLook;
 var ZotLookUtil;
 var ZotLookEpub;
+var ZotLookWinPreview;
 
 function log(msg) {
 	Zotero.debug("zotLook: " + msg);
@@ -48,6 +49,7 @@ function shutdown() {
 	ZotLook = undefined;
 	ZotLookEpub = undefined;
 	ZotLookUtil = undefined;
+	ZotLookWinPreview = undefined;
 }
 
 function uninstall() {
