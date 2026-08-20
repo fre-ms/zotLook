@@ -141,12 +141,17 @@ The plugin registers a keyboard listener on Zotero's items tree. When you press 
 On Linux the equivalent is GNOME Sushi, reached over D-Bus:
 
 ```
-dbus-send --session --dest=org.gnome.NautilusPreviewer \
+dbus-send --session --print-reply --reply-timeout=10000 \
+  --dest=org.gnome.NautilusPreviewer \
   /org/gnome/NautilusPreviewer org.gnome.NautilusPreviewer.ShowFile \
   string:file:///path int32:0 boolean:true
 ```
 
-That request returns at once rather than staying alive for as long as the preview, so there is no process to hold and kill. `ShowFile`'s last argument closes the preview when the same file is already showing, which gives Space the same toggle it has on macOS. Sushi shows one file at a time. KDE has no comparable system-wide preview service — Kiview is a Dolphin extension without an external interface — so nothing is driven there. Windows has no route either: QuickLook for Windows is reachable only through a named pipe, and its Store build is sandboxed away from that.
+`--print-reply` is not there for its output, and leaving it off is not a small difference: without it `dbus-send` writes the message and exits within milliseconds. Sushi is started by D-Bus on demand and takes about a second to come up, and `dbus-daemon` discards a message queued for an activation as soon as the connection that sent it goes away. The service then starts, is never told what to show, and quits again on its twelve-second idle timeout. Nothing appears and nothing is logged — the failure is completely silent, which is what made it worth a paragraph here. Waiting for the reply keeps the connection open until the call has been delivered.
+
+The reply is also the only sign the plugin gets that the preview service answered at all, so the exit status is checked and a refusal — Sushi not installed, most likely — is named in the log rather than swallowed.
+
+The call still returns as soon as the window has been handed its file, rather than staying alive for as long as the preview, so there is no process to hold and kill. `ShowFile`'s last argument closes the preview when the same file is already showing, which gives Space the same toggle it has on macOS. Sushi shows one file at a time. KDE has no comparable system-wide preview service — Kiview is a Dolphin extension without an external interface — so nothing is driven there. Windows has no route either: QuickLook for Windows is reachable only through a named pipe, and its Store build is sandboxed away from that.
 
 The contact sheet is built on every platform. Showing it outside Zotero needs Quick Look or Sushi, so on Windows only the window route is offered and the Quick Look entry hides itself.
 

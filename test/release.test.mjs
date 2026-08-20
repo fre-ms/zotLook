@@ -34,13 +34,23 @@ ok(z.update_url.endsWith('/update.json'), 'update_url points at update.json');
 ok(man.homepage_url.includes('fre-ms/zotLook'), 'homepage_url points at the fork');
 
 // ── the hash must describe the file that was actually built, when present
+// Only a release build counts. On a machine without a Swift toolchain build.sh
+// deliberately packages everything except the macOS helper, and leaves
+// update.json alone for exactly this reason: that package must never be what
+// an installed copy auto-updates to. Zip keeps its entry names in the clear,
+// so the helper's presence is what tells the two builds apart.
 const xpi = ROOT + `build/zotlook-${man.version}.xpi`;
-if (fs.existsSync(xpi)) {
-  const { createHash } = await import('node:crypto');
-  const sha = 'sha256:' + createHash('sha256').update(fs.readFileSync(xpi)).digest('hex');
-  eq(e.update_hash, sha, 'update_hash matches the built XPI');
-} else {
+if (!fs.existsSync(xpi)) {
   console.log('ok    (no local XPI to hash-check; run build.sh first)');
+} else {
+  const bytes = fs.readFileSync(xpi);
+  if (bytes.includes('qlpreview')) {
+    const { createHash } = await import('node:crypto');
+    const sha = 'sha256:' + createHash('sha256').update(bytes).digest('hex');
+    eq(e.update_hash, sha, 'update_hash matches the built XPI');
+  } else {
+    console.log('ok    (local XPI has no macOS helper, so it is not a release build)');
+  }
 }
 
 // ── MIT attribution must survive the fork

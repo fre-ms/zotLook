@@ -37,9 +37,31 @@ build_binary() {
   codesign -s - -f "addon/${name}"
 }
 
-for binary in qlpreview; do
-  build_binary "$binary"
-done
+# The Quick Look helper is macOS-only, and so is the toolchain that produces
+# it. Everywhere else the XPI is still worth building — the plugin runs on
+# Linux through Sushi, and its code is what a Linux user needs to test — but
+# it comes out without that helper, so it is not a package to release.
+RELEASABLE=1
+if [ "$(uname -s)" = "Darwin" ] && command -v swiftc >/dev/null; then
+  for binary in qlpreview; do
+    build_binary "$binary"
+  done
+else
+  RELEASABLE=0
+  echo "No Swift toolchain on $(uname -s): building without the qlpreview helper."
+  echo "The result runs on Linux; on macOS it falls back to qlmanage."
+  rm -f addon/qlpreview
+fi
+
+# Fedora and Debian ship shasum with perl, but it is not everywhere; coreutils
+# is.
+sha256() {
+  if command -v shasum >/dev/null; then
+    shasum -a 256 "$1" | cut -d' ' -f1
+  else
+    sha256sum "$1" | cut -d' ' -f1
+  fi
+}
 
 echo "Packaging ${XPI}…"
 mkdir -p build
@@ -47,7 +69,16 @@ rm -f "$XPI"
 ( cd addon && zip -q -r "../${XPI}" . -x '*.DS_Store' )
 rm -f addon/qlpreview
 
-SHA=$(shasum -a 256 "$XPI" | cut -d' ' -f1)
+SHA=$(sha256 "$XPI")
+
+if [ "$RELEASABLE" = 0 ]; then
+  echo
+  echo "Built  ${XPI}  (sha256:${SHA})"
+  echo "Install it with Zotero's Add-ons → Install Add-on From File."
+  echo "update.json is left alone: it must describe a package built on macOS,"
+  echo "or installed copies would auto-update to one without Quick Look."
+  exit 0
+fi
 
 echo "Writing update.json…"
 # strict_max_version is deliberately omitted: Zotero then treats the update as
