@@ -15,11 +15,14 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 REPO="fre-ms/zotLook"
-read -r VERSION ID MIN <<<"$(python3 -c '
-import json
-z = json.load(open("addon/manifest.json"))
-a = z["applications"]["zotero"]
-print(z["version"], a["id"], a["strict_min_version"])')"
+# One line on purpose: pyenv-win's shims relay arguments through cmd batch
+# files, which cannot carry embedded newlines — a multi-line -c program comes
+# out empty there, and an empty version would name the package zotlook-.xpi.
+read -r VERSION ID MIN <<<"$(python3 -c 'import json; z = json.load(open("addon/manifest.json")); a = z["applications"]["zotero"]; print(z["version"], a["id"], a["strict_min_version"])')"
+if [ -z "${VERSION}" ] || [ -z "${ID}" ] || [ -z "${MIN}" ]; then
+  echo "Could not read version, id and strict_min_version from addon/manifest.json" >&2
+  exit 1
+fi
 # The bare filename is the release asset name and goes into update.json;
 # XPI is where it is written locally.
 XPI_NAME="zotlook-${VERSION}.xpi"
