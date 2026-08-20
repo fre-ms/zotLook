@@ -820,7 +820,9 @@ var ZotLook = {
 		return new Promise((resolve) => {
 			let worker;
 			try {
-				worker = new ChromeWorker(this.rootURI + "bench.worker.js");
+				worker = new ChromeWorker(this.rootURI + "bench.worker.js", {
+					type: "module",
+				});
 			} catch (e) {
 				this.log("BENCH: could not start the worker: " + e);
 				resolve(false);
@@ -828,8 +830,31 @@ var ZotLook = {
 			}
 
 			let started = Date.now();
+			let writeReport = async (report) => {
+				try {
+					let dir = this._getTempDirPath();
+					await IOUtils.makeDirectory(dir, { ignoreExisting: true });
+					await IOUtils.writeUTF8(
+						PathUtils.join(dir, "bench-result.json"),
+						JSON.stringify(report, null, 2)
+					);
+				} catch (e) {
+					this.log("BENCH: could not write the report: " + e);
+				}
+			};
+
 			worker.addEventListener("message", async (event) => {
 				let r = event.data;
+				r.wallMs = Date.now() - started;
+				await writeReport({
+					ok: r.ok,
+					error: r.error,
+					version: r.version,
+					pageCount: r.pageCount,
+					steps: r.steps,
+					wallMs: r.wallMs,
+					pages: r.pages,
+				});
 				if (!r.ok) {
 					this.log("BENCH: FAILED — " + r.error);
 					worker.terminate();
@@ -871,8 +896,11 @@ var ZotLook = {
 				resolve(true);
 			});
 
-			worker.addEventListener("error", (e) => {
-				this.log("BENCH: worker error — " + (e.message || e.filename));
+			worker.addEventListener("error", async (e) => {
+				let detail = (e.message || "") + " @ " + (e.filename || "") +
+					":" + (e.lineno || "");
+				this.log("BENCH: worker error — " + detail);
+				await writeReport({ ok: false, error: "worker error: " + detail });
 				worker.terminate();
 				resolve(false);
 			});
