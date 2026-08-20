@@ -632,7 +632,8 @@ var ZotLook = {
 	 * QuickLook renders previews with JavaScript disabled and does not act on
 	 * links, so the per-page links are inert there — but they are not wasted:
 	 * QuickLook offers to open an HTML preview in the browser, and from there
-	 * they work, as they do in this window.
+	 * they work, as they do in this window. Sushi does follow links, which is
+	 * why they open in a new context; see the comment in ZotLookSheet.html.
 	 */
 	async _openContactSheetInViewer(items) {
 		return this._withLaunchGuard(async () => {

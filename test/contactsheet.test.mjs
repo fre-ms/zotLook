@@ -70,6 +70,11 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
      'referencing the thumbnails by name');
   ok(html.includes('zotero://open-pdf/library/items/ABCD1234?page=1'),
      'and the reader links, which work once the sheet is opened in a browser');
+  // Not decoration: Sushi's WebKit view follows links, fails to load a zotero:
+  // URL, and hands the whole preview over to an error box. Asked for a new
+  // window it raises "create" instead, which Sushi ignores.
+  ok(/<a target="_blank" href="zotero:/.test(html),
+     'opened in a new context, so a click cannot take the preview down');
 }
 
 // ── one sheet serves both routes ──────────────────────────────────────

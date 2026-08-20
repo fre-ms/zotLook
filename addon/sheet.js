@@ -70,8 +70,17 @@ var ZotLookSheet = {
 				'">\n<div class="label">' +
 				entry.page +
 				"</div>";
+			// target="_blank" is what keeps the sheet alive under GNOME
+			// Sushi. Its WebKit view really follows links, unlike QuickLook,
+			// and it cannot load a zotero: URL — the load fails and Sushi
+			// replaces the whole preview with an error box. Asking for a new
+			// window instead makes it raise "create", which Sushi does not
+			// handle, so the click does nothing and the sheet stays up.
+			// Everywhere the link does work it still works: zotero://open-pdf
+			// carries no content, it performs an action, so it does not matter
+			// which context loads it.
 			let inner = linkBase
-				? '<a href="' +
+				? '<a target="_blank" href="' +
 					this.escape(linkBase) +
 					"?page=" +
 					entry.page +
