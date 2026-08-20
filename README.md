@@ -27,6 +27,7 @@ The plugin ID is `zotlook@fre.ms`, distinct from Chapron's, so the two install s
 - Selecting a parent item previews one of its attachments; which one is configurable under **Settings → zotLook** — either by a reorderable type ranking (PDF, EPUB, HTML, image, video, anything else) or simply the first attachment the item lists
 - EPUB files are rendered on the fly into a single styled HTML page (Palatino, 80 px margin, book-width column), with the book's own stylesheets loaded so layout and typography are preserved — switchable off under **Settings → zotLook** if a Quick Look extension handles EPUB better
 - Notes are rendered as HTML and previewed
+- PDF annotations made in Zotero are drawn into the preview — Zotero keeps them in its database, not in the file, so the stored PDF is unmarked
 - Synced files that aren't downloaded locally are fetched automatically
 - Menu and progress text are localised (English and German)
 - Shortcuts and the contact sheet page limit are configurable under **Settings → zotLook**, with a check against Zotero's own shortcuts
@@ -152,7 +153,9 @@ Only one attachment is ever previewed, and only one contact sheet is ever built.
 
 Strings destined for a XUL `<button>` or `<menuitem>` are written in Fluent's attribute form (`id =\n    .label = …`). Those elements render their `label` attribute and ignore text content, which a plain message value would set — the reason two rounds of menu entries and a dropdown came out blank. `<label>`, `<description>` and HTML elements take the plain form.
 
-Each action has exactly one shortcut, configurable in the settings. Shortcuts are stored as strings such as `Alt+Space` or `Meta+y`. The final token is read as a physical key code when it is longer than one character and as a produced character otherwise: Space sits in the same place on every layout, whereas the key labelled Y on a QWERTZ keyboard reports code `KeyZ`, so only the character identifies the shortcut a user sees on their keycaps. Changing a shortcut takes effect immediately.
+Each action has exactly one shortcut, configurable in the settings. Zotero keeps PDF annotations in its database rather than in the file, so previewing the stored PDF shows an unmarked document — the gap users asked about most. When an attachment has annotations, `Zotero.PDFWorker.export` writes a copy with them drawn in and that copy is previewed. Attachments without annotations are recognised before any work starts, and an export is reused until an annotation is added or edited, so the common case costs nothing.
+
+Shortcuts are stored as strings such as `Alt+Space` or `Meta+y`. The final token is read as a physical key code when it is longer than one character and as a produced character otherwise: Space sits in the same place on every layout, whereas the key labelled Y on a QWERTZ keyboard reports code `KeyZ`, so only the character identifies the shortcut a user sees on their keycaps. Changing a shortcut takes effect immediately.
 
 The settings pane warns when a combination is already bound, checking the main window's own `<key>` elements, Zotero's configurable `extensions.zotero.keys.*` shortcuts, and zotLook's other actions. It warns rather than refuses, and says so: Zotero publishes no list of other plugins' shortcuts and macOS publishes none at all, so a clean result means "no conflict with Zotero", not "free".
 

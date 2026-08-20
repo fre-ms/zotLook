@@ -56,3 +56,9 @@ zotlook-prefs-epub-title = EPUB
 zotlook-prefs-epub-help = macOS zeigt EPUBs von sich aus nicht an, deshalb baut zotLook selbst eine Vorschau: das Buch wird entpackt und seine Kapitel zu einer gestalteten Seite zusammengefügt. Eine QuickLook-Erweiterung für EPUB stellt das Buch in aller Regel besser dar. Schalte dies aus, um ihr den Vortritt zu lassen — ohne eine solche Erweiterung haben EPUB-Anhänge dann gar keine Vorschau.
 zotlook-prefs-epub-own =
     .label = EPUB mit zotLook darstellen
+
+# PDF-Annotationen
+zotlook-prefs-pdf-title = PDF
+zotlook-prefs-pdf-help = Zotero speichert Annotationen in seiner Datenbank, nicht in der PDF-Datei. Eine Vorschau der gespeicherten Datei zeigt deshalb ein unmarkiertes Dokument. Ist dies eingeschaltet, wird stattdessen eine Kopie mit eingezeichneten Annotationen erzeugt und angezeigt. Anhänge ohne Annotationen werden vorher erkannt und kosten nichts.
+zotlook-prefs-pdf-annotations =
+    .label = Annotationen in der Vorschau zeigen

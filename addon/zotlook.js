@@ -16,6 +16,8 @@ var ZotLook = {
 	_tempDir: null,
 	// binary name -> deployed path
 	_binaries: new Map(),
+	// attachment key -> { signature, path } for exported annotated copies
+	_annotationCache: new Map(),
 
 	// Pages render concurrently into files beside the HTML, so the page count
 	// is a safety limit rather than a performance ceiling; it is configurable
@@ -1000,14 +1002,17 @@ var ZotLook = {
 				continue;
 			}
 
+			let attachment = null;
 			if (item.isAttachment()) {
+				attachment = item;
 				path = await this._getAttachmentPath(item);
 			} else {
-				path = await this._pickBestAttachment(item);
+				let chosen = await this._pickBestAttachment(item);
+				if (chosen) ({ item: attachment, path } = chosen);
 			}
 
 			if (!path) continue;
-			path = await this._normalizeForPreview(path);
+			path = await this._normalizeForPreview(path, attachment);
 			if (path) paths.push(path);
 		}
 
@@ -1029,7 +1034,7 @@ var ZotLook = {
 		// synced attachment only to discard all but one.
 		for (let attachment of this._orderAttachments(attachments)) {
 			let path = await this._getAttachmentPath(attachment);
-			if (path) return path;
+			if (path) return { item: attachment, path: path };
 		}
 		return null;
 	},
@@ -1100,16 +1105,100 @@ var ZotLook = {
 	 * better than this plugin's own conversion can. Whether such an extension
 	 * is installed is not reliably detectable, so it is a setting.
 	 */
-	async _normalizeForPreview(path) {
+	async _normalizeForPreview(path, attachment) {
+		if (!path) return path;
+
 		if (
-			path &&
 			path.toLowerCase().endsWith(".epub") &&
 			this._pref("epubOwnRenderer", true)
 		) {
 			let html = await ZotLookEpub.convert(path, this._epubEnv());
 			return html || path;
 		}
-		return path;
+
+		let annotated = await this._annotatedCopy(attachment);
+		return annotated || path;
+	},
+
+	/**
+	 * A copy of a PDF with the item's Zotero annotations drawn into it.
+	 *
+	 * The stored file holds none of them — Zotero keeps annotations in its
+	 * database and only bakes them in on export — so a plain preview shows an
+	 * unmarked document, which is the most frequently asked-for gap in this
+	 * plugin.
+	 *
+	 * Costs nothing for the common case: an attachment without annotations is
+	 * recognised before any work starts, and an export is reused until an
+	 * annotation changes.
+	 *
+	 * @returns {Promise<string|null>} path to the exported copy, or null to
+	 *          preview the file as it is
+	 */
+	async _annotatedCopy(attachment) {
+		if (!attachment || !this._pref("previewAnnotations", true)) return null;
+		if (!this._isPDFAttachment(attachment)) return null;
+		if (!Zotero.PDFWorker || typeof Zotero.PDFWorker.export !== "function") {
+			return null;
+		}
+
+		let signature = this._annotationSignature(attachment);
+		if (!signature) return null;
+
+		let cached = this._annotationCache.get(attachment.key);
+		if (
+			cached &&
+			cached.signature === signature &&
+			(await IOUtils.exists(cached.path))
+		) {
+			return cached.path;
+		}
+
+		let tempDir = this._getTempDirPath();
+		await IOUtils.makeDirectory(tempDir, { ignoreExisting: true });
+		let outputPath = PathUtils.join(
+			tempDir,
+			"annotated_" + ZotLookUtil.safeName(attachment.key, 40) + ".pdf"
+		);
+
+		try {
+			this.log("Exporting annotations for " + attachment.key);
+			await Zotero.PDFWorker.export(attachment.id, outputPath, true);
+		} catch (e) {
+			this.log("Could not export annotations: " + e);
+			return null;
+		}
+
+		this._annotationCache.set(attachment.key, {
+			signature: signature,
+			path: outputPath,
+		});
+		return outputPath;
+	},
+
+	/**
+	 * Identifies the current state of an attachment's annotations, or null when
+	 * it has none worth drawing. External annotations are already part of the
+	 * file, so they do not count.
+	 */
+	_annotationSignature(attachment) {
+		let annotations;
+		try {
+			annotations = attachment
+				.getAnnotations()
+				.filter((a) => !a.annotationIsExternal);
+		} catch (e) {
+			this.log("Could not read annotations: " + e);
+			return null;
+		}
+		if (annotations.length === 0) return null;
+
+		let latest = "";
+		for (let annotation of annotations) {
+			let modified = annotation.dateModified || "";
+			if (modified > latest) latest = modified;
+		}
+		return annotations.length + "@" + latest;
 	},
 
 	async _getNotePaths(items) {
@@ -1280,6 +1369,7 @@ var ZotLook = {
 		// continuation that ran after the await would find ZotLookEpub gone.
 		ZotLookEpub.clearCache();
 		this._binaries.clear();
+		this._annotationCache.clear();
 
 		// Resolve the path rather than reading _tempDir: on startup nothing has
 		// populated it yet, and the point of this call is to clear leftovers

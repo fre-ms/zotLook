@@ -54,3 +54,9 @@ zotlook-prefs-epub-title = EPUB
 zotlook-prefs-epub-help = macOS shows no EPUB preview on its own, so zotLook builds one: the book is unpacked and its chapters joined into a single styled page. A Quick Look extension that handles EPUB will usually render the book better. Turn this off to let such an extension take over — with none installed, EPUB attachments then have no preview at all.
 zotlook-prefs-epub-own =
     .label = Render EPUB with zotLook
+
+# PDF annotations
+zotlook-prefs-pdf-title = PDF
+zotlook-prefs-pdf-help = Zotero stores annotations in its database, not in the PDF itself, so a preview of the stored file shows an unmarked document. With this on, a copy with the annotations drawn in is exported and previewed instead. Attachments without annotations are recognised beforehand and cost nothing.
+zotlook-prefs-pdf-annotations =
+    .label = Show annotations in the preview

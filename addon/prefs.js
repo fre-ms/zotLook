@@ -29,3 +29,8 @@ pref("extensions.zotlook.attachmentOrder", "pdf,epub,html,image,video,other");
 // A Quick Look extension that handles EPUB would do it better, but the plugin
 // cannot tell whether one is installed — hence a switch rather than a guess.
 pref("extensions.zotlook.epubOwnRenderer", true);
+
+// Zotero keeps annotations in its database rather than in the PDF, so a plain
+// preview shows an unmarked document. Exporting a copy with them drawn in is
+// skipped entirely for attachments that have none.
+pref("extensions.zotlook.previewAnnotations", true);
