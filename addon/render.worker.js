@@ -12,7 +12,10 @@
 //
 // Measured on a 30-page article at 500 px: pdf.js imports in 24 ms, the
 // document opens in 59 ms, and pages render in 21 ms each — 31 ms with the
-// annotation drawing below.
+// annotation drawing below. Several of these run at once, each with its own
+// copy of the document, which is what closes most of the gap: single-threaded
+// the same 30 pages took 0.72 s against the binary's 0.12 s across ten cores,
+// and against Poppler's 0.56 s in one process.
 
 import * as pdfjs from "resource://zotero/reader/pdf/build/pdf.mjs";
 

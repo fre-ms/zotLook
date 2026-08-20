@@ -77,7 +77,7 @@ export function loadPlugin(overrides = {}) {
       toFileURI: (p) => 'file://' + p,
     },
     IOUtils: overrides.IOUtils ?? {},
-    Services: {},
+    Services: overrides.Services ?? {},
     setTimeout, clearTimeout, console,
   };
   const src = ['util.js', 'sheet.js', 'epub.js', 'zotlook.js']
