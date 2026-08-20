@@ -87,6 +87,95 @@ class NoFilterFactory {
 	destroy() {}
 }
 
+// Zotero's build of pdf.js refuses to paint highlights onto the canvas at
+// all: pdf.worker.mjs keeps a list of allowed annotation subtypes and
+// Highlight is not on it, because Zotero's reader draws them in an HTML layer
+// of its own instead. The data still comes through getAnnotations, so a
+// portable renderer has to draw them itself. This is that drawing.
+const QUAD_TYPES = new Set(["Highlight", "Underline", "StrikeOut", "Squiggly"]);
+
+function drawAnnotations(ctx, viewport, annotations) {
+	for (let a of annotations) {
+		let colour = a.color
+			? "rgb(" + a.color[0] + "," + a.color[1] + "," + a.color[2] + ")"
+			: "rgb(255,255,0)";
+
+		if (QUAD_TYPES.has(a.subtype) && a.quadPoints) {
+			ctx.save();
+			// Multiply is what a marker pen does: the text stays readable
+			// through it, which plain painting over would not manage.
+			ctx.globalCompositeOperation =
+				a.subtype === "Highlight" ? "multiply" : "source-over";
+			ctx.globalAlpha = typeof a.opacity === "number" ? a.opacity : 1;
+			ctx.fillStyle = colour;
+
+			// Eight numbers per quad, corners in the order pdf.js normalises
+			// them to: top-left, top-right, bottom-left, bottom-right
+			for (let i = 0; i + 7 < a.quadPoints.length; i += 8) {
+				let tl = viewport.convertToViewportPoint(
+					a.quadPoints[i],
+					a.quadPoints[i + 1]
+				);
+				let br = viewport.convertToViewportPoint(
+					a.quadPoints[i + 6],
+					a.quadPoints[i + 7]
+				);
+				let x = Math.min(tl[0], br[0]);
+				let y = Math.min(tl[1], br[1]);
+				let w = Math.abs(br[0] - tl[0]);
+				let h = Math.abs(br[1] - tl[1]);
+				let rule = Math.max(1, h * 0.08);
+
+				if (a.subtype === "Highlight") {
+					ctx.fillRect(x, y, w, h);
+				} else if (a.subtype === "StrikeOut") {
+					ctx.fillRect(x, y + h / 2 - rule / 2, w, rule);
+				} else {
+					ctx.fillRect(x, y + h - rule, w, rule);
+				}
+			}
+			ctx.restore();
+			continue;
+		}
+
+		// Zotero's own area and ink annotations are excluded by the same
+		// filter, on the isZotero flag
+		if (a.subtype === "Square" && a.rect) {
+			let p1 = viewport.convertToViewportPoint(a.rect[0], a.rect[1]);
+			let p2 = viewport.convertToViewportPoint(a.rect[2], a.rect[3]);
+			ctx.save();
+			ctx.strokeStyle = colour;
+			ctx.lineWidth = 2;
+			ctx.strokeRect(
+				Math.min(p1[0], p2[0]),
+				Math.min(p1[1], p2[1]),
+				Math.abs(p2[0] - p1[0]),
+				Math.abs(p2[1] - p1[1])
+			);
+			ctx.restore();
+		} else if (a.subtype === "Ink" && a.inkLists) {
+			ctx.save();
+			ctx.strokeStyle = colour;
+			ctx.lineWidth = Math.max(1, a.borderStyle?.width || 1);
+			ctx.lineCap = "round";
+			ctx.lineJoin = "round";
+			for (let stroke of a.inkLists) {
+				ctx.beginPath();
+				for (let i = 0; i + 1 < stroke.length; i += 2) {
+					let pt = viewport.convertToViewportPoint(
+						stroke[i],
+						stroke[i + 1]
+					);
+					if (i === 0) ctx.moveTo(pt[0], pt[1]);
+					else ctx.lineTo(pt[0], pt[1]);
+				}
+				ctx.stroke();
+			}
+			ctx.restore();
+		}
+	}
+}
+
 // Each stage is reported as it is reached. A run that stops says where it
 // stopped, which a single message at the end cannot.
 function stage(name, extra) {
@@ -173,6 +262,10 @@ self.addEventListener("message", async (event) => {
 				intent: "display",
 				annotationMode: 1,
 			}).promise;
+
+			let annots = await page.getAnnotations({ intent: "display" });
+			drawAnnotations(ctx, scaled, annots);
+			if (i === 1) report.annotationCount = annots.length;
 
 			let blob = await canvas.convertToBlob({
 				type: "image/jpeg",
