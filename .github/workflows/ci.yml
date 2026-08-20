@@ -65,6 +65,7 @@ jobs:
           # than a regex against a formatted table.
           unzip -Z1 "$xpi" > "$RUNNER_TEMP/entries.txt"
           for entry in manifest.json bootstrap.js zotlook.js util.js epub.js \
+                       sheet.js render.worker.js \
                        prefs.js prefs-pane.xhtml prefs-pane.js prefs-pane.css \
                        contactsheet qlpreview \
                        locale/en-US/zotlook.ftl locale/de-DE/zotlook.ftl; do

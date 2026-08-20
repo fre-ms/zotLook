@@ -80,12 +80,12 @@ export function loadPlugin(overrides = {}) {
     Services: {},
     setTimeout, clearTimeout, console,
   };
-  const src = ['util.js', 'epub.js', 'zotlook.js']
+  const src = ['util.js', 'sheet.js', 'epub.js', 'zotlook.js']
     .map((f) => fs.readFileSync(ADDON + f, 'utf8'))
     .join('\n;\n');
   const out = new Function(
     ...Object.keys(g),
-    src + '\n;return {ZotLook, ZotLookUtil, ZotLookEpub};'
+    src + '\n;return {ZotLook, ZotLookUtil, ZotLookEpub, ZotLookSheet};'
   )(...Object.values(g));
   return { ...out, logs, prefs };
 }

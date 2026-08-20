@@ -15,6 +15,7 @@ const xhtml = fs.readFileSync(ADDON+'prefs-pane.xhtml','utf8');
 const used = new Set([
   ...[...src.matchAll(/l10nID:\s*"([^"]+)"/g)].map(m => m[1]),
   ...[...src.matchAll(/_string\(\s*\n?\s*"([^"]+)"/g)].map(m => m[1]),
+  ...[...src.matchAll(/_formatString\(\s*\n?\s*"([^"]+)"/g)].map(m => m[1]),
   ...[...src.matchAll(/data-l10n-id="([^"]+)"/g)].map(m => m[1]),
   ...[...src.matchAll(/setAttributes\([^,]+,\s*"([^"]+)"/g)].map(m => m[1]),
 ]);
@@ -76,6 +77,7 @@ eq([...parsed.get('de-DE').keys()].sort(), [...parsed.get('en-US').keys()].sort(
   const readAsValue = new Set([
     ...[...src.matchAll(/l10nID:\s*"([^"]+)"/g)].map(m => m[1]),
     ...[...src.matchAll(/_string\(\s*\n?\s*"([^"]+)"/g)].map(m => m[1]),
+  ...[...src.matchAll(/_formatString\(\s*\n?\s*"([^"]+)"/g)].map(m => m[1]),
   ]);
   for (const loc of locales) {
     const messages = parsed.get(loc);

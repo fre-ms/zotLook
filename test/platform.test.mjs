@@ -65,21 +65,30 @@ const on = (platform) => {
   eq(Q._platformSupported(), false, 'so the plugin keeps out of the way there');
 }
 
-// ── the contact sheet needs the bundled renderer ──────────────────────
+// ── the contact sheet is built everywhere, but not shown everywhere ───
+// macOS renders through the bundled binary, the rest through the pdf.js
+// build Zotero ships. Showing it outside Zotero still needs a preview
+// mechanism, and Windows has none.
 {
-  const mac = on('Mac'), linux = on('Linux');
-  eq(mac._contactSheetSupported(), true, 'the contact sheet works on macOS');
-  eq(linux._contactSheetSupported(), false, 'and not where its renderer is not shipped');
-  eq(await linux._buildContactSheet([{}]), null, 'building one yields nothing there');
-
-  const sheetEntry = mac.MENU_ITEMS.find(e => e.macOnly);
-  ok(sheetEntry, 'the contact sheet entries are marked macOS-only');
+  const mac = on('Mac'), linux = on('Linux'), win = on('Win');
+  eq(mac._contactSheetSupported(), true, 'the contact sheet is built on macOS');
+  eq(linux._contactSheetSupported(), true, 'on Linux as well');
+  eq(win._contactSheetSupported(), true, 'and on Windows, for the window route');
+  eq(mac._contactSheetPreviewable(), true, 'QuickLook can show it');
+  eq(linux._contactSheetPreviewable(), true, 'Sushi can show it');
+  eq(win._contactSheetPreviewable(), false, 'nothing on Windows can');
+  const quickLookSheet = mac.MENU_ITEMS.find(e => e.needsSystemPreview);
+  ok(quickLookSheet, 'the QuickLook sheet is marked as needing one');
   const pdf = { isNote: () => false, isAttachment: () => true,
                 isPDFAttachment: () => true, attachmentFilename: 'a.pdf' };
-  eq(mac._menuApplies(sheetEntry, [pdf]), true, 'shown on macOS with a PDF');
-  eq(linux._menuApplies(sheetEntry, [pdf]), false, 'hidden elsewhere');
-  const preview = mac.MENU_ITEMS.find(e => !e.macOnly);
-  eq(linux._menuApplies(preview, [pdf]), true, 'while the plain preview stays');
+  eq(mac._menuApplies(quickLookSheet, [pdf]), true, 'shown on macOS with a PDF');
+  eq(linux._menuApplies(quickLookSheet, [pdf]), true, 'and on Linux');
+  eq(win._menuApplies(quickLookSheet, [pdf]), false, 'but not on Windows');
+
+  // The window route needs nothing but Zotero, so it is offered everywhere
+  const windowSheet = mac.MENU_ITEMS.find(
+    e => e.open === '_openContactSheetInViewer');
+  eq(win._menuApplies(windowSheet, [pdf]), true, 'the window route stays');
 }
 
 // ── the window guard follows the platform ─────────────────────────────

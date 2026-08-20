@@ -11,11 +11,13 @@ const ok=(c,l)=>eq(!!c,true,l);
 function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
   const calls = [];
   const viewed = [];
+  const written = new Map();
   const files = new Set(['/plugin/contactsheet']);
   const IOUtils = {
     exists: async (p) => files.has(p),
     makeDirectory: async () => {},
     write: async (p) => { files.add(p); },
+    writeUTF8: async (p, text) => { files.add(p); written.set(p, text); },
     setPermissions: async () => {},
     remove: async () => {},
   };
@@ -38,23 +40,40 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
   Q._getAttachmentPath = async () => '/lib/paper.pdf';
   Q._showProgress = () => ({});
   Q._closeProgress = () => {};
-  Q._runProcess = async (cmd, args) => { calls.push({ cmd, args }); return { exitCode }; };
+  Q._runProcess = async (cmd, args) => {
+    calls.push({ cmd, args });
+    // What the renderer prints: page sizes for the sheet to be built around
+    return { exitCode, stdout: JSON.stringify({
+      pageCount: 3, columns: 3, width: 833,
+      pages: [{ page: 1, height: 1107 }, { page: 2, height: 1107 },
+              { page: 3, height: 1107 }],
+    }) };
+  };
   globalThis.fetch = async () => ({ arrayBuffer: async () => new ArrayBuffer(4) });
-  return { Q, calls, attachment, viewed };
+  return { Q, calls, attachment, viewed, written };
 }
 
 // ── the plain sheet, as QuickLook gets it ─────────────────────────────
 {
-  const { Q, calls, attachment } = harness();
+  const { Q, calls, attachment, written } = harness();
   const out = await Q._buildContactSheet([attachment]);
   ok(out, 'a sheet is produced');
   eq(calls.length, 1, 'the renderer ran once');
-  const [pdfPath, outputPath, columns, maxPages, linkBase] = calls[0].args;
+  const [pdfPath, imageDir, columns, maxPages] = calls[0].args;
   eq(pdfPath, '/lib/paper.pdf', 'the PDF path is passed');
-  eq(outputPath, out, 'the output path is what the caller gets back');
+  eq(imageDir, '/tmp/zt/contactsheet_paper.pdf_pages',
+     'thumbnails go beside the sheet, in a directory named after it');
   eq(columns, '5', 'the default column count');
   eq(maxPages, '0', 'no page limit by default');
-  eq(linkBase, 'zotero://open-pdf/library/items/ABCD1234',
+  ok(out.endsWith('.html'), 'the caller gets the sheet itself back');
+
+  // The renderer no longer writes any HTML; the plugin does, from sheet.js
+  const html = written.get(out);
+  ok(html && html.includes('<!DOCTYPE html>'), 'the plugin wrote the sheet');
+  ok(html.includes('repeat(3, 1fr)'), 'with the grid the renderer reported');
+  ok(html.includes('contactsheet_paper.pdf_pages/p1.jpg'),
+     'referencing the thumbnails by name');
+  ok(html.includes('zotero://open-pdf/library/items/ABCD1234?page=1'),
      'and the reader links, which work once the sheet is opened in a browser');
 }
 
@@ -64,7 +83,7 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
   const a = await Q._buildContactSheet([attachment]);
   const b = await Q._buildContactSheet([attachment]);
   eq(a, b, 'the same file, whichever route asked for it');
-  eq(calls[0].args[4], calls[1].args[4], 'built the same way both times');
+  eq(calls[0].args, calls[1].args, 'built the same way both times');
 }
 
 // ── settings reach the renderer ───────────────────────────────────────
@@ -102,15 +121,13 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
   let launched = null;
   Q._launchPreview = async (p) => { launched = p; };
   eq(await Q._openContactSheet([attachment]), true, 'the QuickLook route succeeds');
-  eq(calls[0].args[4], 'zotero://open-pdf/library/items/ABCD1234',
-     'with reader links, useful once opened in a browser');
+  eq(calls.length, 1, 'through the one renderer');
   ok(launched && launched[0], 'and previewed the file it got back');
 }
 {
   const { Q, calls, attachment, viewed } = harness();
   eq(await Q._openContactSheetInViewer([attachment]), true, 'the window route succeeds');
-  eq(calls[0].args[4], 'zotero://open-pdf/library/items/ABCD1234',
-     'and asked for a sheet with links');
+  eq(calls.length, 1, 'through the one renderer');
   eq(viewed.length, 1, 'and opened exactly one window');
   ok(viewed[0].startsWith('file://'), 'handing the viewer a file URI');
 }
@@ -127,12 +144,15 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
   const { ZotLook: R } = loadPlugin({
     Items: { get: (k) => byKey.get(k) },
     IOUtils: { exists: async () => true, makeDirectory: async () => {},
-               write: async () => {}, setPermissions: async () => {}, remove: async () => {} },
+               write: async () => {}, writeUTF8: async () => {},
+               setPermissions: async () => {}, remove: async () => {} },
   });
   R.version = '1.1.0'; R.rootURI = 'file:///plugin/';
   R._getTempDirPath = () => '/tmp/zt';
   R._showProgress = () => ({}); R._closeProgress = () => {};
-  R._runProcess = async () => ({ exitCode: 0 });
+  R._runProcess = async () => ({ exitCode: 0, stdout: JSON.stringify({
+    pageCount: 1, columns: 1, width: 2500, pages: [{ page: 1, height: 3236 }],
+  }) });
   R._ensureContactSheetBinary = async () => '/tmp/zt/contactsheet-1.1.0';
   const seen = [];
   R._getAttachmentPath = async (a) => { seen.push(a.key); return '/lib/' + a.key + '.pdf'; };
@@ -168,7 +188,8 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
     const calls = [];
     const { ZotLook: Q } = loadPlugin({
       IOUtils: { exists: async () => false, makeDirectory: async () => {},
-                 write: async () => {}, setPermissions: async () => {} },
+                 write: async () => {}, writeUTF8: async () => {},
+                 setPermissions: async () => {}, remove: async () => {} },
       zotero: {
         Libraries: { get: () => ({ isGroup: false }) },
         PDFWorker: { export: async (id, path) => { exported.push(path); } },
@@ -179,7 +200,12 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
     Q._getAttachmentPath = async () => '/lib/paper.pdf';
     Q._ensureBinary = async () => '/tmp/zt/contactsheet-1.1.0';
     Q._showProgress = () => ({}); Q._closeProgress = () => {};
-    Q._runProcess = async (cmd, args) => { calls.push(args); return { exitCode: 0 }; };
+    Q._runProcess = async (cmd, args) => {
+      calls.push(args);
+      return { exitCode: 0, stdout: JSON.stringify({
+        pageCount: 1, columns: 1, width: 2500, pages: [{ page: 1, height: 3236 }],
+      }) };
+    };
     return { Q, calls, attachment, exported };
   };
 
@@ -218,7 +244,9 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
     const calls = [];
     const { ZotLook: Q } = loadPlugin({
       prefValues: { 'extensions.zotlook.previewAnnotations': false },
-      IOUtils: { exists: async () => false, makeDirectory: async () => {} },
+      IOUtils: { exists: async () => false, makeDirectory: async () => {},
+                 write: async () => {}, writeUTF8: async () => {},
+                 remove: async () => {} },
       zotero: { Libraries: { get: () => ({ isGroup: false }) },
                 PDFWorker: { export: async (i, p) => { exported.push(p); } } },
     });
@@ -227,7 +255,12 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
     Q._getAttachmentPath = async () => '/lib/paper.pdf';
     Q._ensureBinary = async () => '/tmp/zt/contactsheet-1.1.0';
     Q._showProgress = () => ({}); Q._closeProgress = () => {};
-    Q._runProcess = async (cmd, args) => { calls.push(args); return { exitCode: 0 }; };
+    Q._runProcess = async (cmd, args) => {
+      calls.push(args);
+      return { exitCode: 0, stdout: JSON.stringify({
+        pageCount: 1, columns: 1, width: 2500, pages: [{ page: 1, height: 3236 }],
+      }) };
+    };
     attachment.getAnnotations = () => [{ dateModified: '2026-01-01' }];
     await Q._buildContactSheet([attachment]);
     eq(exported.length, 0, 'the setting switches it off for the sheet too');

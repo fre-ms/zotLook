@@ -2,7 +2,6 @@
 zotlook-menu-preview = Quick Look
 zotlook-menu-contactsheet = Quick Look Contact Sheet
 zotlook-menu-contactsheet-window = Contact Sheet in a Window (clickable)
-zotlook-menu-bench = zotLook: measure the pdf.js renderer (test)
 
 # Progress window shown while a contact sheet is being rendered
 zotlook-progress-headline = Quick Look
@@ -62,3 +61,5 @@ zotlook-prefs-pdf-title = PDF
 zotlook-prefs-pdf-help = Zotero stores annotations in its database, not in the PDF itself, so previewing the stored file shows an unmarked document. With this on, a copy with the annotations drawn in is exported and used instead — for the preview and for the contact sheet alike. Attachments without annotations are recognised beforehand and cost nothing. Turn this off to see the files exactly as they are stored.
 zotlook-prefs-pdf-annotations =
     .label = Show annotations in previews and contact sheets
+
+zotlook-sheet-truncated = Showing the first { $shown } of { $total } pages.

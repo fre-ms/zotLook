@@ -2,7 +2,7 @@
 /* global Zotero, ChromeUtils, PathUtils, IOUtils, Services, Localization */
 /* global setTimeout, clearTimeout */
 /* global ChromeWorker, Components, OffscreenCanvas */
-/* global ZotLookUtil, ZotLookEpub */
+/* global ZotLookUtil, ZotLookEpub, ZotLookSheet */
 
 var ZotLook = {
 	id: null,
@@ -68,22 +68,13 @@ var ZotLook = {
 			fallback: "Quick Look Contact Sheet",
 			open: "_openContactSheet",
 			needsPDF: true,
-			macOnly: true,
+			needsSystemPreview: true,
 		},
 		{
 			id: "zotlook-contactsheet-window-menu-item",
 			l10nID: "zotlook-menu-contactsheet-window",
 			fallback: "Contact Sheet in a Window (clickable)",
 			open: "_openContactSheetInViewer",
-			needsPDF: true,
-			macOnly: true,
-		},
-		// TEMPORARY: measurement entry, removed once the numbers are in
-		{
-			id: "zotlook-bench-menu-item",
-			l10nID: "zotlook-menu-bench",
-			fallback: "zotLook: measure the pdf.js renderer (test)",
-			open: "_benchmarkPdfjs",
 			needsPDF: true,
 		},
 	],
@@ -99,7 +90,17 @@ var ZotLook = {
 
 	/** The contact sheet needs the bundled renderer, which is macOS-only. */
 	_contactSheetSupported() {
-		return !!Zotero.isMac;
+		// macOS renders through the bundled binary, everywhere else through
+		// the pdf.js build Zotero ships — so every platform can build one.
+		return true;
+	},
+
+	/**
+	 * Whether a built sheet can actually be shown outside Zotero. The window
+	 * route works anywhere; QuickLook and Sushi do not exist on Windows.
+	 */
+	_contactSheetPreviewable() {
+		return this._platformSupported();
 	},
 
 	init({ id, version, rootURI }) {
@@ -482,7 +483,9 @@ var ZotLook = {
 	_menuApplies(entry, items) {
 		items = items || [];
 		if (items.length === 0) return false;
-		if (entry.macOnly && !this._contactSheetSupported()) return false;
+		if (entry.needsSystemPreview && !this._contactSheetPreviewable()) {
+			return false;
+		}
 		if (!entry.needsPDF) return true;
 		return this._hasPDF(items);
 	},
@@ -619,23 +622,15 @@ var ZotLook = {
 	 */
 	async _buildContactSheet(items) {
 		if (!this._contactSheetSupported()) {
-			this.log("The contact sheet renderer is only available on macOS");
+			this.log("No page renderer is available on this platform");
 			return null;
 		}
 
 		// Resolve to an attachment item rather than a bare path: the reader
 		// links in the sheet need the item's key and library
 		let chosen = await this._pickPdfAttachment(items);
-
 		if (!chosen) {
 			this.log("No PDF files for contact sheet");
-			return null;
-		}
-
-		// Ensure the contact sheet binary is deployed
-		let binary = await this._ensureBinary("contactsheet");
-		if (!binary) {
-			this.log("Contact sheet binary not available");
 			return null;
 		}
 
@@ -645,16 +640,15 @@ var ZotLook = {
 		let tempDir = this._getTempDirPath();
 		await IOUtils.makeDirectory(tempDir, { ignoreExisting: true });
 
-		// Name the output after the source so a second contact sheet does not
-		// overwrite one that QuickLook may still have open
 		// Named after the source rather than after what is rendered, so the
-		// sheet keeps one name whether or not annotations were drawn in
-		let outputPath = PathUtils.join(
-			tempDir,
+		// sheet keeps one name whether or not annotations were drawn in, and
+		// a second sheet does not overwrite one still open in QuickLook
+		let sheetName =
 			"contactsheet_" +
-				ZotLookUtil.safeName(PathUtils.filename(chosen.path), 60) +
-				".html"
-		);
+			ZotLookUtil.safeName(PathUtils.filename(chosen.path), 60);
+		let outputPath = PathUtils.join(tempDir, sheetName + ".html");
+		let imageDirName = sheetName + "_pages";
+		let imageDir = PathUtils.join(tempDir, imageDirName);
 
 		this.log("Generating contact sheet for: " + pdfPath);
 
@@ -668,24 +662,60 @@ var ZotLook = {
 		);
 
 		try {
-			let result = await this._runProcess(
-				binary,
-				[
+			// Clear first: a previous run with a higher page cap would leave
+			// thumbnails behind that this sheet does not reference
+			await IOUtils.remove(imageDir, {
+				recursive: true,
+				ignoreAbsent: true,
+			});
+			await IOUtils.makeDirectory(imageDir, { ignoreExisting: true });
+
+			let maxColumns = this._contactSheetColumns();
+			let maxPages = this._maxContactSheetPages();
+
+			// PDFKit is several times faster where it can be built, so macOS
+			// keeps it; pdf.js is what makes the sheet exist anywhere else.
+			let manifest = Zotero.isMac
+				? await this._renderPagesNatively(
 					pdfPath,
-					outputPath,
-					String(this._contactSheetColumns()),
-					String(this._maxContactSheetPages()),
-					this._readerLink(chosen.item),
-				],
-				{ timeoutMs: this.CONTACT_SHEET_TIMEOUT_MS }
-			);
-			if (result.exitCode !== 0) {
-				this.log(
-					"Contact sheet generation failed with code " +
-						result.exitCode
+					imageDir,
+					maxColumns,
+					maxPages
+				)
+				: await this._renderPagesWithPdfjs(
+					pdfPath,
+					imageDir,
+					maxColumns,
+					maxPages
 				);
+
+			if (!manifest || !manifest.pages.length) {
+				this.log("No pages could be rendered");
 				return null;
 			}
+
+			let rendered = manifest.pages.length;
+			let notice = rendered < manifest.pageCount
+				? await this._formatString(
+					"zotlook-sheet-truncated",
+					{ shown: rendered, total: manifest.pageCount },
+					"Showing the first " + rendered + " of " +
+						manifest.pageCount + " pages."
+				)
+				: "";
+
+			await IOUtils.writeUTF8(
+				outputPath,
+				ZotLookSheet.html({
+					pages: manifest.pages,
+					columns: manifest.columns,
+					width: manifest.width,
+					imageDir: imageDirName,
+					pageCount: manifest.pageCount,
+					linkBase: this._readerLink(chosen.item),
+					notice: notice,
+				})
+			);
 		} catch (e) {
 			this.log("Contact sheet generation error: " + e);
 			return null;
@@ -694,6 +724,143 @@ var ZotLook = {
 		}
 
 		return outputPath;
+	},
+
+	/**
+	 * Renders through the bundled PDFKit binary, which draws annotations and
+	 * page rotation for free and spreads the pages across every core.
+	 */
+	async _renderPagesNatively(pdfPath, imageDir, maxColumns, maxPages) {
+		let binary = await this._ensureBinary("contactsheet");
+		if (!binary) {
+			this.log("Contact sheet binary not available");
+			return null;
+		}
+
+		let result = await this._runProcess(
+			binary,
+			[pdfPath, imageDir, String(maxColumns), String(maxPages)],
+			{ timeoutMs: this.CONTACT_SHEET_TIMEOUT_MS }
+		);
+		if (result.exitCode !== 0) {
+			this.log("Renderer failed with code " + result.exitCode);
+			return null;
+		}
+
+		try {
+			return JSON.parse(result.stdout);
+		} catch (e) {
+			this.log("Renderer produced no usable manifest: " + e);
+			return null;
+		}
+	},
+
+	/**
+	 * Renders through the pdf.js build Zotero ships, for the platforms the
+	 * binary cannot be built for. Pages arrive one at a time and are written
+	 * as they come, so a long book is never held in memory whole.
+	 */
+	async _renderPagesWithPdfjs(pdfPath, imageDir, maxColumns, maxPages) {
+		let prefix = this._resourceAlias();
+		if (!prefix) {
+			this.log("Cannot start the renderer without the resource alias");
+			return null;
+		}
+
+		let bytes = await IOUtils.read(pdfPath);
+
+		// The page count decides the column count, which decides the width to
+		// render at, and only the renderer knows it — so it opens the document
+		// first and is told the width once that is settled.
+		return new Promise((resolve) => {
+			let worker;
+			try {
+				worker = new ChromeWorker(prefix + "render.worker.js", {
+					type: "module",
+				});
+			} catch (e) {
+				this.log("Could not start the renderer: " + e);
+				resolve(null);
+				return;
+			}
+
+			let manifest = null;
+			let settled = false;
+			let finish = (value) => {
+				if (settled) return;
+				settled = true;
+				clearTimeout(timer);
+				worker.terminate();
+				resolve(value);
+			};
+			let timer = setTimeout(() => {
+				this.log("The renderer did not finish in time");
+				finish(manifest);
+			}, this.CONTACT_SHEET_TIMEOUT_MS);
+
+			worker.addEventListener("message", async (event) => {
+				let message = event.data;
+
+				if (message.type === "opened") {
+					let count = maxPages > 0
+						? Math.min(message.pageCount, maxPages)
+						: message.pageCount;
+					manifest = {
+						pageCount: message.pageCount,
+						columns: ZotLookSheet.columnsFor(count, maxColumns),
+						width: ZotLookSheet.widthFor(count, maxColumns),
+						pages: [],
+					};
+					// Only now is the width settled, so only now can it render
+					let pages = [];
+					for (let i = 1; i <= count; i++) pages.push(i);
+					worker.postMessage({
+						type: "render",
+						pages: pages,
+						width: manifest.width,
+						quality: 0.7,
+					});
+					return;
+				}
+
+				if (message.type === "page") {
+					try {
+						await IOUtils.write(
+							PathUtils.join(imageDir, "p" + message.page + ".jpg"),
+							new Uint8Array(message.buffer)
+						);
+						manifest.pages.push({
+							page: message.page,
+							height: message.height,
+						});
+					} catch (e) {
+						this.log("Could not write page " + message.page + ": " + e);
+					}
+					return;
+				}
+
+				if (message.type === "page-failed") {
+					this.log("Page " + message.page + " failed: " + message.error);
+					return;
+				}
+
+				if (message.type === "failed") {
+					this.log("Rendering failed: " + message.error);
+					finish(null);
+					return;
+				}
+
+				if (message.type === "done") finish(manifest);
+			});
+
+			worker.addEventListener("error", (e) => {
+				this.log("Renderer error: " + (e.message || e.filename));
+				finish(null);
+			});
+
+			worker.postMessage({ type: "open", data: bytes.buffer },
+				[bytes.buffer]);
+		});
 	},
 
 	/**
@@ -786,194 +953,6 @@ var ZotLook = {
 		return Math.floor(value);
 	},
 
-	// ── Renderer benchmark (temporary) ────────────────────────────────
-
-	/**
-	 * TEMPORARY. Measures the pdf.js build Zotero ships against the bundled
-	 * Swift renderer, which does 300 pages in about 6 s across ten cores.
-	 *
-	 * pdf.js would render on every platform and draw annotations without an
-	 * export, but only a measurement can say whether it is fast enough to
-	 * replace the native path or should only fill in where that cannot run.
-	 * Results go to the debug output; remove this once the numbers are in.
-	 */
-	async _benchmarkPdfjs(items) {
-		const MAX_PAGES = 30;
-		const WIDTH = 500;
-
-		// The debug output cannot carry this: other plugins flood it and the
-		// viewer truncates. Every path through here leaves a file behind, so
-		// a run that produces nothing at all means it never started.
-		let writeReport = async (report) => {
-			try {
-				let dir = this._getTempDirPath();
-				await IOUtils.makeDirectory(dir, { ignoreExisting: true });
-				await IOUtils.writeUTF8(
-					PathUtils.join(dir, "bench-result.json"),
-					JSON.stringify(report, null, 2)
-				);
-			} catch (e) {
-				this.log("BENCH: could not write the report: " + e);
-			}
-		};
-
-		let chosen = await this._pickPdfAttachment(items);
-		if (!chosen) {
-			this.log("BENCH: no PDF selected");
-			await writeReport({ ok: false, error: "no PDF among the selection" });
-			return false;
-		}
-
-		let source = (await this._annotatedCopy(chosen.item)) || chosen.path;
-		this.log("BENCH: rendering " + source);
-
-		let bytes;
-		try {
-			bytes = await IOUtils.read(source);
-		} catch (e) {
-			this.log("BENCH: could not read the file: " + e);
-			await writeReport({ ok: false, error: "read failed: " + e });
-			return false;
-		}
-
-		// The worker constructor rejects jar: and file: alike, so the script is
-		// reachable only through a resource: alias. Whether that can be
-		// registered decides whether a portable renderer could use a worker at
-		// all, so it is part of what this measures.
-		let prefix = this._resourceAlias();
-		if (!prefix) {
-			this.log("BENCH: no worker possible, measuring on this thread");
-			return this._benchmarkOnMainThread(bytes, MAX_PAGES, WIDTH, writeReport);
-		}
-
-		return new Promise((resolve) => {
-			let worker;
-			try {
-				worker = new ChromeWorker(prefix + "bench.worker.js", {
-					type: "module",
-				});
-			} catch (e) {
-				this.log("BENCH: could not start the worker: " + e);
-				this._benchmarkOnMainThread(bytes, MAX_PAGES, WIDTH, writeReport)
-					.then(resolve);
-				return;
-			}
-
-			// A worker that answers nothing would otherwise leave no trace
-			let timer = setTimeout(async () => {
-				this.log("BENCH: the worker did not answer");
-				await writeReport({
-					ok: false,
-					error: "no answer within 120 s",
-					trail: trail,
-				});
-				worker.terminate();
-				resolve(false);
-			}, 120000);
-
-			let started = Date.now();
-			let trail = [];
-			worker.addEventListener("message", async (event) => {
-				let r = event.data || {};
-				r.wallMs = Date.now() - started;
-
-				// Progress messages are recorded and waited on; only the final
-				// report ends the run. The trail is what tells us where a run
-				// that never finishes gave up.
-				trail.push({
-					stage: r.stage || "?",
-					ms: r.wallMs,
-					detail: Object.keys(r)
-						.filter((k) => !["stage", "wallMs", "samples", "pages"].includes(k))
-						.reduce((o, k) => Object.assign(o, { [k]: r[k] }), {}),
-				});
-				await writeReport({
-					ok: r.ok === true,
-					trail: trail,
-					error: r.error,
-					version: r.version,
-					pageCount: r.pageCount,
-					steps: r.steps,
-					wallMs: r.wallMs,
-					pages: r.pages,
-				});
-				if (r.stage !== "done") return;
-
-				clearTimeout(timer);
-				if (!r.ok) {
-					this.log("BENCH: FAILED — " + r.error);
-					worker.terminate();
-					resolve(false);
-					return;
-				}
-
-				let times = r.pages.map((p) => p.ms).sort((a, b) => a - b);
-				let median = times[Math.floor(times.length / 2)];
-				let bytesTotal = r.pages.reduce((sum, p) => sum + p.bytes, 0);
-				this.log(
-					"BENCH: pdf.js " + r.version +
-					" | import " + r.steps.importMs + " ms" +
-					" | open " + r.steps.openMs + " ms" +
-					" | " + r.pages.length + " of " + r.pageCount + " pages in " +
-					r.steps.totalMs + " ms" +
-					" | median/page " + median + " ms" +
-					" | mean size " + Math.round(bytesTotal / r.pages.length / 1024) + " KB" +
-					" | wall " + (Date.now() - started) + " ms" +
-					" | extrapolated 300 pages, one thread: " +
-					Math.round((median * 300) / 1000) + " s"
-				);
-
-				// Write the sample pages out so the result can be eyeballed —
-				// text and annotations are what a timing cannot tell us
-				let written = [];
-				for (let sample of r.samples || []) {
-					try {
-						let dir = this._getTempDirPath();
-						await IOUtils.makeDirectory(dir, { ignoreExisting: true });
-						let out = PathUtils.join(dir, "bench-page" + sample.page + ".jpg");
-						await IOUtils.write(out, new Uint8Array(sample.buffer));
-						written.push(out);
-					} catch (e) {
-						this.log("BENCH: could not write the sample: " + e);
-					}
-				}
-				if (written.length) {
-					this.log("BENCH: samples written to " + written.join(", "));
-					await this._launchPreview(written);
-				}
-
-				worker.terminate();
-				resolve(true);
-			});
-
-			worker.addEventListener("error", async (e) => {
-				clearTimeout(timer);
-				let detail = (e.message || "") + " @ " + (e.filename || "") +
-					":" + (e.lineno || "");
-				this.log("BENCH: worker error — " + detail);
-				await writeReport({
-					ok: false,
-					error: "worker error: " + detail,
-					trail: trail,
-				});
-				worker.terminate();
-				resolve(false);
-			});
-
-			worker.postMessage(
-				{
-					data: bytes.buffer,
-					maxPages: MAX_PAGES,
-					width: WIDTH,
-					quality: 0.7,
-					// Page 3 carries the most highlights in the test document
-					samplePages: [1, 3],
-				},
-				[bytes.buffer]
-			);
-		});
-	},
-
 	// ── Subprocess helpers ────────────────────────────────────────────
 
 	_subprocess() {
@@ -1041,6 +1020,20 @@ var ZotLook = {
 	_string(id, fallback) {
 		let value = this._strings && this._strings.get(id);
 		return value || fallback;
+	},
+
+	/**
+	 * A string whose wording depends on numbers, so it cannot be preloaded
+	 * with the fixed ones. Falls back to English if the bundle will not load.
+	 */
+	async _formatString(id, args, fallback) {
+		try {
+			let l10n = new Localization([this.L10N_FILE]);
+			return (await l10n.formatValue(id, args)) || fallback;
+		} catch (e) {
+			this.log("Could not format " + id + ": " + e);
+			return fallback;
+		}
 	},
 
 	/**
@@ -1112,83 +1105,6 @@ var ZotLook = {
 	 * binary's argument contract, and silently reusing the copy an earlier
 	 * version left behind is the same stale-code trap as caching the scripts.
 	 */
-	/**
-	 * TEMPORARY. The same measurement without a worker: pdf.js parses in a
-	 * worker of its own, which is loaded from resource:// and therefore
-	 * allowed, so only the rasterising happens here. It blocks the interface,
-	 * which is why this is a fallback and not the plan — but the per-page cost
-	 * it reports is the number the decision turns on.
-	 */
-	async _benchmarkOnMainThread(bytes, maxPages, width, writeReport) {
-		let report = { ok: false, where: "main thread", steps: {}, pages: [] };
-		try {
-			let t0 = Date.now();
-			let lib = await import(
-				"resource://zotero/reader/pdf/build/pdf.mjs"
-			);
-			report.steps.importMs = Date.now() - t0;
-			report.version = lib.version || "unknown";
-
-			if (typeof OffscreenCanvas === "undefined") {
-				throw new Error("no OffscreenCanvas in this scope");
-			}
-
-			let t1 = Date.now();
-			let doc = await lib.getDocument({
-				data: bytes,
-				isEvalSupported: false,
-			}).promise;
-			report.steps.openMs = Date.now() - t1;
-			report.pageCount = doc.numPages;
-
-			let count = Math.min(doc.numPages, maxPages);
-			for (let i = 1; i <= count; i++) {
-				let tp = Date.now();
-				let page = await doc.getPage(i);
-				let viewport = page.getViewport({
-					scale: width / page.getViewport({ scale: 1 }).width,
-				});
-				let canvas = new OffscreenCanvas(
-					Math.ceil(viewport.width),
-					Math.ceil(viewport.height)
-				);
-				let ctx = canvas.getContext("2d");
-				ctx.fillStyle = "#ffffff";
-				ctx.fillRect(0, 0, canvas.width, canvas.height);
-				await page.render({
-					canvasContext: ctx,
-					viewport: viewport,
-					intent: "print",
-					annotationMode: 2,
-				}).promise;
-				let blob = await canvas.convertToBlob({
-					type: "image/jpeg",
-					quality: 0.7,
-				});
-				report.pages.push({
-					page: i,
-					ms: Date.now() - tp,
-					bytes: blob.size,
-				});
-				if (i === 1) {
-					let dir = this._getTempDirPath();
-					await IOUtils.write(
-						PathUtils.join(dir, "bench-page1.jpg"),
-						new Uint8Array(await blob.arrayBuffer())
-					);
-				}
-				page.cleanup();
-			}
-			report.steps.totalMs = Date.now() - t0;
-			report.ok = true;
-		} catch (e) {
-			report.error = String(e && e.stack ? e.stack : e);
-		}
-		await writeReport(report);
-		this.log("BENCH: " + JSON.stringify(report.steps));
-		return report.ok;
-	},
-
 	/**
 	 * Maps resource://zotlook/ onto the plugin directory, so a worker can be
 	 * started from a privileged URL. The worker constructor rejects both jar:

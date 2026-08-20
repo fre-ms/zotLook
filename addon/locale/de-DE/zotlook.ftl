@@ -4,7 +4,6 @@
 zotlook-menu-preview = Übersicht
 zotlook-menu-contactsheet = Seitenübersicht
 zotlook-menu-contactsheet-window = Seitenübersicht im Fenster (klickbar)
-zotlook-menu-bench = zotLook: pdf.js-Renderer messen (Test)
 
 # Fortschrittsfenster während die Seitenübersicht erzeugt wird
 zotlook-progress-headline = Übersicht
@@ -64,3 +63,5 @@ zotlook-prefs-pdf-title = PDF
 zotlook-prefs-pdf-help = Zotero speichert Annotationen in seiner Datenbank, nicht in der PDF-Datei. Die gespeicherte Datei anzuzeigen ergibt deshalb ein unmarkiertes Dokument. Ist dies eingeschaltet, wird stattdessen eine Kopie mit eingezeichneten Annotationen erzeugt und verwendet — für die Vorschau ebenso wie für die Seitenübersicht. Anhänge ohne Annotationen werden vorher erkannt und kosten nichts. Ausschalten zeigt die Dateien genau so, wie sie gespeichert sind.
 zotlook-prefs-pdf-annotations =
     .label = Annotationen in Vorschau und Seitenübersicht zeigen
+
+zotlook-sheet-truncated = Es werden die ersten { $shown } von { $total } Seiten gezeigt.

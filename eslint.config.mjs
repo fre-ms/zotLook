@@ -18,6 +18,7 @@ export default [
         ChromeWorker: 'readonly', Worker: 'readonly',
         // The plugin's own modules, loaded into one shared scope
         ZotLook: 'writable', ZotLookUtil: 'writable', ZotLookEpub: 'writable',
+        ZotLookSheet: 'writable',
       },
     },
     rules: {
@@ -39,7 +40,7 @@ export default [
       sourceType: 'module',
       globals: { console: 'readonly', process: 'readonly', globalThis: 'readonly',
                  setTimeout: 'readonly', clearTimeout: 'readonly', setImmediate: 'readonly',
-                 Event: 'readonly', URL: 'readonly' },
+                 Event: 'readonly', URL: 'readonly', Buffer: 'readonly' },
     },
     rules: { 'no-undef': 'error', 'no-redeclare': ['error', { builtinGlobals: false }] },
   },
@@ -49,9 +50,11 @@ export default [
     languageOptions: { globals: { pref: 'readonly' } },
   },
   {
-    // Worker scripts have their own globals rather than the window's
+    // Worker scripts have their own globals rather than the window's, and
+    // are loaded as modules — a classic worker may not import() at all
     files: ['addon/*.worker.js'],
     languageOptions: {
+      sourceType: 'module',
       globals: { self: 'readonly', OffscreenCanvas: 'readonly', postMessage: 'readonly' },
     },
   },

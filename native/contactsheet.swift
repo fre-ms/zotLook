@@ -1,9 +1,11 @@
 #!/usr/bin/env swift
 
-// Contact sheet generator for PDF files.
+// Page renderer for contact sheets.
 //
-// Renders pages as JPEG thumbnails into a sibling directory and writes an HTML
-// grid referencing them, which QuickLook can scroll.
+// Renders pages as JPEG thumbnails into a directory and reports what it drew
+// as JSON on stdout. The plugin assembles the HTML around it, in sheet.js,
+// because a second renderer — pdf.js, for the platforms this binary cannot be
+// built for — has to produce the very same sheet.
 //
 // Thumbnails are written as files rather than inlined as base64: a 300-page
 // book inlined came to a 111 MB document, which QuickLook cannot display,
@@ -18,14 +20,11 @@
 // worker opens its own on the same file; that took the 300-page book from 44 s
 // to about 7 s on ten cores.
 //
-// Usage: contactsheet <input.pdf> <output.html> [columns] [max_pages] [link_base]
+// Usage: contactsheet <input.pdf> <image_dir> <max_columns> [max_pages]
 //
-// With link_base given, each thumbnail is wrapped in a link to
-// <link_base>?page=N. QuickLook itself ignores such links — it renders
-// previews with JavaScript disabled and does not hand clicks to the system —
-// but it offers to open an HTML preview in the browser, and there they work,
-// as they do in Zotero's own viewer window. They are styled to look like
-// nothing, so they cost nothing where they are inert.
+// Prints {"pageCount":N,"columns":N,"width":N,"pages":[{"page":N,"height":N}]}.
+// The sizing rule is repeated in sheet.js, where the other renderer needs it;
+// a test on macOS runs this binary and checks the two still agree.
 
 import Foundation
 import PDFKit
@@ -33,18 +32,16 @@ import CoreGraphics
 import ImageIO
 import Dispatch
 
-guard CommandLine.arguments.count >= 3 else {
-    fputs("Usage: contactsheet <input.pdf> <output.html> [columns] [max_pages] [link_base]\n", stderr)
+guard CommandLine.arguments.count >= 4 else {
+    fputs("Usage: contactsheet <input.pdf> <image_dir> <max_columns> [max_pages]\n", stderr)
     exit(1)
 }
 
 let inputPath = CommandLine.arguments[1]
-let outputPath = CommandLine.arguments[2]
-let maxColumns = max(1, CommandLine.arguments.count > 3 ? Int(CommandLine.arguments[3]) ?? 5 : 5)
+let imageDirPath = CommandLine.arguments[2]
+let maxColumns = max(1, Int(CommandLine.arguments[3]) ?? 5)
 // 0 means no limit. A cap keeps a pathological document from filling the disk.
 let maxPages = CommandLine.arguments.count > 4 ? Int(CommandLine.arguments[4]) ?? 0 : 0
-// Empty means the thumbnails are not clickable
-let linkBase = CommandLine.arguments.count > 5 ? CommandLine.arguments[5] : ""
 
 func openDocument() -> PDFDocument? {
     PDFDocument(url: URL(fileURLWithPath: inputPath))
@@ -63,15 +60,12 @@ guard pageCount > 0 else {
 
 let renderCount = maxPages > 0 ? min(pageCount, maxPages) : pageCount
 
-// Adapt columns to page count so few-page PDFs fill the width
-let columns = min(renderCount, maxColumns)
-// Fewer columns means each thumbnail is displayed larger, so it needs more pixels
-let renderWidth = 500 * maxColumns / columns
+// Adapt columns to page count so few-page PDFs fill the width, and give each
+// thumbnail more pixels when fewer columns make it display larger
+let columns = max(1, min(renderCount, maxColumns))
+let renderWidth = Int((Double(500 * maxColumns) / Double(columns)).rounded())
 
-// Images live beside the HTML, in a directory named after it
-let outputURL = URL(fileURLWithPath: outputPath)
-let imageDirName = outputURL.deletingPathExtension().lastPathComponent + "_pages"
-let imageDir = outputURL.deletingLastPathComponent().appendingPathComponent(imageDirName)
+let imageDir = URL(fileURLWithPath: imageDirPath)
 
 let fm = FileManager.default
 // Clear first: a previous run with a higher page cap would otherwise leave
@@ -161,92 +155,11 @@ guard !heights.isEmpty else {
     exit(1)
 }
 
-var html = """
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Contact Sheet</title>
-<style>
-body {
-    background: #f0f0f0;
-    margin: 0;
-    padding: 12px;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-}
-.grid {
-    display: grid;
-    grid-template-columns: repeat(\(columns), 1fr);
-    gap: 12px;
-}
-.page {
-    background: white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    text-align: center;
-    overflow: hidden;
-}
-.page img {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-.page a {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-}
-.page .label {
-    font-size: 11px;
-    color: #666;
-    padding: 4px 0;
-}
-.notice {
-    font-size: 13px;
-    color: #666;
-    text-align: center;
-    padding: 12px 0 0 0;
-}
-</style>
-</head>
-<body>
-<div class="grid">
-
-"""
-
+// The plugin builds the sheet around these; see sheet.js
+var entries: [String] = []
 for i in 1...renderCount {
     guard let height = heights[i] else { continue }
-    // width/height reserve the box before the image arrives, so lazy loading
-    // does not make the grid jump while scrolling
-    let thumb = """
-    <img src="\(imageDirName)/p\(i).jpg" loading="lazy" width="\(renderWidth)" height="\(height)">
-    <div class="label">\(i)</div>
-    """
-    let body = linkBase.isEmpty
-        ? thumb
-        : "<a href=\"\(linkBase)?page=\(i)\">\(thumb)</a>"
-    html += """
-    <div class="page">
-    \(body)
-    </div>\n
-    """
+    entries.append("{\"page\":\(i),\"height\":\(height)}")
 }
-
-html += "</div>\n"
-
-if renderCount < pageCount {
-    html += """
-    <p class="notice">Showing the first \(renderCount) of \(pageCount) pages.</p>\n
-    """
-}
-
-html += """
-</body>
-</html>
-"""
-
-do {
-    try html.write(toFile: outputPath, atomically: true, encoding: .utf8)
-} catch {
-    fputs("Error: Cannot write output: \(error)\n", stderr)
-    exit(1)
-}
+print("{\"pageCount\":\(pageCount),\"columns\":\(columns)," +
+      "\"width\":\(renderWidth),\"pages\":[\(entries.joined(separator: ","))]}")

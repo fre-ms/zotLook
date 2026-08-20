@@ -2,7 +2,7 @@
 /* global Services */
 
 // Loaded in dependency order into the shared plugin scope
-var SCRIPTS = ["util.js", "epub.js", "zotlook.js"];
+var SCRIPTS = ["util.js", "sheet.js", "epub.js", "zotlook.js"];
 
 var ZotLook;
 var ZotLookUtil;
