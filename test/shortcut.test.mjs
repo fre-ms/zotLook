@@ -73,10 +73,10 @@ eq(U.shortcutFromKeyElement(keyEl({ modifiers:'accel' }), true), null,
 // ── the shipped defaults are internally consistent ────────────────────
 const { ZotLook: Q } = loadPlugin();
 const bindings = Q.bindings;
-eq(bindings.length, 3, 'all three default shortcuts parse');
+eq(bindings.length, 4, 'all four default shortcuts parse');
 eq(bindings.map(b => b.open),
-   ['_openNotePreview','_openContactSheet','_openQuickLook'],
-   'notes and contact sheet are matched before the bare preview');
+   ['_openNotePreview','_openContactSheetInViewer','_openContactSheet','_openQuickLook'],
+   'the more specific combinations are matched before the bare preview');
 for (let i = 0; i < bindings.length; i++) {
   for (let j = i + 1; j < bindings.length; j++) {
     if (U.shortcutsEqual(bindings[i], bindings[j])) {
@@ -91,14 +91,14 @@ ok(true, 'no two default shortcuts collide with each other');
 // cannot be parsed is an empty value or an unknown modifier.
 {
   const { ZotLook: B, logs } = loadPlugin({ prefValues: { 'extensions.zotlook.key.notes': '' } });
-  eq(B.bindings.length, 2, 'an empty shortcut is dropped, the rest survive');
-  eq(B.bindings.length, 2, 'binding list is stable across reads');
+  eq(B.bindings.length, 3, 'an empty shortcut is dropped, the rest survive');
+  eq(B.bindings.length, 3, 'binding list is stable across reads');
   ok(logs.some(l => /Unusable shortcut/.test(l)), 'and it is logged');
 }
 
 {
   const { ZotLook: B } = loadPlugin({ prefValues: { 'extensions.zotlook.key.preview': 'Bogus+Space' } });
-  eq(B.bindings.length, 2, 'an unknown modifier is dropped too');
+  eq(B.bindings.length, 3, 'an unknown modifier is dropped too');
 }
 
 // ── edits take effect without a restart ───────────────────────────────
@@ -129,8 +129,24 @@ ok(true, 'no two default shortcuts collide with each other');
   eq(actions.length, new Set(actions).size,
      'no action is reachable through two different shortcuts');
   eq(Q.KEY_ACTIONS.map((a) => a.pref).sort(),
-     ['key.contactSheet', 'key.notes', 'key.preview'],
-     'exactly the three shortcuts the settings offer');
+     ['key.contactSheet', 'key.contactSheetWindow', 'key.notes', 'key.preview'],
+     'exactly the four shortcuts the settings offer');
+}
+
+// ── the shipped shortcuts avoid the system's own ──────────────────────
+// macOS binds Ctrl+Space and Ctrl+Option+Space to cycling input sources, and
+// Cmd+Space and Cmd+Option+Space to Spotlight and the Finder search window.
+// Those bindings return the moment a second keyboard layout is enabled, so a
+// default must not sit on them.
+{
+  const { ZotLook: Q, ZotLookUtil: U } = loadPlugin();
+  const systemShortcuts = ['Ctrl+Space', 'Ctrl+Alt+Space', 'Meta+Space', 'Alt+Meta+Space']
+    .map((s) => U.parseShortcut(s));
+  for (const binding of Q.bindings) {
+    const clash = systemShortcuts.find((sys) => U.shortcutsEqual(sys, binding));
+    eq(clash, undefined,
+       `${U.describeShortcut(binding)} (${binding.open}) avoids the macOS defaults`);
+  }
 }
 
 // ── contact sheet columns ─────────────────────────────────────────────

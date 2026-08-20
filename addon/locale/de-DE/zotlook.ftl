@@ -17,6 +17,7 @@ zotlook-prefs-shortcuts-reset =
 zotlook-prefs-key-preview = Übersicht
 zotlook-prefs-key-notes = Notizen anzeigen
 zotlook-prefs-key-contactsheet = Seitenübersicht
+zotlook-prefs-key-contactsheet-window = Seitenübersicht im Fenster
 zotlook-prefs-key-clear =
     .label = Zurücksetzen
 zotlook-prefs-key-unset =

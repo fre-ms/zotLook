@@ -21,6 +21,8 @@
 		{ key: "preview", pref: "key.preview", default: "Space" },
 		{ key: "notes", pref: "key.notes", default: "Shift+Space" },
 		{ key: "contactSheet", pref: "key.contactSheet", default: "Alt+Space" },
+		{ key: "contactSheetWindow", pref: "key.contactSheetWindow",
+		  default: "Shift+Alt+Space" },
 	];
 
 	function getPref(name, fallback) {

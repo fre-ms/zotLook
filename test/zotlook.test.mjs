@@ -9,7 +9,8 @@ const ok = (c,l)=>eq(!!c,true,l);
 {
   const { ZotLook: Q } = loadPlugin();
   const opened = [];
-  for (const m of ['_openQuickLook','_openNotePreview','_openContactSheet']) Q[m] = () => opened.push(m);
+  for (const m of ['_openQuickLook','_openNotePreview','_openContactSheet',
+                   '_openContactSheetInViewer']) Q[m] = () => opened.push(m);
   const win = { ZoteroPane: { getSelectedItems: () => [{}] } };
   const press = (o) => {
     opened.length = 0;
@@ -27,12 +28,13 @@ const ok = (c,l)=>eq(!!c,true,l);
   // exact modifier matching: no combination reaches two entries or the wrong one
   eq(press({code:'Space', ctrlKey:true}).opened, null, 'Ctrl+Space ignored');
   eq(press({code:'Space', metaKey:true}).opened, null, 'Cmd+Space ignored (Spotlight)');
-  eq(press({code:'Space', shiftKey:true, altKey:true}).opened, null, 'Shift+Option+Space ignored');
+  eq(press({code:'Space', shiftKey:true, altKey:true}).opened, '_openContactSheetInViewer',
+     'Shift+Option+Space opens the sheet in a window');
   eq(press({code:'Space', ctrlKey:true}).prevented, false, 'an unmatched key is not consumed');
   eq(press({key:'y', metaKey:true}).opened, null,
      'Cmd+Y does nothing: the second preview shortcut was removed');
-  eq(press({code:'Space', altKey:true, shiftKey:true}).opened, null,
-     'Shift+Option+Space ignored');
+  eq(press({code:'Space', altKey:true, ctrlKey:true}).opened, null,
+     'Ctrl+Option+Space is left alone: macOS uses it for input sources');
 
   // toggle + escape
   Q._isActive = true;

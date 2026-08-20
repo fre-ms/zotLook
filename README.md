@@ -22,7 +22,7 @@ The plugin ID is `zotlook@fre.ms`, distinct from Chapron's, so the two install s
 - **Escape** — Close the preview
 - **Right-click → Quick Look** — Context menu entry
 - **Right-click → Quick Look Contact Sheet** — Context menu entry, shown only when the selection actually contains a PDF
-- **Right-click → Contact Sheet in a Window** — the same sheet in a Zotero window, where clicking a page opens it in the reader at that page
+- **Shift+Option+Space** — the same sheet in a Zotero window, where clicking a page opens it in the reader at that page (also in the context menu)
 - Works with PDFs, images, HTML, EPUBs, and any file type that macOS QuickLook supports
 - Selecting a parent item previews one of its attachments; which one is configurable under **Settings → zotLook** — either by a reorderable type ranking (PDF, EPUB, HTML, image, video, anything else) or simply the first attachment the item lists
 - EPUB files are rendered on the fly into a single styled HTML page (Palatino, 80 px margin, book-width column), with the book's own stylesheets loaded so layout and typography are preserved — switchable off under **Settings → zotLook** if a Quick Look extension handles EPUB better
@@ -165,7 +165,7 @@ Only one attachment is ever previewed, and only one contact sheet is ever built.
 
 Strings destined for a XUL `<button>` or `<menuitem>` are written in Fluent's attribute form (`id =\n    .label = …`). Those elements render their `label` attribute and ignore text content, which a plain message value would set — the reason two rounds of menu entries and a dropdown came out blank. `<label>`, `<description>` and HTML elements take the plain form.
 
-Each action has exactly one shortcut, configurable in the settings. Zotero keeps PDF annotations in its database rather than in the file, so previewing the stored PDF shows an unmarked document — the gap users asked about most. When an attachment has annotations, `Zotero.PDFWorker.export` writes a copy with them drawn in and that copy is previewed. Attachments without annotations are recognised before any work starts, and an export is reused until an annotation is added or edited, so the common case costs nothing.
+Each action has exactly one shortcut, configurable in the settings. The defaults keep off Ctrl+Space, Ctrl+Option+Space, Cmd+Space and Cmd+Option+Space, which macOS binds to input sources, Spotlight and the Finder search window — the input-source ones reappear as soon as a second keyboard layout is enabled. Zotero keeps PDF annotations in its database rather than in the file, so previewing the stored PDF shows an unmarked document — the gap users asked about most. When an attachment has annotations, `Zotero.PDFWorker.export` writes a copy with them drawn in and that copy is previewed. Attachments without annotations are recognised before any work starts, and an export is reused until an annotation is added or edited, so the common case costs nothing.
 
 Shortcuts are stored as strings such as `Alt+Space` or `Meta+y`. The final token is read as a physical key code when it is longer than one character and as a produced character otherwise: Space sits in the same place on every layout, whereas the key labelled Y on a QWERTZ keyboard reports code `KeyZ`, so only the character identifies the shortcut a user sees on their keycaps. Changing a shortcut takes effect immediately.
 

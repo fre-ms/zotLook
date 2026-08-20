@@ -206,6 +206,7 @@ var ZotLook = {
 	 */
 	KEY_ACTIONS: [
 		{ pref: "key.notes", open: "_openNotePreview" },
+		{ pref: "key.contactSheetWindow", open: "_openContactSheetInViewer" },
 		{ pref: "key.contactSheet", open: "_openContactSheet" },
 		{ pref: "key.preview", open: "_openQuickLook" },
 	],
