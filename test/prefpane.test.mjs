@@ -17,8 +17,7 @@ const zotlook = fs.readFileSync(ADDON+'zotlook.js','utf8');
 // ── the fragment must be well-formed once wrapped ─────────────────────
 // Two top-level elements are legal here: Zotero inserts this as a fragment.
 {
-  const { DOMParser } = await import(new URL('../node_modules/linkedom/cjs/index.js', import.meta.url).pathname)
-    .then(m => m.default ?? m).catch(async () => (await import('linkedom')));
+  const { DOMParser } = await import('linkedom');
   const wrapped = '<root>' + xhtml.replace(/<!--[\s\S]*?-->/g, '') + '</root>';
   const doc = new DOMParser().parseFromString(wrapped, 'text/xml');
   ok(doc && !doc.querySelector('parsererror'), 'pane fragment parses');

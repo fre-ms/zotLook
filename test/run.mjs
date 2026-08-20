@@ -1,8 +1,9 @@
 // Runs every *.test.mjs in this directory and reports a combined tally.
 import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const dir = new URL('.', import.meta.url).pathname;
+const dir = fileURLToPath(new URL('.', import.meta.url));
 const suites = fs.readdirSync(dir).filter((f) => f.endsWith('.test.mjs')).sort();
 
 let assertions = 0;

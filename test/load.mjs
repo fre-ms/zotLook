@@ -1,11 +1,16 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const { DOMParser } = require('linkedom');
 
 /** Repository root and the directory that becomes the XPI root. */
-export const ROOT = new URL('../', import.meta.url).pathname;
+// fileURLToPath, not URL.pathname: the latter renders a Windows path as
+// /C:/…, which the fs calls then read as C:\C:\…. The suites are meant to
+// be platform-independent, and since the plugin runs on Windows they should
+// run there too.
+export const ROOT = fileURLToPath(new URL('../', import.meta.url));
 export const ADDON = ROOT + 'addon/';
 
 /**
@@ -50,7 +55,7 @@ export function stubPrefs(initial = {}) {
 }
 
 /**
- * Evaluates the plugin's three scripts in one scope with the Zotero sandbox
+ * Evaluates the plugin's scripts in one scope with the Zotero sandbox
  * globals stubbed, and returns the objects they define. Overrides replace
  * individual globals so a suite can drive the parts it is exercising.
  */
@@ -83,12 +88,13 @@ export function loadPlugin(overrides = {}) {
     Services: overrides.Services ?? {},
     setTimeout, clearTimeout, console,
   };
-  const src = ['util.js', 'sheet.js', 'epub.js', 'zotlook.js']
+  const src = ['util.js', 'sheet.js', 'epub.js', 'winpreview.js', 'zotlook.js']
     .map((f) => fs.readFileSync(ADDON + f, 'utf8'))
     .join('\n;\n');
   const out = new Function(
     ...Object.keys(g),
-    src + '\n;return {ZotLook, ZotLookUtil, ZotLookEpub, ZotLookSheet};'
+    src +
+      '\n;return {ZotLook, ZotLookUtil, ZotLookEpub, ZotLookSheet, ZotLookWinPreview};'
   )(...Object.values(g));
   return { ...out, logs, prefs };
 }
