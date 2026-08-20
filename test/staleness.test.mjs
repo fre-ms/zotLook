@@ -45,7 +45,7 @@ for (const f of listed) ok(fs.existsSync(ADDON + f), `${f} ships`);
   P.rootURI = 'file:///plugin/';
   globalThis.fetch = async () => ({ arrayBuffer: async () => new ArrayBuffer(4) });
 
-  const path = await P._ensureBinary('contactsheet');
+  const path = await P._ensureBinary('qlpreview');
   ok(path && path.includes('1.1.0'), `binary path is stamped with the version (${path})`);
   eq(written, path, 'and it was actually deployed there');
 
@@ -53,7 +53,7 @@ for (const f of listed) ok(fs.existsSync(ADDON + f), `${f} ships`);
   const { ZotLook: R } = loadPlugin({ IOUtils });
   R.version = '1.2.0';
   R.rootURI = 'file:///plugin/';
-  const other = await R._ensureBinary('contactsheet');
+  const other = await R._ensureBinary('qlpreview');
   ok(other !== path, 'a later version deploys to a different path');
   ok(other.includes('1.2.0'), 'stamped with its own version');
 }

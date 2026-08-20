@@ -37,7 +37,7 @@ build_binary() {
   codesign -s - -f "addon/${name}"
 }
 
-for binary in contactsheet qlpreview; do
+for binary in qlpreview; do
   build_binary "$binary"
 done
 
@@ -45,7 +45,7 @@ echo "Packaging ${XPI}…"
 mkdir -p build
 rm -f "$XPI"
 ( cd addon && zip -q -r "../${XPI}" . -x '*.DS_Store' )
-rm -f addon/contactsheet addon/qlpreview
+rm -f addon/qlpreview
 
 SHA=$(shasum -a 256 "$XPI" | cut -d' ' -f1)
 

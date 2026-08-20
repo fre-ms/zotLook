@@ -77,6 +77,9 @@ export function loadPlugin(overrides = {}) {
       toFileURI: (p) => 'file://' + p,
     },
     IOUtils: overrides.IOUtils ?? {},
+    ChromeWorker: overrides.ChromeWorker ?? function () {
+      throw new Error('no ChromeWorker in this test');
+    },
     Services: overrides.Services ?? {},
     setTimeout, clearTimeout, console,
   };

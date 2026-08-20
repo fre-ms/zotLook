@@ -22,63 +22,6 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
   eq((await Q._runProcess('/bin/x', [])).exitCode, 7, 'no timeout requested still works');
 }
 
-// ── reading what a process prints ─────────────────────────────────────
-// The renderer reports what it drew on stdout. Nothing here was captured at
-// first, so the manifest never arrived and no contact sheet was ever written
-// — while every test passed, because they all stub _runProcess itself.
-{
-  const chunks = ['{"pageCount":2,', '"pages":[]}', ''];
-  let read = 0;
-  const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
-    call: async () => ({
-      stdout: { readString: async () => chunks[read++] },
-      wait: async () => ({ exitCode: 0 }), kill(){},
-    }) }})}});
-
-  const plain = await Q._runProcess('/bin/x', []);
-  eq(plain.stdout, undefined, 'output is not read unless it is asked for');
-
-  read = 0;
-  const captured = await Q._runProcess('/bin/x', [], { captureOutput: true });
-  eq(captured.stdout, '{"pageCount":2,"pages":[]}',
-     'and every chunk is joined when it is, not just the first');
-
-  read = 0;
-  const timed = await Q._runProcess('/bin/x', [],
-    { captureOutput: true, timeoutMs: 5000 });
-  eq(timed.stdout, '{"pageCount":2,"pages":[]}', 'with a deadline set as well');
-}
-{
-  // Subprocess hands back an object from another compartment, and hanging a
-  // property on it through the wrapper fails silently outside strict mode.
-  // A frozen object reproduces that: the result must be built, not decorated.
-  const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
-    call: async () => ({
-      stdout: { readString: async () => '' },
-      wait: async () => Object.freeze({ exitCode: 0 }), kill(){},
-    }) }})}});
-  const res = await Q._runProcess('/bin/x', [], { captureOutput: true });
-  eq(res.stdout, '', 'output survives a result that cannot be written to');
-  eq(res.exitCode, 0, 'and the exit code comes along with it');
-}
-{
-  // A process without a pipe, or one that fails mid-read, must not take the
-  // whole preview down with it
-  const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
-    call: async () => ({ wait: async () => ({ exitCode: 0 }), kill(){} }) }})}});
-  eq((await Q._runProcess('/bin/x', [], { captureOutput: true })).stdout, '',
-     'no pipe yields an empty string');
-}
-{
-  const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
-    call: async () => ({
-      stdout: { readString: async () => { throw new Error('pipe broke'); } },
-      wait: async () => ({ exitCode: 0 }), kill(){},
-    }) }})}});
-  eq((await Q._runProcess('/bin/x', [], { captureOutput: true })).stdout, '',
-     'and a broken pipe yields one too');
-}
-
 // ── launch guard (P1.1) ───────────────────────────────────────────────
 {
   const { ZotLook: Q } = loadPlugin();

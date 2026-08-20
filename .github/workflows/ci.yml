@@ -67,14 +67,14 @@ jobs:
           for entry in manifest.json bootstrap.js zotlook.js util.js epub.js \
                        sheet.js render.worker.js \
                        prefs.js prefs-pane.xhtml prefs-pane.js prefs-pane.css \
-                       contactsheet qlpreview \
+                       qlpreview \
                        locale/en-US/zotlook.ftl locale/de-DE/zotlook.ftl; do
             grep -Fxq "$entry" "$RUNNER_TEMP/entries.txt" \
               || { echo "missing from XPI: $entry"; exit 1; }
           done
-          # Both helpers must be universal and signed, or they will not run on
+          # The helper must be universal and signed, or it will not run on
           # someone else's Mac
-          for binary in contactsheet qlpreview; do
+          for binary in qlpreview; do
             unzip -qo "$xpi" "$binary" -d "$RUNNER_TEMP/check"
             chmod +x "$RUNNER_TEMP/check/$binary"
             lipo -info "$RUNNER_TEMP/check/$binary" | grep -q "x86_64 arm64"

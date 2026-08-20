@@ -1,10 +1,7 @@
-// The contact sheet's markup, in one place.
+// The contact sheet's markup and the sizing behind it.
 //
-// Two renderers produce the thumbnails — the bundled PDFKit binary on macOS
-// and pdf.js everywhere else — and both hand their page sizes here. Keeping
-// the layout out of the renderers means a change to the grid, the labels or
-// the reader links is made once rather than twice, in a language that already
-// holds the settings it depends on.
+// Kept apart from the rendering so that the grid, the labels and the reader
+// links can be changed and tested without a PDF anywhere in sight.
 
 var ZotLookSheet = {
 	/** Thumbnail width for a single column, before the column count widens it. */

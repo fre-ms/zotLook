@@ -66,9 +66,9 @@ const on = (platform, prefValues = {}) => {
 }
 
 // ── the contact sheet is built everywhere, but not shown everywhere ───
-// macOS renders through the bundled binary, the rest through the pdf.js
-// build Zotero ships. Showing it outside Zotero still needs a preview
-// mechanism, and Windows has none.
+// One renderer for every platform, the pdf.js build Zotero ships. Showing
+// the sheet outside Zotero still needs a preview mechanism, and Windows
+// has none — so there the window route is all that is offered.
 {
   const mac = on('Mac'), linux = on('Linux'), win = on('Win');
   eq(mac._contactSheetSupported(), true, 'the contact sheet is built on macOS');
@@ -77,14 +77,6 @@ const on = (platform, prefValues = {}) => {
   eq(mac._contactSheetPreviewable(), true, 'QuickLook can show it');
   eq(linux._contactSheetPreviewable(), true, 'Sushi can show it');
   eq(win._contactSheetPreviewable(), false, 'nothing on Windows can');
-  // Which renderer draws it, and the hidden switch that forces the portable
-  // one so it can be tried on a Mac — where it would otherwise never run
-  eq(mac._useNativeRenderer(), true, 'macOS renders through the binary');
-  eq(linux._useNativeRenderer(), false, 'Linux through pdf.js');
-  eq(win._useNativeRenderer(), false, 'Windows likewise');
-  eq(on('Mac', { 'extensions.zotlook.renderer': 'portable' })._useNativeRenderer(),
-     false, 'and the switch forces pdf.js on a Mac');
-
   const quickLookSheet = mac.MENU_ITEMS.find(e => e.needsSystemPreview);
   ok(quickLookSheet, 'the QuickLook sheet is marked as needing one');
   const pdf = { isNote: () => false, isAttachment: () => true,

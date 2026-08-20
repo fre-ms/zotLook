@@ -700,21 +700,12 @@ var ZotLook = {
 			let maxColumns = this._contactSheetColumns();
 			let maxPages = this._maxContactSheetPages();
 
-			// PDFKit is several times faster where it can be built, so macOS
-			// keeps it; pdf.js is what makes the sheet exist anywhere else.
-			let manifest = this._useNativeRenderer()
-				? await this._renderPagesNatively(
-					pdfPath,
-					imageDir,
-					maxColumns,
-					maxPages
-				)
-				: await this._renderPagesWithPdfjs(
-					pdfPath,
-					imageDir,
-					maxColumns,
-					maxPages
-				);
+			let manifest = await this._renderPagesWithPdfjs(
+				pdfPath,
+				imageDir,
+				maxColumns,
+				maxPages
+			);
 
 			if (!manifest || !manifest.pages.length) {
 				this.log("No pages could be rendered");
@@ -723,11 +714,10 @@ var ZotLook = {
 			}
 
 			// Worth having in the log: it is the only figure that says
-			// whether the renderer in use is fast enough on this machine
+			// whether rendering is fast enough on this machine
 			this.log(
 				"Rendered " + manifest.pages.length + " pages in " +
-				(Date.now() - started) + " ms via " +
-				(this._useNativeRenderer() ? "the bundled binary" : "pdf.js")
+				(Date.now() - started) + " ms"
 			);
 
 			let rendered = manifest.pages.length;
@@ -761,54 +751,6 @@ var ZotLook = {
 		}
 
 		return outputPath;
-	},
-
-	/**
-	 * Whether to render through the bundled binary. Only macOS ships one, and
-	 * the hidden renderer preference can force the portable path there so it
-	 * can be tried out by someone in a position to fix it.
-	 */
-	_useNativeRenderer() {
-		if (!Zotero.isMac) return false;
-		return this._pref("renderer", "auto") !== "portable";
-	},
-
-	/**
-	 * Renders through the bundled PDFKit binary, which draws annotations and
-	 * page rotation for free and spreads the pages across every core.
-	 */
-	async _renderPagesNatively(pdfPath, imageDir, maxColumns, maxPages) {
-		this.log("Rendering through the bundled binary");
-		let binary = await this._ensureBinary("contactsheet");
-		if (!binary) {
-			this.log("Contact sheet binary not available");
-			return null;
-		}
-
-		let result = await this._runProcess(
-			binary,
-			[pdfPath, imageDir, String(maxColumns), String(maxPages)],
-			{
-				timeoutMs: this.CONTACT_SHEET_TIMEOUT_MS,
-				// The binary reports what it drew on stdout; without this the
-				// manifest never arrives and no sheet is ever written
-				captureOutput: true,
-			}
-		);
-		if (result.exitCode !== 0) {
-			this.log("Renderer failed with code " + result.exitCode);
-			return null;
-		}
-
-		try {
-			return JSON.parse(result.stdout);
-		} catch (e) {
-			this.log(
-				"Renderer produced no usable manifest: " + e +
-				" — output was: " + JSON.stringify(result.stdout)
-			);
-			return null;
-		}
 	},
 
 	/**
@@ -878,6 +820,13 @@ var ZotLook = {
 			let done = 0;
 			let settled = false;
 
+			// Writing a page is asynchronous and the message saying a worker
+			// has finished is not, so the last writes are still in flight when
+			// it arrives. Without waiting for them, pages drop out of the
+			// sheet with nothing said — and the ones that survive come out in
+			// whatever order they landed.
+			let writing = [];
+
 			let finish = (value) => {
 				if (settled) return;
 				settled = true;
@@ -887,8 +836,9 @@ var ZotLook = {
 				resolve(value);
 			};
 
-			let timer = setTimeout(() => {
+			let timer = setTimeout(async () => {
 				this.log("The renderer did not finish in time");
+				await Promise.all(writing);
 				// Whatever was drawn by now still makes a usable sheet
 				finish(manifest && manifest.pages.length ? manifest : null);
 			}, this.CONTACT_SHEET_TIMEOUT_MS);
@@ -933,18 +883,25 @@ var ZotLook = {
 				}
 
 				if (message.type === "page") {
-					try {
-						await IOUtils.write(
-							PathUtils.join(imageDir, "p" + message.page + ".jpg"),
-							new Uint8Array(message.buffer)
-						);
-						manifest.pages.push({
-							page: message.page,
-							height: message.height,
-						});
-					} catch (e) {
-						this.log("Could not write page " + message.page + ": " + e);
-					}
+					writing.push((async () => {
+						try {
+							await IOUtils.write(
+								PathUtils.join(
+									imageDir,
+									"p" + message.page + ".jpg"
+								),
+								new Uint8Array(message.buffer)
+							);
+							manifest.pages.push({
+								page: message.page,
+								height: message.height,
+							});
+						} catch (e) {
+							this.log(
+								"Could not write page " + message.page + ": " + e
+							);
+						}
+					})());
 					return;
 				}
 
@@ -960,6 +917,9 @@ var ZotLook = {
 				}
 
 				if (message.type === "done" && ++done === workers.length) {
+					// Every worker has stopped sending, so no further writes
+					// will be started — only the ones already going out
+					await Promise.all(writing);
 					finish(manifest);
 				}
 			};
@@ -1104,52 +1064,19 @@ var ZotLook = {
 	 * With timeoutMs the process is killed once the deadline passes and the
 	 * result carries exitCode -1, so a runaway render cannot hang the plugin.
 	 */
-	/**
-	 * Everything a process writes to stdout, read as it comes rather than
-	 * afterwards: a renderer reporting on a thousand pages can fill the pipe,
-	 * and a full pipe blocks the very process we are waiting to finish.
-	 */
-	async _readPipe(pipe) {
-		if (!pipe) return "";
-		let text = "";
-		try {
-			for (;;) {
-				let chunk = await pipe.readString();
-				if (!chunk) break;
-				text += chunk;
-			}
-		} catch (e) {
-			this.log("Could not read process output: " + e);
-		}
-		return text;
-	},
-
-	async _runProcess(command, args, { timeoutMs = 0, captureOutput = false } = {}) {
+	async _runProcess(command, args, { timeoutMs = 0 } = {}) {
 		const { Subprocess } = this._subprocess();
 		let proc = await Subprocess.call({
 			command: command,
 			arguments: args,
 		});
 
-		// Started before the wait, not after, so the pipe keeps draining
-		let output = captureOutput ? this._readPipe(proc.stdout) : null;
-
-		// A new object rather than a property hung on the one Subprocess
-		// returns: that object comes from another compartment, and attaching
-		// to it through the wrapper fails silently outside strict mode. It
-		// did exactly that, and the sheet drew nothing with nothing to say.
-		let withOutput = async (promise) => {
-			let result = await promise;
-			if (!captureOutput) return result;
-			return { exitCode: result.exitCode, stdout: await output };
-		};
-
-		if (!timeoutMs) return withOutput(proc.wait());
+		if (!timeoutMs) return proc.wait();
 
 		let timer = null;
 		let timedOut = false;
 		try {
-			return await withOutput(Promise.race([
+			return await Promise.race([
 				proc.wait(),
 				new Promise((resolve) => {
 					timer = setTimeout(() => {
@@ -1165,7 +1092,7 @@ var ZotLook = {
 						resolve({ exitCode: -1 });
 					}, timeoutMs);
 				}),
-			]));
+			]);
 		} finally {
 			if (timer !== null) clearTimeout(timer);
 			if (timedOut) this.log("Killed " + command + " after timeout");
