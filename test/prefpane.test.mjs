@@ -117,5 +117,25 @@ ok(/stylesheets:\s*\[[^\]]*prefs-pane\.css/.test(zotlook), 'the stylesheet is re
      'the list offers exactly the types the picker understands');
 }
 
+// ── the annotation switch says what it governs ────────────────────────
+// It reaches the preview and the contact sheet alike, so a label naming only
+// one of them would understate it.
+for (const loc of ['en-US', 'de-DE']) {
+  const ftl = fs.readFileSync(`${ADDON}locale/${loc}/zotlook.ftl`, 'utf8');
+  ok(/preference="extensions\.zotlook\.previewAnnotations"/.test(xhtml),
+     `${loc}: the switch is bound to the preference`);
+  const label = ftl.match(/^zotlook-prefs-pdf-annotations =\n\s+\.label = (.+)$/m);
+  ok(label, `${loc}: the switch has a label`);
+  ok(/sheet|übersicht/i.test(label[1]),
+     `${loc}: which names the contact sheet too (${label[1]})`);
+  const help = ftl.match(/^zotlook-prefs-pdf-help = (.+)$/m);
+  ok(/off|aus/i.test(help[1]), `${loc}: and the help says what turning it off does`);
+}
+{
+  const prefs = fs.readFileSync(ADDON + 'prefs.js', 'utf8');
+  ok(/pref\("extensions\.zotlook\.previewAnnotations",\s*true\)/.test(prefs),
+     'and it ships switched on');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

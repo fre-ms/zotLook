@@ -60,6 +60,6 @@ zotlook-prefs-epub-own =
 
 # PDF-Annotationen
 zotlook-prefs-pdf-title = PDF
-zotlook-prefs-pdf-help = Zotero speichert Annotationen in seiner Datenbank, nicht in der PDF-Datei. Eine Vorschau der gespeicherten Datei zeigt deshalb ein unmarkiertes Dokument. Ist dies eingeschaltet, wird stattdessen eine Kopie mit eingezeichneten Annotationen erzeugt und angezeigt. Anhänge ohne Annotationen werden vorher erkannt und kosten nichts.
+zotlook-prefs-pdf-help = Zotero speichert Annotationen in seiner Datenbank, nicht in der PDF-Datei. Die gespeicherte Datei anzuzeigen ergibt deshalb ein unmarkiertes Dokument. Ist dies eingeschaltet, wird stattdessen eine Kopie mit eingezeichneten Annotationen erzeugt und verwendet — für die Vorschau ebenso wie für die Seitenübersicht. Anhänge ohne Annotationen werden vorher erkannt und kosten nichts. Ausschalten zeigt die Dateien genau so, wie sie gespeichert sind.
 zotlook-prefs-pdf-annotations =
-    .label = Annotationen in der Vorschau zeigen
+    .label = Annotationen in Vorschau und Seitenübersicht zeigen

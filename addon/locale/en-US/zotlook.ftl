@@ -58,6 +58,6 @@ zotlook-prefs-epub-own =
 
 # PDF annotations
 zotlook-prefs-pdf-title = PDF
-zotlook-prefs-pdf-help = Zotero stores annotations in its database, not in the PDF itself, so a preview of the stored file shows an unmarked document. With this on, a copy with the annotations drawn in is exported and previewed instead. Attachments without annotations are recognised beforehand and cost nothing.
+zotlook-prefs-pdf-help = Zotero stores annotations in its database, not in the PDF itself, so previewing the stored file shows an unmarked document. With this on, a copy with the annotations drawn in is exported and used instead — for the preview and for the contact sheet alike. Attachments without annotations are recognised beforehand and cost nothing. Turn this off to see the files exactly as they are stored.
 zotlook-prefs-pdf-annotations =
-    .label = Show annotations in the preview
+    .label = Show annotations in previews and contact sheets
