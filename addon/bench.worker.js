@@ -28,6 +28,33 @@ async function loadPdfjs() {
 	return pdfjs;
 }
 
+// pdf.js creates scratch canvases of its own — for scaling inline images,
+// among other things — and its default factory reaches for document, which a
+// worker does not have. Handing it OffscreenCanvas is what makes the shipped
+// build usable off the main thread at all.
+class OffscreenCanvasFactory {
+	create(width, height) {
+		let canvas = new OffscreenCanvas(
+			Math.max(1, width | 0),
+			Math.max(1, height | 0)
+		);
+		return { canvas: canvas, context: canvas.getContext("2d") };
+	}
+
+	reset(entry, width, height) {
+		entry.canvas.width = Math.max(1, width | 0);
+		entry.canvas.height = Math.max(1, height | 0);
+	}
+
+	destroy(entry) {
+		if (!entry.canvas) return;
+		entry.canvas.width = 0;
+		entry.canvas.height = 0;
+		entry.canvas = null;
+		entry.context = null;
+	}
+}
+
 // Each stage is reported as it is reached. A run that stops says where it
 // stopped, which a single message at the end cannot.
 function stage(name, extra) {
@@ -56,7 +83,11 @@ self.addEventListener("message", async (event) => {
 		});
 
 		let t1 = Date.now();
-		let doc = await lib.getDocument({ data: data, isEvalSupported: false }).promise;
+		let doc = await lib.getDocument({
+			data: data,
+			isEvalSupported: false,
+			canvasFactory: new OffscreenCanvasFactory(),
+		}).promise;
 		report.steps.openMs = Date.now() - t1;
 		report.pageCount = doc.numPages;
 		stage("document opened", {

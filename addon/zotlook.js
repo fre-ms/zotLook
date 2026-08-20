@@ -798,7 +798,7 @@ var ZotLook = {
 	 * Results go to the debug output; remove this once the numbers are in.
 	 */
 	async _benchmarkPdfjs(items) {
-		const MAX_PAGES = 20;
+		const MAX_PAGES = 30;
 		const WIDTH = 500;
 
 		// The debug output cannot carry this: other plugins flood it and the
