@@ -1,0 +1,17 @@
+{
+    "manifest_version": 2,
+    "name": "zotLook",
+    "version": "1.1.0",
+    "description": "Preview attachments with macOS QuickLook by pressing Space",
+    "homepage_url": "https://github.com/fre-ms/zotLook",
+    "author": "fre.ms and Guillaume Chapron",
+    "icons": {},
+    "applications": {
+        "zotero": {
+            "id": "zotlook@fre.ms",
+            "update_url": "https://raw.githubusercontent.com/fre-ms/zotLook/main/update.json",
+            "strict_min_version": "6.999",
+            "strict_max_version": "10.*"
+        }
+    }
+}

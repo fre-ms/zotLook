@@ -1,4 +1,5 @@
 .DS_Store
-*.xpi
-contactsheet
-!contactsheet.swift
+build/
+addon/contactsheet
+addon/qlpreview
+node_modules/

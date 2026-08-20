@@ -1,0 +1,124 @@
+<!-- Loaded as a fragment by Zotero.PreferencePanes: XUL is the default
+     namespace, HTML elements are available under html:.
+
+     The linkset below is what makes data-l10n-id resolve in the preferences
+     window; MozXULElement.insertFTLIfNeeded only covers the main window. -->
+<linkset xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:html="http://www.w3.org/1999/xhtml">
+  <html:link rel="localization" href="zotlook.ftl"/>
+</linkset>
+
+<vbox xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      xmlns:html="http://www.w3.org/1999/xhtml"
+      id="zotlook-prefs">
+
+  <groupbox>
+    <label><html:h2 data-l10n-id="zotlook-prefs-shortcuts-title"/></label>
+    <description data-l10n-id="zotlook-prefs-shortcuts-help"/>
+
+    <!-- Rows are declared here rather than built in script: pane scripts run
+         before the fragment is inserted, so there is no DOM to build into. -->
+    <hbox align="center" class="zotlook-row">
+      <label class="zotlook-row-label" data-l10n-id="zotlook-prefs-key-preview"/>
+      <button id="zotlook-key-preview" class="zotlook-key-button"/>
+      <button id="zotlook-clear-preview" data-l10n-id="zotlook-prefs-key-clear"/>
+    </hbox>
+    <hbox align="center" class="zotlook-row">
+      <label class="zotlook-row-label" data-l10n-id="zotlook-prefs-key-notes"/>
+      <button id="zotlook-key-notes" class="zotlook-key-button"/>
+      <button id="zotlook-clear-notes" data-l10n-id="zotlook-prefs-key-clear"/>
+    </hbox>
+    <hbox align="center" class="zotlook-row">
+      <label class="zotlook-row-label" data-l10n-id="zotlook-prefs-key-contactsheet"/>
+      <button id="zotlook-key-contactSheet" class="zotlook-key-button"/>
+      <button id="zotlook-clear-contactSheet" data-l10n-id="zotlook-prefs-key-clear"/>
+    </hbox>
+
+    <description id="zotlook-conflict" class="zotlook-conflict" hidden="true"/>
+
+    <hbox>
+      <button id="zotlook-reset-shortcuts"
+              data-l10n-id="zotlook-prefs-shortcuts-reset"/>
+    </hbox>
+  </groupbox>
+
+  <groupbox>
+    <label><html:h2 data-l10n-id="zotlook-prefs-attachment-title"/></label>
+    <description data-l10n-id="zotlook-prefs-attachment-help"/>
+
+    <hbox align="center" class="zotlook-row">
+      <label control="zotlook-attachment-mode"
+             data-l10n-id="zotlook-prefs-attachment-mode"/>
+      <menulist id="zotlook-attachment-mode" native="true">
+        <menupopup>
+          <menuitem value="type" data-l10n-id="zotlook-prefs-attachment-mode-type"/>
+          <menuitem value="first" data-l10n-id="zotlook-prefs-attachment-mode-first"/>
+        </menupopup>
+      </menulist>
+    </hbox>
+
+    <!-- Plain HTML rather than richlistbox: the XUL checkbox brings its own
+         box layout, which renders clipped and widely spaced inside a
+         richlistitem, and clicking it does not select the row, so the
+         reordering buttons had nothing to act on. -->
+    <vbox id="zotlook-order-box">
+      <html:div id="zotlook-order-list" class="zotlook-order-list">
+        <html:div class="zotlook-order-row" data-type="pdf" tabindex="0">
+          <html:span data-l10n-id="zotlook-prefs-type-pdf"/>
+        </html:div>
+        <html:div class="zotlook-order-row" data-type="epub" tabindex="0">
+          <html:span data-l10n-id="zotlook-prefs-type-epub"/>
+        </html:div>
+        <html:div class="zotlook-order-row" data-type="html" tabindex="0">
+          <html:span data-l10n-id="zotlook-prefs-type-html"/>
+        </html:div>
+        <html:div class="zotlook-order-row" data-type="image" tabindex="0">
+          <html:span data-l10n-id="zotlook-prefs-type-image"/>
+        </html:div>
+        <html:div class="zotlook-order-row" data-type="video" tabindex="0">
+          <html:span data-l10n-id="zotlook-prefs-type-video"/>
+        </html:div>
+        <html:div class="zotlook-order-row" data-type="other" tabindex="0">
+          <html:span data-l10n-id="zotlook-prefs-type-other"/>
+        </html:div>
+      </html:div>
+      <hbox class="zotlook-order-buttons">
+        <button id="zotlook-order-up" data-l10n-id="zotlook-prefs-order-up"/>
+        <button id="zotlook-order-down" data-l10n-id="zotlook-prefs-order-down"/>
+      </hbox>
+    </vbox>
+  </groupbox>
+
+  <groupbox>
+    <label><html:h2 data-l10n-id="zotlook-prefs-epub-title"/></label>
+    <description data-l10n-id="zotlook-prefs-epub-help"/>
+    <checkbox id="zotlook-epub-own"
+              data-l10n-id="zotlook-prefs-epub-own"
+              preference="extensions.zotlook.epubOwnRenderer"
+              native="true"/>
+  </groupbox>
+
+  <groupbox>
+    <label><html:h2 data-l10n-id="zotlook-prefs-contactsheet-title"/></label>
+    <description data-l10n-id="zotlook-prefs-contactsheet-help"/>
+    <hbox align="center" class="zotlook-row">
+      <label control="zotlook-columns"
+             data-l10n-id="zotlook-prefs-contactsheet-columns"/>
+      <html:input id="zotlook-columns" type="number" min="1" max="20" step="1"
+                  style="width: 6em;"
+                  preference="extensions.zotlook.contactSheetColumns"/>
+      <label class="zotlook-hint"
+             data-l10n-id="zotlook-prefs-contactsheet-columns-hint"/>
+    </hbox>
+    <description class="zotlook-setting-help"
+                 data-l10n-id="zotlook-prefs-contactsheet-maxpages-help"/>
+    <hbox align="center" class="zotlook-row">
+      <label control="zotlook-max-pages"
+             data-l10n-id="zotlook-prefs-contactsheet-maxpages"/>
+      <html:input id="zotlook-max-pages" type="number" min="0" max="100000"
+                  step="50" style="width: 6em;"
+                  preference="extensions.zotlook.contactSheetMaxPages"/>
+      <label class="zotlook-hint" data-l10n-id="zotlook-prefs-contactsheet-unit"/>
+    </hbox>
+  </groupbox>
+</vbox>

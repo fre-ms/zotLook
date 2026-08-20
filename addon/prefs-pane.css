@@ -1,0 +1,53 @@
+#zotlook-prefs .zotlook-row {
+  margin: 3px 0;
+  gap: 8px;
+}
+#zotlook-prefs .zotlook-row-label {
+  min-width: 14em;
+}
+#zotlook-prefs .zotlook-key-button {
+  min-width: 11em;
+}
+#zotlook-prefs .zotlook-key-button[data-recording="true"] {
+  font-style: italic;
+}
+#zotlook-prefs .zotlook-conflict {
+  margin: 6px 0;
+}
+#zotlook-prefs .zotlook-hint {
+  color: GrayText;
+}
+#zotlook-prefs .zotlook-order-list {
+  border: 1px solid var(--fill-quinary, ThreeDShadow);
+  border-radius: 5px;
+  padding: 2px;
+  min-width: 20em;
+  margin: 4px 0;
+}
+#zotlook-prefs .zotlook-order-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: default;
+}
+#zotlook-prefs .zotlook-order-row[data-selected="true"] {
+  background: Highlight;
+  color: HighlightText;
+}
+#zotlook-prefs .zotlook-order-row:focus-visible {
+  outline: 2px solid AccentColor;
+  outline-offset: -2px;
+}
+#zotlook-prefs .zotlook-order-buttons {
+  gap: 6px;
+}
+#zotlook-prefs #zotlook-order-box[disabled="true"] {
+  opacity: 0.5;
+}
+/* An explanation that belongs to the control right below it, rather than to
+   the whole section */
+#zotlook-prefs .zotlook-setting-help {
+  margin: 8px 0 2px 0;
+}
