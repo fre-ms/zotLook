@@ -25,6 +25,11 @@ var ZotLook = {
 	// under extensions.zotlook.contactSheetMaxPages. The deadline still applies.
 	CONTACT_SHEET_TIMEOUT_MS: 60000,
 
+	// How long to wait for Sushi to answer a preview request. The call itself
+	// returns as soon as the window has been handed its file, so this only has
+	// to cover starting the service, which D-Bus does on the first request.
+	PREVIEW_REPLY_TIMEOUT_MS: 10000,
+
 	// Per-window cleanup tracking
 	_windowListeners: new Map(),
 
@@ -1319,15 +1324,27 @@ var ZotLook = {
 		this.log("Launching: " + plan.command + " " + plan.arguments.join(" "));
 
 		try {
-			let proc = await Subprocess.call({
+			let call = {
 				command: plan.command,
 				arguments: plan.arguments,
-			});
+			};
+			// The one-shot request's stderr is read, for the reason it gives
+			// when it fails. A viewer held open for the length of a preview
+			// gets none: nothing would drain that pipe, and a chatty helper
+			// would eventually block on a full one.
+			if (!plan.holdsProcess) call.stderr = "pipe";
+
+			let proc = await Subprocess.call(call);
 
 			// Only a viewer that stays running for as long as the preview is
 			// visible can be tracked and dismissed. A one-shot request hands
-			// the toggling to the viewer itself.
-			if (!plan.holdsProcess) return;
+			// the toggling to the viewer itself — but it is still waited for,
+			// because it is a D-Bus call whose delivery depends on the sender
+			// staying connected until it has been answered.
+			if (!plan.holdsProcess) {
+				await this._awaitPreviewRequest(proc);
+				return;
+			}
 
 			this._proc = proc;
 			this._isActive = true;
@@ -1387,9 +1404,21 @@ var ZotLook = {
 				);
 			}
 			return {
-				command: "/usr/bin/dbus-send",
+				command: await this._dbusSend(),
 				arguments: [
 					"--session",
+					// --print-reply is not here for its output. Without it
+					// dbus-send writes the message and exits within
+					// milliseconds. Sushi is started by D-Bus on demand and
+					// takes about a second to come up, and dbus-daemon
+					// discards a message queued for activation as soon as the
+					// connection that sent it goes away — so the service
+					// starts, never receives ShowFile, and quits again on its
+					// idle timeout. Nothing is logged anywhere and no window
+					// ever appears. Waiting for the reply keeps the connection
+					// open until the call has actually been delivered.
+					"--print-reply",
+					"--reply-timeout=" + this.PREVIEW_REPLY_TIMEOUT_MS,
 					"--dest=org.gnome.NautilusPreviewer",
 					"/org/gnome/NautilusPreviewer",
 					"org.gnome.NautilusPreviewer.ShowFile",
@@ -1402,6 +1431,63 @@ var ZotLook = {
 		}
 
 		return null;
+	},
+
+	/**
+	 * Where dbus-send is. Looked up on PATH rather than assumed at
+	 * /usr/bin/dbus-send, which is where Debian and Fedora put it but not
+	 * every distribution does. The conventional location remains the fallback,
+	 * so a stripped-down PATH does not by itself break the preview.
+	 */
+	async _dbusSend() {
+		const { Subprocess } = this._subprocess();
+		if (Subprocess && typeof Subprocess.pathSearch === "function") {
+			try {
+				return await Subprocess.pathSearch("dbus-send");
+			} catch (e) {
+				this.log("dbus-send is not on PATH: " + e);
+			}
+		}
+		return "/usr/bin/dbus-send";
+	},
+
+	/**
+	 * Waits for a one-shot preview request and says what went wrong when it
+	 * fails.
+	 *
+	 * Waiting is what makes the request arrive at all — see _previewCommand —
+	 * and the exit status is the only sign the plugin gets that the preview
+	 * service answered. Without this, every failure looks identical from the
+	 * outside: nothing happens.
+	 */
+	async _awaitPreviewRequest(proc) {
+		let complaint = "";
+		try {
+			complaint = (await proc.stderr.readString()) || "";
+		} catch (e) {
+			// A pipe that is already at end of file is not itself a failure
+		}
+
+		let { exitCode } = await proc.wait();
+		if (exitCode === 0) {
+			this.log("Preview request delivered");
+			return;
+		}
+
+		complaint = complaint.trim();
+		this.log(
+			"The preview request was refused (exit " + exitCode + ")" +
+				(complaint ? ": " + complaint : "")
+		);
+		// The one failure worth naming: the service is simply not installed.
+		if (/ServiceUnknown|not provided by any/.test(complaint)) {
+			this.log(
+				"GNOME Sushi does not appear to be installed. Install it " +
+					"(package gnome-sushi) to preview outside Zotero; the " +
+					"contact sheet in a window works without it."
+			);
+		}
+		await this._writeFailureReport("the preview request was refused");
 	},
 
 	_closeQuickLook() {

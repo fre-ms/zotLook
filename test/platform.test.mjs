@@ -44,11 +44,38 @@ const on = (platform, prefValues = {}) => {
      'calling ShowFile');
   ok(plan.arguments.includes('string:file:///a/paper.pdf'),
      'with the file as a URI, not a path');
+  // Not cosmetic: dbus-send without --print-reply exits before the service it
+  // just woke has finished starting, and dbus-daemon then throws the queued
+  // message away. Sushi comes up, is never told what to show, and quits on its
+  // idle timeout — the preview silently never appears.
+  ok(plan.arguments.includes('--print-reply'),
+     'waiting for the reply, so the message survives service activation');
+  ok(plan.arguments.some(a => a.startsWith('--reply-timeout=')),
+     'and bounded, so a wedged service cannot hang the plugin');
   // The third argument is "close if already shown", which is what makes a
   // second Space dismiss the preview without a process to kill.
   eq(plan.arguments[plan.arguments.length - 1], 'boolean:true',
      'asking it to close when the same file is already showing');
   eq(plan.holdsProcess, false, 'the request returns at once, so nothing is tracked');
+}
+{
+  // dbus-send is not at /usr/bin everywhere, so PATH decides when it can
+  const { ZotLook: Q } = loadPlugin({
+    zotero: { isMac: false, isLinux: true, isWin: false },
+    ChromeUtils: { importESModule: () => ({ Subprocess: {
+      pathSearch: async (bin) => '/opt/dbus/bin/' + bin } }) },
+  });
+  const plan = await Q._previewCommand(['/a/paper.pdf']);
+  eq(plan.command, '/opt/dbus/bin/dbus-send', 'found wherever PATH has it');
+}
+{
+  const { ZotLook: Q } = loadPlugin({
+    zotero: { isMac: false, isLinux: true, isWin: false },
+    ChromeUtils: { importESModule: () => ({ Subprocess: {
+      pathSearch: async () => { throw new Error('not found'); } } }) },
+  });
+  const plan = await Q._previewCommand(['/a/paper.pdf']);
+  eq(plan.command, '/usr/bin/dbus-send', 'falling back to the usual place');
 }
 {
   // Sushi shows one file; several notes cannot all be handed over

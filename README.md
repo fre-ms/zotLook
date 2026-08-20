@@ -52,7 +52,7 @@ Once installed, Zotero checks this repository for new versions and updates the p
 
 ## Building from source
 
-Requires Xcode Command Line Tools (for compiling the Quick Look helper).
+A release build requires macOS with the Xcode Command Line Tools, which is what compiles the Quick Look helper.
 
 ```bash
 git clone https://github.com/fre-ms/zotLook.git
@@ -61,6 +61,8 @@ cd zotLook
 ```
 
 `build.sh` compiles the helper binary (`qlpreview`) for both architectures, signs them (`swiftc` ad-hoc signs the arm64 slice but not the x86_64 one, and `lipo` does not sign the container, so without this the result reports as unsigned), packages the `.xpi`, and rewrites `update.json` to match — version, download URL and SHA-256 all derived from the manifest and the file that was just built.
+
+The same script also runs on Linux, where there is no Swift toolchain to compile that helper with. It then packages everything else, which is all the Linux route needs, and leaves `update.json` alone: a package without the helper is fine to install and test locally, but publishing its checksum would auto-update macOS copies to a build that has lost their Quick Look panel.
 
 The resulting `build/zotlook-<version>.xpi` can be installed in Zotero as described above.
 

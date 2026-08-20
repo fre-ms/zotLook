@@ -89,6 +89,64 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
   eq(calls[0].arguments, ['-p', '/a/paper.pdf'], 'with the flag that tool needs');
 }
 
+// ── a one-shot preview request is waited for, and reported ────────────
+// Sushi is started by D-Bus on demand. A sender that hands over its message
+// and leaves before the service is up loses it: dbus-daemon drops what it had
+// queued for the activation. So the request has to be awaited — and once it
+// is, its exit status is the first thing this plugin has ever had to say why
+// a preview did not appear.
+{
+  const linux = { isMac: false, isLinux: true, isWin: false };
+  const stubProc = (exitCode, complaint = '') => ({
+    stderr: { readString: async () => complaint },
+    wait: async () => ({ exitCode }),
+    kill(){},
+  });
+
+  {
+    let waited = false;
+    const { ZotLook: Q, logs } = loadPlugin({ zotero: linux,
+      ChromeUtils: { importESModule: () => ({ Subprocess: {
+        call: async (o) => {
+          eq(o.stderr, 'pipe', 'stderr is captured, so a refusal can be quoted');
+          return { stderr: { readString: async () => '' },
+                   wait: async () => { waited = true; return { exitCode: 0 }; },
+                   kill(){} };
+        } }})}});
+    await Q._launchPreview(['/a/paper.pdf']);
+    eq(waited, true, 'the request is awaited rather than fired and forgotten');
+    eq(Q._proc, null, 'but nothing is held: there is no process to dismiss');
+    eq(Q._isActive, false, 'and no preview state to track');
+    eq(logs.some(l => /delivered/.test(l)), true, 'delivery is logged');
+  }
+
+  {
+    const reports = [];
+    const { ZotLook: Q, logs } = loadPlugin({ zotero: linux,
+      ChromeUtils: { importESModule: () => ({ Subprocess: {
+        call: async () => stubProc(1,
+          'Error org.freedesktop.DBus.Error.ServiceUnknown: The name is not ' +
+          'provided by any .service files') }})}});
+    Q._writeFailureReport = async (what) => { reports.push(what); };
+    await Q._launchPreview(['/a/paper.pdf']);
+    eq(logs.some(l => /refused \(exit 1\)/.test(l)), true, 'a refusal is logged');
+    eq(logs.some(l => /gnome-sushi/.test(l)), true,
+       'and names the missing package rather than leaving the user guessing');
+    eq(reports.length, 1, 'a failure report is left behind');
+  }
+
+  {
+    // A preview that works must not leave a failure report behind
+    const reports = [];
+    const { ZotLook: Q } = loadPlugin({ zotero: linux,
+      ChromeUtils: { importESModule: () => ({ Subprocess: {
+        call: async () => stubProc(0) }})}});
+    Q._writeFailureReport = async (what) => { reports.push(what); };
+    await Q._launchPreview(['/a/paper.pdf']);
+    eq(reports, [], 'nothing reported when the request succeeds');
+  }
+}
+
 // ── the two contact sheet routes ──────────────────────────────────────
 // The same generated file is either handed to QuickLook or opened in Zotero's
 // viewer window; only the latter can act on the per-page links, because
