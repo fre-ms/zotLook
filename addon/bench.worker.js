@@ -28,20 +28,41 @@ async function loadPdfjs() {
 	return pdfjs;
 }
 
+// Each stage is reported as it is reached. A run that stops says where it
+// stopped, which a single message at the end cannot.
+function stage(name, extra) {
+	self.postMessage(Object.assign({ stage: name }, extra || {}));
+}
+
+stage("worker running");
+
 self.addEventListener("message", async (event) => {
-	let { data, maxPages, width, quality } = event.data;
-	let report = { ok: false, steps: {}, pages: [], sample: null, error: null };
+	let report = { ok: false, stage: "done", steps: {}, pages: [], error: null };
+	let sample = null;
 
 	try {
+		let payload = event.data || {};
+		let { data, maxPages, width, quality } = payload;
+		stage("message received", { bytes: data ? data.byteLength : null });
+		if (!data) throw new Error("no PDF data in the message");
+
 		let t0 = Date.now();
 		let lib = await loadPdfjs();
 		report.steps.importMs = Date.now() - t0;
 		report.version = lib.version || "unknown";
+		stage("pdf.js imported", {
+			importMs: report.steps.importMs,
+			version: report.version,
+		});
 
 		let t1 = Date.now();
 		let doc = await lib.getDocument({ data: data, isEvalSupported: false }).promise;
 		report.steps.openMs = Date.now() - t1;
 		report.pageCount = doc.numPages;
+		stage("document opened", {
+			openMs: report.steps.openMs,
+			pageCount: report.pageCount,
+		});
 
 		let count = Math.min(doc.numPages, maxPages);
 		for (let i = 1; i <= count; i++) {
@@ -74,7 +95,8 @@ self.addEventListener("message", async (event) => {
 			report.pages.push({ page: i, ms: Date.now() - tp, bytes: blob.size });
 
 			if (i === 1) {
-				report.sample = await blob.arrayBuffer();
+				sample = await blob.arrayBuffer();
+				stage("first page rendered", { ms: report.pages[0].ms });
 			}
 			page.cleanup();
 		}
@@ -85,5 +107,6 @@ self.addEventListener("message", async (event) => {
 		report.error = String(e && e.stack ? e.stack : e);
 	}
 
-	self.postMessage(report, report.sample ? [report.sample] : []);
+	report.sample = sample;
+	self.postMessage(report, sample ? [sample] : []);
 });

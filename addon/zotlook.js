@@ -862,18 +862,34 @@ var ZotLook = {
 			// A worker that answers nothing would otherwise leave no trace
 			let timer = setTimeout(async () => {
 				this.log("BENCH: the worker did not answer");
-				await writeReport({ ok: false, error: "no answer within 120 s" });
+				await writeReport({
+					ok: false,
+					error: "no answer within 120 s",
+					trail: trail,
+				});
 				worker.terminate();
 				resolve(false);
 			}, 120000);
 
 			let started = Date.now();
+			let trail = [];
 			worker.addEventListener("message", async (event) => {
-				clearTimeout(timer);
-				let r = event.data;
+				let r = event.data || {};
 				r.wallMs = Date.now() - started;
+
+				// Progress messages are recorded and waited on; only the final
+				// report ends the run. The trail is what tells us where a run
+				// that never finishes gave up.
+				trail.push({
+					stage: r.stage || "?",
+					ms: r.wallMs,
+					detail: Object.keys(r)
+						.filter((k) => !["stage", "wallMs", "sample", "pages"].includes(k))
+						.reduce((o, k) => Object.assign(o, { [k]: r[k] }), {}),
+				});
 				await writeReport({
-					ok: r.ok,
+					ok: r.ok === true,
+					trail: trail,
 					error: r.error,
 					version: r.version,
 					pageCount: r.pageCount,
@@ -881,6 +897,9 @@ var ZotLook = {
 					wallMs: r.wallMs,
 					pages: r.pages,
 				});
+				if (r.stage !== "done") return;
+
+				clearTimeout(timer);
 				if (!r.ok) {
 					this.log("BENCH: FAILED — " + r.error);
 					worker.terminate();
@@ -927,7 +946,11 @@ var ZotLook = {
 				let detail = (e.message || "") + " @ " + (e.filename || "") +
 					":" + (e.lineno || "");
 				this.log("BENCH: worker error — " + detail);
-				await writeReport({ ok: false, error: "worker error: " + detail });
+				await writeReport({
+					ok: false,
+					error: "worker error: " + detail,
+					trail: trail,
+				});
 				worker.terminate();
 				resolve(false);
 			});

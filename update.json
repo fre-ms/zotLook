@@ -5,7 +5,7 @@
         {
           "version": "1.1.0",
           "update_link": "https://github.com/fre-ms/zotLook/releases/download/v1.1.0/zotlook-1.1.0.xpi",
-          "update_hash": "sha256:fcc8d27c2c19e560701aefbbc45ce9339c13cca778b2294c4d3a732cc344740d",
+          "update_hash": "sha256:7918a81ca18cbb746dd029d93551f37328daa67b4efe0482d060c8d217f21779",
           "applications": {
             "zotero": {
               "strict_min_version": "6.999"
