@@ -373,6 +373,14 @@ var ZotLook = {
 			src: this.rootURI + "prefs-pane.xhtml",
 			scripts: [this.rootURI + "util.js", this.rootURI + "prefs-pane.js"],
 			stylesheets: [this.rootURI + "prefs-pane.css"],
+			// Zotero draws this at 24 px in the navigation sidebar. Its own
+			// icons are single-colour SVGs filled through
+			// -moz-context-properties, which Gecko only honours for images
+			// from chrome: and resource: URIs — a plugin's come out of the
+			// XPI, so context-fill would leave nothing to paint. Hence a
+			// self-coloured icon, which also means it stays legible on the
+			// selected row's accent background.
+			image: this.rootURI + "icon/zotlook-24.svg",
 		})
 			.then((id) => {
 				this._paneID = id;

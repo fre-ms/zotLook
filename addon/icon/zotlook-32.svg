@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <title>zotLook</title>
+  <!-- Add-ons list, 1x. -->
+  <rect x="1" y="1" width="6" height="6" rx="1.5" fill="#F5B841"/>
+  <rect x="9" y="1" width="6" height="6" rx="1.5" fill="#F5B841"/>
+  <rect x="17" y="1" width="6" height="6" rx="1.5" fill="#F5B841"/>
+  <rect x="25" y="1" width="6" height="6" rx="1.5" fill="#F5B841"/>
+  <rect x="1" y="9" width="6" height="6" rx="1.5" fill="#DBDDDE"/>
+  <rect x="9" y="9" width="6" height="6" rx="1.5" fill="#DBDDDE"/>
+  <rect x="17" y="9" width="6" height="6" rx="1.5" fill="#2E8B84"/>
+  <rect x="25" y="9" width="6" height="6" rx="1.5" fill="#2E8B84"/>
+  <rect x="1" y="17" width="6" height="6" rx="1.5" fill="#2E8B84"/>
+  <rect x="9" y="17" width="6" height="6" rx="1.5" fill="#2E8B84"/>
+  <rect x="17" y="17" width="6" height="6" rx="1.5" fill="#DBDDDE"/>
+  <rect x="25" y="17" width="6" height="6" rx="1.5" fill="#DBDDDE"/>
+  <rect x="1" y="25" width="6" height="6" rx="1.5" fill="#C9161D"/>
+  <rect x="9" y="25" width="6" height="6" rx="1.5" fill="#C9161D"/>
+  <rect x="17" y="25" width="6" height="6" rx="1.5" fill="#C9161D"/>
+  <rect x="25" y="25" width="6" height="6" rx="1.5" fill="#C9161D"/>
+</svg>

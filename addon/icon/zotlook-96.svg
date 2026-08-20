@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+  <title>zotLook</title>
+  <!-- Add-ons list at 2x, the one size with room for the contour and the text lines. -->
+  <rect x="6" y="6" width="18" height="18" rx="3.5" fill="#F5B841"/>
+  <rect x="28" y="6" width="18" height="18" rx="3.5" fill="#F5B841"/>
+  <rect x="50" y="6" width="18" height="18" rx="3.5" fill="#F5B841"/>
+  <rect x="72" y="6" width="18" height="18" rx="3.5" fill="#F5B841"/>
+  <rect x="6.5" y="28.5" width="17" height="17" rx="3.5" fill="#FFFFFF" stroke="#1F2A33" stroke-width="1"/>
+  <rect x="9.42" y="33.4" width="11.16" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="9.42" y="36.19" width="11.16" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="9.42" y="38.98" width="7.2" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="28.5" y="28.5" width="17" height="17" rx="3.5" fill="#FFFFFF" stroke="#1F2A33" stroke-width="1"/>
+  <rect x="31.42" y="33.4" width="11.16" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="31.42" y="36.19" width="11.16" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="31.42" y="38.98" width="7.2" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="50" y="28" width="18" height="18" rx="3.5" fill="#2E8B84"/>
+  <rect x="72" y="28" width="18" height="18" rx="3.5" fill="#2E8B84"/>
+  <rect x="6" y="50" width="18" height="18" rx="3.5" fill="#2E8B84"/>
+  <rect x="28" y="50" width="18" height="18" rx="3.5" fill="#2E8B84"/>
+  <rect x="50.5" y="50.5" width="17" height="17" rx="3.5" fill="#FFFFFF" stroke="#1F2A33" stroke-width="1"/>
+  <rect x="53.42" y="55.4" width="11.16" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="53.42" y="58.19" width="11.16" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="53.42" y="60.98" width="7.2" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="72.5" y="50.5" width="17" height="17" rx="3.5" fill="#FFFFFF" stroke="#1F2A33" stroke-width="1"/>
+  <rect x="75.42" y="55.4" width="11.16" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="75.42" y="58.19" width="11.16" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="75.42" y="60.98" width="7.2" height="1.35" rx="0.67" fill="#1F2A33" opacity="0.22"/>
+  <rect x="6" y="72" width="18" height="18" rx="3.5" fill="#C9161D"/>
+  <rect x="28" y="72" width="18" height="18" rx="3.5" fill="#C9161D"/>
+  <rect x="50" y="72" width="18" height="18" rx="3.5" fill="#C9161D"/>
+  <rect x="72" y="72" width="18" height="18" rx="3.5" fill="#C9161D"/>
+</svg>

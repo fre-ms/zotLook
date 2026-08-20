@@ -1,5 +1,7 @@
 # zotLook
 
+<img src="asset/zotlook-logo.svg" alt="" width="88" align="right">
+
 [![CI](https://github.com/fre-ms/zotLook/actions/workflows/ci.yml/badge.svg)](https://github.com/fre-ms/zotLook/actions/workflows/ci.yml)
 
 A plugin for Zotero 7 and later (tested on 7, 8, 9, and 10) that lets you preview attachments by pressing **Space**, the way a file manager does. It drives the system's own preview panel: Quick Look on macOS, GNOME Sushi on Linux, [QuickLook](https://github.com/QL-Win/QuickLook) on Windows.

@@ -5,7 +5,11 @@
     "description": "Preview attachments by pressing Space, through the system's own preview panel",
     "homepage_url": "https://github.com/fre-ms/zotLook",
     "author": "fre.ms and Guillaume Chapron",
-    "icons": {},
+    "icons": {
+        "32": "icon/zotlook-32.svg",
+        "48": "icon/zotlook-48.svg",
+        "96": "icon/zotlook-96.svg"
+    },
     "applications": {
         "zotero": {
             "id": "zotlook@fre.ms",
