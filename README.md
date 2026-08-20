@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/fre-ms/zotLook/actions/workflows/ci.yml/badge.svg)](https://github.com/fre-ms/zotLook/actions/workflows/ci.yml)
 
-A plugin for Zotero 7 and later (tested on 7, 8, 9, and 10) that lets you preview attachments by pressing **Space** — just like in Finder. Full support on macOS; on Linux it drives GNOME Sushi.
+A plugin for Zotero 7 and later (tested on 7, 8, 9, and 10) that lets you preview attachments by pressing **Space**, the way a file manager does. It drives the system's own preview panel: Quick Look on macOS, GNOME Sushi on Linux.
 
 ### Provenance
 
@@ -25,7 +25,7 @@ The plugin ID is `zotlook@fre.ms`, distinct from Chapron's, so the two install s
 - **Right-click → Quick Look** — Context menu entry
 - **Right-click → Quick Look Contact Sheet** — Context menu entry, shown only when the selection actually contains a PDF
 - **Shift+Alt+Space** (Option on macOS) — the same sheet in a Zotero window, where clicking a page opens it in the reader at that page (also in the context menu)
-- Works with PDFs, images, HTML, EPUBs, and any file type that macOS QuickLook supports
+- Works with PDFs, images, HTML, EPUBs, and any file type the system's preview panel supports
 - Selecting a parent item previews one of its attachments; which one is configurable under **Settings → zotLook** — either by a reorderable type ranking (PDF, EPUB, HTML, image, video, anything else) or simply the first attachment the item lists
 - EPUB files are rendered on the fly into a single styled HTML page (Palatino, 80 px margin, book-width column), with the book's own stylesheets loaded so layout and typography are preserved — switchable off under **Settings → zotLook** if a Quick Look extension handles EPUB better
 - Notes are rendered as HTML and previewed
@@ -168,7 +168,7 @@ Movie      (/System/Library/QuickLook/Movie.qlgenerator)
 
 Apple's own movie generator calls an AVKit method that AVKit refuses inside `qlmanage`. Driving `QLPreviewPanel` instead renders whatever the Finder renders, third-party Quick Look extensions included. `qlmanage` is kept only as a fallback for the case where the helper cannot be deployed.
 
-EPUB previews are produced on the fly because stock macOS renders no EPUB preview. This is the one format the plugin transforms rather than handing over; everything else — MOBI, DJVU, whatever a Quick Look extension claims — goes to the panel untouched. Because the plugin cannot reliably tell whether an EPUB extension is installed, the conversion is a setting rather than a guess: turn it off and the book goes to Quick Look like any other file. The plugin unzips the archive into a temp directory, parses `META-INF/container.xml` and the OPF package document, and walks the spine in reading order, appending each chapter's `<body>` into a single output document. The book's own stylesheets (linked and inline) are pulled in so the original layout is preserved, with a Palatino base font, 80 px margin, and 720 px book-width column applied on top. Relative URLs in markup and CSS are rewritten to absolute `file://` paths so images, fonts, and inline SVGs resolve. Parsing and assembly go through `DOMParser` and run on the document tree, so scripts and inline event handlers are removed as nodes rather than matched as text. A converted book is cached and reused until its file changes.
+EPUB previews are produced on the fly because no system preview renders an EPUB on its own. This is the one format the plugin transforms rather than handing over; everything else — MOBI, DJVU, whatever a preview extension claims — goes to the panel untouched. Because the plugin cannot reliably tell whether an EPUB extension is installed, the conversion is a setting rather than a guess: turn it off and the book goes to the panel like any other file. The plugin unzips the archive into a temp directory, parses `META-INF/container.xml` and the OPF package document, and walks the spine in reading order, appending each chapter's `<body>` into a single output document. The book's own stylesheets (linked and inline) are pulled in so the original layout is preserved, with a Palatino base font, 80 px margin, and 720 px book-width column applied on top. Relative URLs in markup and CSS are rewritten to absolute `file://` paths so images, fonts, and inline SVGs resolve. Parsing and assembly go through `DOMParser` and run on the document tree, so scripts and inline event handlers are removed as nodes rather than matched as text. A converted book is cached and reused until its file changes.
 
 The contact sheet (Ctrl+Shift+Space) renders PDF pages as thumbnails into a scrollable HTML grid, which is then previewed via QuickLook. Rendering runs in ChromeWorkers against the pdf.js build Zotero already ships — four of them at most, fewer when the document is large enough that four copies of it are not worth the memory, and never more than there are cores. Pages are dealt round-robin rather than in blocks, because a document's heavy pages sit together and a block split would hand one worker all of them. The layout adapts to the number of pages: PDFs with few pages (1–4) use fewer columns and higher-resolution thumbnails so they fill the preview width instead of leaving empty space.
 
@@ -192,7 +192,7 @@ Each action has exactly one shortcut, configurable in the settings. The defaults
 
 Shortcuts are stored as strings such as `Alt+Space` or `Meta+y`. The final token is read as a physical key code when it is longer than one character and as a produced character otherwise: Space sits in the same place on every layout, whereas the key labelled Y on a QWERTZ keyboard reports code `KeyZ`, so only the character identifies the shortcut a user sees on their keycaps. Changing a shortcut takes effect immediately.
 
-The settings pane warns when a combination is already bound, checking the main window's own `<key>` elements, Zotero's configurable `extensions.zotero.keys.*` shortcuts, and zotLook's other actions. It warns rather than refuses, and says so: Zotero publishes no list of other plugins' shortcuts and macOS publishes none at all, so a clean result means "no conflict with Zotero", not "free".
+The settings pane warns when a combination is already bound, checking the main window's own `<key>` elements, Zotero's configurable `extensions.zotero.keys.*` shortcuts, and zotLook's other actions. It warns rather than refuses, and says so: Zotero publishes no list of other plugins' shortcuts and the system publishes none at all, so a clean result means "no conflict with Zotero", not "free".
 
 ## License
 

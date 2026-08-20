@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "zotLook",
     "version": "1.1.0",
-    "description": "Preview attachments with macOS QuickLook by pressing Space",
+    "description": "Preview attachments by pressing Space, through the system's own preview panel",
     "homepage_url": "https://github.com/fre-ms/zotLook",
     "author": "fre.ms and Guillaume Chapron",
     "icons": {},
