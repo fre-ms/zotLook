@@ -1,0 +1,166 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "docs-root/**"
+      - "versions.json"
+      - "scripts/gen_versions.py"
+      - "addon/manifest.json"
+      - "asset/**"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-zotlook
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: build and publish
+    runs-on: ubuntu-latest
+    # Turn this on by setting the repository variable DEPLOY_ENABLED to "true"
+    # once DNS for zotlook.org points at the webspace. Until then the workflow
+    # builds nothing and costs nothing, and a fork never tries to deploy.
+    if: vars.DEPLOY_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      # Pinned to match docs/build.sh and the other ecosystem sites, so all of
+      # them render on the same Quarto.
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: '1.10.18'
+
+      - name: Build both languages
+        run: |
+          pip install pyyaml
+          python scripts/gen_versions.py
+          # docs/build.sh renders both language projects with the vendored
+          # theme, runs the offline repair, and builds one PDF per language.
+          # It also runs gen_langmap.py (the page-to-page switcher map).
+          ( cd docs && sh build.sh )
+          cp docs-root/index.html site/index.html
+          test -f site/en/index.html
+          test -f site/de/index.html
+          test -f site/en/zotlook-documentation.pdf
+          test -f site/de/zotLook-Dokumentation.pdf
+
+      - name: Prove the site works from a plain file tree
+        # Named rather than left to the search list, so the step fails loudly
+        # if the runner image ever stops shipping Chrome.
+        env:
+          QDA_SMOKE_BROWSER: /usr/bin/google-chrome
+        run: python3 docs/offline/smoketest.py site/en site/de
+
+      - name: Publish over SFTP or FTPS
+        env:
+          DEPLOY_PROTO:       ${{ vars.DEPLOY_PROTO }}
+          DEPLOY_HOST:        ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT:        ${{ vars.DEPLOY_PORT }}
+          DEPLOY_USER:        ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASSWORD:    ${{ secrets.DEPLOY_PASSWORD }}
+          DEPLOY_DIR:         ${{ secrets.DEPLOY_DIR }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          # `run:` gets bash -e but NOT pipefail, and the steps below pipe.
+
+          # Every release gets its own directory and is never touched again, so
+          # a published link keeps pointing at what it pointed at. `latest` is
+          # a second copy of the newest one, and the two root files are the
+          # bare-address shortcut and the list the version switcher reads.
+          VERSION="$(python scripts/gen_versions.py --current)"
+          LATEST="$(python -c "import json;print(json.load(open('versions.json'))['latest'])")"
+          test -n "$VERSION" && test -n "$LATEST"
+          test -f site/index.html || { echo "no site was built" >&2; exit 1; }
+          : "${DEPLOY_HOST:?DEPLOY_HOST is unset}"
+          : "${DEPLOY_USER:?DEPLOY_USER is unset}"
+          : "${DEPLOY_PASSWORD:?DEPLOY_PASSWORD is unset}"
+          : "${DEPLOY_DIR:?DEPLOY_DIR is unset}"
+          case "$DEPLOY_DIR" in
+            / | . | ./ | /public_html | /public_html/)
+              echo "refusing to work in the account root: $DEPLOY_DIR" >&2
+              exit 1 ;;
+          esac
+
+          # The --delete mirror only ever runs INSIDE a version directory, so
+          # it cannot reach a sibling release even if something above is wrong.
+          BASE="${DEPLOY_DIR%/}"
+          VERSION_DIR="$BASE/$VERSION"
+          case "$VERSION_DIR" in
+            *"/$VERSION") ;;
+            *) echo "refusing: $VERSION_DIR is not a version directory" >&2; exit 1 ;;
+          esac
+
+          # Plain FTP would put the password and every byte on the wire in the
+          # clear. Only the two encrypted variants are accepted, and the
+          # settings below make an unencrypted fallback an error rather than a
+          # silent downgrade.
+          PROTO="${DEPLOY_PROTO:-sftp}"
+          case "$PROTO" in
+            sftp|ftps) ;;
+            *) echo "DEPLOY_PROTO must be sftp or ftps, not '$PROTO'" >&2; exit 1 ;;
+          esac
+
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq lftp
+
+          # For SFTP the host key is the whole of the authentication of the
+          # server. Pin it from `ssh-keyscan -p <port> <host>`; without it a
+          # redirected DNS record could collect the password.
+          SFTP_SETTINGS=""
+          if [ "$PROTO" = "sftp" ]; then
+            : "${DEPLOY_KNOWN_HOSTS:?DEPLOY_KNOWN_HOSTS is unset - required for sftp}"
+            install -m 700 -d ~/.ssh
+            printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+            chmod 600 ~/.ssh/known_hosts
+            SFTP_SETTINGS="set sftp:connect-program \"ssh -a -x -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts\";"
+          fi
+
+          # The password goes into a mode-600 file rather than onto the command
+          # line, where every process on the machine could read it.
+          umask 077
+          SCRIPT="$(mktemp)"
+          trap 'rm -f "$SCRIPT"' EXIT
+          {
+            echo "set cmd:fail-exit true;"
+            echo "set net:max-retries 3;"
+            echo "set net:timeout 20;"
+            echo "set ssl:verify-certificate true;"
+            echo "set ftp:ssl-force true;"
+            echo "set ftp:ssl-protect-data true;"
+            echo "$SFTP_SETTINGS"
+            printf 'open -u %s,%s %s://%s%s;\n' \
+              "$DEPLOY_USER" "$DEPLOY_PASSWORD" "$PROTO" "$DEPLOY_HOST" \
+              "${DEPLOY_PORT:+:$DEPLOY_PORT}"
+            printf 'mirror --reverse --delete --no-perms --parallel=4 --verbose=1 site/ %s;\n' \
+              "$VERSION_DIR"
+            # `latest` follows the newest release only. Rebuilding the docs of
+            # an older one refreshes its own directory and leaves latest alone.
+            if [ "$VERSION" = "$LATEST" ]; then
+              printf 'mirror --reverse --delete --no-perms --parallel=4 --verbose=1 site/ %s;\n' \
+                "$BASE/latest"
+            fi
+            printf 'put -O %s versions.json;\n' "$BASE"
+            # put's syntax is `put [-O base] lfile [-o rfile]` — the remote
+            # name comes AFTER the local file; an older lftp (as on the runner)
+            # rejects `-o` placed before it ("put: invalid option -- 'o'").
+            printf 'put -O %s docs-root/site-root.html -o index.html;\n' "$BASE"
+          } > "$SCRIPT"
+
+          lftp -f "$SCRIPT"
+          if [ "$VERSION" = "$LATEST" ]; then
+            echo "published $VERSION, and copied it to latest"
+          else
+            echo "published $VERSION; latest stays at $LATEST"
+          fi
