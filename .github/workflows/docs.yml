@@ -140,6 +140,20 @@ jobs:
             ssh-keygen -lf /tmp/live.keys 2>/dev/null \
               | awk '{print $2, $4}' | sort > /tmp/live.fp || true
 
+            # An empty pin is its own failure and not a changed key: the
+            # secret never carried a parsable line. Saying so saves reading a
+            # comparison in which one side is simply absent.
+            if [ ! -s /tmp/pinned.fp ]; then
+              echo "DEPLOY_KNOWN_HOSTS holds no parsable host key" \
+                   "($(wc -l < ~/.ssh/known_hosts) lines)" >&2
+              echo "Take it with:  ssh-keyscan -p ${PORT} <host> > kh" >&2
+              echo "Check it with: ssh-keygen -lf kh    # must list fingerprints" >&2
+              echo "Then set it:   gh secret set DEPLOY_KNOWN_HOSTS --repo <owner>/<repo> < kh" >&2
+              echo "This host currently offers:" >&2
+              ssh-keygen -lf /tmp/live.keys 2>/dev/null | sed 's/^/    /' >&2 || true
+              exit 1
+            fi
+
             if [ ! -s /tmp/live.fp ]; then
               echo "note: the host answered no key scan on port $PORT;" \
                    "if it listens elsewhere, set the DEPLOY_PORT variable" >&2
