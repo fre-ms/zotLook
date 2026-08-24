@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="robots" content="noindex"/>
+<title>zotLook</title>
+<link rel="canonical" href="https://zotlook.org/latest/en/"/>
+<style>
+ body { font: 16px/1.5 system-ui, sans-serif; max-width: 34em; margin: 4em auto;
+        padding: 0 1em; color: #222; }
+ a { display: inline-block; margin: .3em 1em .3em 0; padding: .5em 1em;
+     border: 1px solid #ccc; border-radius: 6px; text-decoration: none;
+     color: inherit; }
+ p.small { font-size: .85em; opacity: .75; }
+ @media (prefers-color-scheme: dark) {
+   body { background: #1b1b1b; color: #eee; } a { border-color: #444; }
+ }
+</style>
+</head>
+<body>
+<h1>zotLook</h1>
+<p>Preview Zotero attachments with the Space key, through the preview panel your
+system already has.</p>
+<p><a href="latest/en/index.html">English documentation</a>
+<a href="latest/de/index.html">Deutsche Dokumentation</a></p>
+<p class="small">Every release keeps its own documentation under its version
+number, so a link never changes what it points at. This page always forwards
+to the current release.</p>
+<script>
+  // Straight to the current release. The version directories stay reachable
+  // by their own addresses; this is only the bare-address shortcut.
+  var l = (navigator.language || "en").toLowerCase();
+  location.replace(l.indexOf("de") === 0
+    ? "latest/de/index.html" : "latest/en/index.html");
+</script>
+</body>
+</html>

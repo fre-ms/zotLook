@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>zotLook — documentation</title>
+<style>
+ body { font: 16px/1.5 system-ui, sans-serif; max-width: 34em; margin: 4em auto;
+        padding: 0 1em; color: #222; }
+ a { display: inline-block; margin: .3em 1em .3em 0; padding: .5em 1em;
+     border: 1px solid #ccc; border-radius: 6px; text-decoration: none;
+     color: inherit; }
+ @media (prefers-color-scheme: dark) {
+   body { background: #1b1b1b; color: #eee; } a { border-color: #444; }
+ }
+ footer { margin-top: 3em; border-top: 1px solid #ccc; padding-top: 1em; }
+ footer a { font-size: .85em; padding: .2em .5em; border: 0; opacity: .75;
+            text-decoration: underline; margin: 0 .8em 0 0; }
+ @media (prefers-color-scheme: dark) { footer { border-color: #444; } }
+</style>
+</head>
+<body>
+<h1>zotLook</h1>
+<p>Preview Zotero attachments with the Space key, through the preview panel your
+system already has.</p>
+<p><a href="en/index.html">English documentation</a> <a href="de/index.html">Deutsche Dokumentation</a></p>
+<footer>
+  <!-- The landing page is a page of the website too, so the provider
+       identification has to be reachable from here as well. It redirects by
+       language, so these links only ever show without JavaScript - which is
+       exactly when they matter most. -->
+  <a href="en/impressum.html">Impressum</a>
+  <a href="en/privacy.html">Privacy</a>
+  <a href="de/privacy.html">Datenschutz</a>
+</footer>
+<script>
+  // send visitors straight to their own language; the switcher in the
+  // header of every page gets them back
+  var l = (navigator.language || "en").toLowerCase();
+  location.replace(l.indexOf("de") === 0 ? "de/index.html" : "en/index.html");
+</script>
+</body>
+</html>
