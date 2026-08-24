@@ -1,14 +1,32 @@
 ---
-title: "Getting started"
+title: "zotLook"
 subtitle: "Documentation"
 author: "fre.ms"
 ---
 
-zotLook previews the attachment of the selected Zotero item when you press
-**Space**, the way a file manager does. It does not carry a viewer of its own:
-it drives the preview panel the system already has — Quick Look on macOS, GNOME
-Sushi on Linux, [QuickLook](https://github.com/QL-Win/QuickLook) on Windows — so
-whatever those can show, zotLook can show.
+**zotLook** is a plugin for the open-source reference manager
+[Zotero](https://www.zotero.org/). It previews the attachment of the selected
+Zotero item when you press **Space**, the way a file manager does. zotLook
+carries no viewer of its own; it drives the preview the system already has:
+
+- [Quick Look](https://en.wikipedia.org/wiki/Quick_Look) on **macOS**,
+- [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi) on **Linux**,
+- [QuickLook](https://github.com/QL-Win/QuickLook) on **Windows**.
+
+Whatever those can show, zotLook can show.
+
+Beyond that, **Ctrl+Shift+Space** builds a **contact sheet** of a PDF: a grid of
+every page, its column count adjustable. That helps most with long documents —
+a book, a scanned volume — because the system's preview will show you every
+page but only one at a time. The finished sheet is shown by that same system
+preview, and a click on a page opens it in Zotero's reader. Building one can
+take a few seconds; a progress indicator names the page it has reached.
+
+What sets zotLook apart, besides previewing on **every platform**, is that
+**Zotero's annotations are part of the preview** — in the system's preview and
+on the contact sheet alike. Zotero keeps them in its database rather than in
+the file, so without this a preview would show an unmarked document. It can be
+switched off if you would rather see the file as it is stored.
 
 ![](asset/screenshot.png)
 
@@ -16,9 +34,9 @@ whatever those can show, zotLook can show.
 
 | | |
 |---|---|
-| **Zotero** | 7 or later. Tested on 7, 8, 9 and 10. |
-| **macOS** | 12 (Monterey) or later. Nothing to install; the panel is part of the system. |
-| **Linux** | GNOME Sushi. On Debian and Ubuntu: `sudo apt install gnome-sushi`. |
+| **Zotero** | 7 or later. Tested with Zotero 10. |
+| **macOS** | 12 (Monterey) or later. Nothing to install; Quick Look is part of the system. |
+| **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). On Debian and Ubuntu: `sudo apt install gnome-sushi`. |
 | **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook), running. Its Microsoft Store build and its desktop build both work. |
 
 ## Install
@@ -55,17 +73,14 @@ works.
 If the file is stored in the cloud and not on this machine, zotLook downloads it
 first rather than reporting that it is missing.
 
-## Annotations are drawn in
+## How the annotations get there
 
-Zotero keeps the highlights and notes you make in its reader in its **database**,
-not in the PDF file. Previewing the stored file would therefore show an
-unmarked document — the thing users asked about most.
+zotLook exports a copy of the PDF with your highlights, notes, areas and ink
+drawn in, and previews that copy rather than the stored file.
 
-zotLook exports a copy with the annotations drawn in and previews that, in the
-preview and on the contact sheet alike. Attachments without annotations are
-recognised before any work starts, and an export is reused until you add or
-change an annotation, so the usual case costs nothing. It can be switched off
-under [Settings](settings.qmd).
+Attachments that carry no annotations are recognised before any work starts,
+and an export is reused until you add or change one, so the usual case costs
+nothing at all. The setting is under [Settings](settings.qmd).
 
 ## Where to go next
 

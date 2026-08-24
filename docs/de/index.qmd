@@ -1,15 +1,35 @@
 ---
-title: "Erste Schritte"
+title: "zotLook"
 subtitle: "Dokumentation"
 author: "fre.ms"
 ---
 
-zotLook zeigt den Anhang des ausgewählten Zotero-Eintrags in einer Vorschau,
-sobald Sie **Leertaste** drücken — so, wie ein Dateimanager es tut. Das Plugin
-bringt keinen eigenen Betrachter mit: Es steuert die Vorschau an, die das System
-bereits hat — Quick Look unter macOS, GNOME Sushi unter Linux,
-[QuickLook](https://github.com/QL-Win/QuickLook) unter Windows. Was diese
-anzeigen können, kann zotLook anzeigen.
+**zotLook** ist ein Plugin für den quelloffenen Literaturmanager
+[Zotero](https://www.zotero.org/). Es zeigt den Anhang des ausgewählten
+Zotero-Eintrags in einer Vorschau, sobald Sie **Leertaste** drücken — so, wie
+ein Dateimanager es tut. zotLook bringt dafür keinen eigenen Betrachter mit,
+sondern steuert die Vorschau an, die das System bereits hat:
+
+- [Quick Look](https://en.wikipedia.org/wiki/Quick_Look) unter **macOS**,
+- [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi) unter **Linux**,
+- [QuickLook](https://github.com/QL-Win/QuickLook) unter **Windows**.
+
+Was diese Vorschau-Programme anzeigen können, kann zotLook anzeigen.
+
+Darüber hinaus erzeugt zotLook mit **Strg+Umschalt+Leertaste** **Kontaktbögen**
+von PDF-Dateien: ein Übersichtsraster über alle Seiten, dessen Spaltenzahl sich
+einstellen lässt. Das hilft vor allem bei umfangreichen Dokumenten wie Büchern,
+denn die Vorschau des Betriebssystems zeigt zwar jede Seite, aber immer nur eine
+zur Zeit. Den fertigen Bogen zeigt wiederum dieselbe Systemvorschau — und ein
+Klick auf eine Seite öffnet sie im Zotero-Reader. Das Erzeugen kann einige
+Sekunden dauern; eine Verlaufsanzeige nennt dabei die Seite, bei der zotLook
+gerade ist.
+
+Eine Besonderheit von zotLook ist neben der **plattformübergreifenden**
+Vorschau, dass **Zotero-Annotationen Bestandteil der Vorschau** sind — in der
+Vorschau des Betriebssystems wie im Kontaktbogen. Zotero bewahrt sie in seiner
+Datenbank auf und nicht in der Datei; ohne dieses Zutun zeigte eine Vorschau
+also ein unmarkiertes Dokument. Auf Wunsch lässt sich die Funktion abschalten.
 
 ![](asset/screenshot.png)
 
@@ -17,9 +37,9 @@ anzeigen können, kann zotLook anzeigen.
 
 | | |
 |---|---|
-| **Zotero** | 7 oder neuer. Geprüft mit 7, 8, 9 und 10. |
-| **macOS** | 12 (Monterey) oder neuer. Nichts zu installieren; die Vorschau gehört zum System. |
-| **Linux** | GNOME Sushi. Unter Debian und Ubuntu: `sudo apt install gnome-sushi`. |
+| **Zotero** | 7 oder neuer. Getestet mit Zotero 10. |
+| **macOS** | 12 (Monterey) oder neuer. Nichts zu installieren; die Quick Look Vorschau gehört zum System. |
+| **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). Unter Debian und Ubuntu: `sudo apt install gnome-sushi`. |
 | **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook), laufend. Die Store-Fassung und die Desktop-Fassung antworten gleichermaßen. |
 
 ## Installation
@@ -57,18 +77,16 @@ sagt es, während es arbeitet.
 Liegt die Datei nur in der Cloud und nicht auf diesem Rechner, lädt zotLook sie
 zuerst herunter, statt zu melden, sie fehle.
 
-## Annotationen werden mitgezeichnet
+## Wie die Annotationen dorthin kommen
 
-Zotero bewahrt die Hervorhebungen und Notizen, die Sie in seinem Reader machen,
-in seiner **Datenbank** auf — nicht in der PDF-Datei. Eine Vorschau der
-gespeicherten Datei zeigte deshalb ein unmarkiertes Dokument. Das war die
-Lücke, nach der Nutzer am häufigsten gefragt haben.
+zotLook exportiert eine Kopie des PDFs mit Ihren Hervorhebungen, Notizen,
+Flächen und Freihandzeichnungen und zeigt diese Kopie statt der gespeicherten
+Datei.
 
-zotLook exportiert eine Kopie mit eingezeichneten Annotationen und zeigt diese —
-in der Vorschau wie im Kontaktbogen. Anhänge ohne Annotationen werden erkannt,
-bevor irgendeine Arbeit beginnt, und ein Export wird wiederverwendet, bis Sie
-eine Annotation hinzufügen oder ändern. Der Normalfall kostet also nichts. In
-den [Einstellungen](settings.qmd) lässt sich das abschalten.
+Anhänge ohne Annotationen werden erkannt, bevor irgendeine Arbeit beginnt, und
+ein Export wird wiederverwendet, bis Sie eine hinzufügen oder ändern. Der
+Normalfall kostet also gar nichts. Die Einstellung finden Sie unter
+[Einstellungen](settings.qmd).
 
 ## Weiter
 
