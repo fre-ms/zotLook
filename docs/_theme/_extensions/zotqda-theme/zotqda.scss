@@ -1,0 +1,385 @@
+/*-- scss:defaults --*/
+
+// Shared defaults, compiled once per palette (zotqda-light.scss or
+// zotqda-dark.scss defines the $zq-* variables first).
+
+// Noto Sans, self-hosted: the host site ships the woff2 files and
+// fonts/noto.css (see the extension's fonts/ directory) — no font
+// request ever leaves the page, which the bundled, consent-free help
+// requires. Sites without the fonts fall back to the system stack.
+$font-family-sans-serif: "Noto Sans", system-ui, -apple-system,
+  "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$font-family-monospace: ui-monospace, "SF Mono", SFMono-Regular, Menlo,
+  Consolas, "Liberation Mono", monospace !default;
+
+$font-size-root: 16px !default;
+$line-height-base: 1.65 !default;
+$headings-font-weight: 600 !default;
+$border-radius: 0.375rem !default;
+
+$link-decoration: none !default;
+$link-hover-decoration: underline !default;
+
+// Quarto layout variables.
+$navbar-bg: $zq-navbar-bg !default;
+$navbar-fg: $zq-navbar-fg !default;
+$footer-bg: transparent !default;
+$footer-fg: $zq-muted !default;
+$toc-color: $zq-muted !default;
+$toc-active-border: $zq-accent !default;
+$code-block-bg: $zq-surface !default;
+$code-block-border-left: false !default;
+$table-border-color: $zq-border !default;
+
+/*-- scss:rules --*/
+
+// ---------------------------------------------------------------------------
+// Navbar: white (light) / lifted surface (dark) with a hairline below,
+// like the Zensical sites.
+
+.navbar {
+  box-shadow: none;
+  border-bottom: 1px solid $zq-border;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+
+// Frosted glass, like the Zensical header: the bar stays pinned (see
+// navbar.pinned in the site config) and the text scrolls away behind a
+// translucent, blurred pane. The id out-specifies Quarto's own
+// background rule.
+#quarto-header .navbar {
+  background-color: rgba($zq-navbar-bg, 0.8);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.navbar .navbar-title {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.navbar .nav-link {
+  font-size: 0.9rem;
+}
+
+// Day/night toggle as moon/sun glyphs, like Zensical, instead of
+// Quarto's on/off-switch pictogram. The icon font inherits the navbar
+// colour, which the embedded-SVG default cannot; the `a` prefix
+// outweighs Quarto's own equally specific rules.
+.navbar a.quarto-color-scheme-toggle .bi::before {
+  font-family: "bootstrap-icons";
+  font-size: 1.05rem;
+  line-height: 1;
+  height: auto;
+  width: auto;
+}
+
+// background-image must be cleared in the two STATE rules: Quarto sets
+// the switch image in `.navbar .quarto-color-scheme-toggle:not(.alternate)
+// .bi::before`, whose :not() outweighs the base rule above — clearing it
+// only there leaves both pictograms on top of each other.
+.navbar a.quarto-color-scheme-toggle:not(.alternate) .bi::before {
+  background-image: none;
+  content: "\f497"; // bi-moon
+}
+
+.navbar a.quarto-color-scheme-toggle.alternate .bi::before {
+  background-image: none;
+  content: "\f5a2"; // bi-sun
+}
+
+// The translate icon of the language menu at the same optical size.
+.navbar .nav-item i.bi {
+  font-size: 1.05rem;
+}
+
+// Open book before the title, like Zensical's documentation mark — a
+// placeholder until the software has a logo of its own (then replace
+// this with navbar.logo in the site config and delete the rule).
+.navbar-title::before {
+  font-family: "bootstrap-icons";
+  content: "\f194"; // bi-book
+  margin-right: 0.55rem;
+  font-size: 1.2rem;
+  vertical-align: -0.18em;
+}
+
+// Zensical's header geometry: the tools (language, day/night, search)
+// end at the right edge of the text column, and the GitHub item sits
+// where the right sidebar begins. The pixel offsets are exact while the
+// 76rem cap is active; on narrower viewports the grid reflows, so below
+// the breakpoint everything stays in the default right-aligned flow.
+@media (min-width: 1250px) {
+  .navbar > .navbar-container {
+    position: relative;
+    padding-right: 248px; // container right edge -> content column edge
+  }
+
+  // The repository icon, wherever the repository lives: the selector
+  // matches GitHub and any GitLab instance (gitlab.com or self-hosted
+  // with "gitlab" in the host name).
+  .navbar .navbar-nav li.nav-item:has(> a[href*="github.com"]),
+  .navbar .navbar-nav li.nav-item:has(> a[href*="gitlab"]) {
+    position: absolute;
+    left: 992px;          // container left edge -> right sidebar start
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Centred page: cap the three-column grid and the navbar content at the
+// same width and let both float in the middle of the viewport.
+
+.navbar > .navbar-container {
+  max-width: 76rem;
+  margin-inline: auto;
+}
+
+#quarto-content.quarto-container {
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-top: 1.75rem;
+}
+
+// ---------------------------------------------------------------------------
+// Body text and headings.
+
+.content {
+  font-size: 1rem;
+}
+
+h1, .title {
+  font-size: 1.9rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+#title-block-header {
+  margin-block-end: 1.6rem;
+}
+
+h2 {
+  font-size: 1.45rem;
+  font-weight: 650;
+  margin-top: 2.6rem;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+h3 {
+  font-size: 1.12rem;
+  margin-top: 2rem;
+}
+
+h4 {
+  font-size: 1rem;
+}
+
+p, li {
+  color: $zq-ink;
+}
+
+blockquote.blockquote {
+  border-left: 3px solid $zq-border;
+  color: $zq-muted;
+  font-size: 1rem;
+}
+
+// Prose links get their underline on hover with a little air beneath.
+main.content a:not(.nav-link):hover {
+  text-underline-offset: 0.2em;
+}
+
+// ---------------------------------------------------------------------------
+// Sidebar navigation: smaller, muted, accent only on the active page.
+
+// Just under body size, like Zensical's menus — Quarto's default reads
+// a step too small next to it.
+#quarto-sidebar {
+  font-size: 0.95rem;
+}
+
+// No divider between the columns — the centred grid carries the layout.
+// Quarto draws this border with !important, so removing it needs the same.
+.sidebar.sidebar-navigation:not(.rollup) {
+  border-right: none !important;
+}
+
+.sidebar-item {
+  margin-bottom: 0.15rem;
+}
+
+// Zensical-sized buttons: the tinted area spans the whole column and
+// clears the text on every side, instead of hugging it.
+.sidebar-item-text.sidebar-link {
+  display: block;
+  color: $zq-muted;
+  line-height: 1.45;
+  padding: 0.4rem 0.75rem;
+  margin-left: -0.75rem;
+  border-radius: 0.45rem;
+}
+
+// Extend to the right only where the link is alone in its row — section
+// headers carry the collapse chevron there, which must not be overlaid.
+// Quarto pins .sidebar-item-text to width: 100%, which makes a negative
+// right margin inert; widening the box itself is what works.
+.sidebar-item-container > .sidebar-item-text.sidebar-link:last-child {
+  width: calc(100% + 1.5rem);
+  flex-shrink: 0; // the container is a flex row and would shrink it back
+}
+
+.sidebar-item-text.sidebar-link:hover {
+  color: $zq-ink;
+  background: rgba(127, 127, 127, 0.08);
+  text-decoration: none;
+}
+
+// The page you are on: a soft accent pill, like Zensical's.
+.sidebar-item-text.sidebar-link.active,
+.sidebar-item-text.sidebar-link.active:hover {
+  color: $zq-accent;
+  font-weight: 600;
+  background: $zq-pill;
+}
+
+// Section headers: page-coloured and semibold, with air above so the
+// groups read as groups.
+.sidebar-item.sidebar-item-section {
+  margin-top: 0.9rem;
+}
+
+.sidebar-item-section > .sidebar-item-container .sidebar-item-text {
+  font-weight: 600;
+  color: $zq-ink;
+}
+
+.sidebar-item-section .sidebar-item-toggle {
+  color: $zq-muted;
+}
+
+// ---------------------------------------------------------------------------
+// Table of contents ("On this page"): small caps label, quiet entries.
+
+#toc-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $zq-muted;
+}
+
+.margin-sidebar .nav-link {
+  font-size: 0.9rem;
+  color: $zq-muted;
+}
+
+// Zensical's roomier rhythm between the entries. Quarto sets its own
+// line-height and padding on `.sidebar nav[role=doc-toc]>ul li a`, which
+// outweighs a plain class selector — this one out-specifies it.
+.sidebar.margin-sidebar nav[role="doc-toc"] > ul li a {
+  line-height: 1.4;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
+// Quarto forces the active entry to the muted colour with !important;
+// the accent needs the same weight to win.
+.margin-sidebar .nav-link.active,
+.sidebar nav[role="doc-toc"] ul > li > a.active,
+.sidebar nav[role="doc-toc"] ul > li > ul > li > a.active {
+  color: $zq-accent !important;
+}
+
+// ---------------------------------------------------------------------------
+// Code: bordered rounded blocks, neutral inline code chips.
+
+div.sourceCode {
+  border: none;
+  border-radius: 0.5rem;
+  background-color: $code-block-bg;
+  margin: 1.2rem 0;
+}
+
+pre.sourceCode {
+  padding: 0.9rem 1.1rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+:not(pre) > code {
+  background-color: $code-bg;
+  padding: 0.1em 0.35em;
+  border-radius: 0.25rem;
+  font-size: 0.86em;
+}
+
+// ---------------------------------------------------------------------------
+// Callouts: Quarto's native look, deliberately untouched — coloured left
+// bar, tinted header with icon, plain body, exactly as on
+// quarto.org/docs/authoring/callouts.html.
+
+// ---------------------------------------------------------------------------
+// Tables.
+
+.table {
+  font-size: 0.92rem;
+}
+
+.table thead th {
+  border-bottom: 2px solid $zq-border;
+  font-weight: 600;
+}
+
+.table td, .table th {
+  padding: 0.45rem 0.75rem;
+}
+
+// ---------------------------------------------------------------------------
+// Footer.
+
+.nav-footer {
+  border-top: 1px solid $zq-border;
+  font-size: 0.8rem;
+  color: $zq-muted;
+}
+
+.nav-footer a {
+  color: $zq-muted;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.nav-footer a:hover {
+  color: $zq-accent;
+}
+
+// ---------------------------------------------------------------------------
+// Version banner, inserted by the sites' versions.js. Kept in the theme
+// because every zotQDA site ships the same script.
+
+.qda-version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid $zq-border;
+  border-radius: $border-radius;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  background: $zq-surface;
+}
+
+.qda-version--old {
+  background: rgba(255, 145, 0, 0.14);
+  border-left: 0.25rem solid rgb(255, 145, 0);
+}
+
+.qda-version__pick {
+  margin-left: auto;
+  font-size: inherit;
+}

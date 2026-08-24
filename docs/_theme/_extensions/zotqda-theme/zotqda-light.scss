@@ -1,0 +1,28 @@
+/*-- scss:defaults --*/
+
+// Light palette. The indigo is Material's default primary, kept as the
+// family identity of the existing zotQDA sites; everything else is
+// neutral greys tuned for long-form reading.
+
+$zq-accent:     #3f51b5;   // indigo 500 — active markers, links
+$zq-accent-ink: #3547a8;   // slightly deeper for links on white
+$zq-ink:        #212630;
+$zq-muted:      #5d6572;
+$zq-surface:    #f5f6f8;   // code blocks, banners
+$zq-border:     #e5e7eb;
+
+// White header with a hairline, like the Zensical sites.
+$zq-navbar-bg:  #ffffff;
+$zq-navbar-fg:  $zq-ink;
+
+// Active sidebar page as a soft indigo pill.
+$zq-pill: rgba(63, 81, 181, 0.10);
+
+$body-bg:    #ffffff;
+$body-color: $zq-ink;
+$primary:    $zq-accent;
+$link-color: $zq-accent-ink;
+
+// Inline code in the body ink, not Bootstrap's pink.
+$code-bg:    #eef0f4;
+$code-color: #2f3540;

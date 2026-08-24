@@ -1,0 +1,27 @@
+/*-- scss:defaults --*/
+
+// Dark palette. Not pure black: dark grey surfaces with the indigo
+// lightened two steps so it keeps its contrast, the same move Material's
+// slate scheme makes.
+
+$zq-accent:     #8c9eff;   // indigo A100
+$zq-accent-ink: #9fa8da;   // indigo 200 — links
+$zq-ink:        #d6d9df;
+$zq-muted:      #99a1ad;
+$zq-surface:    #1b1e24;
+$zq-border:     #2b2f37;
+
+// Header on a slightly lifted surface with the same hairline as light.
+$zq-navbar-bg:  #191c22;
+$zq-navbar-fg:  $zq-ink;
+
+// Active sidebar page as a soft indigo pill.
+$zq-pill: rgba(140, 158, 255, 0.16);
+
+$body-bg:    #15171c;
+$body-color: $zq-ink;
+$primary:    $zq-accent;
+$link-color: $zq-accent-ink;
+
+$code-bg:    #21242c;
+$code-color: #ccd1da;

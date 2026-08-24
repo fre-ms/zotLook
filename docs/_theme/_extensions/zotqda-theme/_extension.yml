@@ -1,0 +1,18 @@
+title: zotQDA Theme
+author: fre.ms
+version: 0.2.0
+quarto-required: ">=1.4.0"
+contributes:
+  formats:
+    html:
+      theme:
+        # Later files win the defaults layer, so the palette must follow
+        # the shared file: its $zq-* values have to be defined by the
+        # time zotqda.scss's defaults reference them.
+        light: [default, zotqda.scss, zotqda-light.scss]
+        dark: [default, zotqda.scss, zotqda-dark.scss]
+      toc: true
+      code-copy: true
+      # Adaptive pair (github / github-dark): the default style keeps its
+      # light colours in dark mode, where they are unreadable.
+      highlight-style: github
