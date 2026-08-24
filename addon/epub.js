@@ -20,6 +20,9 @@ var ZotLookEpub = {
 
 	// Applied on top of the book's own stylesheets, so it has to come last in
 	// the head and win the specificity fight
+	/** Heading of the table of contents; set from the plugin's locale. */
+	TOC_LABEL: "Contents",
+
 	BASE_CSS: [
 		"html, body { margin: 0; }",
 		"body {",
@@ -41,6 +44,35 @@ var ZotLookEpub = {
 		"  border-top: 1px solid #ddd;",
 		"  margin: 3em 0;",
 		"}",
+		// The anchor is a landing point, not a box: it must take no space,
+		// and scroll-margin keeps the heading clear of the window's top edge
+		"div.epub-anchor { height: 0; scroll-margin-top: 1.5em; }",
+		"details.epub-toc {",
+		"  font-family: -apple-system, BlinkMacSystemFont, sans-serif;",
+		"  font-size: 15px;",
+		"  background: #f4f4f2;",
+		"  border: 1px solid #e2e2de;",
+		"  border-radius: 8px;",
+		"  padding: 0.8em 1.2em;",
+		"  margin: 0 0 3em 0;",
+		"}",
+		"details.epub-toc > summary {",
+		"  cursor: default;",
+		"  font-weight: 600;",
+		"  letter-spacing: 0.02em;",
+		"}",
+		"details.epub-toc[open] > summary { margin-bottom: 0.7em; }",
+		"ol.epub-toc-list { list-style: none; margin: 0; padding: 0; }",
+		"ol.epub-toc-list li { margin: 0.15em 0; }",
+		"ol.epub-toc-list a {",
+		"  color: #1a1a1a;",
+		"  text-decoration: none;",
+		"  border-bottom: 1px solid transparent;",
+		"}",
+		"ol.epub-toc-list a:hover { border-bottom-color: #999; }",
+		"li.epub-toc-level1 { padding-left: 1.4em; font-size: 0.95em; }",
+		"li.epub-toc-level2 { padding-left: 2.8em; font-size: 0.92em; }",
+		"@media print { details.epub-toc { display: none; } }",
 	].join("\n"),
 
 	log(msg) {
@@ -87,7 +119,8 @@ var ZotLookEpub = {
 			return null;
 		}
 
-		let html = await this._buildHtml(spineFiles, title);
+		let nav = await this._readNav(pkg.doc, pkg.dir);
+		let html = await this._buildHtml(spineFiles, title, nav);
 		if (!html) return null;
 
 		let outputPath = PathUtils.join(extractDir, "preview.html");
@@ -317,6 +350,139 @@ var ZotLookEpub = {
 		return files;
 	},
 
+	/**
+	 * The book's own table of contents.
+	 *
+	 * EPUB 3 keeps it in a navigation document — the manifest item carrying
+	 * properties="nav" — and EPUB 2 in an NCX file the spine points at. Both
+	 * are read, newer first, because the titles and the nesting are the
+	 * author's and better than anything derived from headings.
+	 *
+	 * @returns {Promise<Array<{title: string, path: string, fragment: string,
+	 *   level: number}>>} empty where the book carries no usable navigation
+	 */
+	async _readNav(opfDoc, opfDir) {
+		let hrefFor = (id) => {
+			for (let item of opfDoc.querySelectorAll("manifest item")) {
+				if (item.getAttribute("id") === id) {
+					return item.getAttribute("href");
+				}
+			}
+			return null;
+		};
+
+		// EPUB 3: properties is a space-separated token list
+		let navHref = null;
+		for (let item of opfDoc.querySelectorAll("manifest item")) {
+			let props = (item.getAttribute("properties") || "").split(/\s+/);
+			if (props.includes("nav")) {
+				navHref = item.getAttribute("href");
+				break;
+			}
+		}
+		if (navHref) {
+			let path = this._joinRelative(opfDir, navHref);
+			let entries = path ? await this._readNavDocument(path) : [];
+			if (entries.length) return entries;
+		}
+
+		// EPUB 2: spine@toc names the manifest id of the NCX
+		let spine = opfDoc.querySelector("spine");
+		let ncxHref = spine && hrefFor(spine.getAttribute("toc"));
+		if (ncxHref) {
+			let path = this._joinRelative(opfDir, ncxHref);
+			if (path) return this._readNcx(path);
+		}
+		return [];
+	},
+
+	/** EPUB 3: nested <ol> inside the toc <nav>. */
+	async _readNavDocument(path) {
+		let doc = await this._readChapter(path);
+		if (!doc) return [];
+
+		let nav = null;
+		for (let candidate of doc.querySelectorAll("nav")) {
+			let type = candidate.getAttribute("epub:type") ||
+				candidate.getAttributeNS(
+					"http://www.idpf.org/2007/ops", "type") || "";
+			if (type.split(/\s+/).includes("toc")) {
+				nav = candidate;
+				break;
+			}
+		}
+		nav = nav || doc.querySelector("nav");
+		if (!nav) return [];
+
+		let dir = PathUtils.parent(path);
+		let entries = [];
+		let walk = (list, level) => {
+			for (let li of [...list.children]) {
+				if ((li.localName || "").toLowerCase() !== "li") continue;
+				let anchor = li.querySelector("a");
+				if (anchor) {
+					this._pushNavEntry(entries, anchor.textContent,
+						anchor.getAttribute("href"), dir, level);
+				}
+				for (let child of [...li.children]) {
+					if ((child.localName || "").toLowerCase() === "ol") {
+						walk(child, level + 1);
+					}
+				}
+			}
+		};
+		let root = nav.querySelector("ol");
+		if (root) walk(root, 0);
+		return entries;
+	},
+
+	/** EPUB 2: nested <navPoint> in the NCX navMap. */
+	async _readNcx(path) {
+		let doc = await this._readChapter(path);
+		if (!doc) return [];
+
+		let dir = PathUtils.parent(path);
+		let entries = [];
+		let isPoint = (el) =>
+			(el.localName || el.nodeName || "").toLowerCase()
+				.replace(/^.*:/, "") === "navpoint";
+
+		let walk = (parent, level) => {
+			for (let el of [...parent.children]) {
+				if (!isPoint(el)) continue;
+				let label = this._findByLocalName(el, "text");
+				let content = null;
+				for (let child of [...el.children]) {
+					let name = (child.localName || child.nodeName || "")
+						.toLowerCase().replace(/^.*:/, "");
+					if (name === "content") content = child;
+				}
+				if (label && content) {
+					this._pushNavEntry(entries, label.textContent,
+						content.getAttribute("src"), dir, level);
+				}
+				walk(el, level + 1);
+			}
+		};
+
+		let map = this._findByLocalName(doc, "navmap");
+		if (map) walk(map, 0);
+		return entries;
+	},
+
+	/** One navigation entry, with its href split into file and fragment. */
+	_pushNavEntry(entries, title, href, dir, level) {
+		title = (title || "").replace(/\s+/g, " ").trim();
+		if (!title || !href) return;
+		let hash = href.indexOf("#");
+		let file = hash >= 0 ? href.slice(0, hash) : href;
+		let fragment = hash >= 0 ? href.slice(hash + 1) : "";
+		let path = file ? this._joinRelative(dir, file) : null;
+		if (!path) return;
+		// Deeper than this reads as clutter in a preview rather than structure
+		entries.push({ title, path, fragment, level: Math.min(level, 2) });
+	},
+
 	// ── Document assembly ─────────────────────────────────────────────
 
 	/**
@@ -325,7 +491,7 @@ var ZotLookEpub = {
 	 *
 	 * @returns {Promise<string|null>} serialised HTML
 	 */
-	async _buildHtml(spineFiles, title) {
+	async _buildHtml(spineFiles, title, nav) {
 		let out = ZotLookUtil.newHtmlDocument();
 		if (!out) {
 			this.log("Could not create output document");
@@ -336,6 +502,9 @@ var ZotLookEpub = {
 		let seenCssUrls = new Set();
 		let seenInlineCss = new Set();
 		let chapters = 0;
+		// Where each spine file ended up, so a navigation entry naming it can
+		// be turned into a link into this one document
+		let anchorFor = new Map();
 
 		for (let filePath of spineFiles) {
 			let doc = await this._readChapter(filePath);
@@ -354,6 +523,15 @@ var ZotLookEpub = {
 				hr.className = "epub-chapter-break";
 				out.body.appendChild(hr);
 			}
+
+			// One anchor per chapter, always — the book's own ids may be
+			// absent, and its navigation often points at the file alone
+			let mark = out.createElement("div");
+			mark.id = "zotlook-ch" + chapters;
+			mark.className = "epub-anchor";
+			out.body.appendChild(mark);
+			anchorFor.set(filePath, mark.id);
+
 			for (let node of [...body.childNodes]) {
 				out.body.appendChild(out.importNode(node, true));
 			}
@@ -365,12 +543,67 @@ var ZotLookEpub = {
 			return null;
 		}
 
+		let toc = this._buildToc(out, nav, anchorFor);
+		if (toc) out.body.insertBefore(toc, out.body.firstChild);
+
 		// Last in the head, so it overrides the book's own rules
 		let base = out.createElement("style");
 		base.textContent = this.BASE_CSS;
 		out.head.appendChild(base);
 
 		return ZotLookUtil.serializeHtmlDocument(out);
+	},
+
+	/**
+	 * The table of contents, as a <details> block at the top of the document.
+	 *
+	 * <details> and in-page anchors both work inside Quick Look, which runs
+	 * previews with JavaScript disabled — measured by clicking each in a real
+	 * preview. So the block folds away and its entries jump, with no script.
+	 *
+	 * Returns null where the book carries no navigation, rather than an empty
+	 * box: a preview of a document with no chapters should look like the
+	 * document, not like a feature that failed.
+	 */
+	_buildToc(out, nav, anchorFor) {
+		if (!nav || !nav.length) return null;
+
+		let list = out.createElement("ol");
+		list.className = "epub-toc-list";
+		let used = 0;
+
+		for (let entry of nav) {
+			let anchor = anchorFor.get(entry.path);
+			if (!anchor) continue;
+
+			// A fragment is only worth following where the chapter actually
+			// carries that id; otherwise the chapter itself is the target.
+			let target = anchor;
+			if (entry.fragment) {
+				let el = out.getElementById(entry.fragment);
+				if (el) target = entry.fragment;
+			}
+
+			let li = out.createElement("li");
+			li.className = "epub-toc-level" + entry.level;
+			let link = out.createElement("a");
+			link.setAttribute("href", "#" + target);
+			link.textContent = entry.title;
+			li.appendChild(link);
+			list.appendChild(li);
+			used++;
+		}
+
+		if (!used) return null;
+
+		let box = out.createElement("details");
+		box.className = "epub-toc";
+		box.setAttribute("open", "");
+		let summary = out.createElement("summary");
+		summary.textContent = this.TOC_LABEL;
+		box.appendChild(summary);
+		box.appendChild(list);
+		return box;
 	},
 
 	/**

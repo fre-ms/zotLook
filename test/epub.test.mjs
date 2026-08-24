@@ -35,6 +35,111 @@ const TMP = fs.mkdtempSync(os.tmpdir() + '/zotlook-epub-');
 const BOOK = fileURLToPath(new URL('./fixtures/book.epub', import.meta.url));
 const env = { tempDir: TMP, runProcess };
 
+// ── the table of contents ─────────────────────────────────────────────
+// The one thing a bundled EPUB viewer offers that this conversion did not.
+// Both navigation formats are read, because a library holds both: EPUB 3
+// keeps it in a navigation document, EPUB 2 in an NCX the spine points at.
+// Their own extract directory: the reuse test further down counts what is
+// unpacked under TMP, and these books would be counted with it.
+const TOC_TMP = fs.mkdtempSync(os.tmpdir() + '/zotlook-toc-');
+const tocEnv = { tempDir: TOC_TMP, runProcess };
+
+function makeBook(dir, { nav = null, ncx = null } = {}) {
+  fs.mkdirSync(dir + '/META-INF', { recursive: true });
+  fs.mkdirSync(dir + '/OEBPS', { recursive: true });
+  fs.writeFileSync(dir + '/mimetype', 'application/epub+zip');
+  fs.writeFileSync(dir + '/META-INF/container.xml',
+    '<?xml version="1.0"?><container version="1.0" '
+    + 'xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles>'
+    + '<rootfile full-path="OEBPS/content.opf" '
+    + 'media-type="application/oebps-package+xml"/></rootfiles></container>');
+  for (const [n, extra] of [[1, '<h1 id="intro">First</h1>'], [2, '<h1>Second</h1>']]) {
+    fs.writeFileSync(`${dir}/OEBPS/ch${n}.xhtml`,
+      '<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml"><head>'
+      + `<title>Chapter ${n}</title></head><body>${extra}`
+      + `<p>Body of chapter ${n}.</p></body></html>`);
+  }
+  let items = '<item id="c1" href="ch1.xhtml" media-type="application/xhtml+xml"/>'
+    + '<item id="c2" href="ch2.xhtml" media-type="application/xhtml+xml"/>';
+  let spineAttr = '';
+  if (nav) {
+    fs.writeFileSync(dir + '/OEBPS/nav.xhtml', nav);
+    items += '<item id="nav" href="nav.xhtml" properties="nav" '
+      + 'media-type="application/xhtml+xml"/>';
+  }
+  if (ncx) {
+    fs.writeFileSync(dir + '/OEBPS/toc.ncx', ncx);
+    items += '<item id="ncx" href="toc.ncx" '
+      + 'media-type="application/x-dtbncx+xml"/>';
+    spineAttr = ' toc="ncx"';
+  }
+  fs.writeFileSync(dir + '/OEBPS/content.opf',
+    '<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" '
+    + 'version="3.0" unique-identifier="i"><metadata '
+    + 'xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>A Book</dc:title>'
+    + '</metadata><manifest>' + items + '</manifest>'
+    + `<spine${spineAttr}><itemref idref="c1"/><itemref idref="c2"/></spine>`
+    + '</package>');
+  const epub = dir + '.epub';
+  execFileSync('zip', ['-qr', epub, '.'], { cwd: dir });
+  return epub;
+}
+
+{
+  // EPUB 3, with a nested entry and one pointing at an id inside a chapter
+  const dir = TMP + '/nav3';
+  const epub = makeBook(dir, { nav:
+    '<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" '
+    + 'xmlns:epub="http://www.idpf.org/2007/ops"><body><nav epub:type="toc">'
+    + '<ol><li><a href="ch1.xhtml">First chapter</a>'
+    + '<ol><li><a href="ch1.xhtml#intro">Introduction</a></li></ol></li>'
+    + '<li><a href="ch2.xhtml">Second chapter</a></li></ol></nav></body></html>' });
+  const out = await E.convert(epub, tocEnv);
+  ok(out, 'a book with a navigation document converts');
+  const html = fs.readFileSync(out, 'utf8');
+
+  ok(html.includes('<details') && html.includes('epub-toc'),
+     'the contents are a details block, which folds without JavaScript');
+  ok(/<summary[^>]*>Contents</.test(html), 'under a heading');
+  ok(html.includes('First chapter') && html.includes('Second chapter'),
+     'carrying the titles the book gives, not ones derived from headings');
+  ok(html.includes('epub-toc-level1'), 'and the nesting the book gives');
+
+  ok(html.includes('href="#zotlook-ch0"') && html.includes('href="#zotlook-ch1"'),
+     'each chapter is linked by an anchor placed for it');
+  ok(html.includes('id="zotlook-ch0"'), 'and that anchor exists in the document');
+  ok(html.includes('href="#intro"'),
+     "a fragment is followed where the chapter really carries that id");
+}
+{
+  // EPUB 2 keeps the same information in an NCX
+  const dir = TMP + '/nav2';
+  const epub = makeBook(dir, { ncx:
+    '<?xml version="1.0"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" '
+    + 'version="2005-1"><navMap>'
+    + '<navPoint id="n1"><navLabel><text>Erstes Kapitel</text></navLabel>'
+    + '<content src="ch1.xhtml"/></navPoint>'
+    + '<navPoint id="n2"><navLabel><text>Zweites Kapitel</text></navLabel>'
+    + '<content src="ch2.xhtml"/></navPoint>'
+    + '</navMap></ncx>' });
+  const html = fs.readFileSync(await E.convert(epub, tocEnv), 'utf8');
+  ok(html.includes('Erstes Kapitel') && html.includes('Zweites Kapitel'),
+     'an NCX is read as well, so older books get a contents too');
+  ok(html.includes('href="#zotlook-ch0"'), 'with the same anchors');
+}
+{
+  // A book with no navigation at all must look like a book, not like a
+  // feature that failed
+  const dir = TMP + '/nonav';
+  const html = fs.readFileSync(await E.convert(makeBook(dir), tocEnv), 'utf8');
+  ok(!html.includes('<details'),
+     'no navigation, no empty contents box (the stylesheet is always there,'
+     + ' so the element is what has to be looked for)');
+  ok(html.includes('Body of chapter 1'), 'while the book itself still converts');
+  ok(html.includes('id="zotlook-ch0"'),
+     'the chapter anchors are placed regardless, costing nothing');
+}
+
 // ── the extractor differs per platform ────────────────────────────────
 // /usr/bin/unzip is not a Windows tool; bsdtar ships with the system there
 // and reads the epub as the zip archive it is.

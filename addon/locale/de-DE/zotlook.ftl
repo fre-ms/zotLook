@@ -65,3 +65,5 @@ zotlook-prefs-pdf-annotations =
     .label = Annotationen in Vorschau und Seitenübersicht zeigen
 
 zotlook-sheet-truncated = Es werden die ersten { $shown } von { $total } Seiten gezeigt.
+
+zotlook-epub-contents = Inhalt

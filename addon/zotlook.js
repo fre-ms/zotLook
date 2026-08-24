@@ -40,6 +40,7 @@ var ZotLook = {
 	PROGRESS_STRINGS: [
 		"zotlook-progress-headline",
 		"zotlook-progress-contactsheet",
+		"zotlook-epub-contents",
 	],
 
 	L10N_FILE: "zotlook.ftl",
@@ -1179,6 +1180,12 @@ var ZotLook = {
 				if (values[i]) this._strings.set(id, values[i]);
 			});
 			this._relabelMenus();
+			// The converter builds the page on its own and has no Fluent
+			// context; it is handed the one string it shows.
+			ZotLookEpub.TOC_LABEL = this._string(
+				"zotlook-epub-contents",
+				ZotLookEpub.TOC_LABEL
+			);
 		} catch (e) {
 			this.log("Could not load localization: " + e);
 		}
