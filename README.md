@@ -6,9 +6,11 @@
 
 A plugin for Zotero 7 and later, in this form tested with Zotero 10, that previews
 attachments when you press **Space**, the way a file manager does. It carries no
-viewer of its own: it drives the preview panel the system already has — Quick
-Look on macOS, GNOME Sushi on Linux,
-[QuickLook](https://github.com/QL-Win/QuickLook) on Windows.
+viewer of its own, but drives the preview panel the system already has:
+
+- [**Quick Look**](https://en.wikipedia.org/wiki/Quick_Look) on **macOS**,
+- [**GNOME Sushi**](https://gitlab.gnome.org/GNOME/sushi) on **Linux** and
+- [**QuickLook**](https://github.com/QL-Win/QuickLook) on **Windows**.
 
 📖 **[Documentation — zotlook.org](https://zotlook.org)** ·
 [Deutsche Fassung](https://zotlook.org/latest/de/)
