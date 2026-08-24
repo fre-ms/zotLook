@@ -1,0 +1,180 @@
+---
+title: "Privacy policy"
+---
+
+Information under Article 13 GDPR.
+
+::: {.callout-note title="Also available in German"}
+The German version on [zotlook.org/de](https://zotlook.org/de/privacy.html) says the same thing. Where
+the two are read against each other, the German wording is the one the
+supervisory authority would apply.
+:::
+
+## Controller
+
+**Akademische Gesellschaft e.V.**<br>
+Meindlstr. 11<br>
+81373 München<br>
+Germany
+
+Represented by its chairman: Felix Müller-Sarnowski<br>
+Email: <office@academic-society.org>
+
+No data protection officer has been appointed; the conditions of § 38 BDSG are
+not met.
+
+## The short version
+
+*zotlook.org* is a set of static pages. There are **no cookies**, no tracking in
+your browser, no user account and no sign-in. **Nothing is loaded from a
+third-party server** — no fonts, maps, videos or scripts, and in particular no
+Google Fonts. While you read these pages your browser talks to no server but
+ours.
+
+On the server itself the hosting provider produces **access statistics from
+the truncated log files**. It needs no cookies and no scripts in your browser;
+details below.
+
+The only data processed is what arises technically when a page is requested.
+
+## Requesting a page: server logs
+
+On every request your browser transmits data that the web server records in a
+log file:
+
+- a **truncated** IP address of your device, see below
+- the date and time of the request
+- the address requested and the amount of data transferred
+- the HTTP status code
+- the referring page, if your browser sends one
+- browser and operating system (user agent)
+
+**Your IP address is not stored in full.** The web server truncates it before
+writing anything: for IPv4 it replaces the last byte with a random value, for
+IPv6 it anonymises the last 88 bits. The logs therefore cannot identify your
+connection.
+
+**Purpose:** operating the site — delivering pages, detecting and repelling
+attacks, and finding faults.
+
+**Legal basis:** Article 6(1)(f) GDPR. The legitimate interest is the secure
+and uninterrupted operation of the website.
+
+**Retention:** logs are deleted automatically after seven days. Individual
+entries are kept longer only where a specific security incident requires it,
+and then only until it has been resolved.
+
+The logs are not analysed to trace the behaviour of individual people, and
+they are not combined with other data.
+
+## Hosting
+
+The pages are served from a machine operated by
+
+**Hetzner Online GmbH**, Industriestr. 25, 91710 Gunzenhausen, Germany
+
+in a data centre in Germany. Hetzner processes the data listed above solely on
+our behalf and on our instructions, under a data processing agreement pursuant
+to Article 28 GDPR. The data does not leave the European Union.
+
+## Access statistics: AWStats and Report Magic
+
+The hosting provider's console analyses the log files described above with
+**AWStats** and **Report Magic** and produces access statistics from them —
+page requests, volumes transferred, browsers, referring pages. This is stated
+explicitly because both are a fixed part of the hosting package and **cannot
+be switched off**.
+
+Five points make the difference from ordinary web analytics:
+
+* The analysis happens **on the server**, not in your browser. Nothing is
+  stored on your device and nothing is read from it — no cookies, no scripts,
+  no tracking pixels. Consent under § 25 TDDG is therefore not required, which
+  is why you see no consent dialogue here.
+* It works **only on the already truncated logs**. Truncation happens on the
+  web server before anything is written, so the statistics never see your full
+  IP address at any point.
+* **No third party is involved.** The analysis runs on the same machine in
+  Germany and the results do not leave it.
+* We can view the statistics in the hosting console. They show totals and
+  distributions, not the recognition of individual people.
+* The reports remain available after the underlying logs have been deleted
+  seven days on. What remains is aggregate figures only.
+
+**Legal basis:** Article 6(1)(f) GDPR, to the extent the truncated data is
+personal data at all. The legitimate interest is being able to judge how the
+site is running.
+
+## Search on these pages
+
+Search runs entirely in your browser. A search index is downloaded once as a
+file; from then on searching happens locally on your device. Your search terms
+are **not** transmitted to the server and are not stored anywhere.
+
+## Contacting us by email
+
+If you write to us, we process your address and the content of your message in
+order to answer it. The legal basis is Article 6(1)(f) GDPR, or Article 6(1)(b)
+where the enquiry concerns a contract. We keep the correspondence for as long
+as follow-up questions are to be expected and delete it afterwards, unless a
+statutory retention period applies.
+
+## Links to other websites
+
+These pages link to third-party sites, in particular to DOI addresses of
+academic literature, to source code repositories and to the sites of other
+software. Those links become active **only when you click them**. Until then
+the provider concerned learns nothing about your visit. After that its own
+privacy policy applies, over which we have no influence.
+
+## The software itself processes nothing for us
+
+zotLook is a Zotero plugin and runs on your own machine. It sends no data to
+us or to anyone else: no usage statistics, no error reports, no request to any
+service we operate. Your documents, codings, memos and analyses stay in your
+Zotero database.
+
+The optional AI features talk exclusively to a **local** language model
+through Ollama on your own machine. No cloud service is contacted, and the
+features stay switched off until you switch them on.
+
+If you run Zotero with Zotero's own sync service, that is your decision and
+your own contractual relationship; we are not party to it.
+
+**The help inside the plugin is a copy of these pages.** It lives in the
+extension itself and is displayed without a network connection. Reading the
+help produces no log data whatsoever; the sections above describe access over
+the internet only.
+
+## Your rights
+
+You have the right to access (Article 15 GDPR), rectification (Article 16),
+erasure (Article 17), restriction of processing (Article 18) and data
+portability (Article 20).
+
+**Right to object:** where we process data on the basis of a legitimate
+interest (Article 6(1)(f) GDPR), you may object under Article 21 GDPR on
+grounds relating to your particular situation.
+
+We do not ask for consent, because we do not need any. There is accordingly
+nothing to withdraw.
+
+## Complaint to a supervisory authority
+
+Under Article 77 GDPR you may lodge a complaint with a supervisory authority.
+The one responsible for us is the
+
+**Bayerisches Landesamt für Datenschutzaufsicht (BayLDA)**<br>
+Promenade 18<br>
+91522 Ansbach, Germany<br>
+<poststelle@lda.bayern.de>
+
+## No automated decision-making
+
+There is no automated decision-making, including profiling, within the meaning
+of Article 22 GDPR.
+
+## Changes
+
+If the website changes technically, this statement will be adjusted. The
+version applicable is the one available here.

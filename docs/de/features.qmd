@@ -1,0 +1,84 @@
+---
+title: "Was es kann"
+---
+
+## Tastenkürzel
+
+Jede Funktion hat genau ein Kürzel, und jedes davon ist
+[einstellbar](settings.qmd).
+
+| Kürzel | Funktion |
+|---|---|
+| **Leertaste** | Anhang des gewählten Eintrags anzeigen. Nochmals oder **Escape** schließt. |
+| **Umschalt+Leertaste** | Notizen des Eintrags als Seite anzeigen. |
+| **Strg+Umschalt+Leertaste** | Kontaktbogen: jede Seite eines PDFs als Miniatur. |
+| **Umschalt+Alt+Leertaste** | Derselbe Bogen in einem Zotero-Fenster, das neben dem Reader stehen bleibt. |
+
+Dieselben Funktionen stehen im Kontextmenü. Die Einträge zum Kontaktbogen
+erscheinen nur, wenn die Auswahl tatsächlich ein PDF enthält.
+
+Die Vorgaben sind auf allen Systemen dieselben; nur die Schreibweise
+unterscheidet sich, denn ⌃⇧ sind macOS-Tastenkappen und bedeuten anderswo
+nichts. Sie meiden die Kombinationen, die sich die Systeme selbst nehmen —
+Spotlight, Eingabequellen und das Fenstermenü, das ein Fenstermanager
+beansprucht, bevor die Anwendung überhaupt gefragt wird. Mehr dazu unter
+[Architektur](dev/architecture.qmd).
+
+Die Leertaste bleibt wirkungslos, solange die Eintragsliste eine Direktsuche
+sammelt — ein Titel mit Leerzeichen lässt sich also weiterhin tippen.
+
+## Was angezeigt wird
+
+Alles, was die Systemvorschau anzeigen kann: PDFs, Bilder, Video, HTML, Text,
+Office-Dokumente und was immer eine Vorschau-Erweiterung ergänzt. Das Plugin
+reicht die Datei unverändert weiter.
+
+**EPUB ist die Ausnahme.** Keine Systemvorschau stellt eines dar, deshalb wandelt
+zotLook das Buch im Vorbeigehen in eine einzige gestaltete Seite: die Spine in
+Lesereihenfolge durchlaufen, der Körper jedes Kapitels angehängt, die
+buchspezifischen Stylesheets geladen, damit Aufbau und Typografie erhalten
+bleiben, und darüber eine Palatino-Grundschrift in buchbreiter Spalte. Bilder,
+Schriften und eingebettete SVGs finden sich, weil relative Adressen sowohl im
+Markup als auch im CSS umgeschrieben werden. Ein gewandeltes Buch wird
+zwischengespeichert, bis sich die Datei ändert.
+
+Weil das Plugin nicht zuverlässig feststellen kann, ob eine EPUB-Erweiterung
+installiert ist, ist die Wandlung eine [Einstellung](settings.qmd) statt einer
+Vermutung: Abschalten, und das Buch geht wie jede andere Datei an die Vorschau.
+
+## Der Kontaktbogen
+
+Jede Seite eines PDFs als Miniatur in einem scrollbaren Raster — nützlich, um
+die Abbildung wiederzufinden, an die man sich erinnert, oder um auf einen Blick
+zu sehen, welche Seiten man bearbeitet hat.
+
+- **Annotationen sind eingezeichnet**, die bearbeiteten Seiten stechen hervor.
+- **Ein Klick auf eine Seite öffnet sie im Zotero-Reader.** Das funktioniert aus
+  der Systemvorschau aller drei Systeme und aus der Fenster-Variante.
+- **Das Raster passt sich an.** Ein Dokument mit wenigen Seiten bekommt weniger
+  Spalten und entsprechend schärfere Miniaturen, füllt also die Breite, statt
+  Platz zu lassen. Die Spaltenzahl ist einstellbar.
+- **Kein Seitenlimit als Vorgabe.** Ein 300-Seiten-Buch dauert wenige Sekunden.
+  Für ungewöhnlich große Scans lässt sich eines setzen; greift es, sagt der
+  Bogen, wie viele Seiten er zeigt.
+
+Die Fenster-Variante (**Umschalt+Alt+Leertaste**) zeigt denselben Bogen in einem
+Zotero-Fenster. Der Unterschied liegt danach: Die Systemvorschau schließt sich,
+wenn sie an den Reader übergibt, das Fenster bleibt daneben stehen.
+
+## Welcher Anhang gezeigt wird
+
+Ein Elterneintrag zeigt **einen** seiner Anhänge. Die Vorgabe lautet PDF, EPUB,
+HTML, Bild, Video, alles andere — und das ist eine Rangfolge, kein Filter: Ein
+Typ weit unten kommt trotzdem zum Zug, wenn nichts darüber vorhanden ist. Sie
+können die Reihenfolge [ändern](settings.qmd) oder stattdessen schlicht den
+ersten Anhang nehmen lassen, den der Eintrag führt.
+
+Aufgelöst wird nur der gewählte Anhang. Alle aufzulösen hieße, jeden
+synchronisierten Anhang jedes gewählten Eintrags herunterzuladen, um alle bis
+auf einen zu verwerfen.
+
+## Sprachen
+
+Menüeinträge, Einstellungen und Fortschrittsmeldungen liegen auf Englisch und
+Deutsch vor und folgen Zoteros eigener Spracheinstellung.

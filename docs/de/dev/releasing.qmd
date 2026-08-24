@@ -1,0 +1,44 @@
+---
+title: "Freigeben"
+---
+
+1. `version` in `addon/manifest.json` erhöhen
+2. `./build.sh`
+3. Das neu geschriebene `update.json` committen
+4. Die Freigabe mit dem gebauten `.xpi` anlegen
+
+`update.json` muss auf `main` liegen, denn diese Adresse fragen installierte
+Kopien ab.
+
+::: {.callout-important title="Commit und Freigabe gehören zusammen"}
+`update.json` trägt Version, Download-Adresse und Prüfsumme. Es für eine
+Version zu pushen, zu der es noch keine Freigabe gibt, heißt: Jede installierte
+Kopie sieht ein Update und läuft beim Abholen ins Leere.
+
+Ebenso darf ein lokaler Build eines bereits freigegebenen Standes nicht
+committet werden — seine Prüfsumme weicht ab, sobald sich am Code etwas geändert
+hat. `test/release.test.mjs` bemerkt das, und der Fehlschlag bedeutet *Version
+erhöhen*, nicht *Prüfsumme nachziehen*.
+:::
+
+## Verträglichkeit
+
+Der Update-Eintrag trägt bewusst **kein `strict_max_version`**. Zotero behandelt
+die Freigabe dann als mit jeder Version verträglich und kann die Obergrenze
+einer bereits installierten Kopie anheben — so lässt sich Verträglichkeit mit
+einem künftigen Zotero erklären, ohne einen neuen Build auszuliefern.
+
+Das `strict_max_version` im `manifest.json` entscheidet weiterhin, welches
+Zotero das Plugin überhaupt lädt.
+
+## Dokumentation
+
+Die veröffentlichte Dokumentation liegt in einem Verzeichnis je Freigabe, und
+`latest` ist eine zweite Kopie der neuesten. Ein einmal veröffentlichter Verweis
+zeigt damit weiterhin auf das, worauf er zeigte. `versions.json` ist die Liste,
+aus der der Versionsumschalter arbeitet, und `scripts/gen_versions.py` hält sie
+mit der Version im Einklang, die das Manifest meldet.
+
+Eine Version hinzuzufügen ist eine Änderung an einer eingecheckten Datei, und
+das mit Absicht: Eine Freigabe, die klammheimlich im Umschalter auftauchte und
+sonst nirgends, wäre später schwer nachzuvollziehen.

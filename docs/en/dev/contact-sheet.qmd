@@ -1,0 +1,116 @@
+---
+title: "The contact sheet"
+---
+
+Every page of a PDF as a JPEG thumbnail, in a scrollable HTML grid that the
+preview panel can show.
+
+## Rendering
+
+Pages are rendered in ChromeWorkers against **the pdf.js build Zotero already
+ships** — nothing is downloaded and nothing has to be compiled.
+
+- **Four workers at most**, fewer when the document is large enough that four
+  copies of it are not worth the memory, and never more than there are cores.
+- **Pages are dealt round-robin**, not in blocks: a document's heavy pages sit
+  together — plates, scanned inserts — and a block split would hand one worker
+  all of them.
+- **Thumbnails are written as files** beside the HTML and referenced with
+  `loading="lazy"`, so the document stays small and images are decoded only as
+  they scroll into view. Inlining a 300-page book as base64 produced a 111 MB
+  document that Quick Look could not display at all; the same book is now about
+  7 seconds and 38 KB of HTML.
+- Pages are rendered from the **crop box** with their `/Rotate` entry applied,
+  so landscape and rotated scans come out the right way round.
+
+Generation runs under a 60-second deadline and shows a progress window while it
+works.
+
+## The renderer that was dropped
+
+There was a second renderer: a bundled Swift binary using PDFKit. It was about
+**four times faster** — 0.12 s against 0.42 s over 30 pages, measured on the
+same document at the same width. It was removed anyway.
+
+It only ever ran on macOS, so its annotation drawing was a second
+implementation that had to be kept looking like the first. Reaching it meant a
+subprocess, a JSON manifest and a pipe to read — machinery that produced two
+silent failures in one afternoon and existed for nothing else.
+
+Poppler's `pdftoppm` was measured as an alternative and turned out only a third
+faster per thread than pdf.js, while being impossible to bundle. MuPDF was
+slower than both.
+
+| renderer | 30 pages, one thread |
+|---|---|
+| Swift / PDFKit | 0.12 s (across ten cores) |
+| Poppler `pdftoppm` | 0.56 s |
+| pdf.js in a worker | 0.72 s |
+| MuPDF `mutool` | 1.99 s |
+
+The gap was concurrency, not the engine. What remains renders identically on
+every platform, and identically to Zotero's own reader, being the same engine.
+
+## Getting annotations onto the thumbnails
+
+This took some finding.
+
+Zotero's build of pdf.js keeps a list of annotation subtypes it will paint onto
+a canvas, and **`Highlight` is not on it** — nor are Zotero's own area and ink
+annotations, which it excludes by name. Its reader draws them in an HTML layer
+instead. No rendering intent and no annotation mode changes that.
+
+The data still comes through `getAnnotations`, so the renderer draws them
+itself: quads under **multiply** for highlights, so the text stays readable
+through them; a rule for underline and strikeout; an outline for areas;
+polylines for ink.
+
+## Making a click open the reader
+
+Each thumbnail is wrapped in a link to `zotero://open-pdf/…?page=N`.
+
+Quick Look renders previews with **JavaScript disabled** and refuses ordinary
+navigation — measured by serving a probe page over a local HTTP server and
+watching which requests arrived. The same measurement confirmed that previews
+*do* load files sitting next to the HTML, which is what both the contact sheet
+and the EPUB preview rely on.
+
+A **new-window request** is a different path through WebKit, and Quick Look does
+hand those to the system handler. That is what `target="_blank"` is for, and it
+was established by clicking all four combinations in a real preview:
+
+| link | in Quick Look |
+|---|---|
+| `zotero:` with `target="_blank"` | opens the reader at that page; the preview closes |
+| `zotero:` without it | a beep, nothing else |
+| `http:` with `target="_blank"` | opens the browser |
+
+QuickLook for Windows behaves the same way — measured in its viewer too, a click
+opens Zotero's reader at that page.
+
+::: {.callout-note title="Sushi is the awkward one"}
+Its WebKit view really does follow links, and it cannot load a `zotero:` URL.
+The load fails, and a failed load is how Sushi's renderer reports that it cannot
+show the file **at all** — so a click replaced the whole sheet with "Unable to
+display".
+
+With `target="_blank"`, WebKit raises `create` instead of navigating, Sushi has
+no handler for it, and the click does nothing while the sheet stays up. The
+attribute was added for exactly this, and turned out to be what makes the links
+work on macOS.
+:::
+
+Nothing is lost where the links do work: `zotero://open-pdf` is a `noContent`
+handler that performs an action rather than returning a page, so it does not
+care which context loads it. The links are styled without underline or colour,
+so one sheet serves every route.
+
+## Layout
+
+The grid adapts to the page count: a document with fewer pages than the
+configured column count gets fewer columns, and the renderer raises the
+per-thumbnail resolution to match, so short documents fill the width sharply
+instead of being blown up.
+
+That sizing rule lives in `sheet.js`, apart from the rendering, so the grid, the
+labels and the links can be changed and tested without a PDF anywhere in sight.

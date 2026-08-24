@@ -1,0 +1,59 @@
+---
+title: "Impressum"
+---
+
+Angaben gemäß § 5 DDG.
+
+## Diensteanbieter
+
+**Akademische Gesellschaft e.V.**<br>
+Meindlstr. 11<br>
+81373 München<br>
+Deutschland
+
+Vertreten durch den Vorsitzenden: **Felix Müller-Sarnowski**
+
+Registergericht: Amtsgericht München<br>
+Registernummer: **VR 200699**
+
+## Kontakt
+
+E-Mail: sekretariat@akademische-gesellschaft.de
+
+## Verantwortlich für den Inhalt
+
+Felix Müller-Sarnowski, Anschrift wie oben.
+
+## Urheberschaft an der Software
+
+Der Verein betreibt diese Website. **Die hier vorgestellte Software ist kein
+Werk des Vereins.** zotLook ist eine Abspaltung von Guillaume Chaprons
+[Zotero7QuickLook](https://github.com/gchapron/Zotero7QuickLook); gepflegt und
+weiterentwickelt wird die Abspaltung von Felix Müller-Sarnowski, der sie unter
+dem Namen *fre.ms* veröffentlicht.
+
+Der Verein erwirbt keine Rechte an der Software, vertreibt sie nicht und
+erhält keine Einnahmen aus ihr. zotLook steht ausschließlich unter der von
+Zotero7QuickLook übernommenen MIT-Lizenz. Fragen zur Software gehen an
+<fre.ms@fre.ms>, Fragen zur Website an <sekretariat@akademische-gesellschaft.de>.
+
+## Haftung für Inhalte und Links
+
+Für eigene Inhalte auf diesen Seiten ist der Diensteanbieter nach den
+allgemeinen Gesetzen verantwortlich (§ 7 Abs. 1 DDG). Nach §§ 8 bis 10 DDG
+besteht jedoch keine Verpflichtung, übermittelte oder gespeicherte fremde
+Informationen zu überwachen oder nach Umständen zu forschen, die auf eine
+rechtswidrige Tätigkeit hinweisen.
+
+Diese Seiten verweisen auf externe Websites, auf deren Inhalte kein Einfluss
+besteht. Für diese fremden Inhalte ist stets der jeweilige Anbieter
+verantwortlich. Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf
+mögliche Rechtsverstöße überprüft; rechtswidrige Inhalte waren nicht
+erkennbar. Eine dauerhafte inhaltliche Kontrolle ist ohne konkrete
+Anhaltspunkte nicht zumutbar. Bei Bekanntwerden von Rechtsverletzungen werden
+entsprechende Links umgehend entfernt.
+
+## Verbraucherstreitbeilegung
+
+Der Verein ist nicht bereit und nicht verpflichtet, an Streitbeilegungs­
+verfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.

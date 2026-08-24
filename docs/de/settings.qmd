@@ -1,0 +1,73 @@
+---
+title: "Einstellungen"
+---
+
+**Zotero → Einstellungen → zotLook.**
+
+## Tastenkürzel
+
+Jede Funktion hat ein Kürzel. Ins Feld klicken, die Kombination drücken — sie
+gilt sofort, ohne Neustart.
+
+Die Seite **warnt**, wenn eine Kombination bereits belegt ist. Geprüft werden
+die Tasten des Hauptfensters, Zoteros einstellbare Kürzel und die übrigen
+Funktionen von zotLook.
+
+::: {.callout-important title="Ein sauberes Ergebnis bedeutet weniger, als es scheint"}
+Die Seite warnt, statt abzulehnen — mit Absicht. Zotero veröffentlicht keine
+Liste der Kürzel anderer Plugins, und das Betriebssystem veröffentlicht gar
+keine. Ein sauberes Ergebnis heißt deshalb *kein Konflikt mit Zotero*, nicht
+*frei*.
+:::
+
+**Standardwerte wiederherstellen** schreibt die ausgelieferten Kombinationen
+zurück:
+
+| Funktion | Vorgabe |
+|---|---|
+| Vorschau | Leertaste |
+| Notizen | Umschalt+Leertaste |
+| Kontaktbogen | Strg+Umschalt+Leertaste |
+| Kontaktbogen im Fenster | Umschalt+Alt+Leertaste |
+
+## Welcher Anhang gezeigt wird
+
+Zwei Betriebsarten:
+
+- **Nach Typ** — eine Rangfolge, die Sie selbst ordnen: PDF, EPUB, HTML, Bild,
+  Video, alles andere. Mit den Schaltflächen neben der Liste verschieben Sie
+  einen Eintrag nach oben oder unten. Es ist eine Rangfolge, kein Filter: Nichts
+  wird je ausgeschlossen, die Reihenfolge entscheidet nur, wer gewinnt, wenn ein
+  Eintrag mehrere Anhänge hat.
+- **Erster Anhang** — was der Eintrag zuerst führt, unabhängig vom Typ.
+
+## Der Kontaktbogen
+
+**Spalten** (Vorgabe 5) bestimmt die Breite des Rasters. Weniger Spalten heißt
+größere Miniaturen, und der Renderer erhöht die Auflösung entsprechend, damit
+sie scharf bleiben, statt hochskaliert zu werden.
+
+**Seitenlimit** (Vorgabe 0, also kein Limit) begrenzt, wie viele Seiten
+gezeichnet werden. Es ist für ungewöhnlich große Scans gedacht, um zu binden,
+wie lange die Erzeugung dauern und wie viel temporären Speicherplatz sie
+belegen darf. Greift es, sagt der Bogen es unten an.
+
+## Annotationen
+
+**Annotationen in die Vorschau zeichnen** ist voreingestellt an. Es exportiert
+eine Kopie des PDFs mit Ihren Zotero-Hervorhebungen, -Notizen, -Flächen und
+-Freihandzeichnungen und zeigt diese Kopie statt der gespeicherten Datei.
+
+Abschalten zeigt die Datei so, wie sie gespeichert ist. Anhänge ohne
+Annotationen werden ohnehin erkannt, bevor irgendeine Arbeit beginnt — die
+Einstellung wirkt sich also nur auf Dokumente aus, die Sie tatsächlich
+bearbeitet haben.
+
+## EPUB
+
+**EPUBs zu einer Vorschauseite rendern** ist voreingestellt an, weil keine
+Systemvorschau ein EPUB von sich aus darstellt.
+
+Abschalten, wenn Sie eine Vorschau-Erweiterung installiert haben, die EPUB
+besser beherrscht als diese Wandlung — das Buch geht dann unverändert an die
+Vorschau, wie jede andere Datei.

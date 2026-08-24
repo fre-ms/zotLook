@@ -1,0 +1,51 @@
+---
+title: "Origins"
+---
+
+## This fork
+
+**zotLook is a fork of [Zotero7QuickLook](https://github.com/gchapron/Zotero7QuickLook)
+by Guillaume Chapron**, from whom the code and the MIT licence come. It is
+maintained and developed further by [fre-ms](https://github.com/fre-ms).
+
+A good deal of Chapron's work is still in place. Measured against the last
+upstream commit, counting only lines that are neither blank, a comment nor a
+brace: **49 %** of the JavaScript and **52 %** of `bootstrap.js` survive
+verbatim, and 20 of the original 28 methods are still present under their own
+names.
+
+The architecture is his throughout:
+
+- the bootstrap-plus-singleton shape
+- the capture-phase key listener on the items tree that gets in front of
+  Zotero's own Space handler
+- holding the preview subprocess open so a second press dismisses it
+- the temp-directory strategy
+- resolving a synced attachment before previewing it
+- the ideas behind both the EPUB-to-HTML conversion and the contact sheet
+
+The plugin ID is `zotlook@fre.ms`, distinct from Chapron's, so the two install
+side by side rather than over one another.
+
+## Further back
+
+Behind that stands [ZoteroQuickLook](https://github.com/mronkko/ZoteroQuickLook)
+by Mikko Rönkkö, which brought Quick Look to Zotero 4–6 and gave this line of
+plugins its purpose and its name.
+
+::: {.callout-note title="The debt is one of idea, not of code"}
+That plugin was a XUL overlay extension — `install.rdf`, `overlay.xul`, a
+Windows `Bridge.exe`, an AppleScript and a Perl script — an architecture Zotero 7
+abolished outright, so Chapron wrote a new plugin rather than porting the old
+one.
+
+Comparing the two directly bears that out: of 206 substantive lines in the
+original, exactly **one** also appears here, and it is the Zotero API call
+`Zotero.Sync.Runner.downloadFile(item)`, which any plugin fetching a synced
+attachment must write. Everything else the two share is Zotero and DOM API
+names.
+:::
+
+Rönkkö is therefore credited as the originator of the idea, and is deliberately
+**not** listed as an author of this code — the repository carries no licence,
+and none was needed, because nothing was taken from it.

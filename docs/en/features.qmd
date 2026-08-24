@@ -1,0 +1,80 @@
+---
+title: "What it does"
+---
+
+## Shortcuts
+
+Every action has exactly one shortcut, and every one of them is
+[configurable](settings.qmd).
+
+| Shortcut | Action |
+|---|---|
+| **Space** | Preview the selected item's attachment. Again, or **Escape**, to dismiss. |
+| **Shift+Space** | Preview the item's notes, rendered as a page. |
+| **Ctrl+Shift+Space** | Contact sheet: every page of a PDF as a thumbnail. |
+| **Shift+Alt+Space** | The same sheet in a Zotero window, which stays open beside the reader. |
+
+The same actions sit in the right-click menu. The contact sheet entries appear
+only when the selection actually contains a PDF.
+
+The defaults are the same on every system; only the way they are written
+differs, since ⌃⇧ are macOS keycaps and mean nothing elsewhere. They avoid the
+combinations the systems take for themselves — Spotlight, input-source
+switching, and the window menu a window manager claims before the application
+is ever asked. There is more on that in [Architecture](dev/architecture.qmd).
+
+Space is ignored while the item list is collecting a find-as-you-type search, so
+typing a title with spaces in it still searches.
+
+## What it previews
+
+Anything the system's preview panel can show: PDFs, images, video, HTML, plain
+text, office documents, and whatever a third-party preview extension adds. The
+plugin hands the file over untouched.
+
+**EPUB is the exception.** No system preview renders one, so zotLook converts
+the book on the fly into a single styled page: the spine walked in reading
+order, each chapter's body appended, the book's own stylesheets pulled in so its
+layout and typography survive, and a Palatino base font in a book-width column
+laid over the top. Images, fonts and inline SVGs resolve, because relative URLs
+in both markup and CSS are rewritten. A converted book is cached until the file
+changes.
+
+Because the plugin cannot reliably tell whether you have an EPUB preview
+extension installed, the conversion is a [setting](settings.qmd) rather than a
+guess: turn it off and the book goes to the panel like any other file.
+
+## The contact sheet
+
+Every page of a PDF as a thumbnail in a scrollable grid — useful for finding the
+figure you remember, or for seeing at a glance which pages you marked up.
+
+- **Annotations are drawn in**, so the marked-up pages stand out.
+- **Clicking a page opens it in Zotero's reader** at that page. This works from
+  the preview panel on all three systems, and from the window variant.
+- **The layout adapts.** A document with few pages gets fewer columns and
+  correspondingly sharper thumbnails, so it fills the width instead of leaving
+  space. The column count is configurable.
+- **No page limit by default.** A 300-page book takes a few seconds. A limit can
+  be set for unusually large scans; when it bites, the sheet says how many pages
+  it is showing.
+
+The window variant (**Shift+Alt+Space**) puts the same sheet in a Zotero window.
+The difference is what happens after a click: the panel closes as it hands over
+to the reader, the window stays open beside it.
+
+## Which attachment gets previewed
+
+Selecting a parent item previews **one** of its attachments. By default the
+order is PDF, EPUB, HTML, image, video, anything else — and it is a ranking, not
+a filter: a type near the bottom is still used when nothing above it is present.
+You can [reorder it](settings.qmd), or switch to simply taking the first
+attachment the item lists.
+
+Only the chosen attachment is ever resolved. Resolving them all would download
+every synced attachment of every selected item only to throw all but one away.
+
+## Localisation
+
+Menu entries, settings and progress messages are available in English and
+German, following Zotero's own language setting.

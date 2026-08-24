@@ -1,0 +1,85 @@
+---
+title: "Plattformen"
+---
+
+zotLook bringt keinen Betrachter mit. Es steuert die Vorschau an, die das System
+schon hat — deshalb sehen Sie genau das, was Ihr Dateimanager zeigt,
+Vorschau-Erweiterungen eingeschlossen.
+
+## Was jedes System braucht
+
+::: {.panel-tabset}
+
+### macOS
+
+Nichts zu installieren. Quick Look gehört zum System, und zotLook steuert
+dieselbe Ansicht an wie der Finder.
+
+Erfordert macOS 12 (Monterey) oder neuer.
+
+Dafür liefert das Plugin einen kleinen kompilierten Helfer mit, `qlpreview`, als
+signiertes Universal-Binary — das einzige kompilierte Stück im Paket.
+
+### Linux
+
+**GNOME Sushi**, die Vorschau, die Dateien (Nautilus) auf Leertaste öffnet.
+
+```sh
+sudo apt install gnome-sushi        # Debian, Ubuntu
+sudo dnf install sushi              # Fedora
+```
+
+Sushi muss nicht laufen: zotLook erreicht es über D-Bus, und D-Bus startet es
+bei Bedarf. Es funktioniert auch außerhalb von GNOME, solange der Dienst
+installiert ist und ein Sitzungsbus läuft.
+
+KDE hat keinen vergleichbaren systemweiten Vorschaudienst — Kiview ist eine
+Dolphin-Erweiterung ohne äußere Schnittstelle — dort wird deshalb nichts
+angesteuert.
+
+### Windows
+
+**[QuickLook](https://github.com/QL-Win/QuickLook)**, die quelloffene Vorschau,
+die dem Explorer die Leertaste beibringt. Sie muss **laufen**; zotLook spricht
+mit ihr über die Named Pipe, auf der sie horcht.
+
+Beide Fassungen funktionieren: das Microsoft-Store-Paket und der
+Desktop-Installer antworten gleichermaßen. Ältere Darstellungen dieser Anbindung
+behaupten, die Store-Fassung sei von der Pipe abgeschottet — heute gemessen ist
+sie es nicht.
+
+Die Vorschau öffnet sich, ohne Zotero den Fokus zu nehmen, die Tastatur bleibt
+also dort, wo Sie sind.
+
+:::
+
+## Was wo funktioniert
+
+| | macOS | Linux | Windows |
+|---|---|---|---|
+| Anhänge anzeigen | ✓ | ✓ | ✓ |
+| Notizen anzeigen | ✓ | ✓ | ✓ |
+| EPUB von zotLook gerendert | ✓ | ✓ | ✓ |
+| Kontaktbogen | ✓ | ✓ | ✓ |
+| Klick öffnet den Reader | ✓ | — | ✓ |
+| Kontaktbogen im Zotero-Fenster | ✓ | ✓ | ✓ |
+
+Die eine Lücke ist Sushi. Seine Anzeige folgt Verweisen tatsächlich und kann
+eine `zotero:`-Adresse nicht laden — die Verweise sind dort deshalb absichtlich
+wirkungslos, denn ein fehlschlagender Klick reißt die ganze Vorschau mit sich.
+Die Fenster-Variante (**Umschalt+Alt+Leertaste**) gibt Linux den anklickbaren
+Bogen. Mehr dazu unter [Der Kontaktbogen](dev/contact-sheet.qmd).
+
+## Was die Vorschau zeigen kann
+
+Das ist Sache des Systems, nicht von zotLook. PDFs, Bilder, Video, HTML und Text
+gehen überall. Darüber hinaus:
+
+- **macOS** zeigt, was Quick Look zeigt, einschließlich allem, was eine
+  Quick-Look-Erweiterung ergänzt — MOBI, DJVU, CAD-Formate und so fort.
+- **Windows** hängt an QuickLooks eigenen Betrachtern. PDF, Bilder, Video und
+  HTML sind eingebaut.
+- **Linux** hängt an denen von Sushi, die die gängigen Formate abdecken.
+
+EPUB ist auf jedem System die Ausnahme: Keines der drei stellt eines dar,
+deshalb wandelt zotLook es selbst.

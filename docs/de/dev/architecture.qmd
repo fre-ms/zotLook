@@ -1,0 +1,107 @@
+---
+title: "Architektur"
+---
+
+## Die Skripte
+
+Vier Skripte werden in dieser Reihenfolge in einen gemeinsamen Plugin-Bereich
+geladen:
+
+| | |
+|---|---|
+| `util.js` | Parsen, Bereinigen, URL- und Kürzel-Helfer |
+| `sheet.js` | Markup und Größenberechnung des Kontaktbogens |
+| `epub.js` | die EPUB-zu-HTML-Kette |
+| `zotlook.js` | Fenster, Kürzel, Unterprozesse, Notizen, Kontaktbögen |
+
+Der Seiten-Renderer läuft von allen getrennt, in `render.worker.js`. Die Texte
+liegen in `locale/<locale>/zotlook.ftl`.
+
+## Das Kontextmenü
+
+Die Einträge werden direkt in jedes Fenster eingefügt statt über
+`Zotero.MenuManager`.
+
+Jene Schnittstelle nimmt ausschließlich eine l10n-Kennung entgegen und niemals
+eine einfache Beschriftung. Ein Eintrag, dessen Text der Fluent-Kontext des
+Hauptfensters nicht auflösen kann, erscheint deshalb als **leere Zeile** — kein
+Fehler, nur eine leere Zeile im Menü. Die Einträge hier einzufügen behält die
+Beschriftung samt englischem Rückfall in der Hand des Plugins.
+
+## Fluent und die Falle der leeren Beschriftung
+
+Texte, die für ein XUL-`<button>` oder ein `<menuitem>` bestimmt sind, müssen in
+Fluents Attributform geschrieben werden:
+
+```fluent
+zotlook-menu-preview =
+    .label = Quick Look
+```
+
+Diese Elemente stellen ihr `label`-**Attribut** dar und ignorieren den
+Textinhalt, den ein einfacher Nachrichtenwert setzen würde. Genau daran kamen
+zwei Runden Menüeinträge und ein Auswahlfeld leer heraus. `<label>`,
+`<description>` und HTML-Elemente nehmen die einfache Form.
+
+## Tastaturbehandlung
+
+Das Plugin meldet einen Lauscher an Zoteros Eintragsliste an, und zwar in der
+Capture-Phase, damit es vor Zoteros eigener Leertasten-Behandlung liegt.
+
+Kürzel werden als Zeichenketten wie `Alt+Space` oder `Meta+y` gespeichert. Das
+letzte Stück wird als **physischer Tastencode** gelesen, wenn es länger als ein
+Zeichen ist, sonst als **erzeugtes Zeichen**.
+
+::: {.callout-note title="Warum beide Formen"}
+Die Leertaste sitzt auf jeder Belegung an derselben Stelle, ein Code
+identifiziert sie also. Die Taste mit der Aufschrift Y auf einer
+QWERTZ-Tastatur meldet dagegen den Code `KeyZ` — nur das erzeugte Zeichen
+identifiziert daher das Kürzel, das die Nutzerin auf ihren Tastenkappen sieht.
+:::
+
+Eine Änderung wirkt sofort.
+
+## Die Wahl der Vorgaben
+
+Eine Vorgabe, die sich das System selbst nimmt, kann nie auslösen. Die
+ausgelieferten Kombinationen meiden deshalb drei getrennte Klippen.
+
+**macOS** belegt Strg+Leertaste und Strg+Wahl+Leertaste mit den Eingabequellen,
+Cmd+Leertaste mit Spotlight und Wahl+Cmd+Leertaste mit dem Finder-Suchfenster.
+Das Eingabequellen-Paar ruht, solange nur eine Tastaturbelegung aktiv ist, und
+kehrt zurück, sobald eine zweite hinzukommt — es gilt also als belegt.
+
+**Ein Fenstermanager** ist der schwierigere Fall, denn er beansprucht seine
+Kombinationen, bevor die Anwendung überhaupt gefragt wird. Alt+Leertaste ist das
+Fenstermenü unter GNOME wie unter Windows. Deshalb liegt der Kontaktbogen auf
+**Strg+Umschalt+Leertaste** — frei auf allen drei Systemen, wo das schlichte
+Strg+Leertaste auf zweien den Eingabemethoden-Umschalter darstellt.
+
+`ZotLookUtil.SHORTCUT_DEFAULTS` ist die eine Liste, die Plugin und
+Einstellungsseite gleichermaßen lesen. „Standardwerte wiederherstellen" schreibt
+einen ausdrücklichen Wert, statt die Einstellung zu löschen — seine Vorstellung
+von der Vorgabe muss also dieselbe sein. Ein Test hält diese Liste gegen
+`prefs.js`, das die Werte für Geckos Einstellungs-Parser wiederholt.
+
+## Die Wahl des Anhangs
+
+Es wird immer nur ein Anhang angezeigt und immer nur ein Kontaktbogen gebaut.
+
+Die Kandidaten werden **zuerst geordnet und dann einzeln aufgelöst**, bis der
+erste gelingt. Alle aufzulösen hieße, jeden synchronisierten Anhang jedes
+gewählten Eintrags herunterzuladen, um alle bis auf einen zu verwerfen.
+
+Anhänge werden über Zoteros eigene Prädikate nach Inhaltstyp eingeordnet,
+niemals nach Dateinamen. Die Typ-Einstellung ist eine Rangfolge und kein Filter:
+Jeder Typ bleibt zulässig, einer weit unten kommt also zum Zug, wenn nichts
+darüber vorhanden ist.
+
+## Annotationen
+
+Zotero bewahrt Annotationen in seiner Datenbank auf statt in der Datei. Hat ein
+Anhang welche, schreibt `Zotero.PDFWorker.export` eine Kopie mit
+eingezeichneten Annotationen, und diese Kopie wird angezeigt.
+
+Anhänge ohne Annotationen werden erkannt, bevor irgendeine Arbeit beginnt, und
+ein Export wird wiederverwendet, bis eine Annotation hinzukommt oder sich
+ändert. Der Normalfall kostet also nichts.

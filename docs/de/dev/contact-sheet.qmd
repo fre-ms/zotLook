@@ -1,0 +1,124 @@
+---
+title: "Der Kontaktbogen"
+---
+
+Jede Seite eines PDFs als JPEG-Miniatur, in einem scrollbaren HTML-Raster, das
+die Systemvorschau anzeigen kann.
+
+## Das Zeichnen
+
+Die Seiten werden in ChromeWorkern gezeichnet, gegen **den pdf.js-Build, den
+Zotero ohnehin mitbringt** — nichts wird heruntergeladen, nichts muss kompiliert
+werden.
+
+- **Höchstens vier Worker**, weniger wenn das Dokument groß genug ist, dass vier
+  Kopien davon den Speicher nicht wert sind, und nie mehr, als Kerne vorhanden
+  sind.
+- **Die Seiten werden reihum verteilt**, nicht blockweise: Die schweren Seiten
+  eines Dokuments liegen beieinander — Tafeln, eingescannte Einlagen — und ein
+  Blockschnitt gäbe sie alle einem Worker.
+- **Miniaturen werden als Dateien** neben das HTML geschrieben und mit
+  `loading="lazy"` eingebunden. Das Dokument bleibt dadurch klein, und Bilder
+  werden erst dekodiert, wenn sie ins Bild scrollen. Ein 300-Seiten-Buch als
+  base64 eingebettet ergab ein 111-MB-Dokument, das Quick Look überhaupt nicht
+  darstellen konnte; dasselbe Buch braucht jetzt etwa 7 Sekunden und 38 kB HTML.
+- Gezeichnet wird aus der **CropBox** unter Anwendung des `/Rotate`-Eintrags,
+  damit Querformate und gedrehte Scans richtig herum erscheinen.
+
+Die Erzeugung läuft unter einer Frist von 60 Sekunden und zeigt währenddessen
+ein Fortschrittsfenster.
+
+## Der Renderer, der verworfen wurde
+
+Es gab einen zweiten Renderer: ein mitgeliefertes Swift-Binary auf PDFKit-Basis.
+Es war etwa **viermal schneller** — 0,12 s gegen 0,42 s über 30 Seiten, gemessen
+am selben Dokument in derselben Breite. Entfernt wurde es trotzdem.
+
+Es lief nur unter macOS. Sein Zeichnen der Annotationen war damit eine zweite
+Umsetzung, die der ersten optisch gleichen musste. Und es zu erreichen bedeutete
+einen Unterprozess, ein JSON-Manifest und eine auszulesende Pipe — Maschinerie,
+die an einem Nachmittag zwei lautlose Fehlschläge hervorbrachte und für nichts
+sonst existierte.
+
+Popplers `pdftoppm` wurde als Alternative vermessen und erwies sich je Thread
+nur um ein Drittel schneller als pdf.js, bei gleichzeitiger Unmöglichkeit, es
+mitzuliefern. MuPDF war langsamer als beide.
+
+| Renderer | 30 Seiten, ein Thread |
+|---|---|
+| Swift / PDFKit | 0,12 s (über zehn Kerne) |
+| Poppler `pdftoppm` | 0,56 s |
+| pdf.js im Worker | 0,72 s |
+| MuPDF `mutool` | 1,99 s |
+
+Der Abstand lag an der Nebenläufigkeit, nicht an der Engine. Was geblieben ist,
+zeichnet auf allen Plattformen gleich — und gleich wie Zoteros eigener Reader,
+weil es dieselbe Engine ist.
+
+## Annotationen auf die Miniaturen bringen
+
+Das kostete einige Suche.
+
+Zoteros pdf.js-Build führt eine Liste der Annotationstypen, die er auf eine
+Zeichenfläche malt, und **`Highlight` steht nicht darauf** — ebensowenig Zoteros
+eigene Flächen- und Freihand-Annotationen, die namentlich ausgeschlossen sind.
+Sein Reader zeichnet sie stattdessen in einer HTML-Ebene. Kein Rendering-Intent
+und kein Annotationsmodus ändern daran etwas.
+
+Die Daten kommen weiterhin über `getAnnotations`, der Renderer zeichnet sie
+deshalb selbst: Vierecke im **Multiply**-Modus für Hervorhebungen, damit der
+Text durchlesbar bleibt; ein Strich für Unterstreichung und Durchstreichung;
+ein Rahmen für Flächen; Linienzüge für Freihand.
+
+## Einen Klick zum Reader führen
+
+Jede Miniatur ist in einen Verweis auf `zotero://open-pdf/…?page=N` gefasst.
+
+Quick Look stellt Vorschauen mit **abgeschaltetem JavaScript** dar und verweigert
+gewöhnliche Navigation — gemessen, indem eine Prüfseite über einen lokalen
+HTTP-Server ausgeliefert und beobachtet wurde, welche Anfragen ankamen. Dieselbe
+Messung bestätigte, dass Vorschauen Dateien *neben* dem HTML sehr wohl laden —
+worauf Kontaktbogen wie EPUB-Vorschau beruhen.
+
+Eine **Anfrage nach einem neuen Fenster** nimmt einen anderen Weg durch WebKit,
+und den reicht Quick Look an den Systemhandler weiter. Genau dafür steht
+`target="_blank"` da, ermittelt durch Anklicken aller vier Kombinationen in einer
+echten Vorschau:
+
+| Verweis | in Quick Look |
+|---|---|
+| `zotero:` mit `target="_blank"` | öffnet den Reader auf der Seite; die Vorschau schließt |
+| `zotero:` ohne | ein Signalton, sonst nichts |
+| `http:` mit `target="_blank"` | öffnet den Browser |
+
+QuickLook unter Windows verhält sich ebenso — auch dort gemessen: Ein Klick
+öffnet Zoteros Reader auf der betreffenden Seite.
+
+::: {.callout-note title="Sushi ist der unbequeme Fall"}
+Seine WebKit-Ansicht folgt Verweisen tatsächlich und kann eine `zotero:`-Adresse
+nicht laden. Das Laden schlägt fehl, und ein fehlgeschlagenes Laden ist genau
+die Art, wie Sushis Anzeige meldet, sie könne die Datei **überhaupt nicht**
+darstellen — ein Klick ersetzte deshalb den ganzen Bogen durch „Unable to
+display".
+
+Mit `target="_blank"` löst WebKit stattdessen `create` aus, Sushi hat dafür keine
+Behandlung, und der Klick bleibt folgenlos, während der Bogen stehen bleibt. Das
+Attribut kam genau dafür hinzu — und stellte sich als das heraus, was die
+Verweise unter macOS überhaupt erst zum Leben erweckt.
+:::
+
+Wo die Verweise wirken, geht dabei nichts verloren: `zotero://open-pdf` ist ein
+`noContent`-Handler, der eine Aktion ausführt statt eine Seite zu liefern, und
+dem es deshalb gleich ist, welcher Kontext ihn lädt. Die Verweise sind ohne
+Unterstreichung und ohne Farbe gestaltet, ein Bogen bedient also jeden Weg.
+
+## Der Aufbau
+
+Das Raster passt sich der Seitenzahl an: Ein Dokument mit weniger Seiten als
+eingestellten Spalten bekommt weniger Spalten, und der Renderer erhöht die
+Auflösung je Miniatur entsprechend. Kurze Dokumente füllen die Breite so scharf,
+statt hochskaliert zu werden.
+
+Diese Größenregel liegt in `sheet.js`, getrennt vom Zeichnen — Raster,
+Beschriftungen und Verweise lassen sich damit ändern und prüfen, ohne dass ein
+PDF im Spiel wäre.

@@ -1,0 +1,114 @@
+---
+title: "Building and testing"
+---
+
+## Build
+
+```bash
+git clone https://github.com/fre-ms/zotLook.git
+cd zotLook
+./build.sh
+```
+
+`build.sh` compiles the helper binary (`qlpreview`) for both architectures and
+signs them — `swiftc` ad-hoc signs the arm64 slice but not the x86_64 one, and
+`lipo` does not sign the container, so without this the result reports as
+unsigned. It then packages the `.xpi` and rewrites `update.json` to match:
+version, download URL and SHA-256 all derived from the manifest and the file
+that was just built.
+
+A release build therefore needs **macOS with the Xcode Command Line Tools**.
+That helper is the only compiled piece in the package: the Windows route drives
+QuickLook's pipe through js-ctypes and ships no binary of its own.
+
+The same script also runs on **Linux**, where there is no Swift toolchain. It
+packages everything else, which is all the Linux route needs, and leaves
+`update.json` alone — a package without the helper is fine to install and test
+locally, but publishing its checksum would auto-update macOS copies to a build
+that has lost their Quick Look panel.
+
+## Repository layout
+
+```
+addon/     copied verbatim into the XPI; the plugin as Zotero sees it
+native/    Swift helpers, compiled by build.sh rather than shipped
+asset/     images
+docs/      this documentation
+test/      test suite
+build/     the packaged .xpi; git-ignored
+```
+
+Zotero requires `manifest.json`, `bootstrap.js` and `locale/` at the **root** of
+the XPI, which is why `addon/` is packaged from its inside rather than as a
+folder.
+
+`update.json` stays at the repository root rather than moving into `build/`: it
+is not a build artefact but a published file, and its URL on `main` is what
+installed copies poll.
+
+## Tests
+
+```bash
+npm install   # linkedom, to stand in for Gecko's DOM, and eslint
+npm test      # lints first, then runs the suites
+```
+
+::: {.callout-important title="The lint step is not decoration"}
+A lost function parameter leaves an identifier that still parses but throws at
+runtime. `node --check` cannot see it, and every suite missed it for as long as
+the function around it was stubbed.
+:::
+
+The suites run the plugin's own source in a scope with Zotero's sandbox globals
+stubbed, so the parsing, sanitising, keyboard, menu and EPUB code can be
+exercised without launching Zotero. Rendering is driven through a stand-in
+worker that speaks the same two-step protocol the real one does.
+
+They also check the things that otherwise fail silently: that `update.json`
+agrees with the manifest, that both locale bundles define exactly the strings
+the code asks for, and that the renderer's source still carries every
+requirement pdf.js imposes on it — each of which was found by watching it fail,
+and none of which announces itself when it is missing.
+
+The plugin has no runtime dependencies; `linkedom` is a development dependency
+only and is never packaged.
+
+## CI
+
+Runs on every push and pull request.
+
+The suites run on **Linux**, where they are platform-independent, and on
+**Windows**, where a pathname is not a path and the assumptions differ. The
+release build runs on **macOS**, because `swiftc`, `lipo` and `codesign` live
+only there; it checks that the XPI holds every file Zotero needs at its root and
+that the helper is universal and signed. The suites run a second time on that
+job, where a freshly built XPI is present, so the check that `update.json`
+describes the file that was actually produced also runs.
+
+The XPI is not byte-reproducible — zip records modification times — so CI does
+not compare its checksum against the committed `update.json`. What it does
+compare is the version, which is what actually goes stale.
+
+## This documentation
+
+```bash
+cd docs && ./build.sh
+python3 docs/offline/smoketest.py site/en site/de
+```
+
+Both language projects render into `site/{en,de}`, the offline repairs are
+applied, and one linked PDF per language is built with Typst.
+
+The site is built on the
+[zotqda-quarto-theme](https://github.com/fre-ms/zotqda-quarto-theme), which is
+**vendored** into `docs/_theme/` so the documentation builds without a sibling
+checkout. `docs/update-theme.sh` pulls a newer copy in.
+
+Quarto is pinned, and the pin is the one the other ecosystem sites use, so they
+all render on the same version. Upgrades are deliberate: build with
+`ALLOW_UNPINNED_QUARTO=1`, run the smoke test, look at a page, then move the
+pin.
+
+The sidebars of the two languages must stay **parallel** — `gen_langmap.py`
+derives the language switcher's page-to-page map from them, and fails the build
+if they stop matching.

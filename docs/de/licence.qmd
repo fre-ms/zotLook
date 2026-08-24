@@ -1,0 +1,46 @@
+---
+title: "Lizenz"
+---
+
+zotLook steht unter der **MIT-Lizenz**, übernommen von
+[Zotero7QuickLook](https://github.com/gchapron/Zotero7QuickLook) und unverändert
+weitergeführt.
+
+```
+MIT License
+
+Copyright (c) Guillaume Chapron
+Copyright (c) fre.ms
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+Der ursprüngliche Copyright-Vermerk steht neben dem der Abspaltung; was vom
+Upstream-Code erhalten ist, steht unter [Herkunft](origins.qmd).
+
+## Bestandteile dieser Dokumentation
+
+Die Seite ist mit [Quarto](https://quarto.org) auf dem
+[zotqda-quarto-theme](https://github.com/fre-ms/zotqda-quarto-theme) (MIT)
+gebaut, mit [Noto Sans](https://fonts.google.com/noto) unter der SIL Open Font
+License.
+
+Das Plugin selbst hat **keine Laufzeit-Abhängigkeiten**. Es zeichnet PDF-Seiten
+mit dem [pdf.js](https://mozilla.github.io/pdf.js/)-Build, den Zotero ohnehin
+mitbringt (Apache-2.0), statt einen eigenen mitzuliefern.

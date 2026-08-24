@@ -1,0 +1,186 @@
+---
+title: "Datenschutzerklärung"
+---
+
+Angaben nach Art. 13 DSGVO.
+
+## Verantwortlicher
+
+**Akademische Gesellschaft e.V.**<br>
+Meindlstr. 11<br>
+81373 München<br>
+Deutschland
+
+Vertreten durch den Vorsitzenden: Felix Müller-Sarnowski<br>
+E-Mail: <sekretariat@akademische-gesellschaft.de>
+
+Ein Datenschutzbeauftragter ist nicht benannt; die Voraussetzungen des § 38
+BDSG liegen nicht vor.
+
+## Das Wichtigste zuerst
+
+*zotlook.org* besteht aus statischen Seiten. Es gibt **keine Cookies**, kein
+Tracking in Ihrem Browser, kein Nutzerkonto und keine Anmeldung. Es werden
+**keine Schriften, Karten, Videos, Skripte oder sonstigen Inhalte von fremden
+Servern nachgeladen** — auch keine Google Fonts. Beim Betrachten dieser Seiten
+spricht Ihr Browser mit keinem anderen Server als unserem.
+
+Auf dem Server selbst erzeugt der Hoster eine **Zugriffsstatistik aus den
+gekürzten Protokolldateien**. Sie kommt ohne Cookies und ohne Skripte in Ihrem
+Browser aus; Einzelheiten weiter unten.
+
+Verarbeitet werden allein die Daten, die beim Abruf einer Seite technisch
+anfallen.
+
+## Abruf der Seiten: Server-Protokolle
+
+Bei jedem Abruf übermittelt Ihr Browser Daten, die der Webserver in einer
+Protokolldatei festhält:
+
+- eine **gekürzte** IP-Adresse Ihres Geräts, siehe unten
+- Datum und Uhrzeit des Abrufs
+- die angeforderte Adresse und die übertragene Datenmenge
+- den HTTP-Statuscode
+- die verweisende Seite, sofern Ihr Browser sie sendet
+- Browser und Betriebssystem (User-Agent)
+
+**Ihre IP-Adresse wird nicht vollständig gespeichert.** Der Webserver kürzt
+sie, bevor er etwas schreibt: Bei IPv4 ersetzt er das letzte Byte durch einen
+Zufallswert, bei IPv6 anonymisiert er die letzten 88 Bit. Aus den Protokollen
+lässt sich Ihr Anschluss deshalb nicht ermitteln.
+
+**Zweck** ist der technische Betrieb: die Auslieferung der Seiten, das
+Erkennen und Abwehren von Angriffen und die Fehlersuche.
+
+**Rechtsgrundlage** ist Art. 6 Abs. 1 lit. f DSGVO. Das berechtigte Interesse
+besteht am sicheren und störungsfreien Betrieb der Website.
+
+**Speicherdauer:** Die Protokolle werden nach sieben Tagen automatisch
+gelöscht. Länger aufbewahrt werden allenfalls einzelne Einträge, wenn ein
+konkreter sicherheitsrelevanter Vorfall das erfordert, und auch diese nur bis
+zu seiner Klärung.
+
+Die Protokolle werden nicht ausgewertet, um das Verhalten einzelner Personen
+nachzuvollziehen, und nicht mit anderen Daten zusammengeführt.
+
+## Hosting
+
+Die Seiten liegen auf einem Server, den die
+
+**Hetzner Online GmbH**, Industriestr. 25, 91710 Gunzenhausen, Deutschland
+
+in einem Rechenzentrum in Deutschland betreibt. Hetzner verarbeitet die oben
+genannten Daten ausschließlich in unserem Auftrag und nach unseren Weisungen;
+darüber besteht ein Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO. Die
+Daten verlassen die Europäische Union nicht.
+
+## Zugriffsstatistik: AWStats und Report Magic
+
+Die Verwaltungsoberfläche des Hosters wertet die oben beschriebenen
+Protokolldateien mit den Programmen **AWStats** und **Report Magic** aus und
+erzeugt daraus eine Zugriffsstatistik — Seitenaufrufe, übertragene Datenmengen,
+Browser, verweisende Seiten. Wir nennen das hier ausdrücklich, weil beide
+Programme fester Bestandteil des Hosting-Pakets sind und sich **nicht
+abschalten lassen**.
+
+Fünf Punkte dazu, die den Unterschied zu einer üblichen Reichweitenmessung
+ausmachen:
+
+* Die Auswertung findet **auf dem Server** statt, nicht in Ihrem Browser. Es
+  wird nichts auf Ihrem Gerät gespeichert und nichts von ihm ausgelesen —
+  weder Cookies noch Skripte noch Zählpixel. Eine Einwilligung nach § 25 TDDG
+  ist dafür nicht erforderlich, und deshalb sehen Sie hier auch kein
+  Zustimmungsfenster.
+* Grundlage sind **ausschließlich die bereits gekürzten Protokolle**. Die
+  Kürzung geschieht auf dem Webserver, bevor etwas geschrieben wird; die
+  Statistik sieht Ihre vollständige IP-Adresse also zu keinem Zeitpunkt.
+* Es ist **kein Dritter beteiligt**. Die Auswertung läuft auf derselben
+  Maschine in Deutschland, und die Ergebnisse verlassen sie nicht.
+* Wir können die Statistik in der Verwaltungsoberfläche einsehen. Sie zeigt
+  Summen und Verteilungen, keine Wiedererkennung einzelner Personen.
+* Die erzeugten Auswertungen bleiben verfügbar, auch nachdem die
+  zugrunde liegenden Protokolle nach sieben Tagen gelöscht sind. Sie enthalten
+  dann nur noch zusammengefasste Zahlen.
+
+**Rechtsgrundlage** ist Art. 6 Abs. 1 lit. f DSGVO, soweit es sich bei den
+gekürzten Daten überhaupt noch um personenbezogene Daten handelt. Das
+berechtigte Interesse besteht darin, den Betrieb der Seiten beurteilen zu
+können.
+
+## Suche auf diesen Seiten
+
+Die Suche läuft vollständig in Ihrem Browser. Beim ersten Aufruf wird ein
+Suchindex als Datei geladen, danach findet die Suche örtlich auf Ihrem Gerät
+statt. Ihre Suchbegriffe werden **nicht** an den Server übertragen und
+nirgends gespeichert.
+
+## Kontakt per E-Mail
+
+Wenn Sie uns schreiben, verarbeiten wir Ihre Adresse und den Inhalt Ihrer
+Nachricht, um sie zu beantworten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f
+DSGVO, bei Anfragen zu einem Vertrag Art. 6 Abs. 1 lit. b DSGVO. Wir bewahren
+die Korrespondenz auf, solange Rückfragen zu erwarten sind, und löschen sie
+danach, soweit keine gesetzliche Aufbewahrungspflicht besteht.
+
+## Verweise auf andere Websites
+
+Diese Seiten verweisen auf fremde Angebote, insbesondere auf DOI-Adressen von
+Fachliteratur, auf Quelltext-Verzeichnisse und auf die Seiten anderer
+Software. Diese Verweise werden **erst durch Ihren Klick** aktiv. Vorher
+erfährt der jeweilige Anbieter nichts von Ihrem Besuch. Danach gilt dessen
+Datenschutzerklärung, auf die wir keinen Einfluss haben.
+
+## Die Software selbst verarbeitet nichts für uns
+
+zotLook ist ein Zotero-Plugin und läuft auf Ihrem Rechner. Es sendet keine
+Daten an uns oder an Dritte: keine Nutzungsstatistik, keine Fehlerberichte,
+keine Abfrage bei einem von uns betriebenen Dienst. Ihre Dokumente,
+Kodierungen, Memos und Auswertungen bleiben in Ihrer Zotero-Datenbank.
+
+Die wahlweise zuschaltbaren KI-Funktionen sprechen ausschließlich mit einem
+**örtlichen** Sprachmodell über Ollama auf Ihrem eigenen Rechner. Es wird kein
+Cloud-Dienst angesprochen, und die Funktionen bleiben abgeschaltet, solange
+Sie sie nicht einschalten.
+
+Wenn Sie Zotero mit dem Synchronisierungsdienst von Zotero betreiben, ist das
+Ihre Entscheidung und Ihr eigenes Vertragsverhältnis; wir sind daran nicht
+beteiligt.
+
+**Die Hilfe im Plugin ist eine Kopie dieser Seiten.** Sie liegt in der
+Erweiterung selbst und wird ohne Netzverbindung angezeigt. Beim Lesen der
+Hilfe entstehen keinerlei Protokolldaten; die Abschnitte oben beschreiben
+insoweit allein den Abruf über das Internet.
+
+## Ihre Rechte
+
+Sie haben uns gegenüber das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung
+(Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18) und
+Datenübertragbarkeit (Art. 20).
+
+**Widerspruchsrecht:** Soweit wir Daten auf Grundlage eines berechtigten
+Interesses verarbeiten (Art. 6 Abs. 1 lit. f DSGVO), können Sie der
+Verarbeitung nach Art. 21 DSGVO aus Gründen widersprechen, die sich aus Ihrer
+besonderen Situation ergeben.
+
+Eine Einwilligung holen wir nicht ein, weil wir keine benötigen. Entsprechend
+gibt es auch nichts zu widerrufen.
+
+## Beschwerde bei der Aufsichtsbehörde
+
+Sie können sich nach Art. 77 DSGVO bei einer Aufsichtsbehörde beschweren.
+Zuständig ist für uns das
+
+**Bayerisches Landesamt für Datenschutzaufsicht (BayLDA)**<br>
+Promenade 18<br>
+91522 Ansbach<br>
+<poststelle@lda.bayern.de>
+
+## Keine automatisierte Entscheidungsfindung
+
+Eine automatisierte Entscheidungsfindung einschließlich Profiling nach Art. 22
+DSGVO findet nicht statt.
+
+## Änderungen
+
+Ändert sich die Website technisch, wird diese Erklärung angepasst. Es gilt
+jeweils die hier abrufbare Fassung.

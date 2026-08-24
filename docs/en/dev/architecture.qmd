@@ -1,0 +1,105 @@
+---
+title: "Architecture"
+---
+
+## The scripts
+
+Four scripts are loaded in order into one plugin scope:
+
+| | |
+|---|---|
+| `util.js` | parsing, sanitising, URL and shortcut helpers |
+| `sheet.js` | the contact sheet's markup and sizing |
+| `epub.js` | the EPUB-to-HTML pipeline |
+| `zotlook.js` | windows, shortcuts, subprocesses, notes, contact sheets |
+
+The page renderer runs apart from all of them, in `render.worker.js`. Strings
+live in `locale/<locale>/zotlook.ftl`.
+
+## The context menu
+
+Entries are inserted into each window directly rather than through
+`Zotero.MenuManager`.
+
+That API accepts only an l10n id and never a plain label. An entry whose string
+the main window's Fluent context cannot resolve therefore renders as an **empty
+line** — no error, just a blank row in the menu. Inserting the entries here
+keeps the label, and its English fallback, under the plugin's control.
+
+## Fluent and the blank-label trap
+
+Strings destined for a XUL `<button>` or `<menuitem>` must be written in
+Fluent's attribute form:
+
+```fluent
+zotlook-menu-preview =
+    .label = Quick Look
+```
+
+Those elements render their `label` **attribute** and ignore text content, which
+a plain message value would set. That is the reason two rounds of menu entries
+and a dropdown once came out blank. `<label>`, `<description>` and HTML
+elements take the plain form.
+
+## Keyboard handling
+
+The plugin registers a listener on Zotero's items tree in the capture phase, so
+it gets in front of Zotero's own Space handler.
+
+Shortcuts are stored as strings such as `Alt+Space` or `Meta+y`. The final token
+is read as a **physical key code** when it is longer than one character, and as
+a **produced character** otherwise.
+
+::: {.callout-note title="Why both forms"}
+Space sits in the same place on every layout, so a code identifies it. The key
+labelled Y on a QWERTZ keyboard, by contrast, reports the code `KeyZ` — so only
+the produced character identifies the shortcut a user actually sees on their
+keycaps.
+:::
+
+Changing a shortcut takes effect immediately.
+
+## Choosing the defaults
+
+A default that a system takes for itself can never fire, so the shipped
+combinations avoid three separate hazards.
+
+**macOS** binds Ctrl+Space and Ctrl+Option+Space to input sources, Cmd+Space to
+Spotlight and Cmd+Option+Space to the Finder search window. The input-source
+pair is dormant while only one keyboard layout is enabled and springs back the
+moment a second one is added — so it counts as taken.
+
+**A window manager** is the harder case, because it claims its combinations
+before the application is asked at all. Alt+Space is the window menu on GNOME
+and on Windows alike, which is why the contact sheet sits on **Ctrl+Shift+Space**
+— free on all three systems, where plain Ctrl+Space is the input-method toggle
+on two of them.
+
+`ZotLookUtil.SHORTCUT_DEFAULTS` is the single list the plugin and the settings
+pane both read. The pane's "Restore defaults" writes an explicit value rather
+than clearing the preference, so its idea of the default has to be the same one;
+a test holds that list against `prefs.js`, which repeats the values for Gecko's
+preference parser.
+
+## Choosing an attachment
+
+Only one attachment is ever previewed, and only one contact sheet is ever built.
+
+Candidates are **ordered first and then resolved one at a time**, stopping at
+the first that works. Resolving them all would download every synced attachment
+of every selected item only to discard all but one.
+
+Attachments are classified by content type through Zotero's own predicates,
+never by filename. The type setting is a ranking rather than a filter: every
+type stays eligible, so one near the bottom is still used when nothing above it
+is present.
+
+## Annotations
+
+Zotero keeps annotations in its database rather than in the file. When an
+attachment has any, `Zotero.PDFWorker.export` writes a copy with them drawn in
+and that copy is previewed.
+
+Attachments without annotations are recognised before any work starts, and an
+export is reused until an annotation is added or edited, so the common case
+costs nothing.

@@ -1,0 +1,123 @@
+---
+title: "Driving a preview"
+---
+
+Three systems, three mechanisms, one behaviour: press the key, the preview
+appears; press it again, the preview goes away.
+
+## macOS — QLPreviewPanel
+
+The plugin launches a small bundled helper, `qlpreview`, which drives
+`QLPreviewPanel` — the very panel the Finder shows. The subprocess handle is
+retained, so pressing Space again, or Escape, closes the preview.
+
+### Why not qlmanage
+
+`/usr/bin/qlmanage -p` looks like the obvious answer and is not. It is a
+debugging tool rather than the Finder's Quick Look, and it cannot show
+everything the Finder can. On a video it dies outright:
+
+```
+NSInternalInconsistencyException
+'Setting highlightedTimeRanges is not supported in your app.'
+AVKitCore  -[AVPlayerItem setHighlightedTimeRanges:]
+Movie      (/System/Library/QuickLook/Movie.qlgenerator)
+```
+
+Apple's own movie generator calls an AVKit method that AVKit refuses inside
+`qlmanage`. Driving `QLPreviewPanel` instead renders whatever the Finder
+renders, third-party Quick Look extensions included. `qlmanage` is kept only as
+a fallback for the case where the helper cannot be deployed.
+
+## Linux — GNOME Sushi over D-Bus
+
+```sh
+dbus-send --session --print-reply --reply-timeout=10000 \
+  --dest=org.gnome.NautilusPreviewer \
+  /org/gnome/NautilusPreviewer org.gnome.NautilusPreviewer.ShowFile \
+  string:file:///path int32:0 boolean:true
+```
+
+::: {.callout-warning title="--print-reply is not there for its output"}
+Leaving it off is not a small difference. Without it `dbus-send` writes the
+message and exits within milliseconds. Sushi is started by D-Bus on demand and
+takes about a second to come up, and `dbus-daemon` **discards a message queued
+for an activation as soon as the connection that sent it goes away**. The
+service then starts, is never told what to show, and quits again on its
+twelve-second idle timeout.
+
+Nothing appears and nothing is logged. The failure is completely silent, which
+is what makes it worth a warning box. Waiting for the reply keeps the connection
+open until the call has been delivered.
+:::
+
+The reply is also the only sign the plugin gets that the preview service
+answered at all, so the exit status is checked and a refusal — Sushi not
+installed, most likely — is named in the log rather than swallowed.
+
+The call returns as soon as the window has been handed its file, rather than
+staying alive for as long as the preview, so there is no process to hold and
+kill. `ShowFile`'s last argument closes the preview when the same file is
+already showing, which gives Space the same toggle it has on macOS. Sushi shows
+one file at a time.
+
+## Windows — QuickLook's named pipe
+
+[QuickLook](https://github.com/QL-Win/QuickLook) listens on a named pipe,
+`QuickLook.App.Pipe.<user SID>`. One UTF-8 line through it —
+
+```
+QuickLook.App.PipeMessages.Toggle|C:\path\file.pdf|
+```
+
+— shows the preview, the same line again dismisses it, and a different path
+switches to that file. So Space has its toggle here too, again with no process
+to hold.
+
+The line is written straight from the plugin through **js-ctypes**: a handful of
+Win32 calls, no helper binary, no subprocess, with the SID read from the process
+token. Should Gecko ever drop ctypes, a PowerShell one-liner does the same
+write; it reaches the shell as `-EncodedCommand`, so no execution policy and no
+command-line quoting apply to it.
+
+An earlier attempt at this integration
+([QuickLook #584](https://github.com/QL-Win/QuickLook/issues/584), 2019)
+foundered on exactly that SID, and its era's conclusion — that the Store build
+is sandboxed away from the pipe — was repeated for years. Measured today,
+neither holds: the Store package declares `runFullTrust` and answers the pipe
+like the desktop build.
+
+::: {.callout-caution title="Never probe the pipe"}
+QuickLook's pipe reader takes a line per connection and dereferences whatever it
+got. A client that connects and sends nothing — a `Test-Path` on the pipe path,
+any is-it-there probe — **kills the listener**, silently, until QuickLook is
+restarted.
+
+The plugin therefore never probes. Every connection it makes carries one
+complete line, and "QuickLook is not running" is learned from the connect
+failing, which is when it is named in the log.
+:::
+
+## EPUB, everywhere
+
+No system preview renders an EPUB, so this is the one format the plugin
+transforms rather than hands over. Everything else — MOBI, DJVU, whatever a
+preview extension claims — goes to the panel untouched.
+
+The plugin unpacks the archive into a temp directory, parses
+`META-INF/container.xml` and the OPF package document, and walks the spine in
+reading order, appending each chapter's `<body>` into a single output document.
+The book's own stylesheets, linked and inline, are pulled in so the original
+layout survives, with a Palatino base font, an 80 px margin and a 720 px
+book-width column applied on top. Relative URLs in markup **and in CSS** are
+rewritten to absolute `file://` paths, so images, fonts and inline SVGs resolve.
+
+Parsing and assembly go through `DOMParser` and run on the document tree, so
+scripts and inline event handlers are removed as **nodes** rather than matched
+as text. A converted book is cached and reused until its file changes.
+
+Unpacking uses `/usr/bin/unzip` on macOS and Linux, and `tar.exe` — the bsdtar
+Windows has shipped since Windows 10 — on Windows, which has no `unzip`.
+
+Because the plugin cannot reliably tell whether an EPUB preview extension is
+installed, the conversion is a setting rather than a guess.

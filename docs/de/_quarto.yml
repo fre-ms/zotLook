@@ -1,0 +1,80 @@
+# One website project per language; the sidebars of en and de must stay
+# parallel — gen_langmap.py derives the switcher's page map from them.
+project:
+  type: website
+  output-dir: ../../site/de
+  resources:
+    - fonts/
+
+lang: de
+
+website:
+  title: zotLook
+  site-url: https://zotlook.org/latest/de/
+  repo-url: https://github.com/fre-ms/zotLook
+  navbar:
+    search: true
+    pinned: true
+    logo: asset/zotlook-logo.svg
+    right:
+      # The whole documentation as one linked PDF, built by the theme's
+      # print/make_pdf.py during the site build.
+      - icon: file-pdf
+        aria-label: PDF
+        href: zotLook-Dokumentation.pdf
+      # Language menu behind the translate icon; the generated
+      # theme/scripts.html retargets the entries to the translation of the
+      # current page.
+      - icon: translate
+        aria-label: Language
+        menu:
+          - text: English
+            href: ../en/index.html
+          - text: Deutsch
+            href: ../de/index.html
+      # The theme moves this item over the right sidebar.
+      - icon: github
+        text: GitHub
+        href: https://github.com/fre-ms/zotLook
+  sidebar:
+    style: docked
+    collapse-level: 3
+    contents:
+      - text: Erste Schritte
+        href: index.qmd
+      - text: Was es kann
+        href: features.qmd
+      - text: Einstellungen
+        href: settings.qmd
+      - text: Plattformen
+        href: platforms.qmd
+      - section: Entwicklung
+        contents:
+          - text: Architektur
+            href: dev/architecture.qmd
+          - text: Eine Vorschau ansteuern
+            href: dev/preview.qmd
+          - text: Der Kontaktbogen
+            href: dev/contact-sheet.qmd
+          - text: Bauen und testen
+            href: dev/building.qmd
+          - text: Freigeben
+            href: dev/releasing.qmd
+      - text: Herkunft
+        href: origins.qmd
+      - text: Lizenz
+        href: licence.qmd
+      - text: Impressum
+        href: impressum.qmd
+      - text: Datenschutz
+        href: privacy.qmd
+  page-footer:
+    center: >-
+      © fre.ms — MIT —
+      [Impressum](https://zotlook.org/latest/de/impressum.html) ·
+      [Datenschutz](https://zotlook.org/latest/de/privacy.html)
+
+format:
+  zotqda-theme-html:
+    css: fonts/noto.css
+    include-after-body: theme/scripts.html

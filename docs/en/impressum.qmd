@@ -1,0 +1,67 @@
+---
+title: "Legal notice"
+---
+
+Information required by § 5 DDG (*Digitale-Dienste-Gesetz*, the German Digital
+Services Act).
+
+::: {.callout-note title="The German version is the authoritative one"}
+German law owes this information in German, so the German wording is the
+one that applies. This translation is offered for convenience; if the two
+are ever read against each other, [the German page](../de/impressum.html) governs.
+:::
+
+## Service provider
+
+**Akademische Gesellschaft e.V.**<br>
+Meindlstr. 11<br>
+81373 München<br>
+Germany
+
+A *eingetragener Verein* — a registered non-profit association under German
+law.
+
+Represented by its chairman: **Felix Müller-Sarnowski**
+
+Register court: Amtsgericht München (Munich Local Court)<br>
+Register number: **VR 200699**
+
+## Contact
+
+Email: <office@academic-society.org>
+
+## Responsible for the content
+
+Felix Müller-Sarnowski, address as above.
+
+## Authorship of the software
+
+The association operates this website. **The software presented here is not a
+work of the association.** zotLook is a fork of Guillaume Chapron's
+[Zotero7QuickLook](https://github.com/gchapron/Zotero7QuickLook); the fork is
+maintained and developed further by Felix Müller-Sarnowski, who publishes it
+under the name *fre.ms*.
+
+The association acquires no rights in the software, does not distribute it and
+draws no income from it. zotLook is available under the MIT licence inherited
+from Zotero7QuickLook, and nothing else. Questions about the software go to
+<fre.ms@fre.ms>, questions about the website to <office@academic-society.org>.
+
+## Liability for content and links
+
+Under § 7(1) DDG the service provider is responsible for its own content on
+these pages in accordance with general law. Under §§ 8 to 10 DDG, however,
+there is no obligation to monitor third-party information that is transmitted
+or stored, or to investigate circumstances that indicate unlawful activity.
+
+These pages link to external websites whose content we cannot influence.
+Responsibility for such third-party content lies with its respective provider.
+The linked pages were checked for possible legal violations at the time of
+linking, and no unlawful content was apparent. Monitoring them continuously is
+not reasonable without concrete grounds for suspicion. Links will be removed
+promptly once a violation becomes known.
+
+## Consumer dispute resolution
+
+The association is neither willing nor obliged to take part in dispute
+resolution proceedings before a consumer arbitration board.

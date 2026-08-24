@@ -1,0 +1,68 @@
+---
+title: "Settings"
+---
+
+**Zotero → Settings → zotLook.**
+
+## Shortcuts
+
+Each action has one shortcut. Click the field, press the combination, and it
+takes effect immediately — no restart.
+
+The pane **warns** when a combination is already taken, checking the main
+window's own keys, Zotero's configurable shortcuts, and zotLook's other actions.
+
+::: {.callout-important title="A clean result means less than it looks"}
+It warns rather than refuses, deliberately. Zotero publishes no list of other
+plugins' shortcuts, and the operating system publishes none at all. A clean
+result therefore means *no conflict with Zotero* — not *free*.
+:::
+
+**Restore defaults** writes the shipped combinations back:
+
+| Action | Default |
+|---|---|
+| Preview | Space |
+| Notes | Shift+Space |
+| Contact sheet | Ctrl+Shift+Space |
+| Contact sheet in a window | Shift+Alt+Space |
+
+## Which attachment is previewed
+
+Two modes:
+
+- **By type** — a ranking you arrange yourself: PDF, EPUB, HTML, image, video,
+  anything else. Drag an entry up or down with the buttons beside the list. It
+  is a ranking rather than a filter, so nothing is ever excluded; the order only
+  decides who wins when an item has several attachments.
+- **First attachment** — whatever the item lists first, regardless of type.
+
+## The contact sheet
+
+**Columns** (default 5) decides the width of the grid. Fewer columns means
+larger thumbnails, and the renderer raises the resolution to match, so they stay
+sharp rather than being blown up.
+
+**Page limit** (default 0, meaning no limit) caps how many pages are rendered.
+It exists for unusually large scans, to bound how long generation may take and
+how much temporary disk space it may use. When it bites, the sheet says so at
+the bottom.
+
+## Annotations
+
+**Draw annotations into previews** is on by default. It exports a copy of the
+PDF with your Zotero highlights, notes, areas and ink drawn in, and previews
+that copy instead of the stored file.
+
+Turn it off to preview the file as it is stored. Attachments that carry no
+annotations are recognised before any work starts either way, so the setting
+only matters for documents you have actually marked up.
+
+## EPUB
+
+**Render EPUBs into a preview page** is on by default, because no system
+preview shows an EPUB on its own.
+
+Turn it off if you have installed a preview extension that handles EPUB better
+than this conversion does — the book then goes to the panel untouched, like any
+other file.

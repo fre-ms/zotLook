@@ -1,0 +1,119 @@
+---
+title: "Bauen und testen"
+---
+
+## Bauen
+
+```bash
+git clone https://github.com/fre-ms/zotLook.git
+cd zotLook
+./build.sh
+```
+
+`build.sh` kompiliert den Helfer (`qlpreview`) für beide Architekturen und
+signiert sie — `swiftc` signiert die arm64-Scheibe ad hoc, die x86_64-Scheibe
+aber nicht, und `lipo` signiert die Hülle nicht, ohne diesen Schritt meldet sich
+das Ergebnis also als unsigniert. Danach schnürt es die `.xpi` und schreibt
+`update.json` passend neu: Version, Download-Adresse und SHA-256 sämtlich aus
+dem Manifest und der eben gebauten Datei abgeleitet.
+
+Ein Freigabe-Build braucht deshalb **macOS mit den Xcode Command Line Tools**.
+Jener Helfer ist das einzige kompilierte Stück im Paket: Der Windows-Weg steuert
+QuickLooks Pipe über js-ctypes an und liefert kein eigenes Binary mit.
+
+Dasselbe Skript läuft auch unter **Linux**, wo es keine Swift-Toolchain gibt. Es
+schnürt dann alles Übrige, was der Linux-Weg auch braucht, und lässt
+`update.json` unangetastet — ein Paket ohne den Helfer ist zum lokalen
+Installieren und Prüfen in Ordnung, seine Prüfsumme zu veröffentlichen würde
+aber macOS-Installationen auf einen Stand aktualisieren, dem ihre
+Quick-Look-Ansicht fehlt.
+
+## Aufbau des Repositorys
+
+```
+addon/     wandert unverändert ins XPI; das Plugin, wie Zotero es sieht
+native/    Swift-Helfer, von build.sh kompiliert statt mitgeliefert
+asset/     Bilder
+docs/      diese Dokumentation
+test/      Testsuite
+build/     das geschnürte .xpi; von git ignoriert
+```
+
+Zotero verlangt `manifest.json`, `bootstrap.js` und `locale/` in der **Wurzel**
+des XPI — deshalb wird `addon/` von innen heraus geschnürt und nicht als Ordner.
+
+`update.json` bleibt in der Wurzel des Repositorys, statt nach `build/` zu
+wandern: Es ist kein Bauartefakt, sondern eine veröffentlichte Datei, und ihre
+Adresse auf `main` ist das, was installierte Kopien abfragen.
+
+## Tests
+
+```bash
+npm install   # linkedom als Ersatz für Geckos DOM, und eslint
+npm test      # erst Lint, dann die Suiten
+```
+
+::: {.callout-important title="Der Lint-Schritt ist kein Zierat"}
+Ein verlorengegangener Funktionsparameter hinterlässt einen Bezeichner, der noch
+parst und zur Laufzeit wirft. `node --check` sieht das nicht, und sämtliche
+Suiten übersahen es so lange, wie die Funktion darum herum durch eine Attrappe
+ersetzt war.
+:::
+
+Die Suiten führen den Quelltext des Plugins in einem Bereich aus, in dem Zoteros
+Sandbox-Globale nachgebildet sind. Parsen, Bereinigen, Tastatur, Menü und
+EPUB-Kette lassen sich so prüfen, ohne Zotero zu starten. Das Zeichnen wird über
+eine Attrappe angesteuert, die dasselbe Zweischritt-Protokoll spricht wie der
+echte Worker.
+
+Geprüft wird außerdem, was sonst lautlos scheitert: dass `update.json` zum
+Manifest passt, dass beide Sprachpakete genau die Texte definieren, die der Code
+anfordert, und dass der Quelltext des Renderers noch jede Anforderung trägt, die
+pdf.js an ihn stellt — jede davon durch Zusehen beim Scheitern gefunden, und
+keine davon meldet sich, wenn sie fehlt.
+
+Das Plugin hat keine Laufzeit-Abhängigkeiten; `linkedom` ist reine
+Entwicklungs-Abhängigkeit und wird nie mitgeliefert.
+
+## CI
+
+Läuft bei jedem Push und jedem Pull Request.
+
+Die Suiten laufen unter **Linux**, wo sie plattformunabhängig sind, und unter
+**Windows**, wo ein Pfadname kein Pfad ist und die Annahmen abweichen. Der
+Freigabe-Build läuft unter **macOS**, weil `swiftc`, `lipo` und `codesign` nur
+dort zu Hause sind; er prüft, dass das XPI jede Datei enthält, die Zotero in
+seiner Wurzel braucht, und dass der Helfer universal und signiert ist. Die
+Suiten laufen auf jenem Job ein zweites Mal, wo ein frisch gebautes XPI
+vorliegt — so läuft auch die Prüfung, dass `update.json` die tatsächlich
+erzeugte Datei beschreibt.
+
+Das XPI ist nicht bytegleich reproduzierbar — Zip vermerkt Änderungszeiten —
+deshalb vergleicht die CI seine Prüfsumme nicht gegen das eingecheckte
+`update.json`. Verglichen wird die Version, und die ist es, die tatsächlich
+veraltet.
+
+## Diese Dokumentation
+
+```bash
+cd docs && ./build.sh
+python3 docs/offline/smoketest.py site/en site/de
+```
+
+Beide Sprachprojekte werden nach `site/{en,de}` gerendert, die
+Offline-Reparaturen angewandt und je Sprache ein verlinktes PDF mit Typst
+gebaut.
+
+Die Seite steht auf dem
+[zotqda-quarto-theme](https://github.com/fre-ms/zotqda-quarto-theme), das nach
+`docs/_theme/` **vendort** ist, damit die Dokumentation ohne Nachbar-Checkout
+baut. `docs/update-theme.sh` holt eine neuere Fassung herein.
+
+Quarto ist gepinnt, und zwar auf dieselbe Fassung wie die übrigen
+Ökosystem-Seiten, damit alle auf derselben Version rendern. Hebungen sind
+absichtsvoll: mit `ALLOW_UNPINNED_QUARTO=1` bauen, den Smoketest laufen lassen,
+eine Seite ansehen, dann den Pin verschieben.
+
+Die Seitenleisten der beiden Sprachen müssen **parallel** bleiben —
+`gen_langmap.py` leitet daraus die Seite-zu-Seite-Zuordnung des
+Sprachumschalters ab und lässt den Build scheitern, wenn sie es nicht mehr sind.

@@ -1,0 +1,132 @@
+---
+title: "Eine Vorschau ansteuern"
+---
+
+Drei Systeme, drei Mechanismen, ein Verhalten: Taste drücken, Vorschau
+erscheint; nochmals drücken, Vorschau verschwindet.
+
+## macOS — QLPreviewPanel
+
+Das Plugin startet einen kleinen mitgelieferten Helfer, `qlpreview`, der
+`QLPreviewPanel` ansteuert — genau die Ansicht, die auch der Finder zeigt. Der
+Prozess wird festgehalten, damit ein zweites Drücken der Leertaste oder Escape
+die Vorschau schließt.
+
+### Warum nicht qlmanage
+
+`/usr/bin/qlmanage -p` sieht nach der naheliegenden Antwort aus und ist es
+nicht. Es ist ein Werkzeug zur Fehlersuche und nicht die Quick-Look-Ansicht des
+Finders, und es kann nicht alles zeigen, was der Finder zeigt. An einem Video
+stirbt es sofort:
+
+```
+NSInternalInconsistencyException
+'Setting highlightedTimeRanges is not supported in your app.'
+AVKitCore  -[AVPlayerItem setHighlightedTimeRanges:]
+Movie      (/System/Library/QuickLook/Movie.qlgenerator)
+```
+
+Apples eigener Film-Generator ruft eine AVKit-Methode auf, die AVKit innerhalb
+von `qlmanage` verweigert. `QLPreviewPanel` anzusteuern zeigt dagegen alles, was
+der Finder zeigt, Quick-Look-Erweiterungen Dritter eingeschlossen. `qlmanage`
+bleibt nur als Rückfall für den Fall, dass der Helfer nicht bereitgestellt
+werden kann.
+
+## Linux — GNOME Sushi über D-Bus
+
+```sh
+dbus-send --session --print-reply --reply-timeout=10000 \
+  --dest=org.gnome.NautilusPreviewer \
+  /org/gnome/NautilusPreviewer org.gnome.NautilusPreviewer.ShowFile \
+  string:file:///pfad int32:0 boolean:true
+```
+
+::: {.callout-warning title="--print-reply steht nicht wegen seiner Ausgabe da"}
+Es wegzulassen ist kein kleiner Unterschied. Ohne das Argument schreibt
+`dbus-send` die Nachricht und endet binnen Millisekunden. Sushi wird von D-Bus
+bei Bedarf gestartet und braucht etwa eine Sekunde, und `dbus-daemon`
+**verwirft eine für eine Aktivierung eingereihte Nachricht, sobald die
+absendende Verbindung verschwindet**. Der Dienst startet dann, erfährt nie, was
+er zeigen soll, und beendet sich nach zwölf Sekunden Leerlauf wieder.
+
+Nichts erscheint, und nichts wird protokolliert. Der Fehlschlag ist vollkommen
+lautlos — was ihm diesen Kasten einträgt. Auf die Antwort zu warten hält die
+Verbindung offen, bis der Aufruf zugestellt ist.
+:::
+
+Die Antwort ist zugleich das einzige Zeichen, das das Plugin überhaupt bekommt,
+dass der Vorschaudienst geantwortet hat. Der Rückgabewert wird deshalb geprüft,
+und eine Absage — meist: Sushi ist nicht installiert — wird im Protokoll
+benannt, statt verschluckt zu werden.
+
+Der Aufruf kehrt zurück, sobald dem Fenster seine Datei übergeben ist, und nicht
+erst mit dem Ende der Vorschau. Es gibt also keinen Prozess festzuhalten und zu
+beenden. Das letzte Argument von `ShowFile` schließt die Vorschau, wenn dieselbe
+Datei bereits gezeigt wird — das gibt der Leertaste denselben Umschalter wie
+unter macOS. Sushi zeigt eine Datei zur Zeit.
+
+## Windows — die Named Pipe von QuickLook
+
+[QuickLook](https://github.com/QL-Win/QuickLook) horcht auf einer Named Pipe,
+`QuickLook.App.Pipe.<Benutzer-SID>`. Eine UTF-8-Zeile hindurch —
+
+```
+QuickLook.App.PipeMessages.Toggle|C:\pfad\datei.pdf|
+```
+
+— zeigt die Vorschau, dieselbe Zeile nochmals schließt sie, und ein anderer Pfad
+wechselt zu jener Datei. Auch hier hat die Leertaste ihren Umschalter, wieder
+ohne einen Prozess festzuhalten.
+
+Die Zeile wird unmittelbar aus dem Plugin über **js-ctypes** geschrieben: eine
+Handvoll Win32-Aufrufe, kein Helfer-Binary, kein Unterprozess, mit der SID aus
+dem Prozess-Token. Sollte Gecko ctypes je fallenlassen, tut ein
+PowerShell-Einzeiler dasselbe; er erreicht die Shell als `-EncodedCommand`, es
+greifen also weder Ausführungsrichtlinie noch Kommandozeilen-Maskierung.
+
+Ein früherer Anlauf zu dieser Anbindung
+([QuickLook #584](https://github.com/QL-Win/QuickLook/issues/584), 2019)
+scheiterte an eben jener SID, und der Schluss seiner Zeit — die Store-Fassung sei
+von der Pipe abgeschottet — wurde jahrelang wiederholt. Heute gemessen gilt
+keines von beidem: Das Store-Paket erklärt `runFullTrust` und antwortet auf der
+Pipe wie die Desktop-Fassung.
+
+::: {.callout-caution title="Die Pipe niemals abtasten"}
+QuickLooks Pipe-Leser nimmt eine Zeile je Verbindung und dereferenziert, was
+immer er bekommen hat. Ein Client, der sich verbindet und nichts sendet — ein
+`Test-Path` auf den Pipe-Pfad, irgendeine Ist-da-was-Prüfung — **tötet den
+Lauscher**, lautlos, bis QuickLook neu gestartet wird.
+
+Das Plugin tastet deshalb nie ab. Jede Verbindung, die es aufbaut, trägt eine
+vollständige Zeile, und „QuickLook läuft nicht" wird daraus gelernt, dass der
+Verbindungsaufbau scheitert — dann wird es im Protokoll benannt.
+:::
+
+## EPUB, überall
+
+Keine Systemvorschau stellt ein EPUB dar. Es ist damit das einzige Format, das
+das Plugin wandelt statt weiterzureichen. Alles andere — MOBI, DJVU, was immer
+eine Vorschau-Erweiterung beansprucht — geht unverändert an die Ansicht.
+
+Das Plugin entpackt das Archiv in ein temporäres Verzeichnis, liest
+`META-INF/container.xml` und das OPF-Paketdokument und durchläuft die Spine in
+Lesereihenfolge, wobei es den `<body>` jedes Kapitels an ein einziges
+Ausgabedokument anhängt. Die buchspezifischen Stylesheets, verlinkte wie
+eingebettete, werden mitgeladen, damit der ursprüngliche Aufbau erhalten bleibt;
+darüber liegen eine Palatino-Grundschrift, 80 px Rand und eine 720 px breite
+Buchspalte. Relative Adressen im Markup **und im CSS** werden zu absoluten
+`file://`-Pfaden umgeschrieben, damit Bilder, Schriften und eingebettete SVGs
+sich auflösen.
+
+Parsen und Zusammenbau laufen über `DOMParser` auf dem Dokumentbaum. Skripte
+und eingebettete Ereignisbehandler werden dadurch als **Knoten** entfernt statt
+als Text gesucht. Ein gewandeltes Buch wird zwischengespeichert und
+wiederverwendet, bis sich seine Datei ändert.
+
+Entpackt wird unter macOS und Linux mit `/usr/bin/unzip`, unter Windows mit
+`tar.exe` — dem bsdtar, das Windows seit Windows 10 mitbringt und das dort an
+die Stelle des fehlenden `unzip` tritt.
+
+Weil das Plugin nicht zuverlässig feststellen kann, ob eine
+EPUB-Vorschau-Erweiterung installiert ist, ist die Wandlung eine Einstellung
+statt einer Vermutung.

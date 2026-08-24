@@ -1,0 +1,77 @@
+---
+title: "Erste Schritte"
+subtitle: "Dokumentation"
+author: "fre.ms"
+---
+
+zotLook zeigt den Anhang des ausgewählten Zotero-Eintrags in einer Vorschau,
+sobald Sie **Leertaste** drücken — so, wie ein Dateimanager es tut. Das Plugin
+bringt keinen eigenen Betrachter mit: Es steuert die Vorschau an, die das System
+bereits hat — Quick Look unter macOS, GNOME Sushi unter Linux,
+[QuickLook](https://github.com/QL-Win/QuickLook) unter Windows. Was diese
+anzeigen können, kann zotLook anzeigen.
+
+![](asset/screenshot.png)
+
+## Voraussetzungen
+
+| | |
+|---|---|
+| **Zotero** | 7 oder neuer. Geprüft mit 7, 8, 9 und 10. |
+| **macOS** | 12 (Monterey) oder neuer. Nichts zu installieren; die Vorschau gehört zum System. |
+| **Linux** | GNOME Sushi. Unter Debian und Ubuntu: `sudo apt install gnome-sushi`. |
+| **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook), laufend. Die Store-Fassung und die Desktop-Fassung antworten gleichermaßen. |
+
+## Installation
+
+1. Die aktuelle `.xpi`-Datei von der
+   [Freigabe-Seite](https://github.com/fre-ms/zotLook/releases) laden.
+2. In Zotero: **Werkzeuge → Add-ons**.
+3. Zahnrad → **Add-on aus Datei installieren …**
+4. Die geladene Datei wählen, dann Zotero neu starten.
+
+Von da an sucht Zotero selbst nach neuen Fassungen und aktualisiert das Plugin,
+ohne dass Sie sich darum kümmern müssen.
+
+::: {.callout-note}
+zotLook installiert sich **neben** Guillaume Chaprons Zotero7QuickLook, nicht
+darüber — die beiden tragen verschiedene Plugin-Kennungen. Wenn Sie beide haben,
+schalten Sie eines ab, sonst wird die Leertaste doppelt beansprucht.
+:::
+
+## Die erste Minute
+
+Wählen Sie einen Eintrag und drücken Sie **Leertaste**. Handelt es sich um einen
+Elterneintrag statt um einen Anhang, sucht zotLook einen Anhang aus — ein PDF vor
+einem EPUB vor allem anderen, und diese
+[Reihenfolge lässt sich ändern](settings.qmd). Ein zweites Mal **Leertaste**
+oder **Escape** schließt die Vorschau wieder.
+
+**Umschalt+Leertaste** zeigt stattdessen die Notizen des Eintrags als Seite.
+
+**Strg+Umschalt+Leertaste** erzeugt einen *Kontaktbogen*: jede Seite eines PDFs
+als Miniatur in einem scrollbaren Raster. Ein Klick auf eine Seite öffnet sie im
+Zotero-Reader. Bei langen Dokumenten dauert das einige Sekunden, und das Plugin
+sagt es, während es arbeitet.
+
+Liegt die Datei nur in der Cloud und nicht auf diesem Rechner, lädt zotLook sie
+zuerst herunter, statt zu melden, sie fehle.
+
+## Annotationen werden mitgezeichnet
+
+Zotero bewahrt die Hervorhebungen und Notizen, die Sie in seinem Reader machen,
+in seiner **Datenbank** auf — nicht in der PDF-Datei. Eine Vorschau der
+gespeicherten Datei zeigte deshalb ein unmarkiertes Dokument. Das war die
+Lücke, nach der Nutzer am häufigsten gefragt haben.
+
+zotLook exportiert eine Kopie mit eingezeichneten Annotationen und zeigt diese —
+in der Vorschau wie im Kontaktbogen. Anhänge ohne Annotationen werden erkannt,
+bevor irgendeine Arbeit beginnt, und ein Export wird wiederverwendet, bis Sie
+eine Annotation hinzufügen oder ändern. Der Normalfall kostet also nichts. In
+den [Einstellungen](settings.qmd) lässt sich das abschalten.
+
+## Weiter
+
+- [Was es kann](features.qmd) — alle Tastenkürzel und was sie zeigen
+- [Einstellungen](settings.qmd) — Kürzel, Anhang-Reihenfolge, Kontaktbogen
+- [Plattformen](platforms.qmd) — was jedes System braucht und zeigen kann

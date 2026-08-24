@@ -1,0 +1,43 @@
+---
+title: "Releasing"
+---
+
+1. Bump `version` in `addon/manifest.json`
+2. `./build.sh`
+3. Commit the regenerated `update.json`
+4. Create the release with the built `.xpi` attached
+
+`update.json` must be committed to `main`, because that is the URL installed
+copies poll.
+
+::: {.callout-important title="Commit and release belong together"}
+`update.json` carries the version, the download URL and the checksum. Pushing it
+for a version that has no release yet means every installed copy sees an update
+and runs into nothing when it tries to fetch it.
+
+Equally, a local build of an already-released state must not be committed: its
+checksum differs as soon as anything in the code has changed. `test/release.test.mjs`
+catches that, and the failure means *bump the version*, not *update the hash*.
+:::
+
+## Compatibility
+
+The update entry deliberately carries **no `strict_max_version`**. Zotero then
+treats the release as compatible with any version and can raise the ceiling on
+an already-installed copy — which is how compatibility with a future Zotero can
+be granted without shipping a new build.
+
+The `strict_max_version` in `manifest.json` still decides which Zotero will load
+the plugin at all.
+
+## Documentation
+
+The published documentation lives under a directory per release, with `latest`
+a second copy of the newest one, so a link that was published keeps pointing at
+what it pointed at. `versions.json` is the list the version switcher reads, and
+`scripts/gen_versions.py` keeps it in step with the version the manifest
+reports.
+
+Adding a version is a change to a committed file, deliberately: a release that
+quietly appeared in the switcher and nowhere else would be hard to account for
+later.
