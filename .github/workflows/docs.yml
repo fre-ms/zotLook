@@ -125,6 +125,33 @@ jobs:
             printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
             chmod 600 ~/.ssh/known_hosts
             SFTP_SETTINGS="set sftp:connect-program \"ssh -a -x -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts\";"
+
+            # lftp reports a key it does not recognise as "Host key
+            # verification failed" and says nothing further, which leaves the
+            # two usual causes indistinguishable: the pin was taken from a
+            # different host or a different port, or the host really did change
+            # its key. Both fingerprint sets are public information, so the
+            # comparison can be printed. Nothing here relaxes the check.
+            PORT="${DEPLOY_PORT:-22}"
+            ssh-keygen -lf ~/.ssh/known_hosts 2>/dev/null \
+              | awk '{print $2, $4}' | sort > /tmp/pinned.fp || true
+            ssh-keyscan -T 15 -p "$PORT" "$DEPLOY_HOST" 2>/dev/null \
+              > /tmp/live.keys || true
+            ssh-keygen -lf /tmp/live.keys 2>/dev/null \
+              | awk '{print $2, $4}' | sort > /tmp/live.fp || true
+
+            if [ ! -s /tmp/live.fp ]; then
+              echo "note: the host answered no key scan on port $PORT;" \
+                   "if it listens elsewhere, set the DEPLOY_PORT variable" >&2
+            elif ! comm -12 /tmp/pinned.fp /tmp/live.fp | grep -q .; then
+              echo "the pinned host key does not match the one this host offers on port $PORT" >&2
+              echo "  pinned:" >&2; sed 's/^/    /' /tmp/pinned.fp >&2
+              echo "  offered:" >&2; sed 's/^/    /' /tmp/live.fp >&2
+              echo "Re-pin with: ssh-keyscan -p $PORT <host> | gh secret set DEPLOY_KNOWN_HOSTS --repo <owner>/<repo>" >&2
+              echo "Check the offered fingerprint against what the host's operator publishes before trusting it." >&2
+              exit 1
+            fi
+            rm -f /tmp/pinned.fp /tmp/live.keys /tmp/live.fp
           fi
 
           # The password goes into a mode-600 file rather than onto the command
