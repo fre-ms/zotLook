@@ -94,10 +94,16 @@ $table-border-color: $zq-border !default;
   font-size: 1.05rem;
 }
 
-// Open book before the title, like Zensical's documentation mark — a
-// placeholder until the software has a logo of its own (then replace
-// this with navbar.logo in the site config and delete the rule).
-.navbar-title::before {
+// Open book before the title, like Zensical's documentation mark — the
+// stand-in for a site that has no mark of its own. Give the site a
+// navbar.logo and the book steps aside on its own: it is drawn only when
+// the brand container holds no logo, so nothing here has to be deleted,
+// and a site vendoring this theme need not fork the file to be rid of it.
+//
+// Where :has() is not supported the selector simply does not match and no
+// book is drawn. That loses a decorative icon on a logo-less site in a very
+// old browser and breaks no layout, which is the right way round.
+.navbar-brand-container:not(:has(.navbar-logo)) .navbar-title::before {
   font-family: "bootstrap-icons";
   content: "\f194"; // bi-book
   margin-right: 0.55rem;
