@@ -71,6 +71,7 @@ jobs:
           DEPLOY_PASSWORD:    ${{ secrets.DEPLOY_PASSWORD }}
           DEPLOY_DIR:         ${{ secrets.DEPLOY_DIR }}
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST_FINGERPRINT: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
         run: |
           set -euo pipefail
           # `run:` gets bash -e but NOT pipefail, and the steps below pipe.
@@ -120,61 +121,69 @@ jobs:
           # redirected DNS record could collect the password.
           SFTP_SETTINGS=""
           if [ "$PROTO" = "sftp" ]; then
-            : "${DEPLOY_KNOWN_HOSTS:?DEPLOY_KNOWN_HOSTS is unset - required for sftp}"
-            install -m 700 -d ~/.ssh
-            printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-            chmod 600 ~/.ssh/known_hosts
-            SFTP_SETTINGS="set sftp:connect-program \"ssh -a -x -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts\";"
-
-            # lftp reports a key it does not recognise as "Host key
-            # verification failed" and says nothing further, which leaves the
-            # two usual causes indistinguishable: the pin was taken from a
-            # different host or a different port, or the host really did change
-            # its key. Both fingerprint sets are public information, so the
-            # comparison can be printed. Nothing here relaxes the check.
             PORT="${DEPLOY_PORT:-22}"
-            ssh-keygen -lf ~/.ssh/known_hosts 2>/dev/null \
-              | awk '{print $2, $4}' | sort > /tmp/pinned.fp || true
-            ssh-keyscan -T 15 -p "$PORT" "$DEPLOY_HOST" 2>/dev/null \
-              > /tmp/live.keys || true
-            ssh-keygen -lf /tmp/live.keys 2>/dev/null \
-              | awk '{print $2, $4}' | sort > /tmp/live.fp || true
+            install -m 700 -d ~/.ssh
 
-            # An empty pin is its own failure and not a changed key: the
-            # secret never carried a parsable line. Saying so saves reading a
-            # comparison in which one side is simply absent.
-            if [ ! -s /tmp/pinned.fp ]; then
-              echo "DEPLOY_KNOWN_HOSTS holds no parsable host key" \
+            # For SFTP the host key is the whole of the authentication of the
+            # server: without it a redirected DNS record could collect the
+            # password. It can be pinned two ways.
+            #
+            # DEPLOY_HOST_FINGERPRINT is the easier one and just as strict. A
+            # fingerprint is one short line that survives being copied by hand,
+            # where a whole known_hosts file does not: ssh-keyscan writes its
+            # comments to stderr and its keys to stdout, so capturing the wrong
+            # stream — or a scan that quietly failed — stores something that
+            # looks fine and pins nothing. The key is fetched here and accepted
+            # only if its fingerprint is the pinned one, which is the same
+            # question ssh would ask, asked earlier and out loud.
+            #
+            # DEPLOY_KNOWN_HOSTS still works and takes precedence where both
+            # are set.
+            if [ -n "${DEPLOY_KNOWN_HOSTS:-}" ]; then
+              printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+            elif [ -n "${DEPLOY_HOST_FINGERPRINT:-}" ]; then
+              ssh-keyscan -T 15 -p "$PORT" "$DEPLOY_HOST" > /tmp/offered 2>/dev/null || true
+              if [ ! -s /tmp/offered ]; then
+                echo "the host offered no key on port $PORT; if it listens" \
+                     "elsewhere, set the DEPLOY_PORT variable" >&2
+                exit 1
+              fi
+              # Only the matching key is kept. Were every offered key trusted
+              # because one of them matched, an impostor could present a good
+              # key beside a bad one and let ssh choose.
+              : > ~/.ssh/known_hosts
+              while IFS= read -r line; do
+                [ -n "$line" ] || continue
+                fp="$(printf '%s\n' "$line" | ssh-keygen -lf - 2>/dev/null | awk '{print $2}')"
+                [ "$fp" = "$DEPLOY_HOST_FINGERPRINT" ] && printf '%s\n' "$line" >> ~/.ssh/known_hosts
+              done < /tmp/offered
+              if [ ! -s ~/.ssh/known_hosts ]; then
+                echo "no key this host offers has the pinned fingerprint" >&2
+                echo "  pinned:  $DEPLOY_HOST_FINGERPRINT" >&2
+                echo "  offered:" >&2
+                ssh-keygen -lf /tmp/offered 2>/dev/null | sed 's/^/    /' >&2 || true
+                echo "Check the offered fingerprint against what the host's operator publishes before trusting it." >&2
+                exit 1
+              fi
+              rm -f /tmp/offered
+            else
+              echo "sftp needs either DEPLOY_HOST_FINGERPRINT or DEPLOY_KNOWN_HOSTS" >&2
+              exit 1
+            fi
+            chmod 600 ~/.ssh/known_hosts
+
+            if ! ssh-keygen -lf ~/.ssh/known_hosts >/dev/null 2>&1; then
+              echo "the pinned material holds no parsable host key" \
                    "($(wc -l < ~/.ssh/known_hosts) lines)" >&2
-              # The shape of each line, with nothing of its content: a key line
-              # is "<host> <type> <base64>", so a line that does not carry a
-              # key type in its second field is a comment (ssh-keyscan writes
-              # those to stderr, so capturing the wrong stream gives exactly
-              # this), or the value arrived wrapped or otherwise mangled.
               awk '{ t = ($2 ~ /^(ssh-|ecdsa-|sk-)/) ? "a key type" : "not a key type";
                      b = (substr($0,1,1) == "#") ? "#" : "data";
                      printf "    line %d: %d fields, begins with %s, second field is %s\n", NR, NF, b, t }' \
                   ~/.ssh/known_hosts >&2
-              echo "Take it with:  ssh-keyscan -p ${PORT} <host> > kh" >&2
-              echo "Check it with: ssh-keygen -lf kh    # must list fingerprints" >&2
-              echo "Then set it:   gh secret set DEPLOY_KNOWN_HOSTS --repo <owner>/<repo> < kh" >&2
-              echo "This host currently offers:" >&2
-              ssh-keygen -lf /tmp/live.keys 2>/dev/null | sed 's/^/    /' >&2 || true
+              echo "Pinning a fingerprint instead avoids this: set DEPLOY_HOST_FINGERPRINT" >&2
               exit 1
             fi
 
-            if [ ! -s /tmp/live.fp ]; then
-              echo "note: the host answered no key scan on port $PORT;" \
-                   "if it listens elsewhere, set the DEPLOY_PORT variable" >&2
-            elif ! comm -12 /tmp/pinned.fp /tmp/live.fp | grep -q .; then
-              echo "the pinned host key does not match the one this host offers on port $PORT" >&2
-              echo "  pinned:" >&2; sed 's/^/    /' /tmp/pinned.fp >&2
-              echo "  offered:" >&2; sed 's/^/    /' /tmp/live.fp >&2
-              echo "Re-pin with: ssh-keyscan -p $PORT <host> | gh secret set DEPLOY_KNOWN_HOSTS --repo <owner>/<repo>" >&2
-              echo "Check the offered fingerprint against what the host's operator publishes before trusting it." >&2
-              exit 1
-            fi
-            rm -f /tmp/pinned.fp /tmp/live.keys /tmp/live.fp
+            SFTP_SETTINGS="set sftp:connect-program \"ssh -a -x -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts\";"
           fi
 
           # The password goes into a mode-600 file rather than onto the command
