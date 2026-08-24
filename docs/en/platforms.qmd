@@ -68,16 +68,132 @@ that fails takes the whole preview down with it. The window variant
 (**Shift+Alt+Space**) gives Linux the clickable sheet. There is more on that in
 [The contact sheet](dev/contact-sheet.qmd).
 
-## What the panel can show
+## Which formats appear where
 
-That is the system's business, not zotLook's. PDFs, images, video, HTML and
-plain text are handled everywhere. Beyond that:
+That is the preview program's business, not zotLook's. The table describes each
+one as it comes; every column can be [extended](#extending-the-preview).
 
-- **macOS** shows whatever Quick Look does, including anything a Quick Look
-  extension adds — MOBI, DJVU, CAD formats, and so on.
-- **Windows** depends on QuickLook's own viewers. PDF, images, video and HTML
-  are built in.
-- **Linux** depends on Sushi's, which covers the common formats.
+| Format | macOS | Linux | Windows |
+|---|:---:|:---:|:---:|
+| **PDF** | ✓ | ✓ | ✓ |
+| **Images** (JPEG, PNG, GIF, TIFF, WebP) | ✓ | ✓ | ✓ |
+| **Camera RAW** | ✓ | partly¹ | ✓ |
+| **Video** (MP4, MOV) | ✓ | ✓ | ✓ |
+| **Video** (MKV, AVI) | — | ✓² | ✓ |
+| **Audio** | ✓ | ✓ | ✓ |
+| **HTML** | ✓ | ✓ | ✓ |
+| **Text and source code** | ✓³ | ✓ | ✓ |
+| **Markdown** | — | ✓ | ✓ |
+| **Office** (DOCX, XLSX, PPTX) | ✓ | ✓⁴ | ✓⁵ |
+| **Archives** (ZIP, RAR, 7z) | — | — | ✓ |
+| **EPUB** | **zotLook** | **zotLook** | **zotLook** |
 
-EPUB is the exception on every system: none of the three renders one, so zotLook
-converts it itself.
+¹ through the system's image loaders (glycin, formerly GdkPixbuf) ·
+² through whichever GStreamer codecs are installed ·
+³ known extensions only; see QLStephen below ·
+⁴ through LibreOffice, where it is installed ·
+⁵ through the *OfficeViewer* plugin, with no Office installed
+
+**EPUB is the exception everywhere:** none of the three renders an e-book, so
+zotLook converts it itself — the one format zotLook does not simply hand over.
+Everything else your preview program can show, zotLook can show.
+
+## Extending the preview
+
+Because zotLook drives the system's preview, anything you install there works
+**in Zotero straight away**. A viewer for a format zotLook has never heard of
+does not have to be built into zotLook.
+
+::: {.panel-tabset}
+
+### macOS
+
+Quick Look takes extensions as *Quick Look generators*. The easiest route is
+[Homebrew](https://brew.sh):
+
+```sh
+brew install --cask qlmarkdown        # Markdown
+brew install --cask qlvideo           # MKV, AVI, FLV and other video formats
+brew install --cask qlstephen         # text files with no known extension
+brew install --cask betterzip         # archives
+brew install --cask syntax-highlight  # source code, with highlighting
+brew install --cask webpquicklook     # WebP
+```
+
+[sindresorhus/quick-look-plugins](https://github.com/sindresorhus/quick-look-plugins)
+keeps a maintained list, including paid App Store extensions such as *Peek*
+(over 300 extensions) and *Suspicious Package* for installer packages.
+
+::: {.callout-warning title="Quarantine, after installing"}
+Since macOS Catalina the system marks downloaded extensions as quarantined, and
+Quick Look then **silently declines to load them** — there is simply still no
+preview. Clear it once:
+
+```sh
+xattr -d -r com.apple.quarantine ~/Library/QuickLook
+```
+
+Then run `qlmanage -r`, or log out and back in.
+:::
+
+Extensions live in `~/Library/QuickLook` (yours) or `/Library/QuickLook`
+(everyone's). Newer ones arrive as an app carrying a *Quick Look extension*,
+which you enable under **System Settings → General → Login Items & Extensions**.
+
+### Linux
+
+Since version 51 Sushi has a **plugin interface**: a plugin is a JavaScript file
+deriving from the `Renderer` class, looked for in
+
+```
+$HOME/.local/share/sushi/plugins-1     # yours
+/usr/lib/sushi/plugins-1               # everyone's
+```
+
+Before version 51 the directory was `$HOME/.local/share/sushi/viewers`.
+
+::: {.callout-note title="Unlike the other two"}
+There is no stock of ready-made Sushi plugins to download. The interface exists
+and is described in
+[plugins/Plugins.md](https://gitlab.gnome.org/GNOME/sushi/-/blob/master/plugins/Plugins.md)
+— but whoever uses it writes the plugin themselves.
+:::
+
+In practice Sushi is therefore extended **indirectly**, through the system
+libraries its viewers draw on:
+
+| Install this | and Sushi shows |
+|---|---|
+| GStreamer codecs (`gstreamer1.0-plugins-bad`, `-ugly`, `-libav`) | more video and audio formats |
+| image loaders (`webp-pixbuf-loader`, glycin loaders) | WebP, AVIF, HEIF |
+| LibreOffice | DOCX, XLSX, PPTX |
+
+That is not a workaround but the design: for these formats Sushi carries no code
+of its own and uses what the system can already do.
+
+### Windows
+
+QuickLook takes extensions as `.qlplugin` files, and installing one is the
+simplest of the three:
+
+1. Download the `.qlplugin` from the plugin's releases page.
+2. Select it in Explorer and press **Space** — QuickLook previews it itself and
+   offers **Install**.
+3. Restart QuickLook.
+
+The project keeps the list under
+[Available Plugins](https://github.com/QL-Win/QuickLook/wiki/Available-Plugins).
+Useful for academic work, among others:
+
+| Plugin | Formats |
+|---|---|
+| **OfficeViewer** | Word, Excel, PowerPoint — with no Office installed |
+| **JupyterNotebookViewer** | `.ipynb` |
+| **SqliteViewer** | SQLite databases |
+| **ShapefileViewer** | ESRI shapefiles |
+| **FitsViewer** | astrophotography (FITS) |
+| **Hdf5Viewer** | HDF5 datasets |
+| **CADImport** | `.dwg`, `.dxf`, `.plt`, `.cgm` |
+| **ExifTool** | metadata for many formats |
+
+:::
