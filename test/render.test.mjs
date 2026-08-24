@@ -77,6 +77,121 @@ function harness(options = {}) {
   eq(dealt.flat().length, 10, 'each page dealt exactly once');
 }
 
+// ── the count the progress window shows ───────────────────────────────
+// A sheet of a long book takes seconds, and the window said only that it was
+// working. The figure has to reach every page and has to stop short of the
+// end, because the last page still has to be written and the sheet built.
+{
+  const { Q, made } = harness({ pageCount: 12 });
+  const seen = [];
+  const manifest = await Q._renderPagesWithPdfjs('/a.pdf', '/img', 5, 0,
+    (done, total) => seen.push([done, total]));
+
+  eq(seen.length, 12, 'every page is reported, not just the last');
+  eq(seen.map(s => s[0]), [1,2,3,4,5,6,7,8,9,10,11,12],
+     'the count climbs by one and never repeats');
+  eq(seen.every(s => s[1] === 12), true, 'against the number to be drawn');
+  eq(manifest.pages.length, 12, 'and the sheet still gets all of them');
+  void made;
+}
+{
+  // A cap means fewer pages, and the total has to be the capped one — a
+  // count against the document's length would stall partway and stay there
+  const { Q } = harness({ pageCount: 40 });
+  const seen = [];
+  await Q._renderPagesWithPdfjs('/a.pdf', '/img', 5, 6,
+    (done, total) => seen.push([done, total]));
+  eq(seen.length, 6, 'the capped pages are counted');
+  eq(seen[seen.length - 1], [6, 6], 'and the last one reaches the total');
+}
+{
+  // Rendering must not depend on anyone listening
+  const { Q } = harness({ pageCount: 4 });
+  const manifest = await Q._renderPagesWithPdfjs('/a.pdf', '/img', 5, 0);
+  eq(manifest.pages.length, 4, 'no progress callback is required');
+}
+
+// ── what the window is actually told ──────────────────────────────────
+// The count is useless if it never reaches the window, and nothing about a
+// window that quietly ignores it would show up anywhere else.
+{
+  const calls = { text: [], progress: [] };
+  function FakeItemProgress(itemType, text) {
+    calls.itemType = itemType;
+    calls.initial = text;
+    this.setText = (t) => calls.text.push(t);
+    this.setProgress = (n) => calls.progress.push(n);
+  }
+  const { ZotLook: Q } = loadPlugin({
+    zotero: {
+      ProgressWindow: function () {
+        this.changeHeadline = () => {};
+        this.addDescription = () => { calls.description = true; };
+        this.ItemProgress = FakeItemProgress;
+        this.show = () => { calls.shown = true; };
+        this.close = () => { calls.closed = true; };
+      },
+    },
+  });
+
+  const progress = Q._showProgress('Generating contact sheet…');
+  ok(calls.shown, 'the window is shown');
+  ok(!calls.description, 'with a progress line rather than a plain description');
+  eq(calls.initial, 'Generating contact sheet…', 'carrying the message');
+
+  Q._setProgress(progress, 3, 12);
+  Q._setProgress(progress, 12, 12);
+  eq(calls.text, ['Generating contact sheet…  3 / 12',
+                  'Generating contact sheet…  12 / 12'],
+     'each step names where it has got to');
+  eq(calls.progress, [25, 99],
+     'and never reaches 100, which would end the indicator before the '
+     + 'last page is written and the sheet assembled');
+
+  Q._closeProgress(progress);
+  ok(calls.closed, 'and the window is closed at the end');
+}
+{
+  // A window the user dismissed mid-run must not take the sheet with it
+  const { ZotLook: Q } = loadPlugin({
+    zotero: {
+      ProgressWindow: function () {
+        this.changeHeadline = () => {};
+        this.ItemProgress = function () {
+          this.setText = () => { throw new Error('window is gone'); };
+          this.setProgress = () => {};
+        };
+        this.show = () => {};
+        this.close = () => { throw new Error('window is gone'); };
+      },
+    },
+  });
+  const progress = Q._showProgress('x');
+  Q._setProgress(progress, 1, 2);
+  Q._closeProgress(progress);
+  ok(true, 'a dismissed window throws nothing back into the render loop');
+}
+{
+  // Zotero without ItemProgress still gets its message across
+  const seen = {};
+  const { ZotLook: Q } = loadPlugin({
+    zotero: {
+      ProgressWindow: function () {
+        this.changeHeadline = () => {};
+        this.ItemProgress = function () { throw new Error('no ItemProgress'); };
+        this.addDescription = (t) => { seen.description = t; };
+        this.show = () => {};
+        this.close = () => {};
+      },
+    },
+  });
+  const progress = Q._showProgress('Generating contact sheet…');
+  eq(seen.description, 'Generating contact sheet…',
+     'falling back to the plain description it replaces');
+  Q._setProgress(progress, 1, 2);
+  ok(true, 'and advancing it is simply a no-op');
+}
+
 // ── the page limit reaches the workers ────────────────────────────────
 {
   const { Q, written } = harness({ pageCount: 40 });

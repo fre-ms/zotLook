@@ -721,7 +721,8 @@ var ZotLook = {
 				pdfPath,
 				imageDir,
 				maxColumns,
-				maxPages
+				maxPages,
+				(done, total) => this._setProgress(progress, done, total)
 			);
 
 			if (!manifest || !manifest.pages.length) {
@@ -821,7 +822,13 @@ var ZotLook = {
 	 * binary cannot be built for. Pages arrive one at a time and are written
 	 * as they come, so a long book is never held in memory whole.
 	 */
-	async _renderPagesWithPdfjs(pdfPath, imageDir, maxColumns, maxPages) {
+	async _renderPagesWithPdfjs(
+		pdfPath,
+		imageDir,
+		maxColumns,
+		maxPages,
+		onProgress
+	) {
 		let prefix = this._resourceAlias();
 		if (!prefix) {
 			this.log("Cannot start the renderer without the resource alias");
@@ -843,6 +850,7 @@ var ZotLook = {
 			// sheet with nothing said — and the ones that survive come out in
 			// whatever order they landed.
 			let writing = [];
+			let drawn = 0;
 
 			let finish = (value) => {
 				if (settled) return;
@@ -919,6 +927,10 @@ var ZotLook = {
 							);
 						}
 					})());
+					// Counted as it arrives rather than as it lands: the write
+					// is what the count is waiting on, and a figure that only
+					// moved after the disk did would lag behind the work.
+					if (onProgress) onProgress(++drawn, manifest.renderCount);
 					return;
 				}
 
@@ -1188,25 +1200,58 @@ var ZotLook = {
 		}
 	},
 
+	/**
+	 * A progress window, with a line that can be advanced as work proceeds.
+	 *
+	 * Zotero's ItemProgress is the only thing here that shows progress at all,
+	 * and it does so with a twenty-step circular indicator rather than a bar —
+	 * so the count goes in the text beside it, where an exact figure is more
+	 * use than a bar's position anyway. Where ItemProgress cannot be built,
+	 * the plain description it replaces still appears.
+	 */
 	_showProgress(text) {
 		try {
 			let pw = new Zotero.ProgressWindow();
 			pw.changeHeadline(
 				this._string("zotlook-progress-headline", "Quick Look")
 			);
-			pw.addDescription(text);
+			let line = null;
+			try {
+				line = new pw.ItemProgress("attachment-pdf", text);
+			} catch (e) {
+				pw.addDescription(text);
+			}
 			pw.show();
-			return pw;
+			return { window: pw, line: line, text: text };
 		} catch (e) {
 			this.log("Could not show progress window: " + e);
 			return null;
 		}
 	},
 
-	_closeProgress(pw) {
-		if (!pw) return;
+	/**
+	 * Moves the indicator on and names the page count. Called once per page,
+	 * so it stays cheap and never throws into the render loop: a window the
+	 * user dismissed mid-run would otherwise take the sheet down with it.
+	 */
+	_setProgress(progress, done, total) {
+		if (!progress || !progress.line || !total) return;
 		try {
-			pw.close();
+			progress.line.setText(progress.text + "  " + done + " / " + total);
+			// Never 100: that ends the indicator, and the last page still has
+			// to be written and the sheet assembled around it.
+			progress.line.setProgress(
+				Math.max(1, Math.min(99, Math.round((done / total) * 100)))
+			);
+		} catch (e) {
+			// The window can be dismissed while this runs
+		}
+	},
+
+	_closeProgress(progress) {
+		if (!progress) return;
+		try {
+			progress.window.close();
 		} catch (e) {
 			// Window may already be gone
 		}
