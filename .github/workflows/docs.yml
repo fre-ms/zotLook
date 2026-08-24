@@ -146,6 +146,15 @@ jobs:
             if [ ! -s /tmp/pinned.fp ]; then
               echo "DEPLOY_KNOWN_HOSTS holds no parsable host key" \
                    "($(wc -l < ~/.ssh/known_hosts) lines)" >&2
+              # The shape of each line, with nothing of its content: a key line
+              # is "<host> <type> <base64>", so a line that does not carry a
+              # key type in its second field is a comment (ssh-keyscan writes
+              # those to stderr, so capturing the wrong stream gives exactly
+              # this), or the value arrived wrapped or otherwise mangled.
+              awk '{ t = ($2 ~ /^(ssh-|ecdsa-|sk-)/) ? "a key type" : "not a key type";
+                     b = (substr($0,1,1) == "#") ? "#" : "data";
+                     printf "    line %d: %d fields, begins with %s, second field is %s\n", NR, NF, b, t }' \
+                  ~/.ssh/known_hosts >&2
               echo "Take it with:  ssh-keyscan -p ${PORT} <host> > kh" >&2
               echo "Check it with: ssh-keygen -lf kh    # must list fingerprints" >&2
               echo "Then set it:   gh secret set DEPLOY_KNOWN_HOSTS --repo <owner>/<repo> < kh" >&2
