@@ -125,9 +125,44 @@ brew install --cask webpquicklook     # WebP
 ```
 
 Eine gepflegte Übersicht führt
-[sindresorhus/quick-look-plugins](https://github.com/sindresorhus/quick-look-plugins),
-darunter auch kostenpflichtige Erweiterungen aus dem App Store wie *Peek* (über
-300 Endungen) oder *Suspicious Package* für Installationspakete.
+[sindresorhus/quick-look-plugins](https://github.com/sindresorhus/quick-look-plugins).
+Sie ist auf Freie Software ausgerichtet und lässt einiges aus, was für eine
+Literatursammlung besonders in Frage kommt:
+
+| Erweiterung | Formate | |
+|---|---|---|
+| [**Book Preview**](https://apps.apple.com/de/app/book-preview/id6744098874) | **EPUB, MOBI**, FB2, **DJVU**, CBR, CBZ — mit Inhaltsverzeichnis | 7,99 € |
+| [**Glance**](https://github.com/samuelmeuli/glance) | Quelltext (JSON, Python, YAML …), Jupyter, Markdown, TAR/ZIP | frei |
+| [**iPreview**](https://apps.apple.com/de/app/ipreview-powerful-quick-look/id1519213509) | wie Glance, dazu RAR, 7Z, AsciiDoc, TSV als Tabelle, 3D-Modelle | 7,99 € |
+| **DicomPreview** | DICOM — Röntgen- und MRT-Aufnahmen | frei |
+| [**QuickFits**](https://apps.apple.com/de/app/quickfits/id1551075981) | FITS — Astrofotografie | frei |
+| [**Camera RawX**](https://apps.apple.com/de/app/camera-rawx/id6587554858) | komprimierte RAF (Fuji), NEF (Nikon), X3F (Sigma) | 12,99 € |
+| [**Apparency**](https://mothersruin.com/software/Apparency/) | Innenleben von Programmen | frei |
+
+::: {.callout-tip title="Book Preview und die EPUB-Vorschau von zotLook"}
+zotLook wandelt EPUBs selbst, weil Quick Look es von Haus aus nicht kann.
+Installieren Sie **Book Preview**, hat Quick Look eine eigene EPUB-Vorschau —
+und dann lohnt es sich, die Wandlung in den
+[Einstellungen](settings.qmd) abzuschalten: Das Buch geht dann unverändert an
+Quick Look, mitsamt dessen Inhaltsverzeichnis. Für MOBI und DJVU gilt dasselbe,
+die reicht zotLook ohnehin nur weiter.
+:::
+
+::: {.callout-important title="Wenn zwei Erweiterungen dasselbe Format beanspruchen"}
+Dann entscheidet macOS von sich aus, welche zum Zug kommt — und nicht immer zu
+Ihren Gunsten. Ein Markdown-Editor mit rudimentärer Erweiterung kann dem
+sorgfältigen QLMarkdown den Rang ablaufen.
+
+Abhilfe unter **Systemeinstellungen → Allgemein → Anmeldeobjekte &
+Erweiterungen**, Abschnitt *Erweiterungen*, dann auf das i hinter *Übersicht*.
+Unter macOS 26 (Tahoe) zuvor die Ansicht von „Nach App" auf „Nach Kategorie"
+umstellen. Dort lässt sich eine Erweiterung abschalten, ohne die zugehörige App
+zu löschen.
+
+Je Dateityp lässt sich das **nicht** festlegen. Ein Alleskönner wie Glance oder
+iPreview lässt sich nur ganz abschalten — weshalb mehrere spezialisierte
+Erweiterungen in der Summe besser zu steuern sind als eine universelle.
+:::
 
 ::: {.callout-warning title="Quarantäne nach der Installation"}
 Seit macOS Catalina versieht das System heruntergeladene Erweiterungen mit einem
@@ -139,6 +174,12 @@ xattr -d -r com.apple.quarantine ~/Library/QuickLook
 ```
 
 Danach `qlmanage -r` ausführen oder sich neu anmelden.
+
+Bei Erweiterungen, die als Programm kommen, meldet sich macOS stattdessen mit
+„konnte nicht auf Schadsoftware überprüft werden". Freigeben unter
+**Systemeinstellungen → Datenschutz & Sicherheit → Sicherheit → Dennoch
+öffnen**. Erweiterungen aus dem App Store sind von Apple geprüft und ersparen
+beides.
 :::
 
 Erweiterungen liegen in `~/Library/QuickLook` (nur für Sie) oder

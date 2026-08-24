@@ -15,6 +15,7 @@ sondern steuert die Vorschau an, die das System bereits hat:
 - [**QuickLook**](https://github.com/QL-Win/QuickLook) unter **Windows**.
 
 Was diese Vorschau-Programme anzeigen können, kann somit auch zotLook anzeigen.
+Wenn Sie [die Funktionalität der Vorschau-Programme durch Plugins erweitern](platforms.qmd#die-vorschau-erweitern), erweitern Sie damit auch die Funktionalität von zotLook.
 
 Darüber hinaus erzeugt zotLook mit **Strg+Umschalt+Leertaste** **Kontaktbögen**
 von PDF-Dateien: ein Übersichtsraster über alle Seiten, dessen Spaltenzahl sich
@@ -38,10 +39,10 @@ abschalten.
 
 | | |
 |---|---|
-| **Zotero** | 7 oder neuer. Getestet mit Zotero 10. |
-| **macOS** | Ab macOS 12 (Monterey). Nichts zu installieren; die Quick Look Vorschau gehört zum System. |
+| **Zotero** | 7 oder neuer. Getestet mit [**Zotero**](https://www.zotero.org/) **10**. |
+| **macOS** | Ab macOS 12 (Monterey). Nichts zu installieren, Quick Look gehört zum System. |
 | **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). Unter Debian und Ubuntu: `sudo apt install gnome-sushi`. |
-| **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook), laufend. Die Store-Fassung und die Desktop-Fassung antworten gleichermaßen. |
+| **Windows** | laufendes [QuickLook](https://github.com/QL-Win/QuickLook). Fassung aus dem Store und von der Webseite funktionieren gleichermaßen. |
 
 ## Installation
 

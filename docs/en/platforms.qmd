@@ -121,8 +121,40 @@ brew install --cask webpquicklook     # WebP
 ```
 
 [sindresorhus/quick-look-plugins](https://github.com/sindresorhus/quick-look-plugins)
-keeps a maintained list, including paid App Store extensions such as *Peek*
-(over 300 extensions) and *Suspicious Package* for installer packages.
+keeps a maintained list. It leans towards free software and leaves out several
+that suit a research library particularly well:
+
+| Extension | Formats | |
+|---|---|---|
+| [**Book Preview**](https://apps.apple.com/de/app/book-preview/id6744098874) | **EPUB, MOBI**, FB2, **DJVU**, CBR, CBZ — with a table of contents | €7.99 |
+| [**Glance**](https://github.com/samuelmeuli/glance) | source code (JSON, Python, YAML …), Jupyter, Markdown, TAR/ZIP | free |
+| [**iPreview**](https://apps.apple.com/de/app/ipreview-powerful-quick-look/id1519213509) | as Glance, plus RAR, 7Z, AsciiDoc, TSV as a table, 3D models | €7.99 |
+| **DicomPreview** | DICOM — X-ray and MRI images | free |
+| [**QuickFits**](https://apps.apple.com/de/app/quickfits/id1551075981) | FITS — astrophotography | free |
+| [**Camera RawX**](https://apps.apple.com/de/app/camera-rawx/id6587554858) | compressed RAF (Fuji), NEF (Nikon), X3F (Sigma) | €12.99 |
+| [**Apparency**](https://mothersruin.com/software/Apparency/) | what an application is made of | free |
+
+::: {.callout-tip title="Book Preview and zotLook's EPUB preview"}
+zotLook converts EPUBs itself because Quick Look cannot show one. Install
+**Book Preview** and Quick Look has an EPUB preview of its own — at which point
+it is worth turning the conversion off in [Settings](settings.qmd): the book
+then goes to Quick Look untouched, table of contents and all. The same holds
+for MOBI and DJVU, which zotLook only ever hands over anyway.
+:::
+
+::: {.callout-important title="When two extensions claim the same format"}
+macOS decides which one wins, and not always in your favour: a Markdown editor
+with a rudimentary extension can take precedence over the careful QLMarkdown.
+
+The remedy is **System Settings → General → Login Items & Extensions**, the
+*Extensions* section, then the i beside *Quick Look*. On macOS 26 (Tahoe),
+switch the view from "By App" to "By Category" first. An extension can be
+disabled there without deleting the app it came with.
+
+It cannot be decided per file type. An all-rounder such as Glance or iPreview
+can only be switched off entirely — which is why several specialised extensions
+are easier to steer than one universal one.
+:::
 
 ::: {.callout-warning title="Quarantine, after installing"}
 Since macOS Catalina the system marks downloaded extensions as quarantined, and
@@ -134,6 +166,11 @@ xattr -d -r com.apple.quarantine ~/Library/QuickLook
 ```
 
 Then run `qlmanage -r`, or log out and back in.
+
+Extensions that arrive as an application produce a different complaint — macOS
+"could not verify it is free of malware". Allow it under **System Settings →
+Privacy & Security → Security → Open Anyway**. App Store extensions are checked
+by Apple and spare you both.
 :::
 
 Extensions live in `~/Library/QuickLook` (yours) or `/Library/QuickLook`
