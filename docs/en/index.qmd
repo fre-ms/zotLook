@@ -38,7 +38,7 @@ file as it is stored.
 | | |
 |---|---|
 | **Zotero** | 7 or later. Tested with Zotero 10. |
-| **macOS** | Nothing to install; Quick Look is part of the system. |
+| **macOS** | macOS 12 (Monterey) or later. Nothing to install; Quick Look is part of the system. |
 | **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). On Debian and Ubuntu: `sudo apt install gnome-sushi`. |
 | **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook), running. Its Microsoft Store build and its desktop build both work. |
 

@@ -39,7 +39,7 @@ abschalten.
 | | |
 |---|---|
 | **Zotero** | 7 oder neuer. Getestet mit Zotero 10. |
-| **macOS** | Nichts zu installieren; die Quick Look Vorschau gehört zum System. |
+| **macOS** | Ab macOS 12 (Monterey). Nichts zu installieren; die Quick Look Vorschau gehört zum System. |
 | **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). Unter Debian und Ubuntu: `sudo apt install gnome-sushi`. |
 | **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook), laufend. Die Store-Fassung und die Desktop-Fassung antworten gleichermaßen. |
 
