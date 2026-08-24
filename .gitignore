@@ -3,20 +3,20 @@ build/
 addon/qlpreview
 node_modules/
 
-# Per-language copies of docs/_theme and ../asset, recreated by docs/build.sh
-# on every run. Named one by one rather than globbed: docs/*/ would also match
-# docs/_theme/ and leave the vendored theme itself out of the repository.
-docs/en/_extensions/
-docs/de/_extensions/
-docs/en/fonts/
-docs/de/fonts/
-docs/en/asset/
-docs/de/asset/
-docs/en/theme/
-docs/de/theme/
-docs/en/.quarto/
-docs/de/.quarto/
-docs/.quarto/
+# Per-language copies of doc/_theme and ../asset, recreated by doc/build.sh
+# on every run. Named one by one rather than globbed: doc/*/ would also match
+# doc/_theme/ and leave the vendored theme itself out of the repository.
+doc/en/_extensions/
+doc/de/_extensions/
+doc/en/fonts/
+doc/de/fonts/
+doc/en/asset/
+doc/de/asset/
+doc/en/theme/
+doc/de/theme/
+doc/en/.quarto/
+doc/de/.quarto/
+doc/.quarto/
 
 # The built site; published from CI, never committed
 site/

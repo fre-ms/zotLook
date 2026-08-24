@@ -35,7 +35,7 @@ the plugin at all.
 The published documentation lives under a directory per release, with `latest`
 a second copy of the newest one, so a link that was published keeps pointing at
 what it pointed at. `versions.json` is the list the version switcher reads, and
-`scripts/gen_versions.py` keeps it in step with the version the manifest
+`script/gen_versions.py` keeps it in step with the version the manifest
 reports.
 
 Adding a version is a change to a committed file, deliberately: a release that

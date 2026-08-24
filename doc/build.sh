@@ -2,7 +2,7 @@
 # Build the documentation: regenerate the language map from the two sidebars,
 # render both language projects into ../site/{en,de}, apply the offline repairs
 # so the result works from a plain file tree, and build one PDF per language.
-# Verify with:  python3 docs/offline/smoketest.py site/en site/de
+# Verify with:  python3 doc/offline/smoketest.py site/en site/de
 set -e
 cd "$(dirname "$0")"
 
@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
 PINNED="1.10.18"
 ACTUAL="$(quarto --version)"
 if [ "$ACTUAL" != "$PINNED" ] && [ -z "$ALLOW_UNPINNED_QUARTO" ]; then
-  echo "docs/build.sh: quarto is $ACTUAL, pinned is $PINNED" >&2
+  echo "doc/build.sh: quarto is $ACTUAL, pinned is $PINNED" >&2
   exit 1
 fi
 

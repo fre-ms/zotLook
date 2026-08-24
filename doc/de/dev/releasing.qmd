@@ -36,7 +36,7 @@ Zotero das Plugin überhaupt lädt.
 Die veröffentlichte Dokumentation liegt in einem Verzeichnis je Freigabe, und
 `latest` ist eine zweite Kopie der neuesten. Ein einmal veröffentlichter Verweis
 zeigt damit weiterhin auf das, worauf er zeigte. `versions.json` ist die Liste,
-aus der der Versionsumschalter arbeitet, und `scripts/gen_versions.py` hält sie
+aus der der Versionsumschalter arbeitet, und `script/gen_versions.py` hält sie
 mit der Version im Einklang, die das Manifest meldet.
 
 Eine Version hinzuzufügen ist eine Änderung an einer eingecheckten Datei, und

@@ -34,7 +34,7 @@ Quick-Look-Ansicht fehlt.
 addon/     wandert unverändert ins XPI; das Plugin, wie Zotero es sieht
 native/    Swift-Helfer, von build.sh kompiliert statt mitgeliefert
 asset/     Bilder
-docs/      diese Dokumentation
+doc/       diese Dokumentation
 test/      Testsuite
 build/     das geschnürte .xpi; von git ignoriert
 ```
@@ -96,8 +96,8 @@ veraltet.
 ## Diese Dokumentation
 
 ```bash
-cd docs && ./build.sh
-python3 docs/offline/smoketest.py site/en site/de
+cd doc && ./build.sh
+python3 doc/offline/smoketest.py site/en site/de
 ```
 
 Beide Sprachprojekte werden nach `site/{en,de}` gerendert, die
@@ -106,8 +106,8 @@ gebaut.
 
 Die Seite steht auf dem
 [zotqda-quarto-theme](https://github.com/fre-ms/zotqda-quarto-theme), das nach
-`docs/_theme/` **vendort** ist, damit die Dokumentation ohne Nachbar-Checkout
-baut. `docs/update-theme.sh` holt eine neuere Fassung herein.
+`doc/_theme/` **vendort** ist, damit die Dokumentation ohne Nachbar-Checkout
+baut. `doc/update-theme.sh` holt eine neuere Fassung herein.
 
 Quarto ist gepinnt, und zwar auf dieselbe Fassung wie die übrigen
 Ökosystem-Seiten, damit alle auf derselben Version rendern. Hebungen sind

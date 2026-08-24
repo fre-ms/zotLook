@@ -33,7 +33,7 @@ that has lost their Quick Look panel.
 addon/     copied verbatim into the XPI; the plugin as Zotero sees it
 native/    Swift helpers, compiled by build.sh rather than shipped
 asset/     images
-docs/      this documentation
+doc/       this documentation
 test/      test suite
 build/     the packaged .xpi; git-ignored
 ```
@@ -92,8 +92,8 @@ compare is the version, which is what actually goes stale.
 ## This documentation
 
 ```bash
-cd docs && ./build.sh
-python3 docs/offline/smoketest.py site/en site/de
+cd doc && ./build.sh
+python3 doc/offline/smoketest.py site/en site/de
 ```
 
 Both language projects render into `site/{en,de}`, the offline repairs are
@@ -101,8 +101,8 @@ applied, and one linked PDF per language is built with Typst.
 
 The site is built on the
 [zotqda-quarto-theme](https://github.com/fre-ms/zotqda-quarto-theme), which is
-**vendored** into `docs/_theme/` so the documentation builds without a sibling
-checkout. `docs/update-theme.sh` pulls a newer copy in.
+**vendored** into `doc/_theme/` so the documentation builds without a sibling
+checkout. `doc/update-theme.sh` pulls a newer copy in.
 
 Quarto is pinned, and the pin is the one the other ecosystem sites use, so they
 all render on the same version. Upgrades are deliberate: build with
