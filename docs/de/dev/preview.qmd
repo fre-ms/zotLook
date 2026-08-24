@@ -127,6 +127,38 @@ Entpackt wird unter macOS und Linux mit `/usr/bin/unzip`, unter Windows mit
 `tar.exe` — dem bsdtar, das Windows seit Windows 10 mitbringt und das dort an
 die Stelle des fehlenden `unzip` tritt.
 
+### Das Inhaltsverzeichnis
+
+Gelesen wird die Navigation, die das Buch selbst führt — **EPUB 3** im
+Navigationsdokument (das Manifest-Element mit `properties="nav"`), **EPUB 2** in
+der NCX-Datei, auf die die Spine mit ihrem `toc`-Attribut zeigt. Beide Formate
+werden gelesen, das neuere zuerst. Titel und Verschachtelung stammen damit vom
+Verlag; aus Überschriften abgeleitete wären schlechter geraten.
+
+::: {.callout-note title="Warum <details> und keine Skripte"}
+Die Systemvorschau von macOS stellt Seiten mit **abgeschaltetem JavaScript** dar
+und verweigert gewöhnliche Navigation. Ein zuklappbares Verzeichnis scheint
+damit unmöglich — ist es aber nicht: `<details>`/`<summary>` klappt nativ auf,
+ohne ein einziges Skript, und Sprungmarken innerhalb derselben Seite werden
+ausgeführt.
+
+Beides wurde nachgemessen, indem in einer echten Vorschau geklickt wurde: Das
+Aufklappen funktioniert, der Sprung funktioniert. Deshalb ist das Verzeichnis so
+gebaut und nicht anders.
+:::
+
+Jedes Kapitel bekommt beim Zusammenbau einen **eigenen Anker**
+(`zotlook-ch0`, `zotlook-ch1`, …). Das ist nötig, weil die Navigation oft nur
+auf die Datei zeigt und die bucheigenen `id`s fehlen können. Zeigt ein Eintrag
+dagegen auf eine Stelle *innerhalb* eines Kapitels, wird dorthin gesprungen —
+aber nur, wenn diese `id` im zusammengesetzten Dokument tatsächlich vorhanden
+ist; das Bereinigen entfernt Skripte und Ereignis-Attribute, `id`s bleiben also
+erhalten.
+
+Bringt ein Buch keine brauchbare Navigation mit, entsteht **kein** Kasten. Die
+Vorschau eines Dokuments ohne Kapitel soll wie das Dokument aussehen und nicht
+wie eine Funktion, die versagt hat.
+
 Weil das Plugin nicht zuverlässig feststellen kann, ob eine
 EPUB-Vorschau-Erweiterung installiert ist, ist die Wandlung eine Einstellung
 statt einer Vermutung.

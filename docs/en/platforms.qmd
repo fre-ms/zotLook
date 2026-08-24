@@ -135,11 +135,17 @@ that suit a research library particularly well:
 | [**Apparency**](https://mothersruin.com/software/Apparency/) | what an application is made of | free |
 
 ::: {.callout-tip title="Book Preview and zotLook's EPUB preview"}
-zotLook converts EPUBs itself because Quick Look cannot show one. Install
-**Book Preview** and Quick Look has an EPUB preview of its own — at which point
-it is worth turning the conversion off in [Settings](settings.qmd): the book
-then goes to Quick Look untouched, table of contents and all. The same holds
-for MOBI and DJVU, which zotLook only ever hands over anyway.
+Both show EPUBs, and both with a table of contents — zotLook's own conversion
+[carries one](features.qmd#what-it-previews). So the choice is one of taste:
+zotLook sets the book in a book-width Palatino column and keeps the publisher's
+stylesheets, Book Preview shows it in its own presentation.
+
+To give Book Preview the right of way, switch the conversion off in
+[Settings](settings.qmd) and the book goes to Quick Look untouched.
+
+For **MOBI, DJVU and the comic formats** there is no choice: zotLook cannot
+convert those and only ever hands them over, so the extension is the only route
+to a preview at all.
 :::
 
 ::: {.callout-important title="When two extensions claim the same format"}

@@ -14,7 +14,7 @@ has:
 - [**GNOME Sushi**](https://gitlab.gnome.org/GNOME/sushi) on **Linux**,
 - [**QuickLook**](https://github.com/QL-Win/QuickLook) on **Windows**.
 
-Whatever those can show, zotLook can therefore show as well. And if you [extend a preview program with plugins](platforms.qmd#extending-the-preview), you extend what zotLook can do with it.
+[Whatever those can show](platforms.qmd#which-formats-appear-where), zotLook can therefore show as well. And if you [extend a preview program with plugins](platforms.qmd#extending-the-preview), you extend what zotLook can do with it.
 
 Beyond that, **Ctrl+Shift+Space** builds a **contact sheet** of a PDF: a grid of
 every page, its column count adjustable. **That helps most with long documents

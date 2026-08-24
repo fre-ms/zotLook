@@ -42,6 +42,13 @@ Schriften und eingebettete SVGs finden sich, weil relative Adressen sowohl im
 Markup als auch im CSS umgeschrieben werden. Ein gewandeltes Buch wird
 zwischengespeichert, bis sich die Datei ändert.
 
+Am Kopf steht ein **Inhaltsverzeichnis**, das sich zuklappen lässt und aus dem
+ein Klick ins jeweilige Kapitel springt — auch in der Systemvorschau, in der
+JavaScript abgeschaltet ist. Die Titel und ihre Verschachtelung stammen aus der
+Navigation, die das Buch selbst mitbringt, sind also die des Verlags und nicht
+aus Überschriften geraten. Bringt ein Buch keine Navigation mit, entfällt der
+Kasten.
+
 Weil das Plugin nicht zuverlässig feststellen kann, ob eine EPUB-Erweiterung
 installiert ist, ist die Wandlung eine [Einstellung](settings.qmd) statt einer
 Vermutung: Abschalten, und das Buch geht wie jede andere Datei an die Vorschau.

@@ -140,12 +140,18 @@ Literatursammlung besonders in Frage kommt:
 | [**Apparency**](https://mothersruin.com/software/Apparency/) | Innenleben von Programmen | frei |
 
 ::: {.callout-tip title="Book Preview und die EPUB-Vorschau von zotLook"}
-zotLook wandelt EPUBs selbst, weil Quick Look es von Haus aus nicht kann.
-Installieren Sie **Book Preview**, hat Quick Look eine eigene EPUB-Vorschau —
-und dann lohnt es sich, die Wandlung in den
-[Einstellungen](settings.qmd) abzuschalten: Das Buch geht dann unverändert an
-Quick Look, mitsamt dessen Inhaltsverzeichnis. Für MOBI und DJVU gilt dasselbe,
-die reicht zotLook ohnehin nur weiter.
+Beide zeigen EPUBs, und beide mit Inhaltsverzeichnis — zotLooks eigene Wandlung
+[bringt eines mit](features.qmd#was-angezeigt-wird). Die Wahl ist also eine des
+Geschmacks: zotLook setzt das Buch in einer buchbreiten Palatino-Spalte und
+behält die Stylesheets des Verlags, Book Preview zeigt es in seiner eigenen
+Darstellung.
+
+Wollen Sie Book Preview den Vortritt lassen, schalten Sie die Wandlung in den
+[Einstellungen](settings.qmd) ab — das Buch geht dann unverändert an Quick Look.
+
+Für **MOBI, DJVU und Comic-Formate** gibt es keine Wahl: Die kann zotLook nicht
+wandeln und reicht sie ohnehin nur weiter. Dort ist die Erweiterung der einzige
+Weg zu einer Vorschau.
 :::
 
 ::: {.callout-important title="Wenn zwei Erweiterungen dasselbe Format beanspruchen"}

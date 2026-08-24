@@ -14,7 +14,7 @@ sondern steuert die Vorschau an, die das System bereits hat:
 - [**GNOME Sushi**](https://gitlab.gnome.org/GNOME/sushi) unter **Linux**,
 - [**QuickLook**](https://github.com/QL-Win/QuickLook) unter **Windows**.
 
-Was diese Vorschau-Programme anzeigen können, kann somit auch zotLook anzeigen.
+[Was diese Vorschau-Programme anzeigen können](platforms.qmd#welche-formate-wo-angezeigt-werden), kann somit auch zotLook anzeigen.
 Wenn Sie [die Funktionalität der Vorschau-Programme durch Plugins erweitern](platforms.qmd#die-vorschau-erweitern), erweitern Sie damit auch die Funktionalität von zotLook.
 
 Darüber hinaus erzeugt zotLook mit **Strg+Umschalt+Leertaste** **Kontaktbögen**

@@ -119,5 +119,33 @@ as text. A converted book is cached and reused until its file changes.
 Unpacking uses `/usr/bin/unzip` on macOS and Linux, and `tar.exe` — the bsdtar
 Windows has shipped since Windows 10 — on Windows, which has no `unzip`.
 
+### The table of contents
+
+What is read is the navigation the book itself carries — **EPUB 3** keeps it in
+a navigation document (the manifest item with `properties="nav"`), **EPUB 2** in
+the NCX file the spine names in its `toc` attribute. Both are read, the newer
+first. Titles and nesting are therefore the publisher's; ones derived from
+headings would be guesses.
+
+::: {.callout-note title="Why <details> and no script"}
+macOS renders previews with **JavaScript disabled** and refuses ordinary
+navigation, which appears to rule out a contents box that folds. It does not:
+`<details>`/`<summary>` opens natively, without a line of script, and anchors
+within the same page are followed.
+
+Both were measured by clicking them in a real preview — the fold works, the jump
+works. That is why the contents are built this way and not another.
+:::
+
+Each chapter is given an **anchor of its own** during assembly (`zotlook-ch0`,
+`zotlook-ch1`, …). It is needed because the navigation often points at the file
+alone and the book's own ids may be missing. Where an entry does point inside a
+chapter, that is where it jumps — but only if the id really survives into the
+assembled document; sanitising removes scripts and event attributes and leaves
+ids alone.
+
+A book with no usable navigation gets **no** box. The preview of a document
+without chapters should look like the document, not like a feature that failed.
+
 Because the plugin cannot reliably tell whether an EPUB preview extension is
 installed, the conversion is a setting rather than a guess.
