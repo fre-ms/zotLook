@@ -5,28 +5,31 @@ author: "fre.ms"
 ---
 
 **zotLook** is a plugin for the open-source reference manager
-[Zotero](https://www.zotero.org/). It previews the attachment of the selected
-Zotero item when you press **Space**, the way a file manager does. zotLook
-carries no viewer of its own; it drives the preview the system already has:
+[**Zotero**](https://www.zotero.org/). It previews the attachment of the
+selected Zotero item when you press **Space**, the way a file manager does.
+zotLook carries no viewer of its own; it drives the preview the system already
+has:
 
-- [Quick Look](https://en.wikipedia.org/wiki/Quick_Look) on **macOS**,
-- [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi) on **Linux**,
-- [QuickLook](https://github.com/QL-Win/QuickLook) on **Windows**.
+- [**Quick Look**](https://en.wikipedia.org/wiki/Quick_Look) on **macOS**,
+- [**GNOME Sushi**](https://gitlab.gnome.org/GNOME/sushi) on **Linux**,
+- [**QuickLook**](https://github.com/QL-Win/QuickLook) on **Windows**.
 
-Whatever those can show, zotLook can show.
+Whatever those can show, zotLook can therefore show as well.
 
 Beyond that, **Ctrl+Shift+Space** builds a **contact sheet** of a PDF: a grid of
-every page, its column count adjustable. That helps most with long documents —
-a book, a scanned volume — because the system's preview will show you every
-page but only one at a time. The finished contact sheet is shown, again, by the
-system preview — and **a click on a page opens it in Zotero's reader**. Building
-one can take a few seconds; a progress indicator names the page it has reached.
+every page, its column count adjustable. **That helps most with long documents
+such as books**, because the system's preview will show you every page but only
+one at a time. The finished contact sheet is shown, again, by the system
+preview — and **a click on a page opens it in Zotero's reader**. Building one
+can take a few seconds; a progress indicator names the page zotLook is
+currently rendering.
 
 What sets zotLook apart, besides previewing on **every platform**, is that
 **Zotero's annotations become part of the preview** — in the system's preview
 as well as on the contact sheet. Zotero keeps annotations in its database
 rather than in the file, so a preview would normally show the document without
-them. It can be switched off if you would rather see the file as it is stored.
+them. The feature can be switched off in zotLook if you would rather see the
+file as it is stored.
 
 ![](asset/screenshot.png)
 
@@ -35,7 +38,7 @@ them. It can be switched off if you would rather see the file as it is stored.
 | | |
 |---|---|
 | **Zotero** | 7 or later. Tested with Zotero 10. |
-| **macOS** | 12 (Monterey) or later. Nothing to install; Quick Look is part of the system. |
+| **macOS** | Nothing to install; Quick Look is part of the system. |
 | **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). On Debian and Ubuntu: `sudo apt install gnome-sushi`. |
 | **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook), running. Its Microsoft Store build and its desktop build both work. |
 
@@ -56,7 +59,7 @@ it — the two carry different plugin IDs. If you have both, disable one, or the
 Space key will be claimed twice.
 :::
 
-## The first minute
+## Getting started with zotLook
 
 Select an item and press **Space**. If the item is a parent rather than an
 attachment, zotLook picks one of its attachments — a PDF before an EPUB before

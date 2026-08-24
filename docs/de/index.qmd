@@ -5,31 +5,32 @@ author: "fre.ms"
 ---
 
 **zotLook** ist ein Plugin für den quelloffenen Literaturmanager
-[Zotero](https://www.zotero.org/). Es zeigt den Anhang des ausgewählten
+[**Zotero**](https://www.zotero.org/). Es zeigt den Anhang des ausgewählten
 Zotero-Eintrags in einer Vorschau, sobald Sie **Leertaste** drücken — so, wie
 ein Dateimanager es tut. zotLook bringt dafür keinen eigenen Betrachter mit,
 sondern steuert die Vorschau an, die das System bereits hat:
 
-- [Quick Look](https://en.wikipedia.org/wiki/Quick_Look) unter **macOS**,
-- [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi) unter **Linux**,
-- [QuickLook](https://github.com/QL-Win/QuickLook) unter **Windows**.
+- [**Quick Look**](https://en.wikipedia.org/wiki/Quick_Look) unter **macOS**,
+- [**GNOME Sushi**](https://gitlab.gnome.org/GNOME/sushi) unter **Linux**,
+- [**QuickLook**](https://github.com/QL-Win/QuickLook) unter **Windows**.
 
-Was diese Vorschau-Programme anzeigen können, kann zotLook anzeigen.
+Was diese Vorschau-Programme anzeigen können, kann somit auch zotLook anzeigen.
 
 Darüber hinaus erzeugt zotLook mit **Strg+Umschalt+Leertaste** **Kontaktbögen**
 von PDF-Dateien: ein Übersichtsraster über alle Seiten, dessen Spaltenzahl sich
-einstellen lässt. Das hilft vor allem bei umfangreichen Dokumenten wie Büchern,
+einstellen lässt. **Das hilft vor allem bei umfangreichen Dokumenten wie Büchern**,
 denn die Vorschau des Betriebssystems zeigt zwar jede Seite, aber immer nur eine
 auf einmal. Den fertigen Kontaktbogen zeigt wiederum die Systemvorschau — und
 **ein Klick auf eine Seite öffnet sie im Zotero-Reader**. Das Erzeugen kann einige
-Sekunden dauern; eine Verlaufsanzeige nennt dabei die Seite, bei der zotLook
-gerade ist.
+Sekunden dauern; eine Verlaufsanzeige nennt dabei die Seite, für die zotLook
+gerade die Vorschau generiert.
 
-Eine Besonderheit von zotLook ist neben der **plattformübergreifenden**
-Vorschau, dass **Zotero-Annotationen Bestandteil der Vorschau** werden — in der
+Eine Besonderheit von zotLook ist neben der **plattformübergreifenden Vorschau**,
+dass **Zotero-Annotationen Bestandteil der Vorschau** werden — in der
 Vorschau des Betriebssystems wie auch im Kontaktbogen. Zotero bewahrt Annotationen
 in seiner Datenbank auf und nicht in der Datei; normalerweise zeigte die Vorschau
-daher das Dokument ohne Annotationen. Auf Wunsch lässt sich die Funktion abschalten.
+daher das Dokument ohne Annotationen. Auf Wunsch lässt sich die Funktion in zotLook
+abschalten.
 
 ![](asset/screenshot.png)
 
@@ -38,7 +39,7 @@ daher das Dokument ohne Annotationen. Auf Wunsch lässt sich die Funktion abscha
 | | |
 |---|---|
 | **Zotero** | 7 oder neuer. Getestet mit Zotero 10. |
-| **macOS** | 12 (Monterey) oder neuer. Nichts zu installieren; die Quick Look Vorschau gehört zum System. |
+| **macOS** | Nichts zu installieren; die Quick Look Vorschau gehört zum System. |
 | **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). Unter Debian und Ubuntu: `sudo apt install gnome-sushi`. |
 | **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook), laufend. Die Store-Fassung und die Desktop-Fassung antworten gleichermaßen. |
 
@@ -59,7 +60,7 @@ darüber — die beiden tragen verschiedene Plugin-Kennungen. Wenn Sie beide hab
 schalten Sie eines ab, sonst wird die Leertaste doppelt beansprucht.
 :::
 
-## Die erste Minute
+## Schnellstart mit zotLook
 
 Wählen Sie einen Eintrag und drücken Sie **Leertaste**. Handelt es sich um einen
 Elterneintrag statt um einen Anhang, sucht zotLook einen Anhang aus — ein PDF vor
