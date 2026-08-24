@@ -18,15 +18,15 @@ Whatever those can show, zotLook can show.
 Beyond that, **Ctrl+Shift+Space** builds a **contact sheet** of a PDF: a grid of
 every page, its column count adjustable. That helps most with long documents —
 a book, a scanned volume — because the system's preview will show you every
-page but only one at a time. The finished sheet is shown by that same system
-preview, and a click on a page opens it in Zotero's reader. Building one can
-take a few seconds; a progress indicator names the page it has reached.
+page but only one at a time. The finished contact sheet is shown, again, by the
+system preview — and **a click on a page opens it in Zotero's reader**. Building
+one can take a few seconds; a progress indicator names the page it has reached.
 
 What sets zotLook apart, besides previewing on **every platform**, is that
-**Zotero's annotations are part of the preview** — in the system's preview and
-on the contact sheet alike. Zotero keeps them in its database rather than in
-the file, so without this a preview would show an unmarked document. It can be
-switched off if you would rather see the file as it is stored.
+**Zotero's annotations become part of the preview** — in the system's preview
+as well as on the contact sheet. Zotero keeps annotations in its database
+rather than in the file, so a preview would normally show the document without
+them. It can be switched off if you would rather see the file as it is stored.
 
 ![](asset/screenshot.png)
 
