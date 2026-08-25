@@ -197,20 +197,22 @@ def add_seo(site: Path) -> None:
     if not sitemap.exists():
         return
 
-    urls = {}
-    for loc in re.findall(r"<loc>([^<]+)</loc>", sitemap.read_text("utf-8")):
-        urls[loc.rsplit("/", 1)[-1] if "/" not in loc else loc] = loc
-    # Keyed by the page's path relative to the site, which is what we can
-    # compute while walking; the sitemap gives absolute URLs for the same set.
+    locs = re.findall(r"<loc>([^<]+)</loc>", sitemap.read_text("utf-8"))
+    # Map each page (by its path relative to the site) to its sitemap URL. A
+    # URL belongs to the page whose relative path is the LONGEST suffix of it:
+    # a short name like "exchange.html" must not capture the URL of
+    # ".../dev/exchange.html", or the two would share a single canonical.
+    rels = [p.relative_to(site).as_posix() for p in site.rglob("*.html")]
     by_path = {}
     base = None
-    for loc in urls.values():
-        for page in site.rglob("*.html"):
-            rel = page.relative_to(site).as_posix()
-            if loc.endswith("/" + rel):
-                by_path[rel] = loc
-                base = loc[: -len(rel)]           # …/latest/en/
-                break
+    for loc in locs:
+        best = ""
+        for rel in rels:
+            if loc.endswith("/" + rel) and len(rel) > len(best):
+                best = rel
+        if best:
+            by_path[best] = loc
+            base = loc[: -len(best)]              # …/latest/en/
 
     if not by_path:
         return

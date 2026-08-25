@@ -17,14 +17,17 @@ The cover takes its title from website.title and its subtitle from the
 front matter of the language's index.qmd (falling back to
 "Documentation"/"Dokumentation"), so cover and website cannot drift
 apart. The author — mandatory, the orange-book cover Quarto uses for
-Typst books fails without one — comes from the AUTHOR argument or, if
-absent, from the same front matter's ``author:``.
+Typst books fails without one — is resolved centrally: the AUTHOR
+argument wins, then the same front matter's ``author:``, then the theme
+extension's ``author:`` (``_extensions/zotqda-theme/_extension.yml``,
+mirrored into every language project), so a site needs no per-page
+author to build.
 
-If the project keeps page graphics in an asset/ directory (the layout
-the build scripts mirror into each language project), it is copied into
-the book so no image breaks. Executable pages run exactly as they do
-for the site; set QUARTO_PYTHON before calling, as the site build
-already does. Needs PyYAML.
+If the project keeps page graphics in an asset/ or figures/ directory
+(the layout the build scripts mirror into each language project), it is
+copied into the book so no image breaks. Executable pages run exactly
+as they do for the site; set QUARTO_PYTHON before calling, as the site
+build already does. Needs PyYAML.
 """
 
 import re
@@ -58,6 +61,17 @@ FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---", re.S)
 def index_front_matter(lang_dir):
     m = FRONT_MATTER.match((lang_dir / "index.qmd").read_text("utf-8"))
     return yaml.safe_load(m.group(1)) if m else {}
+
+
+def theme_author(lang_dir):
+    # The ecosystem author lives once, in the theme extension, and the
+    # build mirrors that extension into every language project. Reading
+    # it here means a site inherits the author centrally and no PDF
+    # breaks for want of a per-page ``author:``.
+    ext = lang_dir / "_extensions" / "zotqda-theme" / "_extension.yml"
+    if ext.exists():
+        return (yaml.safe_load(ext.read_text("utf-8")) or {}).get("author")
+    return None
 
 
 def walk_hrefs(node):
@@ -99,14 +113,15 @@ def main(lang_dir, output_pdf, author=None):
     # the cover prints plain text; strip markdown emphasis markers
     subtitle = re.sub(r"\*+", "", meta.get("subtitle", "")) or (
         "Dokumentation" if lang == "de" else "Documentation")
-    author = author or meta.get("author")
+    author = author or meta.get("author") or theme_author(lang_dir)
     if isinstance(author, list):
         author = ", ".join(str(a) for a in author)
     if not author:
         raise SystemExit(
             "make_pdf: no author — the Typst book cover fails without "
-            "one. Pass it as the third argument or set `author:` in "
-            f"{lang_dir.name}/index.qmd's front matter.")
+            "one. Pass it as the third argument, set `author:` in "
+            f"{lang_dir.name}/index.qmd's front matter, or give the theme "
+            "extension an `author:`.")
 
     with tempfile.TemporaryDirectory(prefix="qda-pdf-") as tmp:
         tmp = Path(tmp)
@@ -119,12 +134,13 @@ def main(lang_dir, output_pdf, author=None):
             dst.write_text(REFS_BLOCK.sub("\n", src.read_text("utf-8")),
                            encoding="utf-8")
 
-        # Pages may reference graphics under asset/ (mirrored into the
-        # language project by the site build); without the copy every
-        # image would break the book render.
-        assets = lang_dir / "asset"
-        if assets.exists():
-            shutil.copytree(assets, tmp / "asset")
+        # Pages may reference graphics under asset/ or figures/ (mirrored
+        # into the language project by the site build); without the copy
+        # every image would break the book render.
+        for graphics in ("asset", "figures"):
+            src = lang_dir / graphics
+            if src.exists():
+                shutil.copytree(src, tmp / graphics)
 
         book = {
             "project": {"type": "book"},
