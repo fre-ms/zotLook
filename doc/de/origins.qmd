@@ -28,6 +28,52 @@ Die Architektur ist durchgehend seine:
 Die Plugin-Kennung lautet `zotlook@fre.ms` und unterscheidet sich von Chaprons —
 die beiden installieren sich damit nebeneinander statt übereinander.
 
+## Warum eine Abspaltung
+
+Rund die Hälfte von Chaprons Code steht noch, und die Architektur ist seine.
+Warum dann nicht Beiträge zu seinem Projekt statt einer eigenen Linie?
+
+**Der Umfang.** Was hier hinzugekommen ist, lässt sich nicht als Pull Request
+stellen: zwei weitere Plattformwege, ein eigener Seiten-Renderer, die
+Annotations-Kette, die EPUB-Wandlung samt Inhaltsverzeichnis, eine
+Einstellungsseite, eine Testsuite. Das ist keine Erweiterung, das ist eine
+andere Größenordnung — und niemandem wäre gedient, wenn ein fremdes Projekt so
+etwas als Vorschlag auf den Tisch bekäme.
+
+**Das Ziel.** Chapron beschreibt sein Plugin als *„A Zotero 7+ plugin **for
+macOS**"* und stützt es auf `qlmanage`, den Quick-Look-Befehl des Systems. Das
+ist eine klare und legitime Entscheidung: ein Plugin, das auf einem System genau
+das tut, was es soll. zotLook zielt anders — auf alle drei Systeme — und das ist
+kein besseres Ziel, sondern ein anderes.
+
+::: {.callout-note title="Plattformübergreifend kostet etwas"}
+Der Kontaktbogen zeigt es am deutlichsten. Er wurde zunächst von einem
+mitgelieferten Swift-Programm über PDFKit gezeichnet: **0,12 s für 30 Seiten**.
+Ersetzt hat ihn pdf.js, das Zotero ohnehin mitbringt und das überall läuft —
+**0,42 s** für dieselben Seiten, also gut viermal so lang.
+
+Das Swift-Programm lief nur unter macOS. Es zu behalten hätte zwei Renderer und
+zwei Arten bedeutet, Annotationen zu zeichnen, die einander optisch gleichen
+müssen. Die Entscheidung fiel gegen die Geschwindigkeit — unter der Zielsetzung
+„nur macOS" wäre sie umgekehrt ausgefallen, und das zu Recht.
+:::
+
+Die vier Beweggründe, in der Reihenfolge ihres Gewichts:
+
+1. **Plattformübergreifend.** Vorschau unter Linux und Windows, nicht nur unter
+   macOS.
+2. **Annotationen in der Vorschau.** Zotero bewahrt sie in seiner Datenbank auf;
+   ohne Zutun zeigt eine Vorschau ein unmarkiertes Dokument. Das war die Lücke,
+   nach der im Zotero-Forum am häufigsten gefragt wurde.
+3. **Verweise vom Kontaktbogen in den Reader.** Ein Klick auf eine Miniatur
+   öffnet genau diese Seite — das macht aus einer Übersicht ein Werkzeug.
+4. **EPUB-Vorschau auf allen Systemen.** Keine der drei Systemvorschauen stellt
+   ein E-Book dar, deshalb wandelt zotLook es selbst.
+
+Die Abspaltung trägt eine eigene Plugin-Kennung, damit beide nebeneinander
+bestehen können, und die MIT-Lizenz samt Chaprons Copyright-Vermerk unverändert
+weiter. Was hier entsteht, steht ihm offen — es ist zum guten Teil sein Code.
+
 ## Weiter zurück
 
 Dahinter steht [ZoteroQuickLook](https://github.com/mronkko/ZoteroQuickLook) von

@@ -27,6 +27,50 @@ The architecture is his throughout:
 The plugin ID is `zotlook@fre.ms`, distinct from Chapron's, so the two install
 side by side rather than over one another.
 
+## Why a fork
+
+About half of Chapron's code is still here and the architecture is his. Why not
+contribute to his project rather than start a line of one's own?
+
+**The size of it.** What has been added cannot be offered as a pull request: two
+further platform routes, a page renderer, the annotation pipeline, the EPUB
+conversion with its contents list, a settings pane, a test suite. That is not an
+addition but a different order of magnitude, and nobody is served by dropping
+something like it on another project's doorstep as a proposal.
+
+**The aim.** Chapron describes his plugin as *"A Zotero 7+ plugin **for macOS**"*
+and builds it on `qlmanage`, the system's Quick Look command. That is a clear
+and legitimate decision: a plugin that does exactly what it should on one
+system. zotLook aims elsewhere — at all three — and that is not a better aim,
+only a different one.
+
+::: {.callout-note title="Cross-platform costs something"}
+The contact sheet shows it most plainly. It was first drawn by a bundled Swift
+program through PDFKit: **0.12 s for 30 pages**. What replaced it is the pdf.js
+build Zotero already ships, which runs everywhere — **0.42 s** for the same
+pages, four times as long.
+
+The Swift program only ever ran on macOS. Keeping it would have meant two
+renderers and two ways of drawing annotations that had to keep looking alike.
+The decision went against speed — under an aim of "macOS only" it would have
+gone the other way, and rightly.
+:::
+
+The four reasons, in the order of their weight:
+
+1. **Cross-platform.** Previews on Linux and Windows, not only on macOS.
+2. **Annotations in the preview.** Zotero keeps them in its database, so without
+   this a preview shows an unmarked document. It was the gap asked about most
+   often in the Zotero forums.
+3. **Links from the contact sheet into the reader.** A click on a thumbnail
+   opens that very page — which turns an overview into a tool.
+4. **EPUB previews on every system.** None of the three system previews renders
+   an e-book, so zotLook converts it itself.
+
+The fork carries a plugin ID of its own so that both can be installed side by
+side, and the MIT licence with Chapron's copyright notice unchanged. What is
+built here is open to him — a good part of it is his code.
+
 ## Further back
 
 Behind that stands [ZoteroQuickLook](https://github.com/mronkko/ZoteroQuickLook)
