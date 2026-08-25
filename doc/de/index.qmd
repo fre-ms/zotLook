@@ -2,6 +2,8 @@
 title: "zotLook"
 subtitle: "Dokumentation"
 author: "fre.ms"
+description: >-
+  Was zotLook ist, was es braucht und wie man es installiert: Zotero-Anhänge mit der Leertaste ansehen, unter macOS, Linux und Windows.
 ---
 
 **zotLook** ist ein Plugin für den quelloffenen Literaturmanager

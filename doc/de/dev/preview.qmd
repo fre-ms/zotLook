@@ -1,5 +1,7 @@
 ---
 title: "Eine Vorschau ansteuern"
+description: >-
+  Drei Vorschauen ansteuern: QLPreviewPanel unter macOS, GNOME Sushi über D-Bus, QuickLooks Named Pipe unter Windows, und die EPUB-Wandlung.
 ---
 
 Drei Systeme, drei Mechanismen, ein Verhalten: Taste drücken, Vorschau

@@ -1,5 +1,7 @@
 ---
 title: "Einstellungen"
+description: >-
+  Tastenkürzel, welcher Anhang bei mehreren gezeigt wird, Raster und Seitenlimit des Kontaktbogens, Annotationen und EPUB-Wandlung.
 ---
 
 **Zotero → Einstellungen → zotLook.**

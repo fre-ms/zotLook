@@ -1,5 +1,7 @@
 ---
 title: "Legal notice"
+description: >-
+  Provider identification for zotlook.org under § 5 DDG, and who is responsible for the site and for the software.
 ---
 
 Information required by § 5 DDG (*Digitale-Dienste-Gesetz*, the German Digital

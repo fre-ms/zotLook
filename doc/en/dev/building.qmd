@@ -1,5 +1,7 @@
 ---
 title: "Building and testing"
+description: >-
+  Building the plugin and this documentation, the repository layout, the test suite and what CI checks on each platform.
 ---
 
 ## Build

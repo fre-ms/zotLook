@@ -1,5 +1,7 @@
 ---
 title: "What it does"
+description: >-
+  Every shortcut, what each one previews, and how the contact sheet, the EPUB conversion and the annotations work from a reader's side.
 ---
 
 ## Shortcuts

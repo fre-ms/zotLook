@@ -1,5 +1,7 @@
 ---
 title: "Architektur"
+description: >-
+  Wie das Plugin gebaut ist: die Skripte, das Kontextmenü, Fluents Falle der leeren Beschriftung, Tastatur und die Wahl des Anhangs.
 ---
 
 ## Die Skripte

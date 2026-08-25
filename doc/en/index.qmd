@@ -2,6 +2,8 @@
 title: "zotLook"
 subtitle: "Documentation"
 author: "fre.ms"
+description: >-
+  What zotLook is, what it needs, and how to install it: preview Zotero attachments with the Space key on macOS, Linux and Windows.
 ---
 
 **zotLook** is a plugin for the open-source reference manager

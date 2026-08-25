@@ -1,5 +1,7 @@
 ---
 title: "Plattformen"
+description: >-
+  Welche Dateiformate die Vorschau je System zeigt, was macOS, Linux und Windows brauchen, und wie man sie mit Plugins erweitert.
 ---
 
 zotLook bringt keinen Betrachter mit. Es steuert die Vorschau an, die das System

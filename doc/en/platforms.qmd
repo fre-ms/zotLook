@@ -1,5 +1,7 @@
 ---
 title: "Platforms"
+description: >-
+  Which file formats each system's preview shows, what macOS, Linux and Windows each need, and how to extend them with plugins.
 ---
 
 zotLook carries no viewer. It drives the preview the system already has, which

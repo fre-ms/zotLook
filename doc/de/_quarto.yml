@@ -12,6 +12,15 @@ website:
   title: zotLook
   site-url: https://zotlook.org/latest/de/
   repo-url: https://github.com/fre-ms/zotLook
+  description: >-
+    Zotero-Anhänge mit der Leertaste in der Vorschau ansehen — über Quick
+    Look unter macOS, GNOME Sushi unter Linux und QuickLook unter Windows.
+    Mit eingezeichneten Zotero-Annotationen, Kontaktbögen aller Seiten und
+    EPUB-Vorschau.
+  image: asset/screenshot.png
+  favicon: asset/zotlook-logo.svg
+  open-graph: true
+  twitter-card: true
   navbar:
     search: true
     pinned: true

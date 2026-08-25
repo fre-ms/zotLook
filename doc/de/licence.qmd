@@ -1,5 +1,7 @@
 ---
 title: "Lizenz"
+description: >-
+  zotLook steht unter der MIT-Lizenz, übernommen von Zotero7QuickLook, samt den Bestandteilen, die diese Dokumentation verwendet.
 ---
 
 zotLook steht unter der **MIT-Lizenz**, übernommen von

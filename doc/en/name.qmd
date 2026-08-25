@@ -1,5 +1,7 @@
 ---
 title: "Name and mark"
+description: >-
+  Where the name zotLook comes from, the Creole coincidence behind it, and why the mark is a contact sheet shaped into a Z.
 ---
 
 ## The name

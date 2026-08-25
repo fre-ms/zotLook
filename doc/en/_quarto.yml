@@ -12,6 +12,14 @@ website:
   title: zotLook
   site-url: https://zotlook.org/latest/en/
   repo-url: https://github.com/fre-ms/zotLook
+  description: >-
+    Preview Zotero attachments by pressing Space — through Quick Look on
+    macOS, GNOME Sushi on Linux and QuickLook on Windows. With your Zotero
+    annotations drawn in, contact sheets of every page, and EPUB previews.
+  image: asset/screenshot.png
+  favicon: asset/zotlook-logo.svg
+  open-graph: true
+  twitter-card: true
   navbar:
     search: true
     pinned: true

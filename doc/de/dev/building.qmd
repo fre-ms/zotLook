@@ -1,5 +1,7 @@
 ---
 title: "Bauen und testen"
+description: >-
+  Das Plugin und diese Dokumentation bauen, der Aufbau des Repositorys, die Testsuite und was die CI je Plattform prüft.
 ---
 
 ## Bauen

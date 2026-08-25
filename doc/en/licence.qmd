@@ -1,5 +1,7 @@
 ---
 title: "Licence"
+description: >-
+  zotLook is distributed under the MIT licence, inherited from Zotero7QuickLook, together with the components this documentation uses.
 ---
 
 zotLook is distributed under the **MIT licence**, inherited from

@@ -1,5 +1,7 @@
 ---
 title: "Impressum"
+description: >-
+  Anbieterkennzeichnung für zotlook.org nach § 5 DDG, und wer für die Website und für die Software verantwortlich ist.
 ---
 
 Angaben gemäß § 5 DDG.

@@ -1,5 +1,7 @@
 ---
 title: "Der Kontaktbogen"
+description: >-
+  Jede Seite eines PDFs mit pdf.js in Workern zeichnen, Zoteros Annotationen selbst malen, und einen Klick in den Reader führen.
 ---
 
 Jede Seite eines PDFs als JPEG-Miniatur, in einem scrollbaren HTML-Raster, das

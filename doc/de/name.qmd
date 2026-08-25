@@ -1,5 +1,7 @@
 ---
 title: "Name und Zeichen"
+description: >-
+  Woher der Name zotLook kommt, der kreolische Zufall dahinter, und warum das Zeichen ein Kontaktbogen in Form eines Z ist.
 ---
 
 ## Der Name

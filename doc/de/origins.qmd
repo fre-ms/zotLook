@@ -1,5 +1,7 @@
 ---
 title: "Herkunft"
+description: >-
+  zotLook ist eine Abspaltung von Guillaume Chaprons Zotero7QuickLook: was davon erhalten ist, warum eine Abspaltung, und was sie kostet.
 ---
 
 ## Diese Abspaltung

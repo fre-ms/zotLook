@@ -1,5 +1,7 @@
 ---
 title: "Was es kann"
+description: >-
+  Alle Tastenkürzel, was sie zeigen, und wie Kontaktbogen, EPUB-Wandlung und Annotationen aus Sicht des Lesers funktionieren.
 ---
 
 ## Tastenkürzel

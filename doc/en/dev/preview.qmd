@@ -1,5 +1,7 @@
 ---
 title: "Driving a preview"
+description: >-
+  Driving three different previews: QLPreviewPanel on macOS, GNOME Sushi over D-Bus, QuickLook's named pipe on Windows, and the EPUB conversion.
 ---
 
 Three systems, three mechanisms, one behaviour: press the key, the preview

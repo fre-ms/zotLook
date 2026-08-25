@@ -1,5 +1,7 @@
 ---
 title: "Datenschutzerklärung"
+description: >-
+  Was zotlook.org speichert und was nicht: keine Cookies, kein Tracking, und was ein Serverprotokoll zwangsläufig festhält.
 ---
 
 Angaben nach Art. 13 DSGVO.

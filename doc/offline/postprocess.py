@@ -28,6 +28,7 @@ deliberate events. A final sweep fails the run if any page still
 references a known CDN host.
 """
 
+import json
 import re
 import shutil
 import sys
@@ -172,6 +173,88 @@ def assert_self_contained(site: Path) -> None:
                     f"{m.group(0)[:120]}")
 
 
+def add_seo(site: Path) -> None:
+    """Give every page a canonical URL and its translations as alternates.
+
+    Quarto emits neither, and for a site published under a directory per
+    release both are wanted. Every page then exists once per version plus
+    once under ``latest`` — six copies of each page on a site with five
+    releases — and a search engine reading them as separate documents picks
+    one of them arbitrarily and splits the standing of the page across the
+    rest. A canonical link says which one is the page.
+
+    Nothing new has to be configured for it. Quarto has already written
+    sitemap.xml from the project's ``site-url``, which for these sites points
+    at the ``latest`` copy, so the answer is in the build already.
+
+    The alternates come from the language map the theme inlines into every
+    page for its switcher: it pairs each page with its translation, which is
+    exactly what hreflang needs, and it is right there in the page being
+    read. Sites whose translations have different filenames are covered too,
+    because the map is derived from the sidebars rather than from paths.
+    """
+    sitemap = site / "sitemap.xml"
+    if not sitemap.exists():
+        return
+
+    urls = {}
+    for loc in re.findall(r"<loc>([^<]+)</loc>", sitemap.read_text("utf-8")):
+        urls[loc.rsplit("/", 1)[-1] if "/" not in loc else loc] = loc
+    # Keyed by the page's path relative to the site, which is what we can
+    # compute while walking; the sitemap gives absolute URLs for the same set.
+    by_path = {}
+    base = None
+    for loc in urls.values():
+        for page in site.rglob("*.html"):
+            rel = page.relative_to(site).as_posix()
+            if loc.endswith("/" + rel):
+                by_path[rel] = loc
+                base = loc[: -len(rel)]           # …/latest/en/
+                break
+
+    if not by_path:
+        return
+
+    # …/latest/en/ -> …/latest/ , so a sibling language can be addressed
+    root = base.rstrip("/").rsplit("/", 1)[0] + "/" if base else None
+
+    for page in site.rglob("*.html"):
+        rel = page.relative_to(site).as_posix()
+        canonical = by_path.get(rel)
+        if not canonical:
+            continue
+        html = page.read_text("utf-8")
+        if 'rel="canonical"' in html:
+            continue
+
+        links = [f'<link rel="canonical" href="{canonical}">']
+
+        if root:
+            key = f"{site.name}/{rel}"
+            match = re.search(r"var MAP = (\{.*?\});", html, re.S)
+            if match:
+                try:
+                    mapping = json.loads(match.group(1))
+                except ValueError:
+                    mapping = {}
+                for lang, target in sorted(mapping.get(key, {}).items()):
+                    links.append(
+                        f'<link rel="alternate" hreflang="{lang}" '
+                        f'href="{root}{target}">')
+                # Which one an unmatched language gets. The site's own
+                # language is the honest default; there is no neutral copy.
+                if mapping.get(key):
+                    default = mapping[key].get("en") or mapping[key][
+                        sorted(mapping[key])[0]]
+                    links.append(
+                        f'<link rel="alternate" hreflang="x-default" '
+                        f'href="{root}{default}">')
+
+        patched = html.replace("</head>", "\n".join(links) + "\n</head>", 1)
+        if patched != html:
+            page.write_text(patched, "utf-8")
+
+
 def main(argv: list[str]) -> None:
     if not argv:
         raise SystemExit(__doc__)
@@ -182,8 +265,9 @@ def main(argv: list[str]) -> None:
         demodularize(site)
         localize_search(site)
         localize_math(site)
+        add_seo(site)
         assert_self_contained(site)
-        print(f"{site.name}: offline-ready (module, search, math, no CDN)")
+        print(f"{site.name}: offline-ready (module, search, math, no CDN), canonical and alternates set")
 
 
 if __name__ == "__main__":

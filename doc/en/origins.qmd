@@ -1,5 +1,7 @@
 ---
 title: "Origins"
+description: >-
+  zotLook is a fork of Guillaume Chapron's Zotero7QuickLook: what survives of it, why a fork rather than a contribution, and what it cost.
 ---
 
 ## This fork

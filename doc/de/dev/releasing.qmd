@@ -1,5 +1,7 @@
 ---
 title: "Freigeben"
+description: >-
+  Wie eine Freigabe entsteht: Version, update.json, warum Commit und Freigabe zusammengehören, und wie die Dokumentation versioniert wird.
 ---
 
 1. `version` in `addon/manifest.json` erhöhen

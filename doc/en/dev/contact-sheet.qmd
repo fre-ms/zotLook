@@ -1,5 +1,7 @@
 ---
 title: "The contact sheet"
+description: >-
+  Rendering every page of a PDF with pdf.js in workers, drawing Zotero's annotations by hand, and making a click open the reader.
 ---
 
 Every page of a PDF as a JPEG thumbnail, in a scrollable HTML grid that the

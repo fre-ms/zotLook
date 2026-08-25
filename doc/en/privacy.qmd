@@ -1,5 +1,7 @@
 ---
 title: "Privacy policy"
+description: >-
+  What zotlook.org stores and what it does not: no cookies, no tracking, and what a server log necessarily records.
 ---
 
 Information under Article 13 GDPR.

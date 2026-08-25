@@ -1,5 +1,7 @@
 ---
 title: "Architecture"
+description: >-
+  How the plugin is put together: the scripts, the context menu, Fluent's blank-label trap, keyboard handling and how an attachment is chosen.
 ---
 
 ## The scripts

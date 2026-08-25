@@ -1,5 +1,7 @@
 ---
 title: "Settings"
+description: >-
+  Shortcuts, which attachment is previewed when an item has several, the contact sheet grid and page limit, annotations and EPUB rendering.
 ---
 
 **Zotero → Settings → zotLook.**

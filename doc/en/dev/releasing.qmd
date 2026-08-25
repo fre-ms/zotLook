@@ -1,5 +1,7 @@
 ---
 title: "Releasing"
+description: >-
+  How a release is made: the version, update.json, why commit and release belong together, and how the documentation is versioned.
 ---
 
 1. Bump `version` in `addon/manifest.json`
