@@ -6,7 +6,7 @@
 [![Zotero 7–10](https://img.shields.io/badge/Zotero-7%E2%80%9310-CC2936?logo=zotero&logoColor=white)](https://www.zotero.org)
 ![macOS | Linux | Windows](https://img.shields.io/badge/macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 [![Latest release](https://img.shields.io/github/v/release/fre-ms/zotLook)](https://github.com/fre-ms/zotLook/releases)
-[![License](https://img.shields.io/github/license/fre-ms/zotLook)](LICENSE)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 
 A plugin for Zotero 7 and later, in this form tested with Zotero 10, that previews
 attachments when you press **Space**, the way a file manager does. It carries no
