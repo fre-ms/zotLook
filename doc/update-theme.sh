@@ -16,5 +16,5 @@ cp -R "$THEME/_extensions" _theme/_extensions
 cp -R "$THEME/fonts" _theme/fonts
 cp -R "$THEME/offline" offline
 cp -R "$THEME/print" print
-cp "$THEME/scripts/gen_langmap.py" gen_langmap.py
+cp "$THEME/script/gen_langmap.py" gen_langmap.py
 echo "theme, fonts, offline scripts and gen_langmap updated from $THEME"
