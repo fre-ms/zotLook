@@ -39,6 +39,42 @@ final class PreviewSource: NSObject, QLPreviewPanelDataSource {
     }
 }
 
+/// macOS turns ⌘C into a `copy:` action by matching the keystroke against the
+/// main menu's key equivalents, and only then sends it down the responder
+/// chain. An application with no menu bar therefore has no ⌘C at all, whatever
+/// its windows are capable of — which is why text in the preview could be
+/// copied from the context menu but never from the keyboard.
+///
+/// An accessory application never displays this menu. It exists so that the
+/// key equivalents resolve.
+func buildMainMenu() -> NSMenu {
+    let main = NSMenu()
+
+    let appItem = NSMenuItem()
+    let appMenu = NSMenu()
+    appMenu.addItem(withTitle: "Close",
+                    action: #selector(NSWindow.performClose(_:)),
+                    keyEquivalent: "w")
+    appMenu.addItem(withTitle: "Quit",
+                    action: #selector(NSApplication.terminate(_:)),
+                    keyEquivalent: "q")
+    appItem.submenu = appMenu
+    main.addItem(appItem)
+
+    let editItem = NSMenuItem()
+    let editMenu = NSMenu(title: "Edit")
+    editMenu.addItem(withTitle: "Copy",
+                     action: #selector(NSText.copy(_:)),
+                     keyEquivalent: "c")
+    editMenu.addItem(withTitle: "Select All",
+                     action: #selector(NSText.selectAll(_:)),
+                     keyEquivalent: "a")
+    editItem.submenu = editMenu
+    main.addItem(editItem)
+
+    return main
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let source: PreviewSource
 
@@ -79,6 +115,7 @@ for url in urls where !FileManager.default.fileExists(atPath: url.path) {
 let app = NSApplication.shared
 // No Dock icon: this is a preview, not an application the user switches to
 app.setActivationPolicy(.accessory)
+app.mainMenu = buildMainMenu()
 let delegate = AppDelegate(source: PreviewSource(urls: urls))
 app.delegate = delegate
 app.run()
