@@ -62,6 +62,8 @@ website:
             href: dev/releasing.qmd
       - text: Herkunft
         href: origins.qmd
+      - text: Name und Zeichen
+        href: name.qmd
       - text: Lizenz
         href: licence.qmd
       - text: Impressum

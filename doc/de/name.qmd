@@ -1,0 +1,83 @@
+---
+title: "Name und Zeichen"
+---
+
+## Der Name
+
+**zot** + **Look**.
+
+Der offensichtliche Teil zuerst: *zot* für Zotero, *Look* für Quick Look — die
+Systemvorschau, die das Plugin ansteuert und nicht ersetzt. Der Name sagt damit,
+was das Plugin tut, und beansprucht nichts darüber hinaus.
+
+Er nennt zugleich die Linie, in der es steht. Mikko Rönkkös
+**ZoteroQuickLook** brachte die Vorschau nach Zotero 4–6, Guillaume Chaprons
+**Zotero7QuickLook** nach Zotero 7. Beide Namen waren vergeben, und einen davon
+weiterzuverwenden hätte Verwechslung gestiftet — zumal die Plugins nebeneinander
+installierbar sind. Die Kürzung auf **zotLook** hält die Herkunft erkennbar und
+tritt niemandem auf die Füße. Siehe [Herkunft](origins.qmd).
+
+### Ein Zufall in zwei Sprachen
+
+Nachträglich entdeckt, nicht geplant: **zot** ist ein Wort. Im
+Mauritius-Kreol, im Seychellen-Kreol und im Guyana-Kreol ist es das Pronomen der
+dritten und zweiten Person Plural — *„sie, ihnen"* und *„ihr, euch"* —
+entstanden aus dem französischen *les autres* beziehungsweise *vous autres*,
+wobei die Bindung an das vorangehende Wort das anlautende /z/ hervorbrachte.
+
+::: {.callout-note title="Ganz stimmt es nicht"}
+*„zot look"* liest sich als **„sie schauen"** — aber nur, wenn man ein Wort aus
+jeder Sprache nimmt. *look* ist englisch; im Mauritius-Kreol heißt schauen
+*gete*, der Satz lautete dort **„zot gete"**.
+
+Es ist also kein kreolischer Ausdruck, sondern ein Zusammentreffen über zwei
+Sprachen hinweg. Gefunden, nicht gemacht — und zu hübsch, um es zu verschweigen.
+:::
+
+Die Plugin-Kennung lautet `zotlook@fre.ms`.
+
+## Das Zeichen
+
+![](asset/zotlook-logo.svg){width=110}
+
+Ein **Kontaktbogen**: ein Raster aus 4 × 4 Seitenminiaturen, von denen zehn in
+den drei Markierungsfarben hervorgehoben sind — und zusammen ein **Z** bilden.
+
+Die Wahl ist keine beliebige. Der Kontaktbogen ist das Einzige, was dieses
+Plugin herstellt und was kein Dateimanager mitliefert; das Zeichen zeigt also,
+was es beiträgt, und nicht bloß, woran es hängt. Und das Z beantwortet die Frage
+nach Zotero, ohne eine Linie von dessen Logo zu entlehnen.
+
+### Warum es auch ohne Farbe funktioniert
+
+Der Buchstabe wird von **markiert gegen unmarkiert** getragen, nicht vom
+Farbton. Er übersteht damit Graustufen, dunkle Hintergründe und Farbenblindheit
+gleichermaßen. Aus demselben Grund bleiben die sechs unmarkierten Kacheln hell
+gefüllt, statt zu verschwinden — sie sind der Gegengrund, vor dem das Z
+überhaupt erst sichtbar wird.
+
+### Warum jede Größe eigens gezeichnet ist
+
+Nicht skaliert, sondern je auf ihrem eigenen Pixelraster:
+
+| Größe | wofür |
+|---|---|
+| **24 px** | die Seitenleiste der Einstellungen — Zoteros Stylesheet setzt `#prefs-navigation>richlistitem image` auf diese Breite |
+| **32 px** | die Add-ons-Liste |
+| **96 px** | dieselbe Liste auf einem Bildschirm mit doppelter Auflösung |
+
+Nur bei 96 px ist Platz für die Umrisse und die angedeuteten Textzeilen. Darunter
+laufen sie zu Grau zusammen, deshalb sind die unmarkierten Kacheln dort schlicht
+hell gefüllt.
+
+### Warum es eigene Farbe trägt
+
+Zoteros eigene Symbole in der Seitenleiste sind einfarbige SVGs, die über
+`-moz-context-properties` eingefärbt werden — auf der ausgewählten Zeile werden
+sie weiß wie alle anderen. Das nachzubauen wäre die sauberere Antwort gewesen.
+
+Gecko löst `context-fill` allerdings nur für Bilder aus `chrome:`- und
+`resource:`-Adressen auf, und das Symbol eines Plugins kommt aus dessen XPI: Es
+gäbe schlicht nichts, womit gefärbt werden könnte. Das Zeichen bringt seine
+Farbe deshalb selbst mit — was es auf dem Akzenthintergrund wenigstens lesbar
+hält, statt es darin verschwinden zu lassen.

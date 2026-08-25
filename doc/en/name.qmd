@@ -1,0 +1,80 @@
+---
+title: "Name and mark"
+---
+
+## The name
+
+**zot** + **Look**.
+
+The obvious part first: *zot* for Zotero, *Look* for Quick Look — the system
+preview the plugin drives rather than replaces. The name says what the plugin
+does and claims nothing beyond it.
+
+It also names the line it stands in. Mikko Rönkkö's **ZoteroQuickLook** brought
+the preview to Zotero 4–6, Guillaume Chapron's **Zotero7QuickLook** to Zotero 7.
+Both names were taken, and reusing either would have caused confusion — the more
+so because the plugins install side by side. Shortening to **zotLook** keeps the
+descent legible without treading on anyone. See [Origins](origins.qmd).
+
+### A coincidence across two languages
+
+Found afterwards rather than intended: **zot** is a word. In Mauritian,
+Seychellois and Guianese Creole it is the third- and second-person plural
+pronoun — *"they, them"* and *"you, y'all"* — from French *les autres* and *vous
+autres*, the initial /z/ carried over from the liaison with the word before it.
+
+::: {.callout-note title="It does not quite hold"}
+*"zot look"* reads as **"they look"** — but only by taking one word from each
+language. *Look* is English; in Mauritian Creole the verb is *gete*, and the
+sentence would be **"zot gete"**.
+
+So it is not a Creole phrase but a meeting of two languages. Found, not made —
+and too pleasing to leave out.
+:::
+
+The plugin ID is `zotlook@fre.ms`.
+
+## The mark
+
+![](asset/zotlook-logo.svg){width=110}
+
+A **contact sheet**: a 4 × 4 grid of page thumbnails, ten of them marked in the
+three highlight colours, and together they form a **Z**.
+
+The choice is not arbitrary. The contact sheet is the one thing this plugin
+builds that no file manager hands you, so the mark shows what it contributes
+rather than only what it depends on. And the Z answers the question about Zotero
+without borrowing a line of its logo.
+
+### Why it works without colour
+
+The letter is carried by **marked against unmarked**, not by hue. It therefore
+survives greyscale, a dark background and colour blindness alike. For the same
+reason the six unmarked tiles stay pale rather than dropping out — they are the
+ground the Z is read against.
+
+### Why every size is drawn separately
+
+Not scaled from one file, but each on its own pixel grid:
+
+| Size | for |
+|---|---|
+| **24 px** | the preferences sidebar — Zotero's stylesheet puts `#prefs-navigation>richlistitem image` at that width |
+| **32 px** | the add-ons list |
+| **96 px** | that same list on a 2× display |
+
+Only at 96 px is there room for the outlines and the suggested lines of text.
+Below it they close up into grey, so there the unmarked tiles are a flat pale
+fill.
+
+### Why it carries its own colour
+
+Zotero's own sidebar icons are single-colour SVGs tinted through
+`-moz-context-properties`, and they turn white on the selected row like
+everything else. Copying that would have been the tidier answer.
+
+Gecko, however, resolves `context-fill` only for images from `chrome:` and
+`resource:` URIs, and a plugin's icon comes out of its XPI: there would have
+been nothing to paint with. So the mark brings its own colour, which at least
+keeps it legible against the accent background instead of letting it vanish
+into it.

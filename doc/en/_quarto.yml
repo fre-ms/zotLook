@@ -62,6 +62,8 @@ website:
             href: dev/releasing.qmd
       - text: Origins
         href: origins.qmd
+      - text: Name and mark
+        href: name.qmd
       - text: Licence
         href: licence.qmd
       - text: Legal notice
