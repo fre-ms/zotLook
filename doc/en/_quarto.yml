@@ -17,7 +17,7 @@ website:
     macOS, GNOME Sushi on Linux and QuickLook on Windows. With your Zotero
     annotations drawn in, contact sheets of every page, and EPUB previews.
   image: asset/screenshot.png
-  favicon: asset/zotlook-logo.svg
+  favicon: asset/favicon.svg
   open-graph: true
   twitter-card: true
   navbar:

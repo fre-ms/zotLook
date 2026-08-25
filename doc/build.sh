@@ -30,6 +30,10 @@ for lang in en de; do
   rsync -a --delete _theme/_extensions/ "$lang/_extensions/"
   rsync -a --delete _theme/fonts/ "$lang/fonts/"
   rsync -a --delete ../asset/ "$lang/asset/"
+  # The favicon is the plugin's own 32 px icon rather than the logo: a
+  # favicon is drawn into a square box, and the logo is 64x72 with
+  # outlines and text lines that close up into grey at that size.
+  cp ../addon/icon/zotlook-32.svg "$lang/asset/favicon.svg"
 done
 
 "$GEN_PY" gen_langmap.py en de

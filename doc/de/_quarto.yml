@@ -18,7 +18,7 @@ website:
     Mit eingezeichneten Zotero-Annotationen, Kontaktbögen aller Seiten und
     EPUB-Vorschau.
   image: asset/screenshot.png
-  favicon: asset/zotlook-logo.svg
+  favicon: asset/favicon.svg
   open-graph: true
   twitter-card: true
   navbar:
