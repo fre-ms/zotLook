@@ -53,6 +53,46 @@ if (!fs.existsSync(xpi)) {
   }
 }
 
+// ── the README badges, held against what they claim ───────────────────
+// A badge is a claim in a picture, and a picture does not fail a build when
+// it goes stale. These are the two that can: the Zotero range comes from the
+// manifest, and the platform list from what the plugin actually drives.
+{
+  const readme = fs.readFileSync(ROOT + 'README.md', 'utf8');
+  const badges = [...readme.matchAll(/!\[[^\]]*\]\((https:\/\/img\.shields\.io[^)]*)\)/g)]
+    .map(m => decodeURIComponent(m[1]));
+
+  ok(badges.length >= 4, `the head carries badges (${badges.length})`);
+
+  // Zotero 7–10 against strict_min_version / strict_max_version. Zotero writes
+  // "7 beta" as 6.999, so the badge says 7 where the manifest says 6.999 —
+  // that is a rendering of the same fact, not a second one.
+  const zotero = badges.find(b => /badge\/Zotero-/.test(b));
+  ok(zotero, 'one of them states the Zotero range');
+  const shown = zotero.match(/badge\/Zotero-([^-?]+)/)[1];
+  const [lo, hi] = shown.split(/[–-]/);
+  const min = z.strict_min_version, max = z.strict_max_version;
+  eq(lo, String(Math.ceil(parseFloat(min))),
+     `badge's lower bound ${lo} is manifest ${min} rounded up, as Zotero writes it`);
+  eq(hi, max.replace(/\.\*$/, ''),
+     `and its upper bound ${hi} is manifest ${max}`);
+
+  // The platform badge against the platforms the plugin actually drives
+  const platforms = badges.find(b => /macOS/.test(b) && !/Zotero/.test(b));
+  ok(platforms, 'one of them lists the platforms');
+  for (const name of ['macOS', 'Linux', 'Windows']) {
+    ok(platforms.includes(name), `  including ${name}`);
+  }
+  const src = fs.readFileSync(ADDON + 'zotlook.js', 'utf8');
+  ok(/isMac/.test(src) && /isLinux/.test(src) && /isWin/.test(src),
+     'and the plugin has a route for each of the three');
+
+  // Nothing that ages badly: a "last commit" or "downloads" badge reads worse
+  // the longer a finished plugin stays finished.
+  ok(!badges.some(b => /last-commit|release-date/.test(b)),
+     'and none of them turns into a reproach as time passes');
+}
+
 // ── MIT attribution must survive the fork
 const lic = fs.readFileSync(ROOT+'LICENSE','utf8');
 ok(/Guillaume Chapron/.test(lic), 'LICENSE keeps the original copyright notice');
