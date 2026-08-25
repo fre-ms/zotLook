@@ -50,6 +50,9 @@ jobs:
           # It also runs gen_langmap.py (the page-to-page switcher map).
           ( cd doc && sh build.sh )
           cp doc-root/index.html site/index.html
+          # Everything that does not read a page's icon declaration asks
+          # the site root for this one, so it goes to both roots
+          cp doc-root/favicon.ico site/favicon.ico
           test -f site/en/index.html
           test -f site/de/index.html
           test -f site/en/zotlook-documentation.pdf
@@ -215,6 +218,7 @@ jobs:
             # name comes AFTER the local file; an older lftp (as on the runner)
             # rejects `-o` placed before it ("put: invalid option -- 'o'").
             printf 'put -O %s doc-root/site-root.html -o index.html;\n' "$BASE"
+            printf 'put -O %s doc-root/favicon.ico;\n' "$BASE"
           } > "$SCRIPT"
 
           lftp -f "$SCRIPT"
