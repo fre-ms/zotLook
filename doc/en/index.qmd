@@ -108,12 +108,12 @@ nothing at all. The setting is under [Settings](settings.qmd).
   "author": [
     {
       "@type": "Person",
-      "name": "Guillaume Chapron"
+      "name": "fre.ms",
+      "url": "https://fre.ms"
     },
     {
       "@type": "Person",
-      "name": "fre.ms",
-      "url": "https://fre.ms"
+      "name": "Guillaume Chapron"
     }
   ],
   "url": "https://zotlook.org",

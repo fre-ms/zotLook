@@ -113,12 +113,12 @@ Normalfall kostet also gar nichts. Die Einstellung finden Sie unter
   "author": [
     {
       "@type": "Person",
-      "name": "Guillaume Chapron"
+      "name": "fre.ms",
+      "url": "https://fre.ms"
     },
     {
       "@type": "Person",
-      "name": "fre.ms",
-      "url": "https://fre.ms"
+      "name": "Guillaume Chapron"
     }
   ],
   "url": "https://zotlook.org",
