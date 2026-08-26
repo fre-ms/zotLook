@@ -32,6 +32,7 @@ import json
 import re
 import shutil
 import sys
+from html import escape as html_escape, unescape as html_unescape
 from pathlib import Path
 
 IMPORT_LINE = 'import * as tabsets from "./tabsets/tabsets.js";'
@@ -251,6 +252,35 @@ def add_seo(site: Path) -> None:
                     links.append(
                         f'<link rel="alternate" hreflang="x-default" '
                         f'href="{root}{default}">')
+
+        # Open Graph and Twitter Card tags, so a shared link renders with a
+        # title (and, where the page declares a description, that too) rather
+        # than as a bare URL. og:url reuses the canonical just computed.
+        if 'property="og:' not in html:
+            m = re.search(r"<title>(.*?)</title>", html, re.S)
+            title = html_escape(html_unescape(
+                re.sub(r"\s+", " ", m.group(1)).strip()), quote=True) if m else ""
+            if title:
+                links += [
+                    '<meta property="og:type" content="website">',
+                    f'<meta property="og:title" content="{title}">',
+                    f'<meta property="og:url" content="{canonical}">',
+                    '<meta name="twitter:card" content="summary">',
+                    f'<meta name="twitter:title" content="{title}">',
+                ]
+                lm = re.search(r'<html[^>]*\blang="([^"]+)"', html)
+                if lm:
+                    links.append(
+                        f'<meta property="og:locale" content="{lm.group(1)}">')
+                dm = re.search(
+                    r'<meta name="description" content="([^"]*)"', html)
+                if dm and dm.group(1):
+                    links.append(
+                        f'<meta property="og:description" '
+                        f'content="{dm.group(1)}">')
+                    links.append(
+                        f'<meta name="twitter:description" '
+                        f'content="{dm.group(1)}">')
 
         patched = html.replace("</head>", "\n".join(links) + "\n</head>", 1)
         if patched != html:
