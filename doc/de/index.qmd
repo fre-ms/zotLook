@@ -97,3 +97,33 @@ Normalfall kostet also gar nichts. Die Einstellung finden Sie unter
 - [Was es kann](features.qmd) — alle Tastenkürzel und was sie zeigen
 - [Einstellungen](settings.qmd) — Kürzel, Anhang-Reihenfolge, Kontaktbogen
 - [Plattformen](platforms.qmd) — was jedes System braucht und zeigen kann
+
+```{=html}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "zotLook",
+  "description": "Ein Zotero-Plugin, das Anhaenge per Leertaste mit der Vorschau des Betriebssystems anzeigt (Quick Look, GNOME Sushi oder QuickLook).",
+  "applicationCategory": "ResearchApplication",
+  "operatingSystem": "macOS, Windows, Linux",
+  "programmingLanguage": "JavaScript",
+  "softwareVersion": "1.1.6",
+  "license": "https://opensource.org/license/mit",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Guillaume Chapron"
+    },
+    {
+      "@type": "Person",
+      "name": "fre.ms",
+      "url": "https://fre.ms"
+    }
+  ],
+  "url": "https://zotlook.org",
+  "codeRepository": "https://github.com/fre-ms/zotLook",
+  "inLanguage": "de"
+}
+</script>
+```

@@ -92,3 +92,33 @@ nothing at all. The setting is under [Settings](settings.qmd).
 - [What it does](features.qmd) — every shortcut and what it previews
 - [Settings](settings.qmd) — shortcuts, which attachment wins, the contact sheet
 - [Platforms](platforms.qmd) — what each system needs and what it can show
+
+```{=html}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "zotLook",
+  "description": "A Zotero plugin that previews attachments with the operating system's Quick Look, GNOME Sushi or QuickLook when you press Space.",
+  "applicationCategory": "ResearchApplication",
+  "operatingSystem": "macOS, Windows, Linux",
+  "programmingLanguage": "JavaScript",
+  "softwareVersion": "1.1.6",
+  "license": "https://opensource.org/license/mit",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Guillaume Chapron"
+    },
+    {
+      "@type": "Person",
+      "name": "fre.ms",
+      "url": "https://fre.ms"
+    }
+  ],
+  "url": "https://zotlook.org",
+  "codeRepository": "https://github.com/fre-ms/zotLook",
+  "inLanguage": "en"
+}
+</script>
+```
