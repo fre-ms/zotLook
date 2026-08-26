@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use zotLook, please cite it using the metadata below."
+title: zotLook
+abstract: >-
+  A Zotero plugin that previews attachments with the operating system's
+  Quick Look (macOS), GNOME Sushi (Linux) or QuickLook (Windows) when you
+  press Space. Derived from Guillaume Chapron's Zotero7QuickLook.
+type: software
+authors:
+  - family-names: Chapron
+    given-names: Guillaume
+  - name: "fre.ms"
+    email: fre.ms@fre.ms
+    website: "https://fre.ms"
+version: 1.1.6
+license: MIT
+repository-code: "https://github.com/fre-ms/zotLook"
+url: "https://zotlook.org"
+keywords:
+  - Zotero
+  - zotero-plugin
+  - Quick Look
+  - PDF
+  - EPUB
+references:
+  - type: software
+    title: Zotero7QuickLook
+    authors:
+      - family-names: Chapron
+        given-names: Guillaume
+    repository-code: "https://github.com/gchapron/Zotero7QuickLook"
+    license: MIT
