@@ -7,7 +7,7 @@
  * Everything here is pure string and DOM work — no Zotero, no filesystem — so
  * the parts that are easy to get subtly wrong stay easy to reason about.
  */
-var ZotLookUtil = {
+var zotLookUtil = {
 	/**
 	 * Turns arbitrary text into a filename-safe fragment.
 	 */

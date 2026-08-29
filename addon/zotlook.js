@@ -2,9 +2,9 @@
 /* global Zotero, ChromeUtils, PathUtils, IOUtils, Services, Localization */
 /* global setTimeout, clearTimeout */
 /* global ChromeWorker, Components, OffscreenCanvas */
-/* global ZotLookUtil, ZotLookEpub, ZotLookSheet, ZotLookWinPreview */
+/* global zotLookUtil, zotLookEpub, zotLookSheet, zotLookWinPreview */
 
-var ZotLook = {
+var zotLook = {
 	id: null,
 	version: null,
 	rootURI: null,
@@ -271,7 +271,7 @@ var ZotLook = {
 		if (!this._bindings) {
 			this._bindings = this.KEY_ACTIONS.map((action) => {
 				let raw = this._pref(action.pref);
-				let shortcut = ZotLookUtil.parseShortcut(raw);
+				let shortcut = zotLookUtil.parseShortcut(raw);
 				if (!shortcut) {
 					this.log("Unusable shortcut for " + action.pref + ": " + raw);
 					return null;
@@ -651,7 +651,7 @@ var ZotLook = {
 	 * system handler, so a click there opens the reader and closes the
 	 * preview as it goes. This window keeps the sheet up alongside the
 	 * reader, which is the reason to have it. See the comment in
-	 * ZotLookSheet.html for what the target attribute is doing.
+	 * zotLookSheet.html for what the target attribute is doing.
 	 */
 	async _openContactSheetInViewer(items) {
 		return this._withLaunchGuard(async () => {
@@ -704,7 +704,7 @@ var ZotLook = {
 		// a second sheet does not overwrite one still open in QuickLook
 		let sheetName =
 			"contactsheet_" +
-			ZotLookUtil.safeName(PathUtils.filename(chosen.path), 60);
+			zotLookUtil.safeName(PathUtils.filename(chosen.path), 60);
 		let outputPath = PathUtils.join(baseDir, sheetName + ".html");
 		let imageDirName = sheetName + "_pages";
 		let imageDir = PathUtils.join(baseDir, imageDirName);
@@ -783,7 +783,7 @@ var ZotLook = {
 
 			await IOUtils.writeUTF8(
 				outputPath,
-				ZotLookSheet.html({
+				zotLookSheet.html({
 					pages: manifest.pages,
 					columns: manifest.columns,
 					width: manifest.width,
@@ -1133,8 +1133,8 @@ var ZotLook = {
 						manifest = {
 							pageCount: message.pageCount,
 							renderCount: count,
-							columns: ZotLookSheet.columnsFor(count, maxColumns),
-							width: ZotLookSheet.widthFor(count, maxColumns),
+							columns: zotLookSheet.columnsFor(count, maxColumns),
+							width: zotLookSheet.widthFor(count, maxColumns),
 							pages: [],
 						};
 					}
@@ -1416,9 +1416,9 @@ var ZotLook = {
 			this._relabelMenus();
 			// The converter builds the page on its own and has no Fluent
 			// context; it is handed the one string it shows.
-			ZotLookEpub.TOC_LABEL = this._string(
+			zotLookEpub.TOC_LABEL = this._string(
 				"zotlook-epub-contents",
-				ZotLookEpub.TOC_LABEL
+				zotLookEpub.TOC_LABEL
 			);
 		} catch (e) {
 			this.log("Could not load localization: " + e);
@@ -1549,7 +1549,7 @@ var ZotLook = {
 		let tempDir = this._getTempDirPath();
 		let target = PathUtils.join(
 			tempDir,
-			ZotLookUtil.safeName(this.version || "0", 20) + "-" + name
+			zotLookUtil.safeName(this.version || "0", 20) + "-" + name
 		);
 		if (await IOUtils.exists(target)) return target;
 
@@ -1573,7 +1573,7 @@ var ZotLook = {
 
 		let binaryPath = PathUtils.join(
 			tempDir,
-			name + "-" + ZotLookUtil.safeName(this.version || "0", 20)
+			name + "-" + zotLookUtil.safeName(this.version || "0", 20)
 		);
 
 		if (await IOUtils.exists(binaryPath)) {
@@ -1752,7 +1752,7 @@ var ZotLook = {
 						filePaths.length
 				);
 			}
-			let line = ZotLookUtil.quickLookPipeLine("Toggle", filePaths[0]);
+			let line = zotLookUtil.quickLookPipeLine("Toggle", filePaths[0]);
 			try {
 				return {
 					pipePath: this._winPreview().pipePath(),
@@ -1770,8 +1770,8 @@ var ZotLook = {
 					"-NoProfile",
 					"-NonInteractive",
 					"-EncodedCommand",
-					ZotLookUtil.encodePowerShell(
-						ZotLookUtil.quickLookFallbackScript(line)
+					zotLookUtil.encodePowerShell(
+						zotLookUtil.quickLookFallbackScript(line)
 					),
 				],
 				holdsProcess: false,
@@ -1783,7 +1783,7 @@ var ZotLook = {
 
 	/** Overridable for tests, like _subprocess. */
 	_winPreview() {
-		return ZotLookWinPreview;
+		return zotLookWinPreview;
 	},
 
 	/**
@@ -1973,7 +1973,7 @@ var ZotLook = {
 			return attachments;
 		}
 
-		let order = ZotLookUtil.attachmentOrder(this._pref("attachmentOrder", ""));
+		let order = zotLookUtil.attachmentOrder(this._pref("attachmentOrder", ""));
 
 		let ordered = [];
 		for (let type of order) {
@@ -2026,7 +2026,7 @@ var ZotLook = {
 			path.toLowerCase().endsWith(".epub") &&
 			this._pref("epubOwnRenderer", true)
 		) {
-			let html = await ZotLookEpub.convert(path, this._epubEnv());
+			let html = await zotLookEpub.convert(path, this._epubEnv());
 			return html || path;
 		}
 
@@ -2072,7 +2072,7 @@ var ZotLook = {
 		await IOUtils.makeDirectory(tempDir, { ignoreExisting: true });
 		let outputPath = PathUtils.join(
 			tempDir,
-			"annotated_" + ZotLookUtil.safeName(attachment.key, 40) + ".pdf"
+			"annotated_" + zotLookUtil.safeName(attachment.key, 40) + ".pdf"
 		);
 
 		try {
@@ -2202,7 +2202,7 @@ var ZotLook = {
 		// overwrite one file instead of piling up
 		let filePath = PathUtils.join(
 			tempDir,
-			ZotLookUtil.safeName(title, 100) + "_" + item.id + ".html"
+			zotLookUtil.safeName(title, 100) + "_" + item.id + ".html"
 		);
 
 		await IOUtils.writeUTF8(filePath, html);
@@ -2220,8 +2220,8 @@ var ZotLook = {
 	 * view — notes can arrive from imports and group libraries.
 	 */
 	_buildNoteHtml(title, noteContent) {
-		let out = ZotLookUtil.newHtmlDocument();
-		let noteBody = ZotLookUtil.parseBodyFragment(noteContent);
+		let out = zotLookUtil.newHtmlDocument();
+		let noteBody = zotLookUtil.parseBodyFragment(noteContent);
 		if (!out || !noteBody) return null;
 
 		out.title = title;
@@ -2237,12 +2237,12 @@ var ZotLook = {
 		].join("\n");
 		out.head.appendChild(style);
 
-		ZotLookUtil.sanitize(noteBody);
+		zotLookUtil.sanitize(noteBody);
 		for (let node of [...noteBody.childNodes]) {
 			out.body.appendChild(out.importNode(node, true));
 		}
 
-		return ZotLookUtil.serializeHtmlDocument(out);
+		return zotLookUtil.serializeHtmlDocument(out);
 	},
 
 	_getTempDirPath() {
@@ -2254,7 +2254,7 @@ var ZotLook = {
 	},
 
 	/**
-	 * What ZotLookEpub needs from us: somewhere to work, and a way to run
+	 * What zotLookEpub needs from us: somewhere to work, and a way to run
 	 * a subprocess under a deadline.
 	 */
 	_epubEnv() {
@@ -2281,8 +2281,8 @@ var ZotLook = {
 	async _cleanTempDir() {
 		// Drop the caches before awaiting anything. On shutdown bootstrap.js
 		// releases the module globals as soon as this returns, so a
-		// continuation that ran after the await would find ZotLookEpub gone.
-		ZotLookEpub.clearCache();
+		// continuation that ran after the await would find zotLookEpub gone.
+		zotLookEpub.clearCache();
 		this._binaries.clear();
 		this._annotationCache.clear();
 

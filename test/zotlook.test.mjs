@@ -7,7 +7,7 @@ const ok = (c,l)=>eq(!!c,true,l);
 
 // ── keyboard binding table ────────────────────────────────────────────
 {
-  const { ZotLook: Q, ZotLookUtil: U } = loadPlugin();
+  const { zotLook: Q, zotLookUtil: U } = loadPlugin();
   const opened = [];
   for (const m of ['_openQuickLook','_openNotePreview','_openContactSheet',
                    '_openContactSheetInViewer']) Q[m] = () => opened.push(m);
@@ -83,7 +83,7 @@ const ok = (c,l)=>eq(!!c,true,l);
   const Items = { get: (id) => items.get(id) };
   const parent = (ids) => ({ getAttachments: () => ids });
   const make = (prefValues) => {
-    const { ZotLook: Q } = loadPlugin({ Items, prefValues });
+    const { zotLook: Q } = loadPlugin({ Items, prefValues });
     Q._getAttachmentPath = async (a) => a._path;
     return Q;
   };
@@ -164,15 +164,15 @@ const ok = (c,l)=>eq(!!c,true,l);
 // whether one is installed.
 {
   {
-    const { ZotLook: Q } = loadPlugin();
+    const { zotLook: Q } = loadPlugin();
     eq(Q._pref('epubOwnRenderer', 'missing'), true, 'the shipped default renders EPUB itself');
   }
 
   // With the setting on, the path is replaced by the generated page
   {
-    const { ZotLook: Q, ZotLookEpub } = loadPlugin();
+    const { zotLook: Q, zotLookEpub } = loadPlugin();
     let asked = null;
-    ZotLookEpub.convert = async (p) => { asked = p; return '/tmp/preview.html'; };
+    zotLookEpub.convert = async (p) => { asked = p; return '/tmp/preview.html'; };
     Q._epubEnv = () => ({});
     eq(await Q._normalizeForPreview('/lib/book.epub'), '/tmp/preview.html',
        'the generated page is previewed');
@@ -181,10 +181,10 @@ const ok = (c,l)=>eq(!!c,true,l);
 
   // With it off, the file goes to Quick Look untouched
   {
-    const { ZotLook: Q, ZotLookEpub } = loadPlugin({
+    const { zotLook: Q, zotLookEpub } = loadPlugin({
       prefValues: { 'extensions.zotlook.epubOwnRenderer': false } });
     let asked = null;
-    ZotLookEpub.convert = async (p) => { asked = p; return '/tmp/preview.html'; };
+    zotLookEpub.convert = async (p) => { asked = p; return '/tmp/preview.html'; };
     Q._epubEnv = () => ({});
     eq(await Q._normalizeForPreview('/lib/book.epub'), '/lib/book.epub',
        'the EPUB itself is handed to Quick Look');
@@ -193,7 +193,7 @@ const ok = (c,l)=>eq(!!c,true,l);
 
   // Other formats are never touched either way
   {
-    const { ZotLook: Q } = loadPlugin();
+    const { zotLook: Q } = loadPlugin();
     eq(await Q._normalizeForPreview('/lib/book.mobi'), '/lib/book.mobi',
        'other formats pass through untouched');
     eq(await Q._normalizeForPreview('/lib/scan.djvu'), '/lib/scan.djvu',
@@ -214,7 +214,7 @@ const ok = (c,l)=>eq(!!c,true,l);
     ({ dateModified, annotationIsExternal: external });
 
   const make = (prefValues, exported = []) => {
-    const { ZotLook: Q } = loadPlugin({
+    const { zotLook: Q } = loadPlugin({
       prefValues,
       IOUtils: { exists: async () => false, makeDirectory: async () => {} },
       zotero: { PDFWorker: { export: async (id, path) => { exported.push({ id, path }); } } },
@@ -263,7 +263,7 @@ const ok = (c,l)=>eq(!!c,true,l);
 
   // A failing export must not lose the preview
   {
-    const { ZotLook: Q } = loadPlugin({
+    const { zotLook: Q } = loadPlugin({
       IOUtils: { exists: async () => false, makeDirectory: async () => {} },
       zotero: { PDFWorker: { export: async () => { throw new Error('broken'); } } },
     });
@@ -274,7 +274,7 @@ const ok = (c,l)=>eq(!!c,true,l);
 
   // An older Zotero without the worker is survivable
   {
-    const { ZotLook: Q } = loadPlugin({ zotero: { PDFWorker: undefined } });
+    const { zotLook: Q } = loadPlugin({ zotero: { PDFWorker: undefined } });
     eq(await Q._normalizeForPreview('/lib/p.pdf', mkPdf([ann('2026-01-01')])),
        '/lib/p.pdf', 'no PDF worker, no annotated preview');
   }

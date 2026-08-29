@@ -25,7 +25,7 @@ const runProcess = async (cmd, args) => {
 const host = { isMac: process.platform === 'darwin',
                isLinux: process.platform === 'linux',
                isWin: process.platform === 'win32' };
-const { ZotLookEpub: E } = loadPlugin({ IOUtils, zotero: host });
+const { zotLookEpub: E } = loadPlugin({ IOUtils, zotero: host });
 let fail = 0;
 const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if (!ok) fail++;
   console.log((ok?'ok  ':'FAIL')+'  '+l+(ok?'':`\n      got:  ${JSON.stringify(g)}\n      want: ${JSON.stringify(w)}`)); };
@@ -144,13 +144,13 @@ function makeBook(dir, { nav = null, ncx = null } = {}) {
 // /usr/bin/unzip is not a Windows tool; bsdtar ships with the system there
 // and reads the epub as the zip archive it is.
 {
-  const { ZotLookEpub: W } = loadPlugin({
+  const { zotLookEpub: W } = loadPlugin({
     zotero: { isMac: false, isLinux: false, isWin: true } });
   const plan = W._unpackCommand('b.epub', 'd');
   ok(plan.command.toLowerCase().endsWith('\\system32\\tar.exe'),
      'Windows extracts with the bsdtar the system ships');
   eq(plan.args, ['-xf', 'b.epub', '-C', 'd'], 'format detection is left to it');
-  const { ZotLookEpub: M } = loadPlugin({ zotero: { isMac: true } });
+  const { zotLookEpub: M } = loadPlugin({ zotero: { isMac: true } });
   eq(M._unpackCommand('b.epub', 'd').command, '/usr/bin/unzip',
      'everywhere else unzip stays');
 }

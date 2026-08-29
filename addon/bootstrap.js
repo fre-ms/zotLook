@@ -4,10 +4,10 @@
 // Loaded in dependency order into the shared plugin scope
 var SCRIPTS = ["util.js", "sheet.js", "epub.js", "winpreview.js", "zotlook.js"];
 
-var ZotLook;
-var ZotLookUtil;
-var ZotLookEpub;
-var ZotLookWinPreview;
+var zotLook;
+var zotLookUtil;
+var zotLookEpub;
+var zotLookWinPreview;
 
 function log(msg) {
 	Zotero.debug("zotLook: " + msg);
@@ -30,26 +30,26 @@ async function startup({ id, version, rootURI }) {
 			ignoreCache: true,
 		});
 	}
-	ZotLook.init({ id, version, rootURI });
-	ZotLook.addToAllWindows();
+	zotLook.init({ id, version, rootURI });
+	zotLook.addToAllWindows();
 }
 
 function onMainWindowLoad({ window }) {
-	ZotLook.addToWindow(window);
+	zotLook.addToWindow(window);
 }
 
 function onMainWindowUnload({ window }) {
-	ZotLook.removeFromWindow(window);
+	zotLook.removeFromWindow(window);
 }
 
 function shutdown() {
 	log("Shutting down");
-	ZotLook.removeFromAllWindows();
-	ZotLook.shutdown();
-	ZotLook = undefined;
-	ZotLookEpub = undefined;
-	ZotLookUtil = undefined;
-	ZotLookWinPreview = undefined;
+	zotLook.removeFromAllWindows();
+	zotLook.shutdown();
+	zotLook = undefined;
+	zotLookEpub = undefined;
+	zotLookUtil = undefined;
+	zotLookWinPreview = undefined;
 }
 
 function uninstall() {

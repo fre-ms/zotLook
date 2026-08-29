@@ -29,7 +29,7 @@ for (const f of listed) ok(fs.existsSync(ADDON + f), `${f} ships`);
 
 // ── the deployed binary must not outlive its version ──────────────────
 {
-  const { ZotLook: Q } = loadPlugin();
+  const { zotLook: Q } = loadPlugin();
   Q.version = '1.1.0';
   Q._getTempDirPath = () => '/tmp/zt';
   let written = null;
@@ -40,7 +40,7 @@ for (const f of listed) ok(fs.existsSync(ADDON + f), `${f} ships`);
     write: async (p) => { written = p; seen.add(p); },
     setPermissions: async () => {},
   };
-  const { ZotLook: P } = loadPlugin({ IOUtils });
+  const { zotLook: P } = loadPlugin({ IOUtils });
   P.version = '1.1.0';
   P.rootURI = 'file:///plugin/';
   globalThis.fetch = async () => ({ arrayBuffer: async () => new ArrayBuffer(4) });
@@ -50,7 +50,7 @@ for (const f of listed) ok(fs.existsSync(ADDON + f), `${f} ships`);
   eq(written, path, 'and it was actually deployed there');
 
   // A different version must not reuse it
-  const { ZotLook: R } = loadPlugin({ IOUtils });
+  const { zotLook: R } = loadPlugin({ IOUtils });
   R.version = '1.2.0';
   R.rootURI = 'file:///plugin/';
   const other = await R._ensureBinary('qlpreview');

@@ -10,7 +10,7 @@ const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++
 
 const MB = 1024 * 1024;
 const on = (cores) => {
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     Services: { sysinfo: { getProperty: () => cores } },
   });
   return Q;
@@ -40,7 +40,7 @@ const on = (cores) => {
 }
 {
   // Zotero has no sysinfo on every platform; a guess beats failing
-  const { ZotLook: Q } = loadPlugin({ Services: {} });
+  const { zotLook: Q } = loadPlugin({ Services: {} });
   eq(Q._rendererWorkerCount(2 * MB, 0), 4, 'an unreadable core count guesses four');
 }
 

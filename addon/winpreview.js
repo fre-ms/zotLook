@@ -28,7 +28,7 @@
  * application, and the reason a PowerShell fallback exists in zotlook.js for
  * the day Gecko drops ctypes.
  */
-var ZotLookWinPreview = {
+var zotLookWinPreview = {
 	PIPE_PREFIX: "QuickLook.App.Pipe.",
 
 	/** Overridable for tests; the real module exists only inside Gecko. */

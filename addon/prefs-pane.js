@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-/* global Zotero, ZotLook, ZotLookUtil, document, window, MutationObserver */
+/* global Zotero, zotLook, zotLookUtil, document, window, MutationObserver */
 
 /**
  * Preference pane for zotLook.
@@ -27,13 +27,13 @@
 		{ key: "contactSheetWindow", pref: "key.contactSheetWindow" },
 	].map((action) =>
 		Object.assign(action, {
-			default: ZotLookUtil.defaultShortcut(action.pref),
+			default: zotLookUtil.defaultShortcut(action.pref),
 		})
 	);
 
 	/** Shortcut text: Mac keycap symbols there, spelled out everywhere else. */
 	function describe(shortcut) {
-		return ZotLookUtil.describeShortcut(shortcut, !!Zotero.isMac);
+		return zotLookUtil.describeShortcut(shortcut, !!Zotero.isMac);
 	}
 
 	function getPref(name, fallback) {
@@ -94,7 +94,7 @@
 	/** Puts the stored shortcut on the button face. */
 	function refresh(root, button, action) {
 		delete button.dataset.recording;
-		let shortcut = ZotLookUtil.parseShortcut(getPref(action.pref, action.default));
+		let shortcut = zotLookUtil.parseShortcut(getPref(action.pref, action.default));
 		let text = shortcut ? describe(shortcut) : "";
 		button.removeAttribute("data-l10n-id");
 		if (text) {
@@ -129,7 +129,7 @@
 				finish(false);
 				return;
 			}
-			let shortcut = ZotLookUtil.shortcutFromEvent(event);
+			let shortcut = zotLookUtil.shortcutFromEvent(event);
 			if (!shortcut) return; // modifiers only, so far
 			recorded = shortcut;
 			button.removeAttribute("data-l10n-id");
@@ -146,7 +146,7 @@
 			win.removeEventListener("keydown", onKeyDown, true);
 			win.removeEventListener("keyup", onKeyUp, true);
 			if (commit && recorded) {
-				setPref(action.pref, ZotLookUtil.formatShortcut(recorded));
+				setPref(action.pref, zotLookUtil.formatShortcut(recorded));
 				showConflict(root, checkConflicts(root, action, recorded));
 			}
 			refresh(root, button, action);
@@ -173,7 +173,7 @@
 
 		let show = async () => {
 			try {
-				let bytes = await ZotLook._keptSheetsSize();
+				let bytes = await zotLook._keptSheetsSize();
 				root.ownerDocument.l10n.setAttributes(
 					label,
 					"zotlook-prefs-contactsheet-size",
@@ -188,7 +188,7 @@
 		button.addEventListener("command", async () => {
 			button.disabled = true;
 			try {
-				await ZotLook._purgeSheets();
+				await zotLook._purgeSheets();
 			} catch (e) {
 				// Nothing to tell the user beyond the figure going to zero
 			}
@@ -250,14 +250,14 @@
 		let save = () => {
 			setPref(
 				"attachmentOrder",
-				ZotLookUtil.formatAttachmentOrder(rows().map((row) => row.dataset.type))
+				zotLookUtil.formatAttachmentOrder(rows().map((row) => row.dataset.type))
 			);
 		};
 
 		// Draw the stored ranking. attachmentOrder completes it, so every row
 		// is placed exactly once even if the stored value is partial or stale.
 		let byType = new Map(rows().map((row) => [row.dataset.type, row]));
-		for (let type of ZotLookUtil.attachmentOrder(getPref("attachmentOrder", ""))) {
+		for (let type of zotLookUtil.attachmentOrder(getPref("attachmentOrder", ""))) {
 			let row = byType.get(type);
 			if (row) list.appendChild(row);
 		}
@@ -329,7 +329,7 @@
 		let mainWindow = Zotero.getMainWindow();
 		if (mainWindow && mainWindow.document) {
 			for (let el of mainWindow.document.querySelectorAll("key")) {
-				let bound = ZotLookUtil.shortcutFromKeyElement(el, Zotero.isMac);
+				let bound = zotLookUtil.shortcutFromKeyElement(el, Zotero.isMac);
 				if (!bound) continue;
 				let id = el.getAttribute("id") || el.getAttribute("command") || "";
 				registry.push({
@@ -348,11 +348,11 @@
 
 		for (let action of ACTIONS) {
 			if (action.pref === currentAction.pref) continue;
-			let other = ZotLookUtil.parseShortcut(getPref(action.pref, action.default));
+			let other = zotLookUtil.parseShortcut(getPref(action.pref, action.default));
 			if (other) registry.push({ shortcut: other, label: "zotLook " + action.key });
 		}
 
-		let conflicts = ZotLookUtil.findShortcutConflicts(shortcut, registry);
+		let conflicts = zotLookUtil.findShortcutConflicts(shortcut, registry);
 		if (!conflicts.length) return null;
 		return {
 			shortcut: describe(shortcut),

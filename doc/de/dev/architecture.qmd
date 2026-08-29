@@ -79,7 +79,7 @@ Fenstermenü unter GNOME wie unter Windows. Deshalb liegt der Kontaktbogen auf
 **Strg+Umschalt+Leertaste** — frei auf allen drei Systemen, wo das schlichte
 Strg+Leertaste auf zweien den Eingabemethoden-Umschalter darstellt.
 
-`ZotLookUtil.SHORTCUT_DEFAULTS` ist die eine Liste, die Plugin und
+`zotLookUtil.SHORTCUT_DEFAULTS` ist die eine Liste, die Plugin und
 Einstellungsseite gleichermaßen lesen. „Standardwerte wiederherstellen" schreibt
 einen ausdrücklichen Wert, statt die Einstellung zu löschen — seine Vorstellung
 von der Vorgabe muss also dieselbe sein. Ein Test hält diese Liste gegen

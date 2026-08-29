@@ -40,7 +40,7 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0,
     isPDFAttachment: () => pdf,
     attachmentFilename: pdf ? 'paper.pdf' : 'paper.epub',
   };
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     IOUtils, prefValues,
     ChromeWorker: FakeWorker,
     Services: { sysinfo: { getProperty: () => 4 } },
@@ -218,7 +218,7 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0,
   const parent = (keys) => ({ isNote: () => false, isAttachment: () => false,
                               getAttachments: () => keys });
   const byKey = new Map([['A', att('A')], ['B', att('B')], ['C', att('C')]]);
-  const { ZotLook: R } = loadPlugin({
+  const { zotLook: R } = loadPlugin({
     Items: { get: (k) => byKey.get(k) },
     ChromeWorker: fakeWorkerFactory({ pageCount: 2 }).FakeWorker,
     Services: { sysinfo: { getProperty: () => 2 } },
@@ -263,7 +263,7 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0,
       getAnnotations: () => annotations,
     };
     const calls = [];
-    const { ZotLook: Q } = loadPlugin({
+    const { zotLook: Q } = loadPlugin({
       ChromeWorker: fakeWorkerFactory({ pageCount: 2 }).FakeWorker,
       Services: { sysinfo: { getProperty: () => 2 } },
       IOUtils: { exists: async () => false, makeDirectory: async () => {},
@@ -321,7 +321,7 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0,
     const exported = [];
     const { attachment } = withAnnotations([]);
     const calls = [];
-    const { ZotLook: Q } = loadPlugin({
+    const { zotLook: Q } = loadPlugin({
       prefValues: { 'extensions.zotlook.previewAnnotations': false },
       IOUtils: { exists: async () => false, makeDirectory: async () => {},
                  read: async () => new Uint8Array(16),
@@ -394,7 +394,7 @@ function cacheHarness({ entries = [], now = 100 * DAY, prefValues = {} } = {}) {
       if (!hit && !opts.ignoreAbsent) throw new Error('no such file: ' + path);
     },
   };
-  const { ZotLook: Q } = loadPlugin({ IOUtils, prefValues });
+  const { zotLook: Q } = loadPlugin({ IOUtils, prefValues });
   Q._sheetCacheDirPath = () => '/tmp/zt-cache';
   const realNow = Date.now;
   Date.now = () => now;

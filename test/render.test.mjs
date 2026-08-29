@@ -15,7 +15,7 @@ const ok=(c,l)=>eq(!!c,true,l);
 function harness(options = {}) {
   const { FakeWorker, made } = fakeWorkerFactory(options);
   const written = new Map();
-  const { ZotLook: Q, logs } = loadPlugin({
+  const { zotLook: Q, logs } = loadPlugin({
     ChromeWorker: FakeWorker,
     Services: { sysinfo: { getProperty: () => options.cores ?? 10 } },
     IOUtils: {
@@ -122,7 +122,7 @@ function harness(options = {}) {
     this.setText = (t) => calls.text.push(t);
     this.setProgress = (n) => calls.progress.push(n);
   }
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     zotero: {
       ProgressWindow: function () {
         this.changeHeadline = () => {};
@@ -153,7 +153,7 @@ function harness(options = {}) {
 }
 {
   // A window the user dismissed mid-run must not take the sheet with it
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     zotero: {
       ProgressWindow: function () {
         this.changeHeadline = () => {};
@@ -174,7 +174,7 @@ function harness(options = {}) {
 {
   // Zotero without ItemProgress still gets its message across
   const seen = {};
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     zotero: {
       ProgressWindow: function () {
         this.changeHeadline = () => {};

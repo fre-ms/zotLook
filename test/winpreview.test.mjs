@@ -57,7 +57,7 @@ function makeCtypes(impl) {
 }
 
 const loadW = (impl) => {
-  const { ZotLookWinPreview: W } = loadPlugin({ zotero: win });
+  const { zotLookWinPreview: W } = loadPlugin({ zotero: win });
   const fake = makeCtypes(impl);
   W._ctypes = () => fake.ctypes;
   return { W, ...fake };
@@ -166,7 +166,7 @@ const calledNames = (state) => state.calls.map(([n]) => n);
 // ── delivery and refusal, seen from the plugin ────────────────────────
 {
   const posted = [];
-  const { ZotLook: Q, logs } = loadPlugin({ zotero: win });
+  const { zotLook: Q, logs } = loadPlugin({ zotero: win });
   Q._winPreview = () => ({
     pipePath: () => '\\\\.\\pipe\\QuickLook.App.Pipe.S-1-5-21-9',
     postLine: (path, line) => posted.push([path, line]),
@@ -181,7 +181,7 @@ const calledNames = (state) => state.calls.map(([n]) => n);
 }
 {
   const reports = [];
-  const { ZotLook: Q, logs } = loadPlugin({ zotero: win });
+  const { zotLook: Q, logs } = loadPlugin({ zotero: win });
   Q._writeFailureReport = async (what) => { reports.push(what); };
   Q._winPreview = () => ({
     pipePath: () => 'P',
@@ -200,7 +200,7 @@ const calledNames = (state) => state.calls.map(([n]) => n);
 // ── the PowerShell fallback reports the same failure ──────────────────
 {
   const reports = [];
-  const { ZotLook: Q, logs } = loadPlugin({ zotero: win,
+  const { zotLook: Q, logs } = loadPlugin({ zotero: win,
     ChromeUtils: { importESModule: () => ({ Subprocess: {
       call: async (o) => {
         eq(o.stderr, 'pipe', 'stderr is captured, so a refusal can be quoted');

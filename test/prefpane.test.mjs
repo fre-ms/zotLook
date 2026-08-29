@@ -127,9 +127,9 @@ ok(/stylesheets:\s*\[[^\]]*prefs-pane\.css/.test(zotlook), 'the stylesheet is re
   ok(/formatAttachmentOrder/.test(js), 'and stores the result through the shared helper');
 
   // the rows must cover exactly the types the plugin knows
-  const { ZotLookUtil } = (await import('./load.mjs')).loadPlugin();
+  const { zotLookUtil } = (await import('./load.mjs')).loadPlugin();
   const rows = [...xhtml.matchAll(/class="zotlook-order-row" data-type="([^"]+)"/g)].map(m => m[1]);
-  eq(rows.sort(), ZotLookUtil.ATTACHMENT_TYPES.slice().sort(),
+  eq(rows.sort(), zotLookUtil.ATTACHMENT_TYPES.slice().sort(),
      'the list offers exactly the types the picker understands');
 }
 

@@ -31,10 +31,10 @@ async function openPane(prefs = {}, isMac = true) {
       rootBranch: { getChildList: () => [] },
     },
   };
-  const { ZotLookUtil } = loadPlugin();
+  const { zotLookUtil } = loadPlugin();
   const src = fs.readFileSync(ADDON + 'prefs-pane.js', 'utf8');
-  new Function('Zotero', 'ZotLookUtil', 'document', 'window', 'MutationObserver', src)(
-    Zotero, ZotLookUtil, doc, { document: doc },
+  new Function('Zotero', 'zotLookUtil', 'document', 'window', 'MutationObserver', src)(
+    Zotero, zotLookUtil, doc, { document: doc },
     class { observe() {} disconnect() {} });
   return { doc, store };
 }
@@ -45,7 +45,7 @@ async function openPane(prefs = {}, isMac = true) {
 // old one, is the window menu on GNOME and on Windows, taken by the window
 // manager before Zotero sees the key.
 {
-  const { ZotLookUtil: U } = loadPlugin();
+  const { zotLookUtil: U } = loadPlugin();
   for (const isMac of [true, false]) {
     const { doc, store } = await openPane({}, isMac);
     doc.getElementById('zotlook-reset-shortcuts')
@@ -75,8 +75,8 @@ const press = (doc, id) => {
 {
   const { doc } = await openPane({ 'extensions.zotlook.attachmentOrder': 'epub,pdf' });
   eq(typesInOrder(doc).slice(0, 2), ['epub', 'pdf'], 'stored types come first, in order');
-  const { ZotLookUtil } = loadPlugin();
-  eq(typesInOrder(doc).sort(), ZotLookUtil.ATTACHMENT_TYPES.slice().sort(),
+  const { zotLookUtil } = loadPlugin();
+  eq(typesInOrder(doc).sort(), zotLookUtil.ATTACHMENT_TYPES.slice().sort(),
      'and every known type is present exactly once, even those not stored');
 }
 
@@ -113,9 +113,9 @@ const press = (doc, id) => {
   const { doc, store } = await openPane();
   rowFor(doc, 'other').dispatchEvent(new doc.defaultView.Event('mousedown'));
   press(doc, 'zotlook-order-up');
-  const { ZotLookUtil } = loadPlugin();
+  const { zotLookUtil } = loadPlugin();
   eq(store['extensions.zotlook.attachmentOrder'].split(',').sort(),
-     ZotLookUtil.ATTACHMENT_TYPES.slice().sort(),
+     zotLookUtil.ATTACHMENT_TYPES.slice().sort(),
      'every type is written out, so the setting is a ranking and not a filter');
   eq(store['extensions.zotlook.attachmentOrder'].split(','), typesInOrder(doc),
      'and it matches what the list shows');

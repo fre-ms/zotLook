@@ -94,7 +94,7 @@ export function loadPlugin(overrides = {}) {
   const out = new Function(
     ...Object.keys(g),
     src +
-      '\n;return {ZotLook, ZotLookUtil, ZotLookEpub, ZotLookSheet, ZotLookWinPreview};'
+      '\n;return {zotLook, zotLookUtil, zotLookEpub, zotLookSheet, zotLookWinPreview};'
   )(...Object.values(g));
   return { ...out, logs, prefs };
 }

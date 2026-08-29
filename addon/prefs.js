@@ -9,7 +9,7 @@ pref("extensions.zotlook.contactSheetMaxPages", 0);
 
 // Keyboard shortcuts. Format: modifiers joined with "+", then either a physical
 // key code ("Space", "KeyY") or a produced character ("y"). See
-// ZotLookUtil.parseShortcut for why both forms exist.
+// zotLookUtil.parseShortcut for why both forms exist.
 pref("extensions.zotlook.key.preview", "Space");
 pref("extensions.zotlook.key.notes", "Shift+Space");
 // Not Alt+Space: that is the window menu on GNOME and on Windows, and a window

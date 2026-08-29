@@ -3,7 +3,7 @@
 // Kept apart from the rendering so that the grid, the labels and the reader
 // links can be changed and tested without a PDF anywhere in sight.
 
-var ZotLookSheet = {
+var zotLookSheet = {
 	/** Thumbnail width for a single column, before the column count widens it. */
 	BASE_WIDTH: 500,
 

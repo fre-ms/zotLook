@@ -19,7 +19,7 @@ const Items = { get: (id) => store.get(id) };
 
 // ── _hasPDF / _menuApplies ────────────────────────────────────────────
 {
-  const { ZotLook: Q } = loadPlugin({ Items });
+  const { zotLook: Q } = loadPlugin({ Items });
   const pdfAtt = store.get(mkAtt({ pdf: true, name: 'a.pdf' }));
   const epubAtt = store.get(mkAtt({ pdf: false, name: 'a.epub' }));
   const notyped = store.get(mkAtt({ pdf: false, name: 'scan.PDF', hasApi: false }));
@@ -71,7 +71,7 @@ const Items = { get: (id) => store.get(id) };
   const win = { document: doc, ZoteroPane: { getSelectedItems: () => selected } };
   Object.defineProperty(doc, 'defaultView', { value: win, configurable: true });
 
-  const { ZotLook: Q } = loadPlugin({ Items });
+  const { zotLook: Q } = loadPlugin({ Items });
   const listeners = {};
   Q._addMenuToWindow(win, doc, listeners);
 
@@ -148,7 +148,7 @@ const Items = { get: (id) => store.get(id) };
   const win = { document: doc, ZoteroPane: { getSelectedItems: () => [{}] } };
   Object.defineProperty(doc, 'defaultView', { value: win, configurable: true });
 
-  const { ZotLook: Q } = loadPlugin({ Items });
+  const { zotLook: Q } = loadPlugin({ Items });
   Q._addMenuToWindow(win, doc, {});
   Q._menuApplies = () => { throw new Error('boom'); };
 
@@ -170,7 +170,7 @@ const Items = { get: (id) => store.get(id) };
     isNote: () => false, isAttachment: () => true,
     get attachmentFilename() { throw new Error('NS_ERROR_FILE_UNRECOGNIZED_PATH'); },
   };
-  const { ZotLook: Q } = loadPlugin({ Items });
+  const { zotLook: Q } = loadPlugin({ Items });
   let threw = false, result = null;
   try { result = Q._hasPDF([hostile]); } catch (e) { threw = true; }
   eq(threw, false, 'an attachment whose filename getter throws is survivable');
@@ -203,7 +203,7 @@ const Items = { get: (id) => store.get(id) };
                 MozXULElement: { insertFTLIfNeeded: () => {} } };
   Object.defineProperty(doc, 'defaultView', { value: win, configurable: true });
 
-  const { ZotLook: Q } = loadPlugin({ Items });
+  const { zotLook: Q } = loadPlugin({ Items });
   for (let i = 0; i < 4; i++) Q.addToWindow(win);
 
   eq(treeListeners, 1, 'exactly one keyboard listener after four calls');
@@ -229,7 +229,7 @@ const Items = { get: (id) => store.get(id) };
                 MozXULElement: { insertFTLIfNeeded: () => {} } };
   Object.defineProperty(doc, 'defaultView', { value: win, configurable: true });
 
-  const { ZotLook: Q } = loadPlugin({ Items, zotero: { isMac: false } });
+  const { zotLook: Q } = loadPlugin({ Items, zotero: { isMac: false } });
   Q.addToWindow(win);
   eq(doc.getElementById('zotlook-menu-item'), null, 'no entries are added off macOS');
 }
@@ -240,14 +240,14 @@ const Items = { get: (id) => store.get(id) };
 // filesystem: it runs while the context menu is being built, and a synchronous
 // Localization does synchronous I/O on the main thread.
 {
-  const { ZotLook: Q } = loadPlugin();
+  const { zotLook: Q } = loadPlugin();
   eq(Q._string('anything', 'fallback'), 'fallback',
      'before the bundle has loaded, the shipped fallback is used');
   eq(Q._string('anything'), undefined, 'and nothing is invented when there is no fallback');
 }
 {
   const values = { 'zotlook-menu-preview': 'Übersicht' };
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     Localization: function () {
       return { formatValues: async (ids) => ids.map((o) => values[o.id] ?? null) };
     },
@@ -258,7 +258,7 @@ const Items = { get: (id) => store.get(id) };
      'an untranslated one keeps its fallback');
 }
 {
-  const { ZotLook: Q, logs } = loadPlugin({
+  const { zotLook: Q, logs } = loadPlugin({
     Localization: function () { throw new Error('no bundle'); },
   });
   let threw = false;
@@ -280,7 +280,7 @@ const Items = { get: (id) => store.get(id) };
   Object.defineProperty(doc, 'defaultView', { value: win, configurable: true });
 
   const values = { 'zotlook-menu-preview': 'Übersicht' };
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     Items,
     Localization: function () {
       return { formatValues: async (ids) => ids.map((o) => values[o.id] ?? null) };
@@ -299,7 +299,7 @@ const Items = { get: (id) => store.get(id) };
 
 // ── type-ahead deference ──────────────────────────────────────────────
 {
-  const { ZotLook: Q } = loadPlugin({ Items });
+  const { zotLook: Q } = loadPlugin({ Items });
   let opened = 0;
   Q._openQuickLook = () => { opened++; };
   const win = (typing) => ({ ZoteroPane: { getSelectedItems: () => [{}],

@@ -18,13 +18,13 @@ export default [
         ChromeWorker: 'readonly', Worker: 'readonly',
         TextEncoder: 'readonly', btoa: 'readonly',
         // The plugin's own modules, loaded into one shared scope
-        ZotLook: 'writable', ZotLookUtil: 'writable', ZotLookEpub: 'writable',
-        ZotLookSheet: 'writable', ZotLookWinPreview: 'writable',
+        zotLook: 'writable', zotLookUtil: 'writable', zotLookEpub: 'writable',
+        zotLookSheet: 'writable', zotLookWinPreview: 'writable',
       },
     },
     rules: {
       'no-undef': 'error',
-      'no-unused-vars': ['error', { args: 'none', varsIgnorePattern: '^ZotLook' }],
+      'no-unused-vars': ['error', { args: 'none', varsIgnorePattern: '^zotLook' }],
       // The sources carry /* global */ comments as documentation; those are
       // not redeclarations of the environment described above.
       'no-redeclare': ['error', { builtinGlobals: false }],

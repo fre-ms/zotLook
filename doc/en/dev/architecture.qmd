@@ -77,7 +77,7 @@ and on Windows alike, which is why the contact sheet sits on **Ctrl+Shift+Space*
 — free on all three systems, where plain Ctrl+Space is the input-method toggle
 on two of them.
 
-`ZotLookUtil.SHORTCUT_DEFAULTS` is the single list the plugin and the settings
+`zotLookUtil.SHORTCUT_DEFAULTS` is the single list the plugin and the settings
 pane both read. The pane's "Restore defaults" writes an explicit value rather
 than clearing the preference, so its idea of the default has to be the same one;
 a test holds that list against `prefs.js`, which repeats the values for Gecko's

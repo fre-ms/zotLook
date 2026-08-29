@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-/* global Zotero, PathUtils, IOUtils, Services, ZotLookUtil */
+/* global Zotero, PathUtils, IOUtils, Services, zotLookUtil */
 
 /**
  * Renders an epub into a single HTML page that QuickLook can display.
@@ -12,7 +12,7 @@
  * The only things this needs from the host plugin are a temp directory and a
  * way to run a subprocess; see convert().
  */
-var ZotLookEpub = {
+var zotLookEpub = {
 	UNZIP_TIMEOUT_MS: 60000,
 
 	// epubPath -> { mtime, size, html }
@@ -166,9 +166,9 @@ var ZotLookEpub = {
 		return PathUtils.join(
 			tempDir,
 			"epub_" +
-				ZotLookUtil.safeName(baseName, 80) +
+				zotLookUtil.safeName(baseName, 80) +
 				"_" +
-				ZotLookUtil.hashString(epubPath)
+				zotLookUtil.hashString(epubPath)
 		);
 	},
 
@@ -282,11 +282,11 @@ var ZotLookEpub = {
 			return null;
 		}
 
-		let doc = ZotLookUtil.parseStrict(text, "application/xml");
+		let doc = zotLookUtil.parseStrict(text, "application/xml");
 		if (doc) return doc;
 
 		this.log("Malformed XML, retrying leniently: " + path);
-		return ZotLookUtil.parseLoose(text);
+		return zotLookUtil.parseLoose(text);
 	},
 
 	/**
@@ -492,7 +492,7 @@ var ZotLookEpub = {
 	 * @returns {Promise<string|null>} serialised HTML
 	 */
 	async _buildHtml(spineFiles, title, nav) {
-		let out = ZotLookUtil.newHtmlDocument();
+		let out = zotLookUtil.newHtmlDocument();
 		if (!out) {
 			this.log("Could not create output document");
 			return null;
@@ -515,7 +515,7 @@ var ZotLookEpub = {
 
 			this._collectStyles(doc, fileDir, out, seenCssUrls, seenInlineCss);
 
-			ZotLookUtil.sanitize(body);
+			zotLookUtil.sanitize(body);
 			this._rewriteUrls(body, fileDir);
 
 			if (chapters > 0) {
@@ -551,7 +551,7 @@ var ZotLookEpub = {
 		base.textContent = this.BASE_CSS;
 		out.head.appendChild(base);
 
-		return ZotLookUtil.serializeHtmlDocument(out);
+		return zotLookUtil.serializeHtmlDocument(out);
 	},
 
 	/**
@@ -622,11 +622,11 @@ var ZotLookEpub = {
 			return null;
 		}
 
-		let doc = ZotLookUtil.parseStrict(text, "application/xhtml+xml");
+		let doc = zotLookUtil.parseStrict(text, "application/xhtml+xml");
 		if (doc && this._bodyOf(doc)) return doc;
 
 		this.log("Not well-formed XHTML, parsing leniently: " + filePath);
-		return ZotLookUtil.parseLoose(text);
+		return zotLookUtil.parseLoose(text);
 	},
 
 	/**
@@ -648,7 +648,7 @@ var ZotLookEpub = {
 			if (!/stylesheet/i.test(rel)) continue;
 			let href = link.getAttribute("href");
 			if (!href) continue;
-			let url = ZotLookUtil.resolveFileUrl(href, fileDir);
+			let url = zotLookUtil.resolveFileUrl(href, fileDir);
 			if (!url || seenCssUrls.has(url)) continue;
 			seenCssUrls.add(url);
 
@@ -659,7 +659,7 @@ var ZotLookEpub = {
 		}
 
 		for (let style of doc.querySelectorAll("head style")) {
-			let css = ZotLookUtil.rewriteCssUrls(style.textContent, fileDir);
+			let css = zotLookUtil.rewriteCssUrls(style.textContent, fileDir);
 			if (seenInlineCss.has(css)) continue;
 			seenInlineCss.add(css);
 
@@ -680,14 +680,14 @@ var ZotLookEpub = {
 			for (let name of URL_ATTRS) {
 				let value = el.getAttribute(name);
 				if (value === null) continue;
-				let resolved = ZotLookUtil.resolveFileUrl(value, baseDir);
+				let resolved = zotLookUtil.resolveFileUrl(value, baseDir);
 				if (resolved) el.setAttribute(name, resolved);
 			}
 
 			// Inline SVG uses the xlink namespace for image references
 			let xlinkHref = el.getAttributeNS(XLINK, "href");
 			if (xlinkHref) {
-				let resolved = ZotLookUtil.resolveFileUrl(
+				let resolved = zotLookUtil.resolveFileUrl(
 					xlinkHref,
 					baseDir
 				);
@@ -697,7 +697,7 @@ var ZotLookEpub = {
 			}
 
 			if (el.tagName && el.tagName.toLowerCase() === "style") {
-				el.textContent = ZotLookUtil.rewriteCssUrls(
+				el.textContent = zotLookUtil.rewriteCssUrls(
 					el.textContent,
 					baseDir
 				);
@@ -707,7 +707,7 @@ var ZotLookEpub = {
 			if (styleAttr) {
 				el.setAttribute(
 					"style",
-					ZotLookUtil.rewriteCssUrls(styleAttr, baseDir)
+					zotLookUtil.rewriteCssUrls(styleAttr, baseDir)
 				);
 			}
 		}

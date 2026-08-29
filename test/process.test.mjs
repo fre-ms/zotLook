@@ -6,7 +6,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
 // ── _runProcess deadline (P1.3) ───────────────────────────────────────
 {
   let killed = false;
-  const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
+  const { zotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
     call: async () => ({ wait: () => new Promise(()=>{}), kill: () => { killed = true; } }) }})}});
   const t0 = Date.now();
   const res = await Q._runProcess('/bin/fake', [], { timeoutMs: 300 });
@@ -16,7 +16,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
   eq(dt >= 280 && dt < 1500, true, `timeout fires promptly (${dt} ms)`);
 }
 {
-  const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
+  const { zotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
     call: async () => ({ wait: async () => ({ exitCode: 7 }), kill(){} }) }})}});
   eq((await Q._runProcess('/bin/x', [], { timeoutMs: 5000 })).exitCode, 7, 'fast process reports its own code');
   eq((await Q._runProcess('/bin/x', [])).exitCode, 7, 'no timeout requested still works');
@@ -24,7 +24,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
 
 // ── launch guard (P1.1) ───────────────────────────────────────────────
 {
-  const { ZotLook: Q } = loadPlugin();
+  const { zotLook: Q } = loadPlugin();
   let started = 0, release;
   const gate = new Promise(r => { release = r; });
   const p1 = Q._withLaunchGuard(async () => { started++; await gate; return 'first'; });
@@ -42,7 +42,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
   const spawned = [];
   const makeProc = () => { let done; const p = new Promise(r => { done = r; });
     return { killed:false, wait:()=>p, kill(){this.killed=true;done({exitCode:0});}, finish(){done({exitCode:0});} }; };
-  const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
+  const { zotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
     call: async (o) => { const p = makeProc(); p.opts = o; spawned.push(p); return p; } }})}});
   Q._ensureBinary = async () => '/tmp/zt/qlpreview-1.1.0';
   const tick = () => new Promise(r => setImmediate(r));
@@ -68,7 +68,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
 // videos could not be previewed at all. QLPreviewPanel is what the Finder uses.
 {
   const calls = [];
-  const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
+  const { zotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
     call: async (o) => { calls.push(o); return { wait: () => new Promise(() => {}), kill(){} }; } }})}});
   Q._ensureBinary = async (name) => '/tmp/zt/' + name + '-1.1.0';
 
@@ -80,7 +80,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
 {
   // If the helper cannot be deployed, a preview is better than none
   const calls = [];
-  const { ZotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
+  const { zotLook: Q } = loadPlugin({ ChromeUtils: { importESModule: () => ({ Subprocess: {
     call: async (o) => { calls.push(o); return { wait: () => new Promise(() => {}), kill(){} }; } }})}});
   Q._ensureBinary = async () => null;
 
@@ -105,7 +105,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
 
   {
     let waited = false;
-    const { ZotLook: Q, logs } = loadPlugin({ zotero: linux,
+    const { zotLook: Q, logs } = loadPlugin({ zotero: linux,
       ChromeUtils: { importESModule: () => ({ Subprocess: {
         call: async (o) => {
           eq(o.stderr, 'pipe', 'stderr is captured, so a refusal can be quoted');
@@ -122,7 +122,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
 
   {
     const reports = [];
-    const { ZotLook: Q, logs } = loadPlugin({ zotero: linux,
+    const { zotLook: Q, logs } = loadPlugin({ zotero: linux,
       ChromeUtils: { importESModule: () => ({ Subprocess: {
         call: async () => stubProc(1,
           'Error org.freedesktop.DBus.Error.ServiceUnknown: The name is not ' +
@@ -138,7 +138,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
   {
     // A preview that works must not leave a failure report behind
     const reports = [];
-    const { ZotLook: Q } = loadPlugin({ zotero: linux,
+    const { zotLook: Q } = loadPlugin({ zotero: linux,
       ChromeUtils: { importESModule: () => ({ Subprocess: {
         call: async () => stubProc(0) }})}});
     Q._writeFailureReport = async (what) => { reports.push(what); };
@@ -153,7 +153,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
 // QuickLook previews run without JavaScript and do not follow links.
 {
   let viewed = null;
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     zotero: { openInViewer: (uri) => { viewed = uri; } },
     ChromeUtils: { importESModule: () => ({ Subprocess: {
       call: async () => ({ wait: async () => ({ exitCode: 0 }), kill(){} }) }})},
@@ -178,7 +178,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
 
 // ── note rendering (P1.7 + P2 #10) ────────────────────────────────────
 {
-  const { ZotLook: Q } = loadPlugin();
+  const { zotLook: Q } = loadPlugin();
   const html = Q._buildNoteHtml('Notiz & mehr', '<p>Text</p><script>alert(1)</script><img src=x onerror="y()">');
   eq(/<p>Text<\/p>/.test(html), true, 'note content preserved');
   eq(/alert\(1\)/.test(html), false, 'script in a note removed');

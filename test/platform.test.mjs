@@ -10,7 +10,7 @@ const ok=(c,l)=>eq(!!c,true,l);
 const on = (platform, prefValues = {}) => {
   const flags = { isMac: false, isLinux: false, isWin: false };
   flags['is' + platform] = true;
-  const { ZotLook: Q } = loadPlugin({ zotero: flags, prefValues });
+  const { zotLook: Q } = loadPlugin({ zotero: flags, prefValues });
   Q._ensureBinary = async (name) => '/tmp/zt/' + name + '-1.1.0';
   return Q;
 };
@@ -60,7 +60,7 @@ const on = (platform, prefValues = {}) => {
 }
 {
   // dbus-send is not at /usr/bin everywhere, so PATH decides when it can
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     zotero: { isMac: false, isLinux: true, isWin: false },
     ChromeUtils: { importESModule: () => ({ Subprocess: {
       pathSearch: async (bin) => '/opt/dbus/bin/' + bin } }) },
@@ -69,7 +69,7 @@ const on = (platform, prefValues = {}) => {
   eq(plan.command, '/opt/dbus/bin/dbus-send', 'found wherever PATH has it');
 }
 {
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     zotero: { isMac: false, isLinux: true, isWin: false },
     ChromeUtils: { importESModule: () => ({ Subprocess: {
       pathSearch: async () => { throw new Error('not found'); } } }) },
@@ -146,7 +146,7 @@ const on = (platform, prefValues = {}) => {
 }
 {
   // powershell.exe is found on PATH when it can be, like dbus-send
-  const { ZotLook: Q } = loadPlugin({
+  const { zotLook: Q } = loadPlugin({
     zotero: { isMac: false, isLinux: false, isWin: true },
     ChromeUtils: { importESModule: () => ({ Subprocess: {
       pathSearch: async (bin) => 'D:/shells/' + bin } }) },
@@ -195,7 +195,7 @@ const on = (platform, prefValues = {}) => {
     Object.defineProperty(doc, 'defaultView', { value: win, configurable: true });
     const flags = { isMac: false, isLinux: false, isWin: false };
     flags['is' + platform] = true;
-    const { ZotLook: Q } = loadPlugin({ zotero: flags });
+    const { zotLook: Q } = loadPlugin({ zotero: flags });
     Q.addToWindow(win);
     eq(!!doc.getElementById('zotlook-menu-item'), expected,
        `${platform}: menu entries ${expected ? 'are added' : 'are not added'}`);

@@ -5,7 +5,7 @@ const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++
   console.log((ok?'ok  ':'FAIL')+'  '+l+(ok?'':`  (got ${JSON.stringify(g)}, want ${JSON.stringify(w)})`));};
 const ok=(c,l)=>eq(!!c,true,l);
 
-const { ZotLookUtil: U } = loadPlugin();
+const { zotLookUtil: U } = loadPlugin();
 const sc = (o) => ({ ctrl:false, alt:false, shift:false, meta:false, ...o });
 
 // ── parseShortcut ─────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ eq(U.shortcutFromKeyElement(keyEl({ modifiers:'accel' }), true), null,
    'element with neither key nor keycode is skipped');
 
 // ── the shipped defaults are internally consistent ────────────────────
-const { ZotLook: Q } = loadPlugin();
+const { zotLook: Q } = loadPlugin();
 const bindings = Q.bindings;
 eq(bindings.length, 4, 'all four default shortcuts parse');
 eq(bindings.map(b => b.open),
@@ -96,21 +96,21 @@ ok(true, 'no two default shortcuts collide with each other');
 // An unknown token is accepted as a key code (it simply never matches); what
 // cannot be parsed is an empty value or an unknown modifier.
 {
-  const { ZotLook: B, logs } = loadPlugin({ prefValues: { 'extensions.zotlook.key.notes': '' } });
+  const { zotLook: B, logs } = loadPlugin({ prefValues: { 'extensions.zotlook.key.notes': '' } });
   eq(B.bindings.length, 3, 'an empty shortcut is dropped, the rest survive');
   eq(B.bindings.length, 3, 'binding list is stable across reads');
   ok(logs.some(l => /Unusable shortcut/.test(l)), 'and it is logged');
 }
 
 {
-  const { ZotLook: B } = loadPlugin({ prefValues: { 'extensions.zotlook.key.preview': 'Bogus+Space' } });
+  const { zotLook: B } = loadPlugin({ prefValues: { 'extensions.zotlook.key.preview': 'Bogus+Space' } });
   eq(B.bindings.length, 3, 'an unknown modifier is dropped too');
 }
 
 // ── edits take effect without a restart ───────────────────────────────
 {
   const prefs = stubPrefs();
-  const { ZotLook: B, ZotLookUtil: V } = loadPlugin({ Prefs: prefs });
+  const { zotLook: B, zotLookUtil: V } = loadPlugin({ Prefs: prefs });
   B.KEY_ACTIONS.forEach(a => B._observePref(a.pref, () => { B._bindings = null; }));
   const shipped = V.parseShortcut(V.defaultShortcut('key.contactSheet'));
   const bound = B.bindings.find(b => b.open === '_openContactSheet');
@@ -127,14 +127,14 @@ ok(true, 'no two default shortcuts collide with each other');
   // 0 means no limit, and that is also where anything unusable lands
   const cases = [[0,0],[500,500],[42,42],[-1,0],['abc',0],[7.9,7],['',0]];
   for (const [stored, expected] of cases) {
-    const { ZotLook: B } = loadPlugin({ prefValues: { 'extensions.zotlook.contactSheetMaxPages': stored } });
+    const { zotLook: B } = loadPlugin({ prefValues: { 'extensions.zotlook.contactSheetMaxPages': stored } });
     eq(B._maxContactSheetPages(), expected, `page limit ${JSON.stringify(stored)} → ${expected}`);
   }
 }
 
 // ── one shortcut per action, no duplicates ────────────────────────────
 {
-  const { ZotLook: Q } = loadPlugin();
+  const { zotLook: Q } = loadPlugin();
   const actions = Q.KEY_ACTIONS.map((a) => a.open);
   eq(actions.length, new Set(actions).size,
      'no action is reachable through two different shortcuts');
@@ -149,7 +149,7 @@ ok(true, 'no two default shortcuts collide with each other');
 // Those bindings return the moment a second keyboard layout is enabled, so a
 // default must not sit on them.
 {
-  const { ZotLook: Q, ZotLookUtil: U } = loadPlugin();
+  const { zotLook: Q, zotLookUtil: U } = loadPlugin();
   const systemShortcuts = ['Ctrl+Space', 'Ctrl+Alt+Space', 'Meta+Space', 'Alt+Meta+Space']
     .map((s) => U.parseShortcut(s));
   for (const binding of Q.bindings) {
@@ -165,7 +165,7 @@ ok(true, 'no two default shortcuts collide with each other');
 // both put the window menu on Alt+Space; GNOME additionally takes Super+Space
 // and Shift+Super+Space for input sources.
 {
-  const { ZotLookUtil: U } = loadPlugin();
+  const { zotLookUtil: U } = loadPlugin();
   const grabbed = ['Alt+Space', 'Meta+Space', 'Shift+Meta+Space']
     .map((s) => U.parseShortcut(s));
   for (const pref of Object.keys(U.SHORTCUT_DEFAULTS)) {
@@ -180,7 +180,7 @@ ok(true, 'no two default shortcuts collide with each other');
 // The pane's "Restore defaults" reads the first, a fresh profile gets the
 // second, and nothing but this test holds them together.
 {
-  const { ZotLook: Q, ZotLookUtil: U } = loadPlugin();
+  const { zotLook: Q, zotLookUtil: U } = loadPlugin();
   const { defaultPrefs } = await import('./load.mjs');
   const shipped = defaultPrefs();
   eq(Object.keys(U.SHORTCUT_DEFAULTS).sort(), Q.KEY_ACTIONS.map((a) => a.pref).sort(),
@@ -199,7 +199,7 @@ ok(true, 'no two default shortcuts collide with each other');
 {
   const cases = [[5,5],[1,1],[3,3],[20,20],[99,20],[0,5],[-2,5],['abc',5],[4.7,4]];
   for (const [stored, expected] of cases) {
-    const { ZotLook: B } = loadPlugin({ prefValues: { 'extensions.zotlook.contactSheetColumns': stored } });
+    const { zotLook: B } = loadPlugin({ prefValues: { 'extensions.zotlook.contactSheetColumns': stored } });
     eq(B._contactSheetColumns(), expected, `columns ${JSON.stringify(stored)} → ${expected}`);
   }
 }
@@ -210,7 +210,7 @@ ok(true, 'no two default shortcuts collide with each other');
     [1, { isGroup: false }],
     [7, { isGroup: true, groupID: 4242 }],
   ]);
-  const { ZotLook: B } = loadPlugin({ zotero: { Libraries: { get: (id) => libraries.get(id) } } });
+  const { zotLook: B } = loadPlugin({ zotero: { Libraries: { get: (id) => libraries.get(id) } } });
   eq(B._readerLink({ key: 'ABCD1234', libraryID: 1 }),
      'zotero://open-pdf/library/items/ABCD1234', 'personal library link');
   eq(B._readerLink({ key: 'WXYZ9876', libraryID: 7 }),
@@ -223,7 +223,7 @@ ok(true, 'no two default shortcuts collide with each other');
 
 // ── the type-ahead guard follows what the user configured ─────────────
 {
-  const { ZotLook: B } = loadPlugin();
+  const { zotLook: B } = loadPlugin();
   eq(B._isTypeAheadKey(U.parseShortcut('Space')), true, 'bare Space can be mistaken for typing');
   eq(B._isTypeAheadKey(U.parseShortcut('Shift+Space')), true, 'so can Shift+Space');
   eq(B._isTypeAheadKey(U.parseShortcut('q')), true, 'so can a bare letter');

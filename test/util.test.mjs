@@ -1,5 +1,5 @@
 import { loadPlugin } from './load.mjs';
-const { ZotLookUtil: U } = loadPlugin();
+const { zotLookUtil: U } = loadPlugin();
 let fail = 0;
 const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if (!ok) fail++;
   console.log((ok?'ok  ':'FAIL')+'  '+l+(ok?'':`\n      got:  ${JSON.stringify(g)}\n      want: ${JSON.stringify(w)}`)); };
