@@ -53,6 +53,18 @@ if (!fs.existsSync(xpi)) {
   }
 }
 
+
+// ── the version the site claims ───────────────────────────────────────
+// The JSON-LD on both front pages carries a softwareVersion by hand, and a
+// hand-kept number goes stale silently: it said 1.1.6 while 1.1.7 was out,
+// and nothing anywhere would have failed over it.
+for (const lang of ['de', 'en']) {
+  const src = fs.readFileSync(`${ROOT}doc/${lang}/index.qmd`, 'utf8');
+  const claimed = src.match(/"softwareVersion":\s*"([^"]+)"/);
+  ok(claimed, `${lang}: the front page states a version`);
+  eq(claimed[1], man.version, `${lang}: and it is the one in the manifest`);
+}
+
 // ── the README badges, held against what they claim ───────────────────
 // A badge is a claim in a picture, and a picture does not fail a build when
 // it goes stale. These are the two that can: the Zotero range comes from the

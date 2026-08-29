@@ -108,11 +108,19 @@ def main(lang_dir, output_pdf, author=None):
     cfg = yaml.safe_load((lang_dir / "_quarto.yml").read_text("utf-8"))
     book_chapters, pages = book_structure(cfg)
     lang = cfg.get("lang", "en")
+    # A regional tag such as en-GB reaches Typst as a bare "en": Quarto's
+    # Typst book template takes a language and no region, so its call site
+    # carries `lang:` alone — visible in the generated index.typ — and both
+    # the hyphenation and the PDF's /Lang fall back to the generic. Setting
+    # the region again after the template has run is what gets it through;
+    # measured against /Lang in the finished PDF, which reads en-GB with the
+    # header and plain en without it.
+    base, _, region = lang.partition("-")
     title = cfg["website"]["title"]
     meta = index_front_matter(lang_dir)
     # the cover prints plain text; strip markdown emphasis markers
     subtitle = re.sub(r"\*+", "", meta.get("subtitle", "")) or (
-        "Dokumentation" if lang == "de" else "Documentation")
+        "Dokumentation" if base == "de" else "Documentation")
     author = author or meta.get("author") or theme_author(lang_dir)
     if isinstance(author, list):
         author = ", ".join(str(a) for a in author)
@@ -157,6 +165,10 @@ def main(lang_dir, output_pdf, author=None):
                 "keep-typ": False,
             }},
         }
+        if region:
+            (tmp / "region.typ").write_text(
+                f'#set text(region: "{region}")\n', encoding="utf-8")
+            book["format"]["typst"]["include-in-header"] = "region.typ"
         bib = lang_dir / "references.bib"
         if bib.exists():
             shutil.copy(bib, tmp / "references.bib")

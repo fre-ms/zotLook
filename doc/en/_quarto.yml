@@ -6,7 +6,12 @@ project:
   resources:
     - fonts/
 
-lang: en
+# en-GB, not a bare "en": it fixes the variant for spell-checkers, screen
+# readers and the PDF's hyphenation. The hreflang annotations stay at the
+# generic "en" on purpose — narrowing those to en-GB would tell search
+# engines this page is meant for the United Kingdom rather than for anyone
+# reading English.
+lang: en-GB
 
 website:
   title: zotLook

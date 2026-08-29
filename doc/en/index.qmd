@@ -103,7 +103,7 @@ nothing at all. The setting is under [Settings](settings.qmd).
   "applicationCategory": "ResearchApplication",
   "operatingSystem": "macOS, Windows, Linux",
   "programmingLanguage": "JavaScript",
-  "softwareVersion": "1.1.6",
+  "softwareVersion": "1.1.7",
   "license": "https://opensource.org/license/mit",
   "author": [
     {
@@ -118,7 +118,7 @@ nothing at all. The setting is under [Settings](settings.qmd).
   ],
   "url": "https://zotlook.org",
   "codeRepository": "https://github.com/fre-ms/zotLook",
-  "inLanguage": "en"
+  "inLanguage": "en-GB"
 }
 </script>
 ```
