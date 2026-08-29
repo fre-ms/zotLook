@@ -41,6 +41,16 @@ Two modes:
 
 ## The contact sheet
 
+**Keep contact sheets and show them again** (default on) shows a sheet that has
+been built once unchanged, rather than drawing every page a second time. It is
+drawn again as soon as the file, its annotations, the column count or the page
+limit have changed.
+
+Kept sheets live in the system's temporary area rather than in your Zotero
+library, so they are not backed up with it and the system clears them
+eventually. Switch it off if you would rather have the space: every sheet is
+then drawn on every call and none outlives the session.
+
 **Columns** (default 5) decides the width of the grid. Fewer columns means
 larger thumbnails, and the renderer raises the resolution to match, so they stay
 sharp rather than being blown up.

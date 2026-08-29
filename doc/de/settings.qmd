@@ -45,6 +45,16 @@ Zwei Betriebsarten:
 
 ## Der Kontaktbogen
 
+**Kontaktbögen behalten und wiederverwenden** (Vorgabe an) zeigt einen einmal
+erstellten Bogen unverändert wieder, statt jede Seite ein zweites Mal zu
+zeichnen. Neu gezeichnet wird er, sobald sich die Datei, ihre Annotationen, die
+Spaltenzahl oder das Seitenlimit geändert haben.
+
+Behaltene Bögen liegen im temporären Bereich des Systems, nicht in Ihrer
+Zotero-Bibliothek — sie werden also nicht mitgesichert, und das System räumt sie
+irgendwann von selbst weg. Abschalten, wenn Sie den Platz brauchen: dann wird
+jeder Bogen bei jedem Aufruf neu gezeichnet und überlebt die Sitzung nicht.
+
 **Spalten** (Vorgabe 5) bestimmt die Breite des Rasters. Weniger Spalten heißt
 größere Miniaturen, und der Renderer erhöht die Auflösung entsprechend, damit
 sie scharf bleiben, statt hochskaliert zu werden.

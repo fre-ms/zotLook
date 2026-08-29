@@ -13,7 +13,8 @@ const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++
   console.log((ok?'ok  ':'FAIL')+'  '+l+(ok?'':`  (got ${JSON.stringify(g)}, want ${JSON.stringify(w)})`));};
 const ok=(c,l)=>eq(!!c,true,l);
 
-function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
+function harness({ prefValues = {}, pdf = true, exitCode = 0,
+                   mtime = 1000, size = 4096 } = {}) {
   const viewed = [];
   const written = new Map();
   const { FakeWorker, made } = fakeWorkerFactory({ pageCount: 3 });
@@ -26,6 +27,9 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
     writeUTF8: async (p, text) => { files.add(p); written.set(p, text); },
     setPermissions: async () => {},
     remove: async () => {},
+    readUTF8: async (p) => { if (!files.has(p)) throw new Error('no ' + p);
+                             return written.get(p); },
+    stat: async () => ({ size, lastModified: mtime }),
   };
   const attachment = {
     id: 1, key: 'ABCD1234', libraryID: 1,
@@ -50,7 +54,7 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
   Q._closeProgress = () => {};
   Q._resourceAlias = () => (exitCode === 0 ? 'resource://zotlook/' : null);
   globalThis.fetch = async () => ({ arrayBuffer: async () => new ArrayBuffer(4) });
-  return { Q, made, attachment, viewed, written };
+  return { Q, made, attachment, viewed, written, files };
 }
 
 // ── the plain sheet, as QuickLook gets it ─────────────────────────────
@@ -60,8 +64,11 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
   ok(out, 'a sheet is produced');
   eq(made.length, 4, 'the renderers ran');
   ok(out.endsWith('.html'), 'the caller gets the sheet itself back');
-  ok(written.has('/tmp/zt/contactsheet_paper.pdf_pages/p1.jpg'),
+  ok([...written.keys()].some(k => k.endsWith('contactsheet_paper.pdf_pages/p1.jpg')),
      'thumbnails go beside the sheet, in a directory named after it');
+  ok(out.includes('zotLook-cache'),
+     'and a kept sheet lives apart from the working directory, which is '
+     + 'emptied on every start');
 
   const html = written.get(out);
   ok(html && html.includes('<!DOCTYPE html>'), 'the plugin wrote the sheet');
@@ -75,6 +82,76 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0 } = {}) {
   // window it raises "create" instead, which Sushi ignores.
   ok(/<a target="_blank" href="zotero:/.test(html),
      'opened in a new context, so a click cannot take the preview down');
+}
+
+// ── a sheet once built is shown again, not drawn again ────────────────
+// Drawing every page of a long book takes seconds, and it was being done on
+// every press. What decides is whether the renderers run a second time —
+// that a path comes back proves nothing.
+{
+  const { Q, made, attachment } = harness();
+  const first = await Q._buildContactSheet([attachment]);
+  const afterFirst = made.length;
+  const second = await Q._buildContactSheet([attachment]);
+
+  eq(second, first, 'the same sheet comes back');
+  eq(made.length, afterFirst, 'and no renderer was started for it a second time');
+  ok(afterFirst > 0, 'while the first call really did draw it');
+}
+{
+  // The file changed underneath: Zotero rewrites an attachment rather than
+  // editing it, so a new modification time is what that looks like
+  const { Q, made, attachment, files, written } = harness({ mtime: 1000 });
+  await Q._buildContactSheet([attachment]);
+  const afterFirst = made.length;
+
+  const { Q: Q2, made: made2 } = harness({ mtime: 2000 });
+  // Carry the first run's files over, so only the key differs
+  await Q2._buildContactSheet([attachment]);
+  ok(made2.length > 0, 'a changed file is drawn again rather than served stale');
+  void files; void written; void afterFirst;
+}
+{
+  // Asking for a different grid must not hand back the old one: the sheet
+  // drawn in five columns is not the sheet the reader just asked for
+  const { Q, made, attachment } = harness();
+  await Q._buildContactSheet([attachment]);
+  const afterFirst = made.length;
+  Q._contactSheetColumns = () => 3;
+  await Q._buildContactSheet([attachment]);
+  ok(made.length > afterFirst, 'a changed column count is drawn again');
+}
+{
+  // Same for the page limit
+  const { Q, made, attachment } = harness();
+  await Q._buildContactSheet([attachment]);
+  const afterFirst = made.length;
+  Q._maxContactSheetPages = () => 2;
+  await Q._buildContactSheet([attachment]);
+  ok(made.length > afterFirst, 'and so is a changed page limit');
+}
+{
+  // Switched off, nothing is kept and nothing is reused
+  const { Q, made, attachment, written } = harness({
+    prefValues: { 'extensions.zotlook.cacheContactSheet': false } });
+  const out = await Q._buildContactSheet([attachment]);
+  const afterFirst = made.length;
+  await Q._buildContactSheet([attachment]);
+
+  ok(made.length > afterFirst, 'with keeping off the sheet is drawn every time');
+  ok(!out.includes('zotLook-cache'),
+     'and it is built where the startup clearing reaches it');
+  ok(![...written.keys()].some(k => k.endsWith('.key')),
+     'no key is left behind either');
+}
+{
+  // A key beside a sheet that was never finished would hand back a
+  // half-built one for ever after
+  const { Q, attachment, written } = harness();
+  Q._renderPagesWithPdfjs = async () => null;
+  eq(await Q._buildContactSheet([attachment]), null, 'a failed run yields nothing');
+  ok(![...written.keys()].some(k => k.endsWith('.key')),
+     'and writes no key, so the next call tries again rather than serving it');
 }
 
 // ── one sheet serves both routes ──────────────────────────────────────

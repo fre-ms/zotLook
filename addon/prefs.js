@@ -27,6 +27,13 @@ pref("extensions.zotlook.key.contactSheetWindow", "Shift+Alt+Space");
 // and the renderer raises the rendered resolution to match.
 pref("extensions.zotlook.contactSheetColumns", 5);
 
+// Keep a contact sheet once it is built and show it again unchanged, rather
+// than drawing every page a second time. It is kept beside the working
+// directory, in the system's temp area, so it is not backed up with the
+// library. A sheet is redrawn when the file, its annotations, the column
+// count or the page limit have changed since — see _sheetCacheKey.
+pref("extensions.zotlook.cacheContactSheet", true);
+
 // Which attachment a preview uses when an item has several.
 // "type": follow attachmentOrder below. "first": take the first attachment
 // the item lists, whatever it is.

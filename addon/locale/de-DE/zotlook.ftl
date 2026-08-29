@@ -67,3 +67,8 @@ zotlook-prefs-pdf-annotations =
 zotlook-sheet-truncated = Es werden die ersten { $shown } von { $total } Seiten gezeigt.
 
 zotlook-epub-contents = Inhalt
+
+zotlook-prefs-contactsheet-cache =
+    .label = Kontaktbögen behalten und wiederverwenden
+
+zotlook-prefs-contactsheet-cache-help = Jede Seite eines langen Buches zu zeichnen dauert Sekunden. Ein einmal erstellter Bogen wird unverändert wieder gezeigt, bis sich die Datei, ihre Annotationen oder die Einstellungen darunter geändert haben. Behaltene Bögen liegen im temporären Bereich des Systems und werden nicht mit Ihrer Bibliothek gesichert.

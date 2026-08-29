@@ -681,8 +681,17 @@ var ZotLook = {
 		// Render the annotated copy where there is one: on a sheet of every
 		// page, the marked-up ones are exactly what makes it worth scanning.
 		let pdfPath = (await this._annotatedCopy(chosen.item)) || chosen.path;
-		let tempDir = this._getTempDirPath();
-		await IOUtils.makeDirectory(tempDir, { ignoreExisting: true });
+
+		let maxColumns = this._contactSheetColumns();
+		let maxPages = this._maxContactSheetPages();
+
+		// Kept sheets live apart from the working directory, which is emptied
+		// on every start. With keeping switched off nothing is meant to
+		// survive the session, so the sheet is built where that clearing
+		// reaches it.
+		let keep = this._pref("cacheContactSheet", true);
+		let baseDir = keep ? this._sheetCacheDirPath() : this._getTempDirPath();
+		await IOUtils.makeDirectory(baseDir, { ignoreExisting: true });
 
 		// Named after the source rather than after what is rendered, so the
 		// sheet keeps one name whether or not annotations were drawn in, and
@@ -690,9 +699,22 @@ var ZotLook = {
 		let sheetName =
 			"contactsheet_" +
 			ZotLookUtil.safeName(PathUtils.filename(chosen.path), 60);
-		let outputPath = PathUtils.join(tempDir, sheetName + ".html");
+		let outputPath = PathUtils.join(baseDir, sheetName + ".html");
 		let imageDirName = sheetName + "_pages";
-		let imageDir = PathUtils.join(tempDir, imageDirName);
+		let imageDir = PathUtils.join(baseDir, imageDirName);
+		let keyPath = PathUtils.join(baseDir, sheetName + ".key");
+
+		let key = keep
+			? await this._sheetCacheKey(chosen.item, chosen.path, maxColumns,
+				maxPages)
+			: null;
+		if (keep) {
+			let kept = await this._cachedSheet(keyPath, key, outputPath);
+			if (kept) {
+				this.log("Reusing the contact sheet built earlier: " + kept);
+				return kept;
+			}
+		}
 
 		this.log("Generating contact sheet for: " + pdfPath);
 		let started = Date.now();
@@ -714,9 +736,6 @@ var ZotLook = {
 				ignoreAbsent: true,
 			});
 			await IOUtils.makeDirectory(imageDir, { ignoreExisting: true });
-
-			let maxColumns = this._contactSheetColumns();
-			let maxPages = this._maxContactSheetPages();
 
 			let manifest = await this._renderPagesWithPdfjs(
 				pdfPath,
@@ -761,6 +780,12 @@ var ZotLook = {
 					notice: notice,
 				})
 			);
+
+			// Written last, and only now: a key beside a sheet that was never
+			// finished would hand back a half-built one for ever after.
+			if (keep && key) {
+				await IOUtils.writeUTF8(keyPath, key);
+			}
 		} catch (e) {
 			this.log("Contact sheet generation error: " + e);
 			await this._writeFailureReport("the contact sheet threw: " + e);
@@ -770,6 +795,71 @@ var ZotLook = {
 		}
 
 		return outputPath;
+	},
+
+	/**
+	 * Where a kept contact sheet lives.
+	 *
+	 * Beside the working directory rather than in it, because that one is
+	 * emptied on startup and on shutdown — a sheet left there could never
+	 * survive a restart. This sits in the system's temp area all the same, so
+	 * it is not backed up with the library and the system clears it eventually.
+	 */
+	_sheetCacheDirPath() {
+		if (!this._sheetCacheDir) {
+			this._sheetCacheDir = PathUtils.join(
+				Zotero.getTempDirectory().path,
+				"zotLook-cache"
+			);
+		}
+		return this._sheetCacheDir;
+	},
+
+	/**
+	 * Everything that would make a kept sheet the wrong answer.
+	 *
+	 * The file itself by size and modification time rather than by a digest of
+	 * its contents: reading a hundred megabytes to decide whether to skip
+	 * seven seconds of rendering can cost more than it saves, and Zotero
+	 * rewrites an attachment rather than editing it in place.
+	 *
+	 * The annotations belong in it because the sheet renders the exported copy
+	 * rather than the stored file, and so do the settings that shape the
+	 * output — a sheet drawn in five columns is not the sheet the reader gets
+	 * after asking for three.
+	 */
+	async _sheetCacheKey(item, path, columns, maxPages) {
+		let stat;
+		try {
+			stat = await IOUtils.stat(path);
+		} catch (e) {
+			return null;
+		}
+		let annotations = this._pref("previewAnnotations", true)
+			? this._annotationSignature(item) || "none"
+			: "off";
+		return [
+			this.version,
+			path,
+			stat.size,
+			Number(stat.lastModified),
+			annotations,
+			columns,
+			maxPages,
+		].join("|");
+	},
+
+	/** The kept sheet for this key, or null. */
+	async _cachedSheet(keyPath, key, sheetPath) {
+		if (!key) return null;
+		try {
+			if (!(await IOUtils.exists(keyPath))) return null;
+			if ((await IOUtils.readUTF8(keyPath)) !== key) return null;
+			if (!(await IOUtils.exists(sheetPath))) return null;
+			return sheetPath;
+		} catch (e) {
+			return null;
+		}
 	},
 
 	/**
