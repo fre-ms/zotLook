@@ -47,9 +47,21 @@ drawn again as soon as the file, its annotations, the column count or the page
 limit have changed.
 
 Kept sheets live in the system's temporary area rather than in your Zotero
-library, so they are not backed up with it and the system clears them
-eventually. Switch it off if you would rather have the space: every sheet is
-then drawn on every call and none outlives the session.
+library, so they are not backed up with it. Switch it off if you would rather
+have the space: every sheet is then drawn on every call and none outlives the
+session.
+
+**Drop sheets unused for** (default 30 days) clears up without your having to
+think about it. It counts from the last *use* rather than from when the sheet
+was built: a book you open every week stays, one you looked at once in March
+goes. The check runs when Zotero starts rather than while you work — a sheet
+vanishing mid-session would be more confusing than the space it occupied. A `0`
+switches it off, and sheets then stay until the system clears its temporary
+area, which macOS and Linux do on their own and Windows rarely.
+
+**Delete kept sheets** throws them all away at once. Beside it stands what they
+currently occupy — without that figure, pressing it would be a guess. After the
+deletion it reads zero, and the next call draws afresh.
 
 **Columns** (default 5) decides the width of the grid. Fewer columns means
 larger thumbnails, and the renderer raises the resolution to match, so they stay

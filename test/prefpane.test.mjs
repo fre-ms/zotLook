@@ -57,6 +57,23 @@ ok(/preference="extensions\.zotlook\.contactSheetMaxPages"/.test(xhtml),
    'the page limit binds through the preference attribute');
 ok(/type="number"/.test(xhtml) && /min="0"/.test(xhtml), 'and is a number field starting at 0');
 
+
+// ── the kept sheets can be got rid of from here ───────────────────────
+// A cache with no way to empty it and no figure beside it is a directory the
+// user has to be told about in the documentation and then find by hand.
+ok(/id="zotlook-purge-sheets"/.test(xhtml), 'the pane offers a delete button');
+ok(/id="zotlook-cache-size"/.test(xhtml),
+   'with a place for the figure, without which pressing it is a guess');
+ok(/#zotlook-purge-sheets/.test(js) && /addEventListener\(\s*["']command["']/.test(js),
+   'and the button is wired, not merely declared');
+ok(/_purgeSheets\(/.test(js), 'to the clearing the plugin implements');
+ok(/_keptSheetsSize\(/.test(js), 'and the figure to the size it reports');
+ok(/preference="extensions\.zotlook\.contactSheetKeepDays"/.test(xhtml),
+   'the keep-days field binds through the preference attribute');
+ok(/pref\("extensions\.zotlook\.contactSheetKeepDays"/.test(
+     fs.readFileSync(ADDON+'prefs.js','utf8')),
+   'and has a default, or the field opens blank');
+
 // ── explanations sit with the setting they explain ────────────────────
 for (const loc of ['en-US', 'de-DE']) {
   const ftl = fs.readFileSync(`${ADDON}locale/${loc}/zotlook.ftl`, 'utf8');

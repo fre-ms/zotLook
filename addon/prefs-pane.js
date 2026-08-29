@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-/* global Zotero, ZotLookUtil, document, window, MutationObserver */
+/* global Zotero, ZotLook, ZotLookUtil, document, window, MutationObserver */
 
 /**
  * Preference pane for zotLook.
@@ -56,6 +56,8 @@
 	function init(root) {
 		if (root.getAttribute("data-zotlook-initialized")) return;
 		root.setAttribute("data-zotlook-initialized", "1");
+
+		initSheetCache(root);
 
 		for (let action of ACTIONS) {
 			let button = root.querySelector("#zotlook-key-" + action.key);
@@ -152,6 +154,62 @@
 
 		win.addEventListener("keydown", onKeyDown, true);
 		win.addEventListener("keyup", onKeyUp, true);
+	}
+
+	// ── Kept contact sheets ───────────────────────────────────────────
+
+	/**
+	 * The button that throws the kept sheets away, and the figure beside it.
+	 *
+	 * Without the figure nobody can tell whether pressing it is worth
+	 * anything, so it is shown before the button is offered and again
+	 * afterwards — the second time it reads zero, which is the confirmation
+	 * that the press did something.
+	 */
+	function initSheetCache(root) {
+		let button = root.querySelector("#zotlook-purge-sheets");
+		let label = root.querySelector("#zotlook-cache-size");
+		if (!button || !label) return;
+
+		let show = async () => {
+			try {
+				let bytes = await ZotLook._keptSheetsSize();
+				root.ownerDocument.l10n.setAttributes(
+					label,
+					"zotlook-prefs-contactsheet-size",
+					{ size: formatBytes(bytes) }
+				);
+				button.disabled = bytes === 0;
+			} catch (e) {
+				label.hidden = true;
+			}
+		};
+
+		button.addEventListener("command", async () => {
+			button.disabled = true;
+			try {
+				await ZotLook._purgeSheets();
+			} catch (e) {
+				// Nothing to tell the user beyond the figure going to zero
+			}
+			await show();
+		});
+
+		show();
+	}
+
+	/** Bytes as something a person reads, in the pane's own language. */
+	function formatBytes(bytes) {
+		if (bytes < 1024) return bytes + " B";
+		let units = ["kB", "MB", "GB"];
+		let value = bytes / 1024;
+		let unit = 0;
+		while (value >= 1024 && unit < units.length - 1) {
+			value /= 1024;
+			unit++;
+		}
+		return (value < 10 ? value.toFixed(1) : Math.round(value)) +
+			"\u00a0" + units[unit];
 	}
 
 	// ── Attachment priority ───────────────────────────────────────────

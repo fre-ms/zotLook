@@ -154,6 +154,12 @@ var ZotLook = {
 		this._cleanTempDir().catch((e) =>
 			this.log("Startup cleanup failed: " + e)
 		);
+
+		// Kept sheets are not leftovers, so they survive that — but the ones
+		// nobody has opened in a long time are dropped here
+		this._expireSheets().catch((e) =>
+			this.log("Could not clear old contact sheets: " + e)
+		);
 	},
 
 	// ── Window management ─────────────────────────────────────────────
@@ -712,6 +718,13 @@ var ZotLook = {
 			let kept = await this._cachedSheet(keyPath, key, outputPath);
 			if (kept) {
 				this.log("Reusing the contact sheet built earlier: " + kept);
+				// Rewritten so its modification time says "last used", which
+				// is what the age-based clearing goes by
+				try {
+					await IOUtils.writeUTF8(keyPath, key);
+				} catch (e) {
+					// Not worth failing a hit over
+				}
 				return kept;
 			}
 		}
@@ -860,6 +873,137 @@ var ZotLook = {
 		} catch (e) {
 			return null;
 		}
+	},
+
+	/**
+	 * How long a kept sheet may go unused. Zero keeps them until the system
+	 * clears its temp area — which macOS and Linux do on their own, and
+	 * Windows rarely.
+	 */
+	_sheetKeepDays() {
+		let value = Number(this._pref("contactSheetKeepDays", 30));
+		if (!Number.isFinite(value) || value < 0) return 30;
+		return Math.floor(value);
+	},
+
+	/**
+	 * The kept sheets, as {sheet, key, images, bytes, used} — one entry per
+	 * key file, since that is written last and so marks a finished sheet.
+	 */
+	async _keptSheets() {
+		let dir = this._sheetCacheDirPath();
+		let out = [];
+		let names;
+		try {
+			names = await IOUtils.getChildren(dir);
+		} catch (e) {
+			return out;
+		}
+		for (let path of names) {
+			if (!path.endsWith(".key")) continue;
+			let base = path.slice(0, -4);
+			let entry = {
+				key: path,
+				sheet: base + ".html",
+				images: base + "_pages",
+				bytes: 0,
+				used: 0,
+			};
+			try {
+				let stat = await IOUtils.stat(path);
+				entry.used = Number(stat.lastModified) || 0;
+			} catch (e) {
+				continue;
+			}
+			for (let file of [path, entry.sheet]) {
+				try {
+					entry.bytes += (await IOUtils.stat(file)).size || 0;
+				} catch (e) {
+					// A missing half is what makes an entry incomplete, not an
+					// error; the size is then simply smaller.
+				}
+			}
+			try {
+				for (let image of await IOUtils.getChildren(entry.images)) {
+					entry.bytes += (await IOUtils.stat(image)).size || 0;
+				}
+			} catch (e) {
+				// no images directory
+			}
+			out.push(entry);
+		}
+		return out;
+	},
+
+	/** What the kept sheets occupy, in bytes. */
+	async _keptSheetsSize() {
+		let total = 0;
+		for (let entry of await this._keptSheets()) total += entry.bytes;
+		return total;
+	},
+
+	/** Throws away one kept sheet: its key first, so a half-removed one is
+	 *  never mistaken for a finished one. */
+	async _dropSheet(entry) {
+		try {
+			await IOUtils.remove(entry.key, { ignoreAbsent: true });
+			await IOUtils.remove(entry.sheet, { ignoreAbsent: true });
+			await IOUtils.remove(entry.images, {
+				recursive: true,
+				ignoreAbsent: true,
+			});
+			return true;
+		} catch (e) {
+			this.log("Could not remove a kept sheet: " + e);
+			return false;
+		}
+	},
+
+	/** Every kept sheet. Returns how many went and what they occupied. */
+	async _purgeSheets() {
+		let entries = await this._keptSheets();
+		let bytes = 0;
+		let count = 0;
+		for (let entry of entries) {
+			if (await this._dropSheet(entry)) {
+				bytes += entry.bytes;
+				count++;
+			}
+		}
+		if (count) this.log("Removed " + count + " kept contact sheets");
+		return { count, bytes };
+	},
+
+	/**
+	 * The ones nobody has looked at for a while.
+	 *
+	 * By last use rather than by age: a book opened every week should stay,
+	 * and one opened once in March should not. The key file is rewritten on
+	 * every hit, which is what makes its modification time mean "last used".
+	 *
+	 * Run at startup rather than on a timer. A directory listing costs
+	 * nothing, and a clearing that happened while the user was working would
+	 * make the same sheet appear at once one moment and not the next.
+	 */
+	async _expireSheets() {
+		let days = this._sheetKeepDays();
+		if (!days) return { count: 0, bytes: 0 };
+
+		let cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+		let bytes = 0;
+		let count = 0;
+		for (let entry of await this._keptSheets()) {
+			if (entry.used >= cutoff) continue;
+			if (await this._dropSheet(entry)) {
+				bytes += entry.bytes;
+				count++;
+			}
+		}
+		if (count) {
+			this.log("Removed " + count + " contact sheets unused for " +
+				days + " days");
+		}
+		return { count, bytes };
 	},
 
 	/**

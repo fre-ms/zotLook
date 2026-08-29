@@ -124,3 +124,21 @@ statt hochskaliert zu werden.
 Diese Größenregel liegt in `sheet.js`, getrennt vom Zeichnen — Raster,
 Beschriftungen und Verweise lassen sich damit ändern und prüfen, ohne dass ein
 PDF im Spiel wäre.
+
+## Was behalten wird, und wie es wieder verschwindet
+
+Ein fertiger Bogen bleibt liegen — in `zotLook-cache`, einem Nachbarn des
+Arbeitsverzeichnisses, das bei jedem Start geleert wird. Daneben liegt eine
+Datei `….key` mit einer Zeile aus Plugin-Version, Pfad, Größe und Änderungszeit
+der Datei, Annotationsstand, Spaltenzahl und Seitenlimit. Stimmt sie beim
+nächsten Aufruf überein, wird der Bogen gezeigt, sonst neu gezeichnet.
+
+Die Schlüsseldatei wird **zuletzt** geschrieben und nur bei Erfolg. Ein
+abgebrochener Lauf hinterlässt damit keinen Schlüssel, und ein halbfertiger
+Bogen kann nicht für einen fertigen gehalten werden. Bei jedem Treffer wird sie
+neu geschrieben: Ihre Änderungszeit bedeutet dadurch „zuletzt benutzt" und nicht
+„erstellt" — genau die Unterscheidung, von der das Verwerfen nach Alter lebt.
+
+Aufgeräumt wird beim Start, nicht auf einem Zeitgeber. Ein Verzeichnislisting
+kostet nichts, und ein Aufräumen mitten in der Arbeit ließe denselben Bogen
+einmal sofort erscheinen und im nächsten Moment nicht mehr.

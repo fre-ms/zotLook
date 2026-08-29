@@ -70,3 +70,12 @@ zotlook-prefs-contactsheet-cache =
     .label = Keep contact sheets and show them again
 
 zotlook-prefs-contactsheet-cache-help = Drawing every page of a long book takes seconds. A sheet that has been built once is shown again unchanged until the file, its annotations or the settings below have changed. Kept sheets live in the system's temporary area and are not backed up with your library.
+
+zotlook-prefs-contactsheet-keepdays = Drop sheets unused for
+
+zotlook-prefs-contactsheet-keepdays-hint = days (0 keeps them until the system clears its temporary files)
+
+zotlook-prefs-contactsheet-size = Currently kept: { $size }
+
+zotlook-prefs-contactsheet-purge =
+    .label = Delete kept sheets

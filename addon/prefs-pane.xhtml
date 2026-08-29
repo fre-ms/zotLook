@@ -120,6 +120,20 @@
               preference="extensions.zotlook.cacheContactSheet"
               native="true"/>
     <description data-l10n-id="zotlook-prefs-contactsheet-cache-help"/>
+    <hbox align="center" class="zotlook-row">
+      <label control="zotlook-keep-days"
+             data-l10n-id="zotlook-prefs-contactsheet-keepdays"/>
+      <html:input id="zotlook-keep-days" type="number" min="0" max="3650"
+                  step="1" style="width: 6em;"
+                  preference="extensions.zotlook.contactSheetKeepDays"/>
+      <label class="zotlook-hint"
+             data-l10n-id="zotlook-prefs-contactsheet-keepdays-hint"/>
+    </hbox>
+    <hbox align="center" class="zotlook-row">
+      <button id="zotlook-purge-sheets"
+              data-l10n-id="zotlook-prefs-contactsheet-purge"/>
+      <label id="zotlook-cache-size" class="zotlook-hint"/>
+    </hbox>
     <description data-l10n-id="zotlook-prefs-contactsheet-help"/>
     <hbox align="center" class="zotlook-row">
       <label control="zotlook-columns"

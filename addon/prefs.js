@@ -34,6 +34,12 @@ pref("extensions.zotlook.contactSheetColumns", 5);
 // count or the page limit have changed since — see _sheetCacheKey.
 pref("extensions.zotlook.cacheContactSheet", true);
 
+// How long a kept sheet may go unused before it is dropped at the next start.
+// By last use rather than by age, so a book opened weekly stays and one opened
+// once in March does not. 0 keeps them until the system clears its temp area —
+// which macOS and Linux do on their own, and Windows rarely.
+pref("extensions.zotlook.contactSheetKeepDays", 30);
+
 // Which attachment a preview uses when an item has several.
 // "type": follow attachmentOrder below. "first": take the first attachment
 // the item lists, whatever it is.

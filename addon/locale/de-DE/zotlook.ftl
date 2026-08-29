@@ -72,3 +72,12 @@ zotlook-prefs-contactsheet-cache =
     .label = Kontaktbögen behalten und wiederverwenden
 
 zotlook-prefs-contactsheet-cache-help = Jede Seite eines langen Buches zu zeichnen dauert Sekunden. Ein einmal erstellter Bogen wird unverändert wieder gezeigt, bis sich die Datei, ihre Annotationen oder die Einstellungen darunter geändert haben. Behaltene Bögen liegen im temporären Bereich des Systems und werden nicht mit Ihrer Bibliothek gesichert.
+
+zotlook-prefs-contactsheet-keepdays = Ungenutzte Bögen verwerfen nach
+
+zotlook-prefs-contactsheet-keepdays-hint = Tagen (0 behält sie, bis das System seine temporären Dateien räumt)
+
+zotlook-prefs-contactsheet-size = Derzeit belegt: { $size }
+
+zotlook-prefs-contactsheet-purge =
+    .label = Behaltene Bögen löschen
