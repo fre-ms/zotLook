@@ -304,5 +304,35 @@ const ok = (c,l)=>eq(!!c,true,l);
   }
 }
 
+// ── the pane has to be able to find the plugin ────────────────────────
+// The preference pane runs in the preferences window and is handed only
+// util.js and prefs-pane.js. In 1.1.8 the pane called zotLook directly, and
+// in that scope there is no such thing: the ReferenceError landed in the
+// catch around the size lookup, so the figure beside the delete button was
+// simply never shown and nothing anywhere said why.
+{
+  const { zotLook: Q, zotero } = loadPlugin({
+    PreferencePanes: { register: async () => 'pane', unregister: () => {} },
+    IOUtils: { getChildren: async () => { throw new Error('none'); } },
+  });
+  Q._loadStrings = async () => {};
+  Q._watchPreferences = () => {};
+  Q._unwatchPreferences = () => {};
+  Q._cleanTempDir = async () => {};
+  Q._closeQuickLook = () => {};
+  Q._dropResourceAlias = () => {};
+  Q._unregisterPreferencePane = () => {};
+
+  Q.init({ id: 'zotlook@fre.ms', version: '1.1.8', rootURI: 'file:///p/' });
+  ok(zotero.zotLook === Q,
+     'init publishes the plugin on Zotero, the one scope the pane shares');
+
+  Q.shutdown();
+  eq('zotLook' in zotero, false,
+     'and shutdown takes it away again rather than leaving a dead object '
+     + 'behind for the next install to find');
+}
+
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

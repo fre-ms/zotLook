@@ -96,5 +96,5 @@ export function loadPlugin(overrides = {}) {
     src +
       '\n;return {zotLook, zotLookUtil, zotLookEpub, zotLookSheet, zotLookWinPreview};'
   )(...Object.values(g));
-  return { ...out, logs, prefs };
+  return { ...out, logs, prefs, zotero: g.Zotero };
 }

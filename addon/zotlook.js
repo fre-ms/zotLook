@@ -144,6 +144,22 @@ var zotLook = {
 		this.rootURI = rootURI;
 		this.initialized = true;
 
+		// The preference pane runs in the preferences window and is handed
+		// only the scripts named in the registration below — util.js and
+		// prefs-pane.js. Anything of the plugin it needs has to be reachable
+		// from there, and Zotero is the one object both scopes share. This
+		// is how the pane gets at the kept sheets to measure and clear them.
+		Zotero.zotLook = this;
+		// Said out loud rather than assumed: an assignment onto an object
+		// from another compartment can fail without throwing, and the only
+		// symptom would be a control in the pane that quietly does nothing.
+		if (Zotero.zotLook !== this) {
+			this.log(
+				"Could not publish the plugin on Zotero; the preference " +
+					"pane will not find the kept sheets"
+			);
+		}
+
 		this._registerPreferencePane();
 		this._watchPreferences();
 		this._loadStrings().catch((e) =>
@@ -2271,6 +2287,7 @@ var zotLook = {
 		this._closeQuickLook();
 		this._dropResourceAlias();
 		this._unregisterPreferencePane();
+		if (Zotero.zotLook === this) delete Zotero.zotLook;
 		this._unwatchPreferences();
 		this._cleanTempDir().catch((e) =>
 			this.log("Shutdown cleanup failed: " + e)

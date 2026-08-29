@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-/* global Zotero, zotLook, zotLookUtil, document, window, MutationObserver */
+/* global Zotero, zotLookUtil, document, window, MutationObserver */
 
 /**
  * Preference pane for zotLook.
@@ -171,16 +171,26 @@
 		let label = root.querySelector("#zotlook-cache-size");
 		if (!button || !label) return;
 
+		// Not the bare zotLook: this script runs in the preferences window,
+		// which is handed util.js and this file and nothing else. The plugin
+		// object reaches it through Zotero, the one scope both share.
+		let plugin = () => Zotero.zotLook;
+
 		let show = async () => {
 			try {
-				let bytes = await zotLook._keptSheetsSize();
+				let bytes = await plugin()._keptSheetsSize();
 				root.ownerDocument.l10n.setAttributes(
 					label,
 					"zotlook-prefs-contactsheet-size",
 					{ size: formatBytes(bytes) }
 				);
+				label.hidden = false;
 				button.disabled = bytes === 0;
 			} catch (e) {
+				// Hidden rather than showing a figure that might be wrong —
+				// but said out loud, because a silently empty label is what
+				// hid this from view in 1.1.8
+				Zotero.debug("zotLook: could not measure kept sheets: " + e);
 				label.hidden = true;
 			}
 		};
@@ -188,9 +198,9 @@
 		button.addEventListener("command", async () => {
 			button.disabled = true;
 			try {
-				await zotLook._purgeSheets();
+				await plugin()._purgeSheets();
 			} catch (e) {
-				// Nothing to tell the user beyond the figure going to zero
+				Zotero.debug("zotLook: could not clear kept sheets: " + e);
 			}
 			await show();
 		});

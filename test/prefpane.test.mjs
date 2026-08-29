@@ -58,6 +58,48 @@ ok(/preference="extensions\.zotlook\.contactSheetMaxPages"/.test(xhtml),
 ok(/type="number"/.test(xhtml) && /min="0"/.test(xhtml), 'and is a number field starting at 0');
 
 
+
+// ── the pane may only name what it is actually given ──────────────────
+// Zotero hands the preferences window the scripts listed in the pane
+// registration and nothing else. A reference to any other of the plugin's
+// objects parses, passes lint and throws only when that line runs — which,
+// inside a try, means the control quietly does not appear. That is exactly
+// how the size beside the delete button went missing in 1.1.8.
+{
+  const listed = zotlook.match(/scripts:\s*\[([^\]]*)\]/);
+  ok(listed, 'the pane registration lists its scripts');
+  const files = [...listed[1].matchAll(/"([^"]+\.js)"/g)].map(m => m[1]);
+  eq(files.includes('prefs-pane.js'), true, 'this script among them');
+
+  // What those scripts define at the top level is what the pane may name
+  const provided = new Set();
+  for (const f of files) {
+    for (const m of fs.readFileSync(ADDON + f, 'utf8')
+                      .matchAll(/^\s*(?:var|let|const|function)\s+(zotLook\w*)/gm)) {
+      provided.add(m[1]);
+    }
+  }
+  ok(provided.has('zotLookUtil'), `util.js is loaded and provides it`);
+
+  // Comments and strings talk about these names in prose; only code counts
+  const code = js
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1')
+    .replace(/"(?:[^"\\]|\\.)*"/g, '""')
+    .replace(/'(?:[^'\\]|\\.)*'/g, "''")
+    .replace(/`(?:[^`\\]|\\.)*`/g, '``');
+  const used = new Set(
+    [...code.matchAll(/(?:^|[^.\w$])(zotLook\w*)\b/g)].map(m => m[1]));
+
+  for (const name of used) {
+    ok(provided.has(name),
+       `${name} is one of the scripts the pane is handed`
+       + (provided.has(name) ? '' : ' — it is not, so every use throws'));
+  }
+  ok(!used.has('zotLook'),
+     'the plugin object itself is reached through Zotero, not as a global');
+}
+
 // ── the kept sheets can be got rid of from here ───────────────────────
 // A cache with no way to empty it and no figure beside it is a directory the
 // user has to be told about in the documentation and then find by hand.
