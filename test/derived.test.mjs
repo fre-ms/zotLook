@@ -453,5 +453,35 @@ function session(disk, prefValues = {}, source = { size: 10, mtime: 5 }) {
   eq(seen.size, 0, 'a setting already made under the new name is not overwritten');
 }
 
+// ── where the kept store lives ────────────────────────────────────────
+// Zotero deletes its whole temp directory at every shutdown — an
+// AsyncShutdown blocker registered inside getTempDirectory — so a kept
+// store under it was wiped at every restart, on every platform. First
+// noticed on Windows as a size display that never left 0 B. The store
+// therefore builds on the local profile directory, and goes back to temp
+// only when there is none to build on.
+{
+  const { zotLook: Q } = loadPlugin({
+    Services: { dirsvc: { get: (key) => {
+      if (key !== 'ProfLD') throw new Error('unexpected dirsvc key ' + key);
+      return { path: '/home/u/.cache/zotero/profile' };
+    } } },
+    Components: { interfaces: { nsIFile: {} } },
+  });
+  eq(Q._derivedRoot(true), '/home/u/.cache/zotero/profile/zotLook-cache',
+     'the kept store builds on the local profile directory');
+  ok(!Q._derivedRoot(true).startsWith(Q._getTempDirPath()),
+     'nowhere under the temp directory Zotero deletes at shutdown');
+  eq(Q._derivedRoot(false), Q._getTempDirPath(),
+     'while the working directory stays in temp, where a session file belongs');
+}
+{
+  const { zotLook: Q, logs } = loadPlugin({});
+  eq(Q._derivedRoot(true), '/tmp/zt/zotLook-cache',
+     'without a profile directory the store still works, back in temp');
+  ok(logs.some(l => /will not survive a restart/.test(l)),
+     'and says out loud what that fallback costs');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

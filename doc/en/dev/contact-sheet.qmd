@@ -136,9 +136,12 @@ leaves no key behind, and a half-built entry cannot be mistaken for a finished
 one. On every hit it is rewritten: its modification time thus means "last used"
 rather than "built", which is the distinction the age-based clearing lives on.
 
-Kept entries sit in `zotLook-cache`, a sibling of the working directory that is
-emptied on every start. What is *not* kept — the annotated copy — goes into the
-working directory itself and is swept away with it.
+Kept entries sit in `zotLook-cache` under the local profile directory. They
+first lived beside the working directory, which put them inside Zotero's temp
+directory — and Zotero registers a shutdown blocker that deletes that whole
+directory at every exit, so no kept entry ever survived a restart and the
+settings pane truthfully reported 0 B. What is *not* kept — the annotated
+copy — goes into the working directory itself and is swept away with it.
 
 The clearing runs at startup rather than on a timer. A directory listing costs
 nothing, and a clearing that happened mid-session would make the same preview

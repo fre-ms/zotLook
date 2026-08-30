@@ -864,20 +864,51 @@ var zotLook = {
 	/**
 	 * Where entries live.
 	 *
-	 * Kept ones sit beside the working directory rather than in it, because
-	 * that one is emptied on startup and on shutdown — anything left there
-	 * could never survive a restart. Both are in the system's temp area all
-	 * the same, so neither is backed up with the library.
+	 * The working directory is in the system's temp area and is emptied on
+	 * startup and on shutdown — nothing there outlives the session, and
+	 * nothing there is meant to.
+	 *
+	 * Kept entries must outlive it, and beside the working directory —
+	 * where they first lived — they could not: that put them inside
+	 * Zotero's own temp directory, and Zotero registers a shutdown blocker
+	 * ("Removing temp directory") that deletes that whole directory at
+	 * every exit. Kept sheets were gone at the next start on every
+	 * platform, and the settings pane truthfully reported 0 B. They live
+	 * in the local profile directory instead — AppData\Local on Windows,
+	 * ~/Library/Caches on macOS — which is per-profile, survives
+	 * restarts, is cleared by nobody else, and is still not backed up
+	 * with the library.
 	 */
 	_derivedRoot(keep) {
 		if (!keep) return this._getTempDirPath();
 		if (!this._keptRoot) {
 			this._keptRoot = PathUtils.join(
-				Zotero.getTempDirectory().path,
+				this._cacheBase(),
 				"zotLook-cache"
 			);
 		}
 		return this._keptRoot;
+	},
+
+	/**
+	 * The directory the kept entries' store may build on. The local
+	 * profile directory, with Zotero's temp directory as the fallback —
+	 * a copy that cannot look things up in dirsvc keeps working, it
+	 * merely goes back to forgetting its previews at shutdown.
+	 */
+	_cacheBase() {
+		try {
+			return Services.dirsvc.get(
+				"ProfLD",
+				Components.interfaces.nsIFile
+			).path;
+		} catch (e) {
+			this.log(
+				"No local profile directory; kept previews will not " +
+					"survive a restart: " + e
+			);
+			return Zotero.getTempDirectory().path;
+		}
 	},
 
 	/**

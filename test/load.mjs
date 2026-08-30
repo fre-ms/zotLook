@@ -86,6 +86,7 @@ export function loadPlugin(overrides = {}) {
       throw new Error('no ChromeWorker in this test');
     },
     Services: overrides.Services ?? {},
+    Components: overrides.Components ?? {},
     setTimeout, clearTimeout, console,
   };
   const src = ['util.js', 'cfi.js', 'sheet.js', 'epub.js', 'winpreview.js', 'zotlook.js']

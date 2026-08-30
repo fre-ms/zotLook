@@ -146,8 +146,11 @@ sie neu geschrieben: Ihre Änderungszeit bedeutet dadurch „zuletzt benutzt" un
 nicht „erstellt" — genau die Unterscheidung, von der das Verwerfen nach Alter
 lebt.
 
-Behaltene Einträge liegen in `zotLook-cache`, einem Nachbarn des
-Arbeitsverzeichnisses, das bei jedem Start geleert wird. Was *nicht* behalten
+Behaltene Einträge liegen in `zotLook-cache` im lokalen Profilverzeichnis.
+Zuerst lagen sie neben dem Arbeitsverzeichnis — und damit in Zoteros eigenem
+Temp-Verzeichnis, das Zotero über einen Shutdown-Blocker bei jedem Beenden
+vollständig löscht: kein behaltener Eintrag hat je einen Neustart überlebt,
+und die Einstellungsseite zeigte wahrheitsgemäß 0 B. Was *nicht* behalten
 wird — die annotierte Kopie — liegt im Arbeitsverzeichnis selbst und geht mit
 ihm.
 

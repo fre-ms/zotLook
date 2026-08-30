@@ -82,18 +82,19 @@ was made once is shown unchanged until something that would make it the wrong
 answer has changed — the file itself, its annotations, or the settings that
 shape it, such as the contact sheet's column count.
 
-Kept previews live in the system's temporary area rather than in your Zotero
-library, so they are not backed up with it. Switch it off if you would rather
-have the space: everything is then made afresh on every call and nothing
-outlives the session.
+Kept previews live in the profile's cache area rather than in your Zotero
+library, so they are not backed up with it. The system's temporary area, the
+obvious place for them, is the one place they cannot be: Zotero clears its own
+temporary directory completely at every shutdown, and a preview kept there
+never survived a restart. Switch it off if you would rather have the space:
+everything is then made afresh on every call and nothing outlives the session.
 
 **Drop previews unused for** (default 30 days) clears up without your having to
 think about it. It counts from the last *use* rather than from when the preview
 was made: a book you open every week stays, one you looked at once in March
 goes. The check runs when Zotero starts rather than while you work — a preview
 vanishing mid-session would be more confusing than the space it occupied. A `0`
-switches it off, and they then stay until the system clears its temporary area,
-which macOS and Linux do on their own and Windows rarely.
+switches it off, and they then stay until you delete them yourself.
 
 **Delete kept previews** throws them all away at once. Beside it stands what
 they currently occupy — without that figure, pressing it would be a guess.

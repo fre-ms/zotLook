@@ -87,10 +87,13 @@ hat, das es zur falschen Antwort machen würde — die Datei selbst, ihre
 Annotationen oder die Einstellungen, die ihre Gestalt bestimmen, etwa die
 Spaltenzahl des Kontaktbogens.
 
-Behaltene Vorschauen liegen im temporären Bereich des Systems, nicht in Ihrer
-Zotero-Bibliothek — sie werden also nicht mitgesichert. Abschalten, wenn Sie
-den Platz brauchen: dann wird bei jedem Aufruf alles neu erzeugt und überlebt
-die Sitzung nicht.
+Behaltene Vorschauen liegen im Cache-Bereich des Profils, nicht in Ihrer
+Zotero-Bibliothek — sie werden also nicht mitgesichert. Der temporäre Bereich
+des Systems, der naheliegende Ort, ist der eine, an dem sie nicht liegen
+können: Zotero räumt sein eigenes Temp-Verzeichnis bei jedem Beenden
+vollständig aus, und eine dort behaltene Vorschau hat nie einen Neustart
+überlebt. Abschalten, wenn Sie den Platz brauchen: dann wird bei jedem Aufruf
+alles neu erzeugt und überlebt die Sitzung nicht.
 
 **Ungenutzte Vorschauen verwerfen nach** (Vorgabe 30 Tagen) räumt auf, ohne
 dass Sie daran denken müssen. Gezählt wird ab der letzten *Benutzung*, nicht ab
@@ -98,8 +101,7 @@ der Erstellung: Ein Buch, das Sie jede Woche aufschlagen, bleibt; eines, das
 Sie im März einmal angesehen haben, verschwindet. Geprüft wird beim Start von
 Zotero, nicht währenddessen — eine Vorschau, die mitten in der Arbeit
 verschwindet, wäre verwirrender als der belegte Platz. Eine `0` schaltet das
-ab; dann bleiben sie liegen, bis das System seinen temporären Bereich räumt,
-was macOS und Linux von selbst tun und Windows selten.
+ab; dann bleiben sie liegen, bis Sie sie selbst löschen.
 
 **Behaltene Vorschauen löschen** wirft sie alle sofort weg. Daneben steht, wie
 viel sie derzeit belegen — ohne diese Zahl wäre das Drücken ein Ratespiel. Nach
