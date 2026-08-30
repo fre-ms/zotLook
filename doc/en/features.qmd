@@ -14,7 +14,7 @@ Every action has exactly one shortcut, and every one of them is
 | **Space** | Preview the selected item's attachment. Again, or **Escape**, to dismiss. |
 | **Shift+Space** | Preview the item's notes, rendered as a page. |
 | **Ctrl+Shift+Space** | Contact sheet: every page of a PDF as a thumbnail. |
-| **Shift+Alt+Space** | The same sheet in a Zotero window, which stays open beside the reader. |
+| **Ctrl+Shift+Tab** | The same sheet in a Zotero window, which stays open beside the reader. |
 
 The same actions sit in the right-click menu. The contact sheet entries appear
 only when the selection actually contains a PDF.
@@ -67,7 +67,7 @@ figure you remember, or for seeing at a glance which pages you marked up.
   be set for unusually large scans; when it bites, the sheet says how many pages
   it is showing.
 
-The window variant (**Shift+Alt+Space**) puts the same sheet in a Zotero window.
+The window variant (**Ctrl+Shift+Tab**) puts the same sheet in a Zotero window.
 The difference is what happens after a click: the panel closes as it hands over
 to the reader, the window stays open beside it.
 

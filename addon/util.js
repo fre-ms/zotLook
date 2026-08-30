@@ -210,12 +210,22 @@ var zotLookUtil = {
 	 * Alt+Space, the window menu on GNOME and on Windows, and it is why the
 	 * contact sheet sits on Ctrl+Shift+Space: free on all three systems, where
 	 * plain Ctrl+Space is the input-method toggle on two of them.
+	 *
+	 * The windowed sheet moved to Ctrl+Shift+Tab, which was read out of
+	 * Zotero rather than assumed free. Bare Shift+Tab could not have it:
+	 * zoteroPane.js turns Tab and Shift+Tab into focus movement across
+	 * twenty-two targets, and taking it would have stopped anyone tabbing
+	 * backwards out of the item list. With Control held that handler returns
+	 * at once — it drops any Tab carrying a modifier other than Shift — and
+	 * Zotero's own tab switching sits on Ctrl+PageUp/PageDown, on macOS also
+	 * on Cmd+Shift+[ / ]. Its tab bar is no XUL tabbox either, so the toolkit
+	 * does not claim Ctrl+Tab the way a browser does.
 	 */
 	SHORTCUT_DEFAULTS: {
 		"key.preview": "Space",
 		"key.notes": "Shift+Space",
 		"key.contactSheet": "Ctrl+Shift+Space",
-		"key.contactSheetWindow": "Shift+Alt+Space",
+		"key.contactSheetWindow": "Ctrl+Shift+Tab",
 	},
 
 	/** The shipped shortcut for one action, or "" if there is no such action. */

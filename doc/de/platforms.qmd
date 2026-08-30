@@ -70,7 +70,7 @@ also dort, wo Sie sind.
 Die eine Lücke ist Sushi. Seine Anzeige folgt Verweisen tatsächlich und kann
 eine `zotero:`-Adresse nicht laden — die Verweise sind dort deshalb absichtlich
 wirkungslos, denn ein fehlschlagender Klick reißt die ganze Vorschau mit sich.
-Die Fenster-Variante (**Umschalt+Alt+Leertaste**) gibt Linux den anklickbaren
+Die Fenster-Variante (**Strg+Umschalt+Tab**) gibt Linux den anklickbaren
 Bogen. Mehr dazu unter [Der Kontaktbogen](dev/contact-sheet.qmd).
 
 ## Nebeneinander gesehen
@@ -103,7 +103,7 @@ eingezeichnet sind.
 ![Windows · QuickLook](asset/screenshot/windows-contact-sheet.png){group="sheet"}
 :::
 
-### Umschalt+Alt+Leertaste — der Bogen im Zotero-Fenster
+### Strg+Umschalt+Tab — der Bogen im Zotero-Fenster
 
 ::: {layout-ncol="3"}
 ![macOS](asset/screenshot/macos-contact-sheet-window.png){group="window"}

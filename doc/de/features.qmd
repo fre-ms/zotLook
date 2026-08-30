@@ -14,7 +14,7 @@ Jede Funktion hat genau ein Kürzel, und jedes davon ist
 | **Leertaste** | Anhang des gewählten Eintrags anzeigen. Nochmals oder **Escape** schließt. |
 | **Umschalt+Leertaste** | Notizen des Eintrags als Seite anzeigen. |
 | **Strg+Umschalt+Leertaste** | Kontaktbogen: jede Seite eines PDFs als Miniatur. |
-| **Umschalt+Alt+Leertaste** | Derselbe Bogen in einem Zotero-Fenster, das neben dem Reader stehen bleibt. |
+| **Strg+Umschalt+Tab** | Derselbe Bogen in einem Zotero-Fenster, das neben dem Reader stehen bleibt. |
 
 Dieselben Funktionen stehen im Kontextmenü. Die Einträge zum Kontaktbogen
 erscheinen nur, wenn die Auswahl tatsächlich ein PDF enthält.
@@ -71,7 +71,7 @@ zu sehen, welche Seiten man bearbeitet hat.
   Für ungewöhnlich große Scans lässt sich eines setzen; greift es, sagt der
   Bogen, wie viele Seiten er zeigt.
 
-Die Fenster-Variante (**Umschalt+Alt+Leertaste**) zeigt denselben Bogen in einem
+Die Fenster-Variante (**Strg+Umschalt+Tab**) zeigt denselben Bogen in einem
 Zotero-Fenster. Der Unterschied liegt danach: Die Systemvorschau schließt sich,
 wenn sie an den Reader übergibt, das Fenster bleibt daneben stehen.
 

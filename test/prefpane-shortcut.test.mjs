@@ -171,5 +171,38 @@ const noteId = (doc, k) =>
      'and is named as Zotero: ' + note(doc, 'preview').l10nArgs.conflicts);
 }
 
+// ── what Zotero binds in JavaScript counts too ────────────────────────
+// The registry is built from the main window's <key> elements, which is all
+// the DOM can be asked for. Zotero moves focus with Tab and Shift+Tab from
+// its own keydown listener — twenty-two targets — and the pane reported no
+// conflict at all, which sounds like an answer and is not one.
+{
+  const { doc } = await openPane({ [PREF('preview')]: 'Space' });
+  command(doc, 'zotlook-key-preview');
+  key(doc, 'keydown', { key: 'Shift', code: 'ShiftLeft', shiftKey: true });
+  key(doc, 'keydown', { key: 'Tab', code: 'Tab', shiftKey: true });
+  key(doc, 'keyup', { key: 'Tab', code: 'Tab', shiftKey: true });
+
+  eq(noteId(doc, 'preview'), 'zotlook-prefs-conflict',
+     'Shift+Tab is reported as taken, though no <key> element holds it');
+  ok(note(doc, 'preview').l10nArgs.conflicts.toLowerCase().includes('focus'),
+     'and named for what holds it: ' + note(doc, 'preview').l10nArgs.conflicts);
+}
+{
+  // With Control held, Zotero's focus handler returns at once — it drops any
+  // Tab carrying a modifier other than Shift — so this one really is free.
+  // The windowed sheet is moved aside first: it holds Ctrl+Shift+Tab by
+  // default now, and a collision with that is a true one.
+  const { doc } = await openPane({
+    [PREF('preview')]: 'Space',
+    [PREF('contactSheetWindow')]: 'Shift+Alt+Space',
+  });
+  command(doc, 'zotlook-key-preview');
+  key(doc, 'keydown', { key: 'Control', code: 'ControlLeft', ctrlKey: true });
+  key(doc, 'keydown', { key: 'Tab', code: 'Tab', ctrlKey: true, shiftKey: true });
+  key(doc, 'keyup', { key: 'Tab', code: 'Tab', ctrlKey: true, shiftKey: true });
+  eq(noteId(doc, 'preview'), null, 'Ctrl+Shift+Tab is not reported as taken');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

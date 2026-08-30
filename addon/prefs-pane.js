@@ -31,6 +31,30 @@
 		})
 	);
 
+	/**
+	 * What Zotero binds in JavaScript rather than in a <key> element.
+	 *
+	 * The registry above is built from the main window's <key> elements,
+	 * which is everything the DOM can be asked for — and it misses the ones
+	 * Zotero handles in its own keydown listeners. Shift+Tab is the case
+	 * that showed it: zoteroPane.js moves focus backwards across
+	 * twenty-two targets with it, and the pane would have reported no
+	 * conflict at all, which is worse than reporting none because it sounds
+	 * like an answer.
+	 *
+	 * Read out of Zotero 7's zoteroPane.js. A list kept by hand goes stale;
+	 * saying so here is the honest half of the bargain, and stale entries
+	 * cost a warning too many rather than a shortcut that does not work.
+	 */
+	const ZOTERO_JS_KEYS = [
+		{ shortcut: "Tab", label: "Zotero move focus" },
+		{ shortcut: "Shift+Tab", label: "Zotero move focus back" },
+		{ shortcut: "Ctrl+PageUp", label: "Zotero previous tab" },
+		{ shortcut: "Ctrl+PageDown", label: "Zotero next tab" },
+		{ shortcut: "Meta+Shift+BracketLeft", label: "Zotero previous tab" },
+		{ shortcut: "Meta+Shift+BracketRight", label: "Zotero next tab" },
+	];
+
 	/** Shortcut text: Mac keycap symbols there, spelled out everywhere else. */
 	function describe(shortcut) {
 		return zotLookUtil.describeShortcut(shortcut, !!Zotero.isMac);
@@ -378,6 +402,11 @@
 					label: "Zotero " + id.replace(/^(key_|cmd_)/, ""),
 				});
 			}
+		}
+
+		for (let entry of ZOTERO_JS_KEYS) {
+			let bound = zotLookUtil.parseShortcut(entry.shortcut);
+			if (bound) registry.push({ shortcut: bound, label: entry.label });
 		}
 
 		for (let entry of zoteroConfigurableKeys()) {

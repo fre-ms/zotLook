@@ -33,7 +33,7 @@ result therefore means *no conflict with Zotero* — not *free*.
 | Preview | Space |
 | Notes | Shift+Space |
 | Contact sheet | Ctrl+Shift+Space |
-| Contact sheet in a window | Shift+Alt+Space |
+| Contact sheet in a window | Ctrl+Shift+Tab |
 
 ## Combinations that never arrive
 
