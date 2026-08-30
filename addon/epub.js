@@ -1025,6 +1025,45 @@ var zotLookEpub = {
 	GOTO_LABEL: "Go to the passage",
 
 	/**
+	 * Turns the book's own links into plain text inside a tile.
+	 *
+	 * A whole tile is one link into the reader, and an <a> inside an <a> is
+	 * not something a browser keeps: on meeting the inner one the parser
+	 * closes the outer, and everything after that point in the tile stops
+	 * being clickable. Measured in Quick Look with a page whose CSS reveals
+	 * the parsed tree — with an inner anchor present, the page box is no
+	 * longer a descendant of the outer link. In one 416-page book, 198 tiles
+	 * carried the book's cross-references, which is why some pages linked and
+	 * others seemed not to.
+	 *
+	 * They are no loss. They point at chapter files that do not exist beside
+	 * a sheet, so following one could only fail; what they were is still
+	 * there to read.
+	 *
+	 * Marks are carried over rather than left pointing at a discarded
+	 * element: a page-list entry can name an <a> as the place a page begins.
+	 */
+	_flattenLinks(root, marks) {
+		let doc = root.ownerDocument;
+		if (!doc) return;
+
+		for (let link of [...root.querySelectorAll("a")]) {
+			let span = doc.createElement("span");
+			for (let name of ["id", "class", "style"]) {
+				let value = link.getAttribute(name);
+				if (value !== null) span.setAttribute(name, value);
+			}
+			while (link.firstChild) span.appendChild(link.firstChild);
+			if (!link.parentNode) continue;
+			link.parentNode.replaceChild(span, link);
+
+			for (let mark of marks || []) {
+				if (mark.node === link) mark.node = span;
+			}
+		}
+	},
+
+	/**
 	 * The book cut into one piece per printed page.
 	 *
 	 * A page mark rarely sits between two paragraphs; it sits inside one, and
@@ -1172,6 +1211,7 @@ var zotLookEpub = {
 			);
 			zotLookUtil.sanitize(body);
 			await this._rewriteUrls(zip, body, fileDir, env, written);
+			this._flattenLinks(body, section.marks);
 		}
 
 		let pages = this._buildPages(out, sections);

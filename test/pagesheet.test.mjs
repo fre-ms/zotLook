@@ -255,6 +255,49 @@ const PAGED = [
      'onto the text the page really begins with');
 }
 
+// ── the book's own links must not break the tile's ────────────────────
+// A whole tile is one link into the reader, and an <a> inside an <a> is not
+// something a browser keeps: the parser closes the outer one on meeting the
+// inner, and the rest of the tile stops being clickable. Measured in Quick
+// Look with a page whose CSS reveals the parsed tree. In one real 416-page
+// book, 198 tiles carried cross-references — which is why some pages linked
+// and others seemed not to.
+{
+  const { doc } = await sheetOf({ chapters: [
+    `${mark('PB1', '1')}<p>Siehe <a href="ch2.xhtml#x">Kapitel 2</a> dazu.</p>`
+    + `${mark('PB2', '2')}<p>Und <a href="http://example.org/">auswärts</a>.</p>`,
+  ] });
+  const found = tiles(doc);
+  eq(found.map(labelOf), ['1', '2'], 'two pages');
+
+  for (const [at, tile] of found.entries()) {
+    const anchors = [...tile.querySelectorAll('a')];
+    eq(anchors.length, 1, `page ${at + 1}: exactly one anchor in the tile`);
+    ok(anchors[0].getAttribute('href').startsWith('zotero://'),
+       'and it is the one into the reader');
+    ok(anchors[0].querySelector('div.epub-paper'),
+       'with the whole page inside it, not merely the part before a link');
+  }
+  eq(textOf(found[0]), 'Siehe Kapitel 2 dazu.',
+     'the words of the link are still there to read');
+  eq(textOf(found[1]), 'Und auswärts.', 'an outward link too');
+}
+{
+  // A page-list may name an <a> as the place a page begins, so flattening
+  // must carry the mark over to what replaced it rather than lose the page
+  const nav = '<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" '
+    + 'xmlns:epub="http://www.idpf.org/2007/ops"><body>'
+    + '<nav epub:type="page-list"><ol>'
+    + '<li><a href="ch1.xhtml#p40">40</a></li></ol></nav></body></html>';
+  const { doc } = await sheetOf({ nav, chapters: [
+    '<p>Vorher.</p><a id="p40" href="ch2.xhtml">Seite vierzig</a><p>Danach.</p>',
+  ] });
+  eq(tiles(doc).map(labelOf), ['Before page one', '40'],
+     'the page whose mark was a link is still a page');
+  eq(textOf(tiles(doc)[1]), 'Seite vierzigDanach.',
+     'and opens with what that link said');
+}
+
 // ── books that only list their pages ──────────────────────────────────
 // The marks in the text are what the split cuts at, so a book that lists its
 // pages in the navigation but sets none in the text has to be met by looking
