@@ -233,9 +233,16 @@ var zotLookEpub = {
 		"}",
 		"div.epub-page { width: 210px; }",
 		"div.epub-page a { text-decoration: none; color: inherit; }",
+		// The margin belongs to the paper, not to the text inside it. Put it
+		// on the scaled box and it scales with the text, so a page whose
+		// content runs long is clipped flush against the edge — text sliced
+		// off mid-line at the very border, which is what a page never looks
+		// like. Out here the clip happens inside the margin, and every tile
+		// keeps white all the way round.
 		"div.epub-paper {",
 		"  width: 210px;",
 		"  height: 297px;",
+		"  padding: 10px;",
 		"  overflow: hidden;",
 		"  background: #fff;",
 		"  border: 1px solid #cfcdc8;",
@@ -243,18 +250,20 @@ var zotLookEpub = {
 		"  box-sizing: border-box;",
 		"}",
 		// The inner box is the page at reading size; the scale is what makes
-		// it a thumbnail. 700 × 0.3 = 210, which is the paper above.
+		// it a thumbnail. 626 × 0.3 = 188, which is what the paper leaves
+		// between its border and its margin, and 916 × 0.3 = 275 likewise.
 		"div.epub-paper-inner {",
-		"  width: 700px;",
-		"  height: 990px;",
-		"  padding: 40px 44px;",
-		"  box-sizing: border-box;",
+		"  width: 626px;",
+		"  height: 916px;",
 		"  transform: scale(0.3);",
 		"  transform-origin: top left;",
-		"  font-size: 16px;",
-		"  line-height: 1.5;",
+		"  font-size: 14px;",
+		"  line-height: 1.45;",
 		"  overflow: hidden;",
 		"}",
+		// The book's first heading often carries a large top margin meant to
+		// open a chapter, which on a tile only pushes the text out of sight
+		"div.epub-paper-inner > *:first-child { margin-top: 0 !important; }",
 		// The book's own rules may float, absolutely position or hide things
 		// in ways that assume a whole document around them
 		"div.epub-paper-inner * {",
@@ -485,7 +494,42 @@ var zotLookEpub = {
 			// first step of every CFI into this book: /6 in the usual
 			// metadata, manifest, spine order
 			spineStep: this._spineStep(opfDoc),
+			// And where each document sits in the spine, which is the second
+			spineFor: this._spinePositions(opfDoc, cut === -1 ? "" : opfPath.substring(0, cut)),
 		};
+	},
+
+	/**
+	 * Where each document sits in the spine, by its path in the archive.
+	 *
+	 * Counted over every itemref, including any whose file is missing. That
+	 * matters: the reader resolves a CFI by taking its spine step as an index
+	 * into its own list of sections, epub.js builds that list from all the
+	 * itemrefs, and Zotero's getSectionDocuments() quietly skips the ones it
+	 * cannot read. Counting the documents that arrived here would drift from
+	 * the reader's numbering at the first missing file, and every link after
+	 * it would land in the wrong chapter.
+	 */
+	_spinePositions(opfDoc, opfDir) {
+		let hrefFor = new Map();
+		for (let item of opfDoc.querySelectorAll("manifest item")) {
+			let id = item.getAttribute("id");
+			let href = item.getAttribute("href");
+			if (!id || !href) continue;
+			let target = zotLookUtil.resolveRelativePath(href, opfDir);
+			if (target) hrefFor.set(id, target.path);
+		}
+
+		let positions = new Map();
+		let at = -1;
+		for (let ref of opfDoc.querySelectorAll("spine itemref")) {
+			at++;
+			let href = hrefFor.get(ref.getAttribute("idref"));
+			// First wins: a document used twice in the spine is rare, and the
+			// earlier appearance is the one a page number belongs to
+			if (href && !positions.has(href)) positions.set(href, at);
+		}
+		return positions;
 	},
 
 	/** The spine's position among the package's element children. */
@@ -997,20 +1041,19 @@ var zotLookEpub = {
 		let pages = [];
 		let current = -1;
 
-		let openPage = (label, section, mark) => {
+		let openPage = (label, cfi) => {
 			pages.push({
 				label,
+				cfi: cfi || null,
 				node: out.createElement("div"),
 				chain: new Map(),
-				section,
-				mark,
 			});
 			current = pages.length - 1;
 		};
 		// What comes before the first mark is the book's front matter: kept,
 		// because a reader looking for the title page should find it, and
 		// labelled with nothing because it carries no printed number
-		openPage(null, 0, null);
+		openPage(null, null);
 
 		let mirror = (path) => {
 			let page = pages[current];
@@ -1027,11 +1070,11 @@ var zotLookEpub = {
 			return parent;
 		};
 
-		let walk = (node, path, marks, ancestors, section) => {
+		let walk = (node, path, marks, ancestors) => {
 			for (let child of Array.prototype.slice.call(node.childNodes)) {
 				if (marks.has(child)) {
 					let mark = marks.get(child);
-					openPage(mark.label, section, child);
+					openPage(mark.label, mark.cfi);
 					// A pagebreak span is a marker and nothing else. A node
 					// the navigation pointed at is the heading or paragraph
 					// the page opens with, and belongs in it.
@@ -1052,17 +1095,15 @@ var zotLookEpub = {
 				if (name === "script" || name === "style") continue;
 
 				if (ancestors.has(child)) {
-					walk(child, path.concat([child]), marks, ancestors, section);
+					walk(child, path.concat([child]), marks, ancestors);
 				} else {
 					mirror(path).appendChild(out.importNode(child, true));
 				}
 			}
 		};
 
-		let index = -1;
 		for (let section of sections) {
-			index++;
-			let body = this._bodyOf(section.doc);
+			let body = section.doc && this._bodyOf(section.doc);
 			if (!body) continue;
 
 			let marks = new Map();
@@ -1074,7 +1115,7 @@ var zotLookEpub = {
 					ancestors.add(at);
 				}
 			}
-			walk(body, [], marks, ancestors, index);
+			walk(body, [], marks, ancestors);
 			// The mirrored chain belongs to one section's elements; the next
 			// section brings different ones, and a page carrying on across
 			// the boundary starts a fresh chain for them
@@ -1096,6 +1137,17 @@ var zotLookEpub = {
 		let out = zotLookUtil.newHtmlDocument();
 		if (!out) return null;
 		out.title = title;
+
+		// First of all, and on trees nothing has touched yet.
+		//
+		// A CFI is a path counted through siblings, and it has to describe the
+		// book as Zotero's reader will open it — not as this page ends up.
+		// Drawing an annotation wraps text in a <span>, sanitising drops a
+		// <script>, and either shifts every index after it. So the marks are
+		// found and their CFIs written down before any of that happens, and
+		// what the tiles carry afterwards is a string, not a position in a
+		// tree that has since moved.
+		await this._attachPageMarks(zip, pkg, sections);
 
 		let seenCssUrls = new Set();
 		let seenInlineCss = new Set();
@@ -1122,9 +1174,6 @@ var zotLookEpub = {
 			await this._rewriteUrls(zip, body, fileDir, env, written);
 		}
 
-		// Only now, on the trees the split will actually walk
-		await this._attachPageMarks(zip, pkg, sections);
-
 		let pages = this._buildPages(out, sections);
 		if (!pages.some((page) => page.label)) {
 			// Not a failure: most reflowable books simply have no printed
@@ -1137,7 +1186,7 @@ var zotLookEpub = {
 		let grid = out.createElement("div");
 		grid.className = "epub-sheet";
 		for (let page of pages) {
-			grid.appendChild(this._pageTile(out, page, env, pkg.spineStep));
+			grid.appendChild(this._pageTile(out, page, env));
 		}
 		out.body.appendChild(grid);
 
@@ -1187,7 +1236,7 @@ var zotLookEpub = {
 		+ "to read the book.",
 
 	/** One tile: the page, its number, and a way into the reader. */
-	_pageTile(out, page, env, spineStep) {
+	_pageTile(out, page, env) {
 		let tile = out.createElement("div");
 		tile.className = "epub-page";
 
@@ -1198,10 +1247,7 @@ var zotLookEpub = {
 		inner.appendChild(page.node);
 		paper.appendChild(inner);
 
-		let cfi = page.mark
-			? zotLookCfi.forNode(spineStep, page.section, page.mark)
-			: null;
-		if (cfi && env.readerLink) {
+		if (page.cfi && env.readerLink) {
 			let link = out.createElement("a");
 			// New window for the same measured reason the PDF sheet uses it:
 			// Quick Look refuses ordinary navigation but hands a new-window
@@ -1210,7 +1256,7 @@ var zotLookEpub = {
 			link.setAttribute("target", "_blank");
 			link.setAttribute(
 				"href",
-				env.readerLink + "?cfi=" + encodeURIComponent(cfi)
+				env.readerLink + "?cfi=" + encodeURIComponent(page.cfi)
 			);
 			link.appendChild(paper);
 			tile.appendChild(link);
@@ -1263,14 +1309,64 @@ var zotLookEpub = {
 		}
 
 		let total = 0;
+		let addressed = 0;
 		for (let section of sections) {
 			section.marks = section.doc
 				? this._pageMarksIn(section.doc, byFile.get(section.href))
 				: [];
 			total += section.marks.length;
+
+			let spinePos = pkg.spineFor && pkg.spineFor.get(section.href);
+			if (typeof spinePos !== "number") continue;
+			let body = this._bodyOf(section.doc);
+			for (let mark of section.marks) {
+				mark.cfi = this._markCfi(pkg.spineStep, spinePos, mark, body);
+				if (mark.cfi) addressed++;
+			}
 		}
 		this.log("Page marks found: " + total
-			+ " (page list: " + listed.length + ")");
+			+ " (page list: " + listed.length
+			+ ", addressable: " + addressed + ")");
+	},
+
+	/**
+	 * A CFI naming where a page begins, in the form the reader can follow.
+	 *
+	 * Not the mark itself. A pagebreak mark is an empty <span>, and a CFI
+	 * naming an element gives epub.js no range end to set, so the reader
+	 * scrolls a collapsed range and arrives nowhere. What is addressed is the
+	 * first character of the first text the page contains, which is where a
+	 * reader would look anyway.
+	 */
+	_markCfi(spineStep, spinePos, mark, body) {
+		let text = this._firstTextFrom(mark.node, body);
+		if (!text) return null;
+		return zotLookCfi.forTextRange(spineStep, spinePos, text, 0, 1);
+	},
+
+	/**
+	 * The first text node at or after a node, in document order.
+	 *
+	 * A mark resolved out of the navigation is a heading, and its text is
+	 * inside it; a pagebreak span is empty, and the text is what follows.
+	 * Both are the same forward walk.
+	 */
+	_firstTextFrom(node, root) {
+		let at = node;
+		while (at) {
+			if (at.nodeType === 3 && String(at.data || "").trim()) return at;
+
+			if (at.firstChild) {
+				at = at.firstChild;
+				continue;
+			}
+			while (at && at !== root && !at.nextSibling) {
+				at = at.parentNode;
+			}
+			if (!at || at === root) return null;
+			at = at.nextSibling;
+		}
+		return null;
 	},
 
 	/**

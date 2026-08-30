@@ -134,6 +134,9 @@ const PAGED = [
   const cfi = decodeURIComponent(linkOf(found[2]).split('?cfi=')[1]);
   const parsed = C.parse(cfi);
   eq(C.spineIndex(parsed), 0, 'page two begins in the first chapter');
+  ok(parsed.start && parsed.end,
+     'and is written as a range, which is the only form the reader follows: '
+     + cfi);
 
   // Against the book's own first chapter, untouched by the conversion
   const book = openBook(epub);
@@ -141,13 +144,47 @@ const PAGED = [
   for await (const s of book.getSectionDocuments()) sections.push(s);
   book.close();
   const landed = C.resolve(sections[0].doc, parsed);
-  eq(landed && landed.startNode.getAttribute('id'), 'PB2',
-     'and the CFI resolves onto the very mark that opened it');
+  ok(landed, 'the CFI resolves in the book as the reader will open it');
+  eq(landed.startNode.data, ' mitten drin umbricht.',
+     'onto the first text the page contains');
+  eq([landed.startOffset, landed.endOffset], [0, 1],
+     'over its first character, so the range has something to scroll to');
 
   const third = C.parse(decodeURIComponent(linkOf(found[3]).split('?cfi=')[1]));
   eq(C.spineIndex(third), 1, 'page three begins in the second');
-  eq(C.resolve(sections[1].doc, third).startNode.getAttribute('id'), 'PB3',
-     'on its own mark');
+  eq(C.resolve(sections[1].doc, third).startNode.data, 'Seite drei.',
+     'on the text that follows its own mark');
+}
+{
+  // The spine step must be the itemref's own position, not the position of
+  // the document among those that could be read. Zotero's reader indexes its
+  // sections by the former; getSectionDocuments() skips the unreadable ones
+  // and so counts by the latter. One missing file between them and every link
+  // afterwards lands a chapter early.
+  const dir = TMP + '/gap' + (++seq);
+  const epub = makeBook(dir, { chapters: [
+    '<p>Erstes Kapitel.</p>',
+    `${mark('PB9', '9')}<p>Neun.</p>`,
+  ] });
+  // Re-pack with a spine that names a document the archive does not hold,
+  // between the two that it does
+  const fs2 = fs;
+  const opf = dir + '/OEBPS/content.opf';
+  fs2.writeFileSync(opf, fs2.readFileSync(opf, 'utf8')
+    .replace('<manifest>',
+      '<manifest><item id="gone" href="gone.xhtml" media-type="application/xhtml+xml"/>')
+    .replace('<itemref idref="c2"/>', '<itemref idref="gone"/><itemref idref="c2"/>'));
+  fs2.rmSync(epub);
+  const { execFileSync } = await import('node:child_process');
+  execFileSync('zip', ['-qr', epub, '.'], { cwd: dir });
+
+  const env = sheetEnv();
+  const out = await E.convert(epub, env);
+  const doc = U.parseStrict(fs2.readFileSync(out, 'utf8'), 'text/html');
+  const cfi = C.parse(decodeURIComponent(
+    linkOf(tiles(doc)[1]).split('?cfi=')[1]));
+  eq(C.spineIndex(cfi), 2,
+     'the third itemref, though the chapter is the second document read');
 }
 {
   // Without somewhere to link to, the tiles are still worth showing
@@ -181,6 +218,41 @@ const PAGED = [
      'in the colour Zotero stored: ' + marked[0].getAttribute('style'));
   eq(found[1].querySelectorAll('span.zotlook-annotation').length, 0,
      'and on no other page');
+}
+
+// ── the CFI describes the book, not this page ─────────────────────────
+// A CFI is a path counted through siblings. Drawing an annotation wraps text
+// in a <span> and sanitising drops a <script>, and either shifts every index
+// after it — in the tree the tiles are cut from, not in the book the reader
+// opens. So the marks have to be read and written down before any of that
+// happens, or the links point at the wrong place in exactly the books that
+// have been annotated.
+{
+  const chapters = [
+    '<p>Ein Satz, der annotiert ist.</p>'
+    + `<script>var x = 1;</script>${mark('PB7', '7')}<p>Seite sieben.</p>`,
+  ];
+  // Covers "Ein Satz" in the first paragraph, before the mark
+  const annotation = {
+    type: 'highlight', color: '#ffd400', text: 'Ein Satz',
+    position: JSON.stringify({ value: 'epubcfi(/6/2!/4/2,/1:0,/1:8)' }),
+  };
+  const { doc, epub } = await sheetOf({ chapters },
+                                      sheetEnv({ annotations: [annotation] }));
+  const found = tiles(doc);
+  eq(found.map(labelOf), ['Before page one', '7'], 'two pages');
+  eq(found[0].querySelectorAll('span.zotlook-annotation').length, 1,
+     'the annotation was drawn, so the tree the tiles came from did change');
+
+  const cfi = C.parse(decodeURIComponent(linkOf(found[1]).split('?cfi=')[1]));
+  const book = openBook(epub);
+  const sections = [];
+  for await (const s of book.getSectionDocuments()) sections.push(s);
+  book.close();
+  const landed = C.resolve(sections[0].doc, cfi);
+  ok(landed, 'and the link still resolves in the untouched book');
+  eq(landed.startNode.data, 'Seite sieben.',
+     'onto the text the page really begins with');
 }
 
 // ── books that only list their pages ──────────────────────────────────

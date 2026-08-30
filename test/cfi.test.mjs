@@ -234,6 +234,34 @@ const SECTION = `<?xml version="1.0"?>
      'and a text node is found again too');
 }
 {
+  // The form that actually travels: a path plus a start and an end inside one
+  // text node. epub.js builds no range end from an element-only CFI — it
+  // leaves the range collapsed — and Zotero's reader scrolls a range into
+  // view, so a link written the other way arrives nowhere.
+  const doc = xml(SECTION);
+  const text = doc.querySelector('#one').firstChild;
+  const written = C.forTextRange(2, 0, text, 0, 1);
+  eq(written, 'epubcfi(/6/2!/4/4,/1:0,/1:1)',
+     'the path, then the same text step twice with its offsets');
+
+  const parsed = C.parse(written);
+  ok(parsed.start && parsed.end, 'which reads back as a range, not a point');
+  const back = C.resolve(doc, parsed);
+  eq([back.startNode === text, back.startOffset, back.endOffset], [true, 0, 1],
+     'over the first character of the node it was written for');
+}
+{
+  const doc = xml(SECTION);
+  const text = doc.querySelectorAll('p')[1].firstChild;
+  eq(C.forTextRange(2, 5, text, 0, 4), 'epubcfi(/6/12!/4/6,/1:0,/1:4)',
+     'a later spine item and a longer span');
+  eq(C.forTextRange(2, 0, text, 3, 3), 'epubcfi(/6/2!/4/6,/1:3,/1:4)',
+     'an empty span is widened to one character, which is what can be shown');
+  eq(C.forTextRange(2, 0, null, 0, 1), null, 'nothing in, nothing out');
+  eq(C.forTextRange(2, 0, doc.documentElement, 0, 1), null,
+     'and the root has no parent path to split off');
+}
+{
   eq(C.forNode(2, 0, null), null, 'nothing in, nothing out');
   const doc = xml(SECTION);
   const loose = doc.createElement('p');

@@ -132,6 +132,37 @@ var zotLookCfi = {
 	 * @returns {string|null}
 	 */
 	forNode(spineStep, itemrefStep, node) {
+		let steps = this._stepsTo(node);
+		if (!steps) return null;
+		return this._wrap(spineStep, itemrefStep, steps.join("/"));
+	},
+
+	/**
+	 * A range CFI over part of one text node.
+	 *
+	 * This is the form that actually travels. A CFI naming an element alone
+	 * gives epub.js nothing to set a range end from — toRange() leaves the
+	 * range collapsed — and Zotero's reader scrolls a range into view, so a
+	 * link built that way arrives nowhere. Every CFI Zotero writes itself is
+	 * of this shape: a path to the element, then a start and an end inside
+	 * one of its text children.
+	 */
+	forTextRange(spineStep, itemrefStep, textNode, start, end) {
+		let steps = this._stepsTo(textNode);
+		if (!steps || steps.length < 2) return null;
+
+		let last = "/" + steps[steps.length - 1];
+		let path = steps.slice(0, -1).join("/");
+		let from = Math.max(0, start | 0);
+		let to = Math.max(from + 1, end | 0);
+		return this._wrap(
+			spineStep, itemrefStep,
+			path + "," + last + ":" + from + "," + last + ":" + to
+		);
+	},
+
+	/** The document path to a node, as CFI steps, or null. */
+	_stepsTo(node) {
 		if (!node || !node.ownerDocument) return null;
 		let root = node.ownerDocument.documentElement;
 		if (!root) return null;
@@ -147,15 +178,18 @@ var zotLookCfi = {
 			if (step < 1) return null;
 			steps.unshift(step);
 		}
-		if (!steps.length) return null;
+		return steps.length ? steps : null;
+	},
 
+	/** The package path every CFI into a spine item begins with. */
+	_wrap(spineStep, itemrefStep, tail) {
 		return (
 			"epubcfi(/" +
 			(spineStep + 1) * 2 +
 			"/" +
 			(itemrefStep + 1) * 2 +
 			"!/" +
-			steps.join("/") +
+			tail +
 			")"
 		);
 	},
