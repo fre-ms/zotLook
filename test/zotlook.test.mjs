@@ -158,6 +158,116 @@ const ok = (c,l)=>eq(!!c,true,l);
   }
 }
 
+// ── the file has to be there, or be fetched ───────────────────────────
+// Under "download as needed" most of a library is a database row until
+// something asks for the file. Zotero's getFilePathAsync answers false for one
+// that is not on disk — modelled faithfully below, because that is the whole
+// bug: asking it first folded "no such attachment" and "not here yet" into one
+// answer and left the fetch unreachable, so nothing was ever previewable that
+// had not already been opened once.
+{
+  const PATH = '/store/book.epub';
+
+  /** A library whose files can arrive, the way Zotero presents one. */
+  const library = ({ present = false, syncing = true, download } = {}) => {
+    const files = new Set(present ? [PATH] : []);
+    const state = { files, downloaded: null };
+    state.attachment = (over = {}) => ({
+      id: 7, key: 'ABCD1234', libraryID: 1,
+      isAttachment: () => true,
+      attachmentLinkMode: 0,
+      isStoredFileAttachment: () => true,
+      isImportedAttachment: () => true,
+      // The path it should have, whether or not it is there
+      getFilePath: () => PATH,
+      // Zotero's own: false unless the file is really on disk
+      getFilePathAsync: async () => (files.has(PATH) ? PATH : false),
+      ...over,
+    });
+    state.zotero = {
+      Attachments: { LINK_MODE_LINKED_URL: 3 },
+      Sync: {
+        Storage: { Local: { getEnabledForLibrary: () => syncing } },
+        Runner: {
+          downloadFile: download || (async (item) => {
+            state.downloaded = item.key;
+            files.add(PATH);
+          }),
+        },
+      },
+    };
+    state.IOUtils = { exists: async (p) => files.has(p) };
+    return state;
+  };
+
+  {
+    const lib = library({ present: true, download: async () => {
+      throw new Error('must not download what is already here');
+    } });
+    const { zotLook: Q } = loadPlugin({ zotero: lib.zotero, IOUtils: lib.IOUtils });
+    eq(await Q._getAttachmentPath(lib.attachment()), PATH,
+       'a file that is here is used as it is');
+  }
+
+  {
+    const lib = library();
+    const { zotLook: Q } = loadPlugin({ zotero: lib.zotero, IOUtils: lib.IOUtils });
+    eq(await Q._getAttachmentPath(lib.attachment()), PATH,
+       'a file that is missing is fetched and then used');
+    eq(lib.downloaded, 'ABCD1234', 'and it is the right attachment that is fetched');
+  }
+
+  {
+    // Syncing off: nothing to fetch, and no attempt to
+    let tried = false;
+    const lib = library({ syncing: false, download: async () => { tried = true; } });
+    const { zotLook: Q, logs } = loadPlugin({ zotero: lib.zotero, IOUtils: lib.IOUtils });
+    eq(await Q._getAttachmentPath(lib.attachment()), null, 'nothing to hand back');
+    eq(tried, false, 'and no download is attempted');
+    eq(logs.some(l => /syncing is off/.test(l)), true, 'the reason is logged');
+  }
+
+  {
+    // A linked file that is gone is gone: there is no server copy of it
+    let tried = false;
+    const lib = library({ download: async () => { tried = true; } });
+    const { zotLook: Q } = loadPlugin({ zotero: lib.zotero, IOUtils: lib.IOUtils });
+    eq(await Q._getAttachmentPath(
+      lib.attachment({ isStoredFileAttachment: () => false })), null,
+       'a missing linked file yields nothing');
+    eq(tried, false, 'and is not looked for on the server');
+  }
+
+  {
+    // The download failing must not throw into the preview
+    const lib = library({ download: async () => { throw new Error('offline'); } });
+    const { zotLook: Q, logs } = loadPlugin({ zotero: lib.zotero, IOUtils: lib.IOUtils });
+    eq(await Q._getAttachmentPath(lib.attachment()), null, 'a failed download yields null');
+    eq(logs.some(l => /Download failed: .*offline/.test(l)), true, 'and says so');
+  }
+
+  {
+    // Downloaded, and still not there: say so rather than fall silent
+    const reports = [];
+    const lib = library({ download: async () => {} });   // arrives with nothing
+    const { zotLook: Q } = loadPlugin({ zotero: lib.zotero, IOUtils: lib.IOUtils });
+    Q._writeFailureReport = async (what) => { reports.push(what); };
+    eq(await Q._getAttachmentPath(lib.attachment()), null,
+       'still missing after the download');
+    eq(reports.length, 1, 'and a failure report is left behind');
+  }
+
+  {
+    // A web link has no file at all
+    let tried = false;
+    const lib = library({ download: async () => { tried = true; } });
+    const { zotLook: Q } = loadPlugin({ zotero: lib.zotero, IOUtils: lib.IOUtils });
+    eq(await Q._getAttachmentPath(lib.attachment({ attachmentLinkMode: 3 })), null,
+       'a link-only attachment has nothing to preview');
+    eq(tried, false, 'and nothing is fetched for it');
+  }
+}
+
 // ── EPUB: own renderer or Quick Look's ────────────────────────────────
 // macOS shows no EPUB preview by itself, so the plugin builds one — but a
 // Quick Look extension for EPUB does it better, and the plugin cannot detect

@@ -8,6 +8,7 @@ zotlook-menu-contactsheet-window = Seitenübersicht im Fenster (klickbar)
 # Fortschrittsfenster während die Seitenübersicht erzeugt wird
 zotlook-progress-headline = Übersicht
 zotlook-progress-contactsheet = Seitenübersicht wird erstellt …
+zotlook-progress-download = Datei wird geladen …
 
 # Einstellungsbereich
 zotlook-prefs-shortcuts-title = Tastenkürzel

@@ -6,6 +6,7 @@ zotlook-menu-contactsheet-window = Contact Sheet in a Window (clickable)
 # Progress window shown while a contact sheet is being rendered
 zotlook-progress-headline = Quick Look
 zotlook-progress-contactsheet = Generating contact sheet…
+zotlook-progress-download = Downloading file…
 
 # Preference pane
 zotlook-prefs-shortcuts-title = Keyboard shortcuts

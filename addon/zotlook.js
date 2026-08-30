@@ -47,6 +47,7 @@ var zotLook = {
 	LOADED_STRINGS: [
 		"zotlook-progress-headline",
 		"zotlook-progress-contactsheet",
+		"zotlook-progress-download",
 		"zotlook-epub-contents",
 		"zotlook-epub-annotations",
 		"zotlook-epub-goto",
@@ -2445,6 +2446,19 @@ var zotLook = {
 		return paths;
 	},
 
+	/**
+	 * The file behind an attachment, fetched first when this machine does not
+	 * have it yet.
+	 *
+	 * getFilePath rather than getFilePathAsync, and the difference is the
+	 * whole point: the asynchronous one checks that the file is on disk and
+	 * answers false when it is not — which is exactly the case this method
+	 * exists to handle. Asking it first put the missing file and the absent
+	 * attachment into one answer and left the fetch below unreachable, so
+	 * under "download as needed" nothing was ever previewable that had not
+	 * already been opened once. Zotero's own viewAttachment takes the
+	 * synchronous path for the same reason.
+	 */
 	async _getAttachmentPath(item) {
 		if (!item.isAttachment()) return null;
 
@@ -2456,35 +2470,76 @@ var zotLook = {
 			return null;
 		}
 
-		let path = await item.getFilePathAsync();
+		let path = item.getFilePath();
 		if (!path) {
 			this.log("No file path for attachment " + item.id);
 			return null;
 		}
 
-		let exists = await IOUtils.exists(path);
-		if (!exists) {
-			this.log("File does not exist: " + path);
+		if (await IOUtils.exists(path)) return path;
 
-			// Try downloading synced file
-			if (
-				item.isImportedAttachment() &&
-				Zotero.Sync.Storage.Local.getEnabledForLibrary(item.libraryID)
-			) {
-				try {
-					this.log("Attempting to download synced file...");
-					await Zotero.Sync.Runner.downloadFile(item);
-					path = await item.getFilePathAsync();
-					if (path && (await IOUtils.exists(path))) {
-						return path;
-					}
-				} catch (e) {
-					this.log("Download failed: " + e);
-				}
-			}
+		this.log("Not on this machine yet: " + path);
+		return this._fetchAttachment(item);
+	},
+
+	/**
+	 * Downloads an attachment that the library has and this machine does not.
+	 *
+	 * "Download as needed" is the default for group libraries and a common
+	 * choice for personal ones. Under it most of a library is a database row
+	 * until something asks for the file, and asking is what a preview is.
+	 *
+	 * @returns {Promise<string|null>} the path it now has, or null
+	 */
+	async _fetchAttachment(item) {
+		if (
+			typeof item.isStoredFileAttachment !== "function" ||
+			!item.isStoredFileAttachment()
+		) {
+			this.log("A linked file that is not there cannot be fetched");
 			return null;
 		}
 
+		let sync = Zotero.Sync;
+		let enabled = false;
+		try {
+			enabled = !!sync.Storage.Local.getEnabledForLibrary(item.libraryID);
+		} catch (e) {
+			this.log("Could not ask whether files sync here: " + e);
+		}
+		if (!enabled) {
+			this.log("File syncing is off for this library; nothing to fetch");
+			return null;
+		}
+
+		// Books and scans are megabytes over the network. Without a word the
+		// plugin looks like it ignored the keystroke, which is what a missing
+		// file looked like for as long as the fetch was unreachable.
+		let progress = this._showProgress(
+			this._string("zotlook-progress-download", "Downloading file…")
+		);
+		try {
+			await sync.Runner.downloadFile(item);
+		} catch (e) {
+			this.log("Download failed: " + e);
+			return null;
+		} finally {
+			this._closeProgress(progress);
+		}
+
+		// Asked again rather than reusing the path from before: now that the
+		// file should be there, the checking accessor is the one that answers
+		// both whether it arrived and where it went.
+		let path = await item.getFilePathAsync();
+		if (!path) {
+			this.log("Still not here after the download: " + item.key);
+			await this._writeFailureReport(
+				"an attachment could not be fetched from the server"
+			);
+			return null;
+		}
+
+		this.log("Fetched " + path);
 		return path;
 	},
 

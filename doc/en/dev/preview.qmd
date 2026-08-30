@@ -1,11 +1,46 @@
 ---
 title: "Driving a preview"
 description: >-
-  Driving three different previews: QLPreviewPanel on macOS, GNOME Sushi over D-Bus, QuickLook's named pipe on Windows, and the EPUB conversion.
+  Getting to the file, then driving three different previews: QLPreviewPanel on macOS, GNOME Sushi over D-Bus, QuickLook's named pipe on Windows, and the EPUB conversion.
 ---
 
 Three systems, three mechanisms, one behaviour: press the key, the preview
 appears; press it again, the preview goes away.
+
+## Getting to the file
+
+Before any of that, the attachment has to become a path — and under
+*download as needed* it may not be a file on this machine at all. That setting
+is the default for group libraries and a common choice for personal ones, and
+under it most of a library is a database row until something asks for the file.
+A preview is such an asking.
+
+Zotero offers two accessors, and the difference between them is easy to read
+the wrong way round. `getFilePath()` assembles the path the attachment should
+have. `getFilePathAsync()` assembles it *and* checks the file is on disk,
+answering `false` when it is not.
+
+Reaching for the checking one first looks like the careful choice. It is the
+trap: "there is no such attachment" and "the file has not been fetched yet"
+come back as the same `false`, and the fetch that ought to follow sits behind a
+branch nothing can reach. Nothing was previewable that had not already been
+opened in Zotero once — silently, because a preview that never starts says
+nothing. Zotero's own `viewAttachment` takes the synchronous accessor, and this
+plugin now does the same:
+
+1. `getFilePath()` for the path it should have.
+2. `IOUtils.exists` here, where the answer can be acted on.
+3. `Zotero.Sync.Runner.downloadFile` when the file is absent, the attachment is
+   a stored one, and the library syncs files at all. A linked file that has
+   gone missing has no copy on a server to fetch.
+4. `getFilePathAsync()` afterwards — now that the file should be there, the
+   checking accessor is the one that answers both whether it arrived and where
+   it went.
+
+A book or a scan is megabytes over the network, so the fetch shows a progress
+window. Without one the plugin would look like it had ignored the keystroke,
+which is exactly what a missing file looked like for as long as the fetch was
+unreachable.
 
 ## macOS — QLPreviewPanel
 

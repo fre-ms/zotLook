@@ -1,11 +1,47 @@
 ---
 title: "Eine Vorschau ansteuern"
 description: >-
-  Drei Vorschauen ansteuern: QLPreviewPanel unter macOS, GNOME Sushi über D-Bus, QuickLooks Named Pipe unter Windows, und die EPUB-Wandlung.
+  Zur Datei kommen und drei Vorschauen ansteuern: QLPreviewPanel unter macOS, GNOME Sushi über D-Bus, QuickLooks Named Pipe unter Windows, und die EPUB-Wandlung.
 ---
 
 Drei Systeme, drei Mechanismen, ein Verhalten: Taste drücken, Vorschau
 erscheint; nochmals drücken, Vorschau verschwindet.
+
+## Zur Datei kommen
+
+Vorher muss aus dem Anhang erst ein Pfad werden — und bei *Dateien bei Bedarf
+laden* liegt womöglich gar keine Datei auf diesem Rechner. Diese Einstellung
+ist für Gruppenbibliotheken die Vorgabe und für eigene eine verbreitete Wahl;
+unter ihr ist der größte Teil einer Bibliothek ein Datenbankeintrag, solange
+niemand nach der Datei fragt. Eine Vorschau ist eine solche Frage.
+
+Zotero bietet zwei Zugriffe, und ihr Unterschied lässt sich leicht falsch
+herum lesen. `getFilePath()` setzt den Pfad zusammen, den der Anhang haben
+sollte. `getFilePathAsync()` setzt ihn zusammen **und** prüft, ob die Datei auf
+der Platte liegt — fehlt sie, lautet die Antwort `false`.
+
+Zum prüfenden Zugriff zu greifen sieht nach der sorgfältigen Wahl aus. Genau
+darin liegt die Falle: „diesen Anhang gibt es nicht" und „die Datei ist noch
+nicht geholt" kommen als dasselbe `false` zurück, und das Nachladen, das nun
+folgen müsste, liegt hinter einem Zweig, den nichts mehr erreicht. Nichts war
+mehr in der Vorschau zu sehen, was nicht schon einmal in Zotero geöffnet worden
+war — lautlos, denn eine Vorschau, die gar nicht erst anläuft, sagt nichts.
+Zoteros eigenes `viewAttachment` nimmt den synchronen Zugriff, und dieses
+Plugin tut es ihm nach:
+
+1. `getFilePath()` für den Pfad, den die Datei haben sollte.
+2. `IOUtils.exists` hier, wo sich auf die Antwort reagieren lässt.
+3. `Zotero.Sync.Runner.downloadFile`, wenn die Datei fehlt, der Anhang ein
+   gespeicherter ist und die Bibliothek Dateien überhaupt synchronisiert. Für
+   eine verschwundene verknüpfte Datei gibt es keine Kopie auf einem Server.
+4. `getFilePathAsync()` danach — jetzt, da die Datei da sein sollte, ist der
+   prüfende Zugriff derjenige, der beides beantwortet: ob sie angekommen ist
+   und wohin.
+
+Ein Buch oder ein Scan sind Megabytes über die Leitung, deshalb zeigt das
+Nachladen ein Fortschrittsfenster. Ohne eines sähe es so aus, als habe das
+Plugin den Tastendruck übergangen — und genau so sah eine fehlende Datei aus,
+solange das Nachladen unerreichbar war.
 
 ## macOS — QLPreviewPanel
 
