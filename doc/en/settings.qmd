@@ -89,6 +89,13 @@ temporary directory completely at every shutdown, and a preview kept there
 never survived a restart. Switch it off if you would rather have the space:
 everything is then made afresh on every call and nothing outlives the session.
 
+The folder is called `zotLook-cache` and sits in the Zotero profile inside the
+cache directory the system sets aside for this — under `AppData\Local` on
+Windows, `~/Library/Caches` on macOS, and `~/.cache/zotero/zotero/<profile>` on
+Linux. That is deliberate: anything that clears caches reaches it, and you may
+delete the folder yourself while Zotero is closed. It costs no more than making
+the previews again.
+
 **Drop previews unused for** (default 30 days) clears up without your having to
 think about it. It counts from the last *use* rather than from when the preview
 was made: a book you open every week stays, one you looked at once in March

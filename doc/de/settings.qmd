@@ -95,6 +95,13 @@ vollständig aus, und eine dort behaltene Vorschau hat nie einen Neustart
 überlebt. Abschalten, wenn Sie den Platz brauchen: dann wird bei jedem Aufruf
 alles neu erzeugt und überlebt die Sitzung nicht.
 
+Der Ordner heißt `zotLook-cache` und liegt im Zotero-Profil innerhalb des
+Cache-Verzeichnisses, das das System dafür vorsieht — unter `AppData\Local`
+bei Windows, `~/Library/Caches` bei macOS und `~/.cache/zotero/zotero/<Profil>`
+bei Linux. Das ist so gewollt: Was Caches aufräumt, erreicht ihn, und Sie
+dürfen den Ordner bei geschlossenem Zotero selbst löschen. Es kostet nicht mehr
+als das erneute Erzeugen der Vorschauen.
+
 **Ungenutzte Vorschauen verwerfen nach** (Vorgabe 30 Tagen) räumt auf, ohne
 dass Sie daran denken müssen. Gezählt wird ab der letzten *Benutzung*, nicht ab
 der Erstellung: Ein Buch, das Sie jede Woche aufschlagen, bleibt; eines, das
