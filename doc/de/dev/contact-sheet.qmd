@@ -127,18 +127,30 @@ PDF im Spiel wäre.
 
 ## Was behalten wird, und wie es wieder verschwindet
 
-Ein fertiger Bogen bleibt liegen — in `zotLook-cache`, einem Nachbarn des
-Arbeitsverzeichnisses, das bei jedem Start geleert wird. Daneben liegt eine
-Datei `….key` mit einer Zeile aus Plugin-Version, Pfad, Größe und Änderungszeit
-der Datei, Annotationsstand, Spaltenzahl und Seitenlimit. Stimmt sie beim
-nächsten Aufruf überein, wird der Bogen gezeigt, sonst neu gezeichnet.
+Der Bogen ist nicht das Einzige hier, das aus einem Anhang entsteht und
+Sekunden kostet; die EPUB-Vorschau und die annotierte Kopie eines PDFs sind es
+ebenso. Alle drei gehen durch **einen** Speicher — das hält die Antworten auf
+*ist das noch richtig* und *wann verschwindet es* an einer Stelle.
+
+Ein Eintrag ist ein **Verzeichnis** mit allem, woraus die jeweilige Sache
+besteht — ein Bogen samt Miniaturen, eine EPUB-Seite —, dazu eine Datei
+`.key`, die benennt, woraus es gemacht wurde: Plugin-Version, Pfad, Größe und
+Änderungszeit der Quelle, beim Bogen außerdem Annotationsstand, Spaltenzahl und
+Seitenlimit. Ein Verzeichnis statt nebeneinanderliegender Dateien ist es, was
+das Aufräumen einen Eintrag entfernen lässt, ohne seine Art zu kennen.
 
 Die Schlüsseldatei wird **zuletzt** geschrieben und nur bei Erfolg. Ein
 abgebrochener Lauf hinterlässt damit keinen Schlüssel, und ein halbfertiger
-Bogen kann nicht für einen fertigen gehalten werden. Bei jedem Treffer wird sie
-neu geschrieben: Ihre Änderungszeit bedeutet dadurch „zuletzt benutzt" und nicht
-„erstellt" — genau die Unterscheidung, von der das Verwerfen nach Alter lebt.
+Eintrag kann nicht für einen fertigen gehalten werden. Bei jedem Treffer wird
+sie neu geschrieben: Ihre Änderungszeit bedeutet dadurch „zuletzt benutzt" und
+nicht „erstellt" — genau die Unterscheidung, von der das Verwerfen nach Alter
+lebt.
+
+Behaltene Einträge liegen in `zotLook-cache`, einem Nachbarn des
+Arbeitsverzeichnisses, das bei jedem Start geleert wird. Was *nicht* behalten
+wird — die annotierte Kopie — liegt im Arbeitsverzeichnis selbst und geht mit
+ihm.
 
 Aufgeräumt wird beim Start, nicht auf einem Zeitgeber. Ein Verzeichnislisting
-kostet nichts, und ein Aufräumen mitten in der Arbeit ließe denselben Bogen
+kostet nichts, und ein Aufräumen mitten in der Arbeit ließe dieselbe Vorschau
 einmal sofort erscheinen und im nächsten Moment nicht mehr.

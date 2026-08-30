@@ -103,16 +103,16 @@ ok(/type="number"/.test(xhtml) && /min="0"/.test(xhtml), 'and is a number field 
 // ── the kept sheets can be got rid of from here ───────────────────────
 // A cache with no way to empty it and no figure beside it is a directory the
 // user has to be told about in the documentation and then find by hand.
-ok(/id="zotlook-purge-sheets"/.test(xhtml), 'the pane offers a delete button');
-ok(/id="zotlook-cache-size"/.test(xhtml),
+ok(/id="zotlook-keep-purge"/.test(xhtml), 'the pane offers a delete button');
+ok(/id="zotlook-kept-size"/.test(xhtml),
    'with a place for the figure, without which pressing it is a guess');
-ok(/#zotlook-purge-sheets/.test(js) && /addEventListener\(\s*["']command["']/.test(js),
+ok(/#zotlook-keep-purge/.test(js) && /addEventListener\(\s*["']command["']/.test(js),
    'and the button is wired, not merely declared');
-ok(/_purgeSheets\(/.test(js), 'to the clearing the plugin implements');
-ok(/_keptSheetsSize\(/.test(js), 'and the figure to the size it reports');
-ok(/preference="extensions\.zotlook\.contactSheetKeepDays"/.test(xhtml),
+ok(/_purgeKept\(/.test(js), 'to the clearing the plugin implements');
+ok(/_keptSize\(/.test(js), 'and the figure to the size it reports');
+ok(/preference="extensions\.zotlook\.previewKeepDays"/.test(xhtml),
    'the keep-days field binds through the preference attribute');
-ok(/pref\("extensions\.zotlook\.contactSheetKeepDays"/.test(
+ok(/pref\("extensions\.zotlook\.previewKeepDays"/.test(
      fs.readFileSync(ADDON+'prefs.js','utf8')),
    'and has a default, or the field opens blank');
 
@@ -146,7 +146,7 @@ ok(dflt, 'the page limit has a default');
 eq(dflt[1], '0', 'which is 0, meaning no limit');
 
 // ── every id the pane uses is styled or at least declared ─────────────
-for (const cls of ['zotlook-row', 'zotlook-key-button', 'zotlook-conflict']) {
+for (const cls of ['zotlook-row', 'zotlook-key-button', 'zotlook-note']) {
   ok(xhtml.includes(cls), `markup uses .${cls}`);
   ok(paneCss.includes(cls), `stylesheet defines .${cls}`);
 }
@@ -175,24 +175,38 @@ ok(/stylesheets:\s*\[[^\]]*prefs-pane\.css/.test(zotlook), 'the stylesheet is re
      'the list offers exactly the types the picker understands');
 }
 
-// ── the annotation switch says what it governs ────────────────────────
-// It reaches the preview and the contact sheet alike, so a label naming only
-// one of them would understate it.
+// ── one switch per format, and each says which ────────────────────────
+// They were one switch under a heading that said PDF, while it governed the
+// EPUB preview as well — so from the pane there was no sign that EPUB was
+// covered at all. Two now, because the work behind them differs: a PDF is
+// exported anew with the marks drawn in, an EPUB is being assembled anyway.
 for (const loc of ['en-US', 'de-DE']) {
   const ftl = fs.readFileSync(`${ADDON}locale/${loc}/zotlook.ftl`, 'utf8');
   ok(/preference="extensions\.zotlook\.previewAnnotations"/.test(xhtml),
-     `${loc}: the switch is bound to the preference`);
-  const label = ftl.match(/^zotlook-prefs-pdf-annotations =\n\s+\.label = (.+)$/m);
-  ok(label, `${loc}: the switch has a label`);
-  ok(/sheet|übersicht/i.test(label[1]),
-     `${loc}: which names the contact sheet too (${label[1]})`);
-  const help = ftl.match(/^zotlook-prefs-pdf-help = (.+)$/m);
-  ok(/off|aus/i.test(help[1]), `${loc}: and the help says what turning it off does`);
+     `${loc}: the PDF switch is bound to its preference`);
+  ok(/preference="extensions\.zotlook\.epubAnnotations"/.test(xhtml),
+     `${loc}: and the EPUB switch to its own`);
+
+  const pdf = ftl.match(/^zotlook-prefs-pdf-annotations =\n\s+\.label = (.+)$/m);
+  ok(pdf, `${loc}: the PDF switch has a label`);
+  ok(/sheet|übersicht/i.test(pdf[1]),
+     `${loc}: which names the contact sheet too (${pdf[1]})`);
+  ok(/pdf/i.test(pdf[1]), `${loc}: and the format it governs`);
+
+  const epub = ftl.match(/^zotlook-prefs-epub-annotations =\n\s+\.label = (.+)$/m);
+  ok(epub, `${loc}: the EPUB switch has a label`);
+  ok(/epub/i.test(epub[1]), `${loc}: naming its format (${epub[1]})`);
+
+  const help = ftl.match(/^zotlook-prefs-annotations-help = (.+)$/m);
+  ok(help && /datenbank|database/i.test(help[1]),
+     `${loc}: and the help says why any of this is needed`);
 }
 {
   const prefs = fs.readFileSync(ADDON + 'prefs.js', 'utf8');
   ok(/pref\("extensions\.zotlook\.previewAnnotations",\s*true\)/.test(prefs),
      'and it ships switched on');
+  ok(/pref\("extensions\.zotlook\.epubAnnotations",\s*true\)/.test(prefs),
+     'as does the EPUB one');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');

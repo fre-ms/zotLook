@@ -23,7 +23,7 @@ ok(/target:\s*globalThis/.test(bootstrap), 'loaded into the shared plugin scope'
 // every module the plugin defines must actually be listed for loading
 const listed = bootstrap.match(/SCRIPTS = \[([^\]]+)\]/)[1]
   .match(/"([^"]+)"/g).map(s => s.replace(/"/g, ''));
-eq(listed, ['util.js', 'sheet.js', 'epub.js', 'winpreview.js', 'zotlook.js'],
+eq(listed, ['util.js', 'cfi.js', 'sheet.js', 'epub.js', 'winpreview.js', 'zotlook.js'],
    'every module is loaded, in dependency order');
 for (const f of listed) ok(fs.existsSync(ADDON + f), `${f} ships`);
 

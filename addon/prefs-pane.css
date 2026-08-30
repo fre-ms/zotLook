@@ -11,8 +11,15 @@
 #zotlook-prefs .zotlook-key-button[data-recording="true"] {
   font-style: italic;
 }
-#zotlook-prefs .zotlook-conflict {
-  margin: 6px 0;
+/* One note per shortcut row, so it can say which row it means. Indented to
+   the buttons rather than to the group, and marked in the warning colour —
+   but never by colour alone: the note itself carries the whole message. */
+#zotlook-prefs .zotlook-note {
+  margin: 2px 0 6px 14.5em;
+  color: var(--accent-orange, #b8860b);
+}
+#zotlook-prefs .zotlook-key-button[data-conflict="true"] {
+  border-color: var(--accent-orange, #b8860b);
 }
 #zotlook-prefs .zotlook-hint {
   color: GrayText;

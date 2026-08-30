@@ -252,7 +252,12 @@ var zotLookUtil = {
 
 		if (!target) return null;
 		if (target.length > 1) binding.code = target;
-		else binding.key = target;
+		// Lower case, because that is what a keystroke and a Zotero <key>
+		// element are both read as. Without it a stored "Ctrl+Alt+K" — which
+		// is how a person writes it by hand — matches no event and no
+		// conflict: the shortcut is set, looks right on the button, and never
+		// fires.
+		else binding.key = target.toLowerCase();
 		return binding;
 	},
 
@@ -373,6 +378,27 @@ var zotLookUtil = {
 	 * stylesheets to load.
 	 */
 	resolveFileUrl(url, baseDir) {
+		let target = this.resolveRelativePath(url, baseDir);
+		if (!target) return null;
+		let encoded = ("/" + target.path)
+			.split("/")
+			.map(encodeURIComponent)
+			.join("/");
+		return "file://" + encoded + target.fragment;
+	},
+
+	/**
+	 * The path arithmetic behind it, on its own.
+	 *
+	 * The same relative reference has to be resolved against a directory on
+	 * disk and against a directory inside a zip — an epub is read straight
+	 * out of its container now — and only the last step differs. What is
+	 * absolute, or points at a scheme we must not follow, yields null.
+	 *
+	 * @returns {{path: string, fragment: string}|null} path without a leading
+	 *   slash, so it can be used as a zip entry name as it stands
+	 */
+	resolveRelativePath(url, baseDir) {
 		if (/^(https?:|data:|file:|mailto:|tel:|javascript:|#)/i.test(url)) {
 			return null;
 		}
@@ -388,15 +414,13 @@ var zotLookUtil = {
 		try {
 			let decoded = decodeURIComponent(url);
 			let parts = decoded.split("/").filter((p) => p !== "");
-			let segs = baseDir.split("/").filter((p) => p !== "");
+			let segs = String(baseDir || "").split("/").filter((p) => p !== "");
 			for (let p of parts) {
 				if (p === ".") continue;
 				if (p === "..") segs.pop();
 				else segs.push(p);
 			}
-			let absPath = "/" + segs.join("/");
-			let encoded = absPath.split("/").map(encodeURIComponent).join("/");
-			return "file://" + encoded + fragment;
+			return { path: segs.join("/"), fragment };
 		} catch (e) {
 			return null;
 		}
@@ -406,12 +430,13 @@ var zotLookUtil = {
 	 * Rewrites url(...) references inside a stylesheet or a style attribute.
 	 * CSS has no DOM here, so this one stays textual.
 	 */
-	rewriteCssUrls(css, baseDir) {
+	rewriteCssUrls(css, baseDir, resolve) {
+		let toUrl = resolve || ((u, dir) => this.resolveFileUrl(u, dir));
 		return String(css).replace(
 			/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi,
 			(match, quote, url) => {
-				let resolved = this.resolveFileUrl(url, baseDir);
-				if (resolved === null) return match;
+				let resolved = toUrl(url, baseDir);
+				if (!resolved) return match;
 				return 'url("' + resolved + '")';
 			}
 		);

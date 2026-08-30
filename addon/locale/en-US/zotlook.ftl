@@ -23,6 +23,8 @@ zotlook-prefs-key-unset =
 zotlook-prefs-key-recording =
     .label = Press keys…
 zotlook-prefs-conflict = { $shortcut } is already used by { $conflicts }. It can still be used here — note that shortcuts of other plugins and of the system itself cannot be checked.
+
+zotlook-prefs-key-unreachable = That combination did not reach Zotero. The system or another application claims it before Zotero sees it, so zotLook cannot use it — neither macOS nor Windows publishes a list of such shortcuts, which is why this shows up only on trying.
 zotlook-prefs-contactsheet-title = Contact sheet
 zotlook-prefs-contactsheet-help = The contact sheet shows every page of a PDF as a thumbnail.
 zotlook-prefs-contactsheet-maxpages-help = Pages are rendered in parallel and stored as separate image files, so a 300-page book takes about seven seconds and the preview itself stays small — there is normally no reason to limit it. Set a number here only if you work with unusually large scans and want to cap how long generation may take and how much temporary disk space it may use. 0 shows every page.
@@ -57,25 +59,37 @@ zotlook-prefs-epub-own =
     .label = Render EPUB with zotLook
 
 # PDF annotations
-zotlook-prefs-pdf-title = PDF
-zotlook-prefs-pdf-help = Zotero stores annotations in its database, not in the PDF itself, so previewing the stored file shows an unmarked document. With this on, a copy with the annotations drawn in is exported and used instead — for the preview and for the contact sheet alike. Attachments without annotations are recognised beforehand and cost nothing. Turn this off to see the files exactly as they are stored.
-zotlook-prefs-pdf-annotations =
-    .label = Show annotations in previews and contact sheets
 
 zotlook-sheet-truncated = Showing the first { $shown } of { $total } pages.
 
 zotlook-epub-contents = Contents
 
-zotlook-prefs-contactsheet-cache =
-    .label = Keep contact sheets and show them again
+zotlook-epub-annotations = Annotations
 
-zotlook-prefs-contactsheet-cache-help = Drawing every page of a long book takes seconds. A sheet that has been built once is shown again unchanged until the file, its annotations or the settings below have changed. Kept sheets live in the system's temporary area and are not backed up with your library.
+zotlook-epub-goto = Go to the passage
 
-zotlook-prefs-contactsheet-keepdays = Drop sheets unused for
+zotlook-prefs-keep-title = Kept previews
 
-zotlook-prefs-contactsheet-keepdays-hint = days (0 keeps them until the system clears its temporary files)
+zotlook-prefs-keep =
+    .label = Keep converted previews and show them again
 
-zotlook-prefs-contactsheet-size = Currently kept: { $size }
+zotlook-prefs-keep-help = Drawing every page of a long book, or reading an EPUB out of its archive and reassembling it, takes seconds. What has been made once is shown again unchanged until the file, its annotations or the settings behind it have changed. Kept previews live in the system's temporary area and are not backed up with your library.
 
-zotlook-prefs-contactsheet-purge =
-    .label = Delete kept sheets
+zotlook-prefs-keep-days = Drop previews unused for
+
+zotlook-prefs-keep-days-hint = days (0 keeps them until the system clears its temporary files)
+
+zotlook-prefs-keep-size = Currently kept: { $size }
+
+zotlook-prefs-keep-purge =
+    .label = Delete kept previews
+
+zotlook-prefs-annotations-title = Annotations
+
+zotlook-prefs-annotations-help = Zotero keeps annotations in its database rather than in the file, so previewing the stored document shows it unmarked. Attachments that carry none are recognised before any work begins, so the settings only matter for documents you have actually marked up.
+
+zotlook-prefs-pdf-annotations =
+    .label = Draw them into PDF previews and contact sheets
+
+zotlook-prefs-epub-annotations =
+    .label = Mark them in EPUB previews

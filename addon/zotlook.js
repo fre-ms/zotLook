@@ -18,7 +18,6 @@ var zotLook = {
 	// binary name -> deployed path
 	_binaries: new Map(),
 	// attachment key -> { signature, path } for exported annotated copies
-	_annotationCache: new Map(),
 
 	// Pages render concurrently into files beside the HTML, so the page count
 	// is a safety limit rather than a performance ceiling; it is configurable
@@ -37,10 +36,20 @@ var zotLook = {
 	// fallbacks in MENU_ITEMS stand in
 	_strings: null,
 
-	PROGRESS_STRINGS: [
+	/**
+	 * Every string asked for by id rather than through a data-l10n-id: the
+	 * progress window's, and the two labels the EPUB conversion prints.
+	 *
+	 * They have to be fetched to exist. A caller of _string() whose id is
+	 * missing here gets the English fallback and no complaint — which is how
+	 * the annotations button stayed English in a German Zotero.
+	 */
+	LOADED_STRINGS: [
 		"zotlook-progress-headline",
 		"zotlook-progress-contactsheet",
 		"zotlook-epub-contents",
+		"zotlook-epub-annotations",
+		"zotlook-epub-goto",
 	],
 
 	L10N_FILE: "zotlook.ftl",
@@ -160,6 +169,18 @@ var zotLook = {
 			);
 		}
 
+		this._carryOverRenamedPrefs();
+
+		// Read before anything is kept or reused: the tag is what says which
+		// build made an entry
+		this._readBuildTag()
+			.then(() =>
+				this._dropStaleEntries().catch((e) =>
+					this.log("Could not clear entries of other builds: " + e)
+				)
+			)
+			.catch((e) => this.log("Could not read the build stamp: " + e));
+
 		this._registerPreferencePane();
 		this._watchPreferences();
 		this._loadStrings().catch((e) =>
@@ -171,10 +192,10 @@ var zotLook = {
 			this.log("Startup cleanup failed: " + e)
 		);
 
-		// Kept sheets are not leftovers, so they survive that — but the ones
-		// nobody has opened in a long time are dropped here
-		this._expireSheets().catch((e) =>
-			this.log("Could not clear old contact sheets: " + e)
+		// Kept previews are not leftovers, so they survive that — but the
+		// ones nobody has opened in a long time are dropped here
+		this._expireKept().catch((e) =>
+			this.log("Could not clear old previews: " + e)
 		);
 	},
 
@@ -707,42 +728,38 @@ var zotLook = {
 		let maxColumns = this._contactSheetColumns();
 		let maxPages = this._maxContactSheetPages();
 
-		// Kept sheets live apart from the working directory, which is emptied
-		// on every start. With keeping switched off nothing is meant to
-		// survive the session, so the sheet is built where that clearing
-		// reaches it.
-		let keep = this._pref("cacheContactSheet", true);
-		let baseDir = keep ? this._sheetCacheDirPath() : this._getTempDirPath();
-		await IOUtils.makeDirectory(baseDir, { ignoreExisting: true });
-
 		// Named after the source rather than after what is rendered, so the
 		// sheet keeps one name whether or not annotations were drawn in, and
 		// a second sheet does not overwrite one still open in QuickLook
 		let sheetName =
 			"contactsheet_" +
 			zotLookUtil.safeName(PathUtils.filename(chosen.path), 60);
-		let outputPath = PathUtils.join(baseDir, sheetName + ".html");
-		let imageDirName = sheetName + "_pages";
-		let imageDir = PathUtils.join(baseDir, imageDirName);
-		let keyPath = PathUtils.join(baseDir, sheetName + ".key");
 
+		let keep = this._keepPreviews();
+		let entry = await this._derivedEntry(sheetName, keep);
+		let outputPath = PathUtils.join(entry.dir, sheetName + ".html");
+		let imageDirName = sheetName + "_pages";
+		let imageDir = PathUtils.join(entry.dir, imageDirName);
+
+		// What would make a kept sheet the wrong answer: the file itself, the
+		// annotations — the sheet renders the exported copy, not the stored
+		// file — and the settings that shape the output, since a sheet drawn
+		// in five columns is not the sheet the reader asked for in three.
 		let key = keep
-			? await this._sheetCacheKey(chosen.item, chosen.path, maxColumns,
-				maxPages)
+			? [
+				this._tag(),
+				chosen.path,
+				await this._fileIdentity(chosen.path),
+				this._annotationKeyPart(chosen.item),
+				maxColumns,
+				maxPages,
+			].join("|")
 			: null;
-		if (keep) {
-			let kept = await this._cachedSheet(keyPath, key, outputPath);
-			if (kept) {
-				this.log("Reusing the contact sheet built earlier: " + kept);
-				// Rewritten so its modification time says "last used", which
-				// is what the age-based clearing goes by
-				try {
-					await IOUtils.writeUTF8(keyPath, key);
-				} catch (e) {
-					// Not worth failing a hit over
-				}
-				return kept;
-			}
+
+		let kept = await this._derivedHit(entry, key, sheetName + ".html");
+		if (kept) {
+			this.log("Reusing the contact sheet built earlier: " + kept);
+			return kept;
 		}
 
 		this.log("Generating contact sheet for: " + pdfPath);
@@ -812,9 +829,7 @@ var zotLook = {
 
 			// Written last, and only now: a key beside a sheet that was never
 			// finished would hand back a half-built one for ever after.
-			if (keep && key) {
-				await IOUtils.writeUTF8(keyPath, key);
-			}
+			await this._derivedCommit(entry, key);
 		} catch (e) {
 			this.log("Contact sheet generation error: " + e);
 			await this._writeFailureReport("the contact sheet threw: " + e);
@@ -825,168 +840,352 @@ var zotLook = {
 
 		return outputPath;
 	},
+	// ── Derived files ─────────────────────────────────────────────────
+	//
+	// Three things here are made from an attachment and cost real time to
+	// make: the contact sheet, the EPUB preview, and the copy of a PDF with
+	// the annotations drawn in. Each had grown its own answer to the same two
+	// questions — is this still the right file, and when does it go away —
+	// and only one of the three answered them on disk. The other two answered
+	// in a Map, which a restart forgets, so the work was done again on the
+	// first press of every session.
+	//
+	// One store answers both questions for all three. An entry is a directory
+	// holding whatever that kind of artefact consists of, plus a `.key` file
+	// naming what it was made from. Written last and only on success, so a
+	// half-built entry cannot be taken for a finished one; rewritten on every
+	// hit, so its date means "last used" rather than "built".
+	//
+	// A directory per entry rather than files side by side is what makes the
+	// clearing below general: it removes an entry without knowing whether
+	// that entry is a sheet with its thumbnails or an unpacked book.
 
 	/**
-	 * Where a kept contact sheet lives.
+	 * Where entries live.
 	 *
-	 * Beside the working directory rather than in it, because that one is
-	 * emptied on startup and on shutdown — a sheet left there could never
-	 * survive a restart. This sits in the system's temp area all the same, so
-	 * it is not backed up with the library and the system clears it eventually.
+	 * Kept ones sit beside the working directory rather than in it, because
+	 * that one is emptied on startup and on shutdown — anything left there
+	 * could never survive a restart. Both are in the system's temp area all
+	 * the same, so neither is backed up with the library.
 	 */
-	_sheetCacheDirPath() {
-		if (!this._sheetCacheDir) {
-			this._sheetCacheDir = PathUtils.join(
+	_derivedRoot(keep) {
+		if (!keep) return this._getTempDirPath();
+		if (!this._keptRoot) {
+			this._keptRoot = PathUtils.join(
 				Zotero.getTempDirectory().path,
 				"zotLook-cache"
 			);
 		}
-		return this._sheetCacheDir;
+		return this._keptRoot;
 	},
 
 	/**
-	 * Everything that would make a kept sheet the wrong answer.
+	 * The entry for one derived artefact.
 	 *
-	 * The file itself by size and modification time rather than by a digest of
-	 * its contents: reading a hundred megabytes to decide whether to skip
-	 * seven seconds of rendering can cost more than it saves, and Zotero
-	 * rewrites an attachment rather than editing it in place.
-	 *
-	 * The annotations belong in it because the sheet renders the exported copy
-	 * rather than the stored file, and so do the settings that shape the
-	 * output — a sheet drawn in five columns is not the sheet the reader gets
-	 * after asking for three.
+	 * @param {string} name Stable per source, not per version of it — a
+	 *   changed file overwrites its own entry instead of leaving the old one
+	 *   behind to be aged out.
+	 * @param {boolean} keep Whether it may outlive the session.
 	 */
-	async _sheetCacheKey(item, path, columns, maxPages) {
-		let stat;
+	async _derivedEntry(name, keep) {
+		let dir = PathUtils.join(this._derivedRoot(keep), name);
+		await IOUtils.makeDirectory(dir, {
+			ignoreExisting: true,
+			createAncestors: true,
+		});
+		return { dir, keyPath: PathUtils.join(dir, ".key"), keep };
+	},
+
+	/**
+	 * Whether this entry already holds the answer, and touching it if so.
+	 *
+	 * @returns {Promise<string|null>} the artefact's path, or null
+	 */
+	async _derivedHit(entry, key, fileName) {
+		if (!key) return null;
+		let file = PathUtils.join(entry.dir, fileName);
 		try {
-			stat = await IOUtils.stat(path);
+			if ((await IOUtils.readUTF8(entry.keyPath)) !== key) return null;
+			if (!(await IOUtils.exists(file))) return null;
 		} catch (e) {
-			return null;
+			return null; // no key file, or unreadable
 		}
-		let annotations = this._pref("previewAnnotations", true)
+		try {
+			// Rewritten rather than merely read, so the modification time
+			// records the use. The age-based clearing goes by exactly this.
+			await IOUtils.writeUTF8(entry.keyPath, key);
+		} catch (e) {
+			// Not worth failing a hit over
+		}
+		return file;
+	},
+
+	/** Marks an entry finished. Called last, and only when it really is. */
+	async _derivedCommit(entry, key) {
+		if (!key) return;
+		try {
+			await IOUtils.writeUTF8(entry.keyPath, key);
+		} catch (e) {
+			this.log("Could not record a derived file: " + e);
+		}
+	},
+
+	/**
+	 * The annotations, as they appear in a key.
+	 *
+	 * "off" and "none" are different answers and must stay so: with the
+	 * setting off the stored file is used, with it on but nothing annotated
+	 * the stored file is used as well — but turning the setting back on has
+	 * to invalidate what was made while it was off.
+	 */
+	_annotationKeyPart(item, pref) {
+		return this._pref(pref || "previewAnnotations", true)
 			? this._annotationSignature(item) || "none"
 			: "off";
-		return [
-			this.version,
-			path,
-			stat.size,
-			Number(stat.lastModified),
-			annotations,
-			columns,
-			maxPages,
-		].join("|");
 	},
 
-	/** The kept sheet for this key, or null. */
-	async _cachedSheet(keyPath, key, sheetPath) {
-		if (!key) return null;
+	/**
+	 * How a file is recognised again: size and modification time rather than
+	 * a digest of the contents. Reading a hundred megabytes to decide whether
+	 * to skip seven seconds of work can cost more than it saves, and Zotero
+	 * rewrites an attachment rather than editing it in place, so the
+	 * modification time moves exactly when it matters.
+	 */
+	async _fileIdentity(path) {
 		try {
-			if (!(await IOUtils.exists(keyPath))) return null;
-			if ((await IOUtils.readUTF8(keyPath)) !== key) return null;
-			if (!(await IOUtils.exists(sheetPath))) return null;
-			return sheetPath;
+			let stat = await IOUtils.stat(path);
+			return stat.size + "@" + Number(stat.lastModified);
 		} catch (e) {
 			return null;
 		}
 	},
 
 	/**
-	 * How long a kept sheet may go unused. Zero keeps them until the system
+	 * Carries settings across the two renames of 1.2.0.
+	 *
+	 * The names described the contact sheet alone while they governed the
+	 * EPUB preview as well. Renaming them silently would have reset both to
+	 * their defaults for everyone who had ever changed them, so the old value
+	 * is copied once — only when the user really set it, and only when the
+	 * new name has not been set already.
+	 */
+	_carryOverRenamedPrefs() {
+		let branch = Zotero.Prefs.rootBranch;
+		if (!branch || typeof branch.prefHasUserValue !== "function") return;
+		for (let [from, to] of [
+			["cacheContactSheet", "keepPreviews"],
+			["contactSheetKeepDays", "previewKeepDays"],
+			// Not a rename but a split: until 1.2.0 one switch governed the
+			// annotations of both formats. Someone who had turned it off
+			// meant both, and should not find the EPUB half back on.
+			["previewAnnotations", "epubAnnotations"],
+		]) {
+			try {
+				if (!branch.prefHasUserValue(this.PREF_BRANCH + from)) continue;
+				if (branch.prefHasUserValue(this.PREF_BRANCH + to)) continue;
+				let value = Zotero.Prefs.get(this.PREF_BRANCH + from, true);
+				if (value === undefined) continue;
+				Zotero.Prefs.set(this.PREF_BRANCH + to, value, true);
+				this.log("Carried " + from + " over to " + to);
+			} catch (e) {
+				this.log("Could not carry " + from + " over: " + e);
+			}
+		}
+	},
+
+	/**
+	 * Which build this is: the version, and the stamp build.sh wrote into the
+	 * package beside it.
+	 *
+	 * The version alone answers "is this the same release", which is what a
+	 * user needs. It does not answer "is this the same build", which is what
+	 * anyone working on a version needs — two builds of 1.2.0 are alike to
+	 * it, and a preview made by the first would be handed back by the second.
+	 * A source tree with no stamp falls back to the version, and behaves as
+	 * it always did.
+	 */
+	async _readBuildTag() {
+		if (this._buildTag) return this._buildTag;
+		this._buildTag = this.version;
+		try {
+			let response = await fetch(this.rootURI + "build.txt");
+			let stamp = (await response.text()).trim();
+			if (stamp) this._buildTag = this.version + "+" + stamp;
+		} catch (e) {
+			this.log("No build stamp; keying on the version alone");
+		}
+		return this._buildTag;
+	},
+
+	/** The first field of every key. */
+	_tag() {
+		return this._buildTag || this.version;
+	},
+
+	/**
+	 * Throws away what this build did not make.
+	 *
+	 * Two things collect here otherwise. A new version lays its output out
+	 * differently — 1.1.9 kept a sheet as a handful of files side by side,
+	 * where an entry is a directory now — and the older shape is invisible to
+	 * everything that reads this place, so nothing would ever remove it. And
+	 * an entry from an earlier build answers a question this build would
+	 * answer differently.
+	 *
+	 * Both go at startup rather than waiting for the age to run out, because
+	 * neither will ever be the right answer again.
+	 */
+	async _dropStaleEntries() {
+		let root = this._derivedRoot(true);
+		let children;
+		try {
+			children = await IOUtils.getChildren(root);
+		} catch (e) {
+			return { count: 0 };
+		}
+
+		let tag = this._tag();
+		let count = 0;
+		for (let child of children) {
+			let stat;
+			try {
+				stat = await IOUtils.stat(child);
+			} catch (e) {
+				continue;
+			}
+
+			if (stat.type !== "directory") {
+				// A loose file is the layout of an earlier version
+				try {
+					await IOUtils.remove(child, { ignoreAbsent: true });
+					count++;
+				} catch (e) {
+					this.log("Could not remove " + child + ": " + e);
+				}
+				continue;
+			}
+
+			let keyPath = PathUtils.join(child, ".key");
+			let key = null;
+			try {
+				key = await IOUtils.readUTF8(keyPath);
+			} catch (e) {
+				// No key: either the old layout's image directory, or an
+				// entry whose making was cut short. Neither is ever finished.
+			}
+			if (key !== null && key.startsWith(tag + "|")) continue;
+
+			if (await this._dropEntry({ dir: child, keyPath })) count++;
+		}
+
+		if (count) this.log("Removed " + count + " entries of earlier builds");
+		return { count };
+	},
+
+	/** Whether derived files may outlive the session. */
+	_keepPreviews() {
+		return this._pref("keepPreviews", true);
+	},
+
+	/**
+	 * How long a kept entry may go unused. Zero keeps them until the system
 	 * clears its temp area — which macOS and Linux do on their own, and
 	 * Windows rarely.
 	 */
-	_sheetKeepDays() {
-		let value = Number(this._pref("contactSheetKeepDays", 30));
+	_keepDays() {
+		let value = Number(this._pref("previewKeepDays", 30));
 		if (!Number.isFinite(value) || value < 0) return 30;
 		return Math.floor(value);
 	},
 
-	/**
-	 * The kept sheets, as {sheet, key, images, bytes, used} — one entry per
-	 * key file, since that is written last and so marks a finished sheet.
-	 */
-	async _keptSheets() {
-		let dir = this._sheetCacheDirPath();
-		let out = [];
-		let names;
+	/** Everything under a directory, in bytes. */
+	async _dirSize(path) {
+		let total = 0;
+		let children;
 		try {
-			names = await IOUtils.getChildren(dir);
+			children = await IOUtils.getChildren(path);
 		} catch (e) {
-			return out;
+			return 0;
 		}
-		for (let path of names) {
-			if (!path.endsWith(".key")) continue;
-			let base = path.slice(0, -4);
-			let entry = {
-				key: path,
-				sheet: base + ".html",
-				images: base + "_pages",
-				bytes: 0,
-				used: 0,
-			};
+		for (let child of children) {
+			let stat;
 			try {
-				let stat = await IOUtils.stat(path);
-				entry.used = Number(stat.lastModified) || 0;
+				stat = await IOUtils.stat(child);
 			} catch (e) {
 				continue;
 			}
-			for (let file of [path, entry.sheet]) {
-				try {
-					entry.bytes += (await IOUtils.stat(file)).size || 0;
-				} catch (e) {
-					// A missing half is what makes an entry incomplete, not an
-					// error; the size is then simply smaller.
-				}
-			}
+			if (stat.type === "directory") total += await this._dirSize(child);
+			else total += stat.size || 0;
+		}
+		return total;
+	},
+
+	/**
+	 * The kept entries, as {dir, key, bytes, used}.
+	 *
+	 * A directory without a `.key` is a half-written one and is not counted:
+	 * the key is what says the work finished.
+	 */
+	async _keptEntries() {
+		let out = [];
+		let children;
+		try {
+			children = await IOUtils.getChildren(this._derivedRoot(true));
+		} catch (e) {
+			return out;
+		}
+		for (let dir of children) {
+			let keyPath = PathUtils.join(dir, ".key");
+			let used;
 			try {
-				for (let image of await IOUtils.getChildren(entry.images)) {
-					entry.bytes += (await IOUtils.stat(image)).size || 0;
-				}
+				used = Number((await IOUtils.stat(keyPath)).lastModified) || 0;
 			} catch (e) {
-				// no images directory
+				continue;
 			}
-			out.push(entry);
+			out.push({
+				dir,
+				keyPath,
+				used,
+				bytes: await this._dirSize(dir),
+			});
 		}
 		return out;
 	},
 
-	/** What the kept sheets occupy, in bytes. */
-	async _keptSheetsSize() {
+	/** What the kept entries occupy, in bytes. */
+	async _keptSize() {
 		let total = 0;
-		for (let entry of await this._keptSheets()) total += entry.bytes;
+		for (let entry of await this._keptEntries()) total += entry.bytes;
 		return total;
 	},
 
-	/** Throws away one kept sheet: its key first, so a half-removed one is
-	 *  never mistaken for a finished one. */
-	async _dropSheet(entry) {
+	/** Throws one entry away, its key first so a half-removed one is never
+	 *  mistaken for a finished one. */
+	async _dropEntry(entry) {
 		try {
-			await IOUtils.remove(entry.key, { ignoreAbsent: true });
-			await IOUtils.remove(entry.sheet, { ignoreAbsent: true });
-			await IOUtils.remove(entry.images, {
+			await IOUtils.remove(entry.keyPath, { ignoreAbsent: true });
+			await IOUtils.remove(entry.dir, {
 				recursive: true,
 				ignoreAbsent: true,
 			});
 			return true;
 		} catch (e) {
-			this.log("Could not remove a kept sheet: " + e);
+			this.log("Could not remove a kept preview: " + e);
 			return false;
 		}
 	},
 
-	/** Every kept sheet. Returns how many went and what they occupied. */
-	async _purgeSheets() {
-		let entries = await this._keptSheets();
+	/** Every kept entry. Returns how many went and what they occupied. */
+	async _purgeKept() {
 		let bytes = 0;
 		let count = 0;
-		for (let entry of entries) {
-			if (await this._dropSheet(entry)) {
+		for (let entry of await this._keptEntries()) {
+			if (await this._dropEntry(entry)) {
 				bytes += entry.bytes;
 				count++;
 			}
 		}
-		if (count) this.log("Removed " + count + " kept contact sheets");
+		if (count) this.log("Removed " + count + " kept previews");
 		return { count, bytes };
 	},
 
@@ -994,30 +1193,29 @@ var zotLook = {
 	 * The ones nobody has looked at for a while.
 	 *
 	 * By last use rather than by age: a book opened every week should stay,
-	 * and one opened once in March should not. The key file is rewritten on
-	 * every hit, which is what makes its modification time mean "last used".
+	 * and one opened once in March should not.
 	 *
 	 * Run at startup rather than on a timer. A directory listing costs
 	 * nothing, and a clearing that happened while the user was working would
-	 * make the same sheet appear at once one moment and not the next.
+	 * make the same preview appear at once one moment and not the next.
 	 */
-	async _expireSheets() {
-		let days = this._sheetKeepDays();
+	async _expireKept() {
+		let days = this._keepDays();
 		if (!days) return { count: 0, bytes: 0 };
 
 		let cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
 		let bytes = 0;
 		let count = 0;
-		for (let entry of await this._keptSheets()) {
+		for (let entry of await this._keptEntries()) {
 			if (entry.used >= cutoff) continue;
-			if (await this._dropSheet(entry)) {
+			if (await this._dropEntry(entry)) {
 				bytes += entry.bytes;
 				count++;
 			}
 		}
 		if (count) {
-			this.log("Removed " + count + " contact sheets unused for " +
-				days + " days");
+			this.log("Removed " + count + " previews unused for " + days +
+				" days");
 		}
 		return { count, bytes };
 	},
@@ -1420,7 +1618,7 @@ var zotLook = {
 	 */
 	async _loadStrings() {
 		let ids = this.MENU_ITEMS.map((entry) => entry.l10nID).concat(
-			this.PROGRESS_STRINGS
+			this.LOADED_STRINGS
 		);
 		try {
 			let l10n = new Localization([this.L10N_FILE]);
@@ -1431,10 +1629,18 @@ var zotLook = {
 			});
 			this._relabelMenus();
 			// The converter builds the page on its own and has no Fluent
-			// context; it is handed the one string it shows.
+			// context; it is handed the strings it shows.
 			zotLookEpub.TOC_LABEL = this._string(
 				"zotlook-epub-contents",
 				zotLookEpub.TOC_LABEL
+			);
+			zotLookEpub.ANNOTATIONS_LABEL = this._string(
+				"zotlook-epub-annotations",
+				zotLookEpub.ANNOTATIONS_LABEL
+			);
+			zotLookEpub.GOTO_LABEL = this._string(
+				"zotlook-epub-goto",
+				zotLookEpub.GOTO_LABEL
 			);
 		} catch (e) {
 			this.log("Could not load localization: " + e);
@@ -2042,12 +2248,104 @@ var zotLook = {
 			path.toLowerCase().endsWith(".epub") &&
 			this._pref("epubOwnRenderer", true)
 		) {
-			let html = await zotLookEpub.convert(path, this._epubEnv());
+			let html = await this._epubPreview(path, attachment);
 			return html || path;
 		}
 
 		let annotated = await this._annotatedCopy(attachment);
 		return annotated || path;
+	},
+
+	/**
+	 * The EPUB rendered as one page, made once and kept.
+	 *
+	 * Unpacking and reassembling a book takes seconds. It used to be
+	 * remembered in a Map and written into the working directory, which meant
+	 * the work came back with every restart; it goes through the same store
+	 * as the contact sheet now, and is aged out and cleared with it.
+	 */
+	async _epubPreview(path, attachment) {
+		let name = "epub_" + zotLookUtil.safeName(PathUtils.filename(path), 60);
+		let keep = this._keepPreviews();
+		let entry = await this._derivedEntry(name, keep);
+
+		let annotations = this._epubAnnotations(attachment);
+		let key = keep
+			? [
+				this._tag(),
+				path,
+				await this._fileIdentity(path),
+				this._annotationKeyPart(attachment, "epubAnnotations"),
+			].join("|")
+			: null;
+
+		let kept = await this._derivedHit(entry, key, "preview.html");
+		if (kept) {
+			this.log("Reusing the EPUB preview built earlier: " + kept);
+			return kept;
+		}
+
+		// A miss may be a changed book, and the leftovers of the previous one
+		// would still be lying in the entry. Cleared rather than written over,
+		// because a spine that lost a chapter would otherwise keep serving it.
+		try {
+			await IOUtils.remove(entry.dir, { recursive: true, ignoreAbsent: true });
+			await IOUtils.makeDirectory(entry.dir, {
+				ignoreExisting: true,
+				createAncestors: true,
+			});
+		} catch (e) {
+			this.log("Could not clear the EPUB entry: " + e);
+		}
+
+		let html = await zotLookEpub.convert(
+			path,
+			Object.assign(this._epubEnv(entry.dir), { annotations })
+		);
+		if (!html) return null;
+		await this._derivedCommit(entry, key);
+		return html;
+	},
+
+	/**
+	 * The item's annotations, in the shape the conversion needs.
+	 *
+	 * A PDF gets these from Zotero itself — PDFWorker.export bakes them into
+	 * a copy — but there is no such export for an epub, so what is read here
+	 * is the annotation items themselves and the conversion places them.
+	 *
+	 * External annotations are left out for the same reason as in the PDF
+	 * path: they are already in the file.
+	 */
+	_epubAnnotations(attachment) {
+		if (!attachment || !this._pref("epubAnnotations", true)) return [];
+		let items;
+		try {
+			items = attachment
+				.getAnnotations()
+				.filter((a) => !a.annotationIsExternal);
+		} catch (e) {
+			this.log("Could not read annotations: " + e);
+			return [];
+		}
+		let out = [];
+		for (let item of items) {
+			try {
+				out.push({
+					type: item.annotationType || "highlight",
+					text: item.annotationText || "",
+					comment: item.annotationComment || "",
+					color: item.annotationColor || "",
+					sortIndex: item.annotationSortIndex || "",
+					// Where it belongs, in Zotero's own words: a
+					// FragmentSelector holding an EPUB CFI
+					position: item.annotationPosition || "",
+				});
+			} catch (e) {
+				// One unreadable annotation must not cost the whole preview
+			}
+		}
+		return out;
 	},
 
 	/**
@@ -2075,22 +2373,20 @@ var zotLook = {
 		let signature = this._annotationSignature(attachment);
 		if (!signature) return null;
 
-		let cached = this._annotationCache.get(attachment.key);
-		if (
-			cached &&
-			cached.signature === signature &&
-			(await IOUtils.exists(cached.path))
-		) {
-			return cached.path;
-		}
+		// The same store as the other two, but deliberately not kept: this
+		// one is a whole copy of the PDF, so it is the largest thing here for
+		// the smallest saving — an export takes a moment where a contact
+		// sheet takes seconds. It lives for the session and goes with the
+		// working directory at the next start.
+		let fileName =
+			"annotated_" + zotLookUtil.safeName(attachment.key, 40) + ".pdf";
+		let entry = await this._derivedEntry(fileName.replace(/\.pdf$/, ""), false);
+		let key = [this._tag(), attachment.key, signature].join("|");
 
-		let tempDir = this._getTempDirPath();
-		await IOUtils.makeDirectory(tempDir, { ignoreExisting: true });
-		let outputPath = PathUtils.join(
-			tempDir,
-			"annotated_" + zotLookUtil.safeName(attachment.key, 40) + ".pdf"
-		);
+		let ready = await this._derivedHit(entry, key, fileName);
+		if (ready) return ready;
 
+		let outputPath = PathUtils.join(entry.dir, fileName);
 		try {
 			this.log("Exporting annotations for " + attachment.key);
 			await Zotero.PDFWorker.export(attachment.id, outputPath, true);
@@ -2099,10 +2395,7 @@ var zotLook = {
 			return null;
 		}
 
-		this._annotationCache.set(attachment.key, {
-			signature: signature,
-			path: outputPath,
-		});
+		await this._derivedCommit(entry, key);
 		return outputPath;
 	},
 
@@ -2273,11 +2566,33 @@ var zotLook = {
 	 * What zotLookEpub needs from us: somewhere to work, and a way to run
 	 * a subprocess under a deadline.
 	 */
-	_epubEnv() {
+	/**
+	 * What the EPUB conversion needs from the host.
+	 *
+	 * Both readers come from the platform rather than from here: Gecko's
+	 * nsIZipReader for the archive, and Zotero's own EPUB module — the one it
+	 * uses for full-text indexing — for the join of manifest and spine. That
+	 * is the piece of epub arithmetic Zotero already maintains, and it is
+	 * exercised on every book it indexes.
+	 */
+	_epubEnv(workDir) {
 		return {
-			tempDir: this._getTempDirPath(),
-			runProcess: (command, args, opts) =>
-				this._runProcess(command, args, opts),
+			outDir: workDir || this._getTempDirPath(),
+			openZip: (path) => {
+				let reader = Components.classes[
+					"@mozilla.org/libjar/zip-reader;1"
+				].createInstance(Components.interfaces.nsIZipReader);
+				reader.open(Zotero.File.pathToFile(path));
+				return reader;
+			},
+			extractEntry: (zip, entry, destPath) =>
+				zip.extract(entry, Zotero.File.pathToFile(destPath)),
+			openBook: (path) => {
+				let { EPUB } = ChromeUtils.importESModule(
+					"chrome://zotero/content/EPUB.mjs"
+				);
+				return new EPUB(path);
+			},
 		};
 	},
 
@@ -2299,9 +2614,7 @@ var zotLook = {
 		// Drop the caches before awaiting anything. On shutdown bootstrap.js
 		// releases the module globals as soon as this returns, so a
 		// continuation that ran after the await would find zotLookEpub gone.
-		zotLookEpub.clearCache();
 		this._binaries.clear();
-		this._annotationCache.clear();
 
 		// Resolve the path rather than reading _tempDir: on startup nothing has
 		// populated it yet, and the point of this call is to clear leftovers

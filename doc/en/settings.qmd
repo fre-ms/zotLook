@@ -11,8 +11,14 @@ description: >-
 Each action has one shortcut. Click the field, press the combination, and it
 takes effect immediately — no restart.
 
-The pane **warns** when a combination is already taken, checking the main
-window's own keys, Zotero's configurable shortcuts, and zotLook's other actions.
+The pane **warns beneath the row concerned** when a combination is already
+taken, checking the main window's own keys, Zotero's configurable shortcuts,
+and zotLook's other actions. The warning is not confined to the moment of
+recording: it is still there the next time you open the settings, since a
+collision that already exists would otherwise be invisible.
+
+This is not cosmetic. If two zotLook actions carry the same combination, one of
+them wins and the other never fires.
 
 ::: {.callout-important title="A clean result means less than it looks"}
 It warns rather than refuses, deliberately. Zotero publishes no list of other
@@ -29,6 +35,21 @@ result therefore means *no conflict with Zotero* — not *free*.
 | Contact sheet | Ctrl+Shift+Space |
 | Contact sheet in a window | Shift+Alt+Space |
 
+## Combinations that never arrive
+
+When the operating system or another application claims a combination, it takes
+it **before** Zotero sees the keys. There is then nothing to detect: the
+keystroke never arrives, and no list could be consulted for it — macOS gives up
+only its own symbolic shortcuts, as undocumented numeric ids, with nothing at
+all about what other programs have claimed, and Windows offers no query for
+`RegisterHotKey` whatsoever.
+
+That absence is itself a finding, though. Press such a combination while
+recording and the modifier keys do arrive — they are ordinary key events — but
+the key between them does not. Let go without anything having arrived and the
+pane tells you so, rather than sitting on "press keys…" indefinitely. Choose a
+different combination.
+
 ## Which attachment is previewed
 
 Two modes:
@@ -41,28 +62,6 @@ Two modes:
 
 ## The contact sheet
 
-**Keep contact sheets and show them again** (default on) shows a sheet that has
-been built once unchanged, rather than drawing every page a second time. It is
-drawn again as soon as the file, its annotations, the column count or the page
-limit have changed.
-
-Kept sheets live in the system's temporary area rather than in your Zotero
-library, so they are not backed up with it. Switch it off if you would rather
-have the space: every sheet is then drawn on every call and none outlives the
-session.
-
-**Drop sheets unused for** (default 30 days) clears up without your having to
-think about it. It counts from the last *use* rather than from when the sheet
-was built: a book you open every week stays, one you looked at once in March
-goes. The check runs when Zotero starts rather than while you work — a sheet
-vanishing mid-session would be more confusing than the space it occupied. A `0`
-switches it off, and sheets then stay until the system clears its temporary
-area, which macOS and Linux do on their own and Windows rarely.
-
-**Delete kept sheets** throws them all away at once. Beside it stands what they
-currently occupy — without that figure, pressing it would be a guess. After the
-deletion it reads zero, and the next call draws afresh.
-
 **Columns** (default 5) decides the width of the grid. Fewer columns means
 larger thumbnails, and the renderer raises the resolution to match, so they stay
 sharp rather than being blown up.
@@ -72,15 +71,66 @@ It exists for unusually large scans, to bound how long generation may take and
 how much temporary disk space it may use. When it bites, the sheet says so at
 the bottom.
 
+## Kept previews
+
+Two of the things zotLook makes cost seconds to make: the contact sheet, which
+draws every page of a book, and the EPUB preview, which unpacks the book and
+reassembles it as one page. Both are kept and shown again.
+
+**Keep converted previews and show them again** (default on) does that. What
+was made once is shown unchanged until something that would make it the wrong
+answer has changed — the file itself, its annotations, or the settings that
+shape it, such as the contact sheet's column count.
+
+Kept previews live in the system's temporary area rather than in your Zotero
+library, so they are not backed up with it. Switch it off if you would rather
+have the space: everything is then made afresh on every call and nothing
+outlives the session.
+
+**Drop previews unused for** (default 30 days) clears up without your having to
+think about it. It counts from the last *use* rather than from when the preview
+was made: a book you open every week stays, one you looked at once in March
+goes. The check runs when Zotero starts rather than while you work — a preview
+vanishing mid-session would be more confusing than the space it occupied. A `0`
+switches it off, and they then stay until the system clears its temporary area,
+which macOS and Linux do on their own and Windows rarely.
+
+**Delete kept previews** throws them all away at once. Beside it stands what
+they currently occupy — without that figure, pressing it would be a guess.
+After the deletion it reads zero, and the next call makes them afresh.
+
+::: {.callout-note title="What is not kept"}
+The annotated copy of a PDF is made the same way but deliberately not kept: it
+is a whole copy of the document, the largest thing here for the smallest
+saving, since exporting it takes a moment where a contact sheet takes seconds.
+It lives for the session and goes with the working directory at the next start.
+:::
+
 ## Annotations
 
-**Draw annotations into previews** is on by default. It exports a copy of the
-PDF with your Zotero highlights, notes, areas and ink drawn in, and previews
-that copy instead of the stored file.
+Zotero keeps annotations in its database rather than in the file, so a preview
+of the stored document would show it unmarked. There is a switch per format,
+both on by default, because the work behind them differs.
 
-Turn it off to preview the file as it is stored. Attachments that carry no
-annotations are recognised before any work starts either way, so the setting
-only matters for documents you have actually marked up.
+**Draw them into PDF previews and contact sheets** hands the work to Zotero: it
+writes a copy with your highlights, notes, areas and ink drawn on the page, and
+that copy is previewed. It costs a copy of the document, which is why it is
+worth being able to switch off on its own.
+
+**Mark them in EPUB previews** costs nothing worth naming, since the page is
+being assembled anyway. There is no export for an EPUB, so zotLook reads the
+position Zotero stored — an EPUB CFI, which names the chapter, the element and the exact
+characters — and marks the page it builds accordingly: highlights filled in
+their own colour, underlines drawn as underlines. A button in the corner of
+the preview opens a list of every annotation in reading order — each quotation
+marked as it is marked in the book, so an entry is recognisable at a glance —
+with its comment; clicking an entry takes you to the passage. That is where notes live, which have no passage of their own, and
+any position that no longer resolves because the book itself has changed
+since.
+
+Turn one off to preview that format as it is stored. Attachments that carry no
+annotations are recognised before any work starts either way, so the settings
+only matter for documents you have actually marked up.
 
 ## EPUB
 

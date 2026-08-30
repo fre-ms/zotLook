@@ -88,13 +88,14 @@ export function loadPlugin(overrides = {}) {
     Services: overrides.Services ?? {},
     setTimeout, clearTimeout, console,
   };
-  const src = ['util.js', 'sheet.js', 'epub.js', 'winpreview.js', 'zotlook.js']
+  const src = ['util.js', 'cfi.js', 'sheet.js', 'epub.js', 'winpreview.js', 'zotlook.js']
     .map((f) => fs.readFileSync(ADDON + f, 'utf8'))
     .join('\n;\n');
   const out = new Function(
     ...Object.keys(g),
     src +
-      '\n;return {zotLook, zotLookUtil, zotLookEpub, zotLookSheet, zotLookWinPreview};'
+      '\n;return {zotLook, zotLookUtil, zotLookCfi, zotLookEpub, zotLookSheet, '
+      + 'zotLookWinPreview};'
   )(...Object.values(g));
   return { ...out, logs, prefs, zotero: g.Zotero };
 }

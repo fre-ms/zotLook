@@ -27,18 +27,23 @@ pref("extensions.zotlook.key.contactSheetWindow", "Shift+Alt+Space");
 // and the renderer raises the rendered resolution to match.
 pref("extensions.zotlook.contactSheetColumns", 5);
 
-// Keep a contact sheet once it is built and show it again unchanged, rather
-// than drawing every page a second time. It is kept beside the working
-// directory, in the system's temp area, so it is not backed up with the
-// library. A sheet is redrawn when the file, its annotations, the column
-// count or the page limit have changed since — see _sheetCacheKey.
-pref("extensions.zotlook.cacheContactSheet", true);
+// Keep what zotLook derives from an attachment and show it again unchanged,
+// rather than making it a second time: the contact sheet and the EPUB
+// preview, both of which cost seconds. Kept beside the working directory, in
+// the system's temp area, so nothing is backed up with the library. An entry
+// is remade when the source file, its annotations or the settings that shape
+// it have changed — see _derivedEntry and the keys built beside it.
+//
+// Named for the previews rather than for the sheet since 1.2.0, when the two
+// were put on one store; the old cacheContactSheet and contactSheetKeepDays
+// are carried over on the first start after the update.
+pref("extensions.zotlook.keepPreviews", true);
 
-// How long a kept sheet may go unused before it is dropped at the next start.
+// How long a kept entry may go unused before it is dropped at the next start.
 // By last use rather than by age, so a book opened weekly stays and one opened
 // once in March does not. 0 keeps them until the system clears its temp area —
 // which macOS and Linux do on their own, and Windows rarely.
-pref("extensions.zotlook.contactSheetKeepDays", 30);
+pref("extensions.zotlook.previewKeepDays", 30);
 
 // Which attachment a preview uses when an item has several.
 // "type": follow attachmentOrder below. "first": take the first attachment
@@ -56,4 +61,12 @@ pref("extensions.zotlook.epubOwnRenderer", true);
 // preview shows an unmarked document. Exporting a copy with them drawn in is
 // skipped entirely for attachments that have none.
 pref("extensions.zotlook.previewAnnotations", true);
+
+// The same for an EPUB, but a switch of its own: the two are not the same
+// piece of work. A PDF is exported anew with the marks drawn in, which costs
+// a copy of the document; an EPUB preview is assembled here anyway, and
+// marking it costs nothing worth naming. Anyone who turned the one off for
+// its cost had no reason to lose the other. Carried over on the first start
+// after the update, so a decision already made is not quietly reversed.
+pref("extensions.zotlook.epubAnnotations", true);
 

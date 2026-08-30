@@ -66,6 +66,16 @@ sha256() {
   fi
 }
 
+# A stamp that changes with every build, packaged with it.
+#
+# What zotLook keeps between sessions is keyed on the plugin version, which is
+# enough for anyone installing releases. It is not enough while a version is
+# being worked on: two builds of 1.2.0 look alike to that key, so a preview
+# made by the first is handed back by the second and the change appears not to
+# have arrived. The stamp settles it, and costs a released build nothing —
+# reinstalling the same package keeps the same stamp, and the previews with it.
+date -u +%Y%m%dT%H%M%SZ > addon/build.txt
+
 echo "Packaging ${XPI}…"
 mkdir -p build
 rm -f "$XPI"

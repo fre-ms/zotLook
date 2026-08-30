@@ -3,41 +3,13 @@
 // markup, which is why "the buttons do nothing" went unnoticed.
 import fs from 'node:fs';
 import { ADDON, loadPlugin } from './load.mjs';
+import { openPane } from './pane.mjs';
 
 let fail = 0;
 const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++;
   console.log((ok?'ok  ':'FAIL')+'  '+l+(ok?'':`  (got ${JSON.stringify(g)}, want ${JSON.stringify(w)})`));};
 const ok=(c,l)=>eq(!!c,true,l);
 
-async function openPane(prefs = {}, isMac = true) {
-  const { DOMParser } = await import('linkedom');
-  // Zotero resolves the html: prefix; linkedom needs it stripped
-  const fragment = fs.readFileSync(ADDON + 'prefs-pane.xhtml', 'utf8')
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<(\/?)html:/g, '<$1');
-  const doc = new DOMParser().parseFromString(
-    '<html><body>' + fragment + '</body></html>', 'text/html');
-  doc.createXULElement = (t) => doc.createElement(t);
-  doc.l10n = { setAttributes: (el, id) => el.setAttribute('data-l10n-id', id) };
-
-  const store = { ...prefs };
-  const Zotero = {
-    debug: () => {},
-    isMac,
-    getMainWindow: () => null,
-    Prefs: {
-      get: (n) => store[n],
-      set: (n, v) => { store[n] = v; },
-      rootBranch: { getChildList: () => [] },
-    },
-  };
-  const { zotLookUtil } = loadPlugin();
-  const src = fs.readFileSync(ADDON + 'prefs-pane.js', 'utf8');
-  new Function('Zotero', 'zotLookUtil', 'document', 'window', 'MutationObserver', src)(
-    Zotero, zotLookUtil, doc, { document: doc },
-    class { observe() {} disconnect() {} });
-  return { doc, store };
-}
 
 // ── "Restore defaults" has to offer a shortcut that can actually fire ──
 // The pane writes an explicit value rather than clearing the preference, so

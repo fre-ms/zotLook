@@ -4,7 +4,12 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { loadPlugin } from './load.mjs';
 
-// Real filesystem + real unzip, so this exercises the whole pipeline
+// The book is read out of its archive now, through two readers the platform
+// provides: Gecko's nsIZipReader and Zotero's EPUB module. Neither exists
+// here, so both are stood in for — the zip by shelling out to unzip for one
+// entry at a time, which is what a zip reader does, and the book by the same
+// manifest-and-spine join Zotero performs. What is under test is everything
+// the module does with what they hand it.
 const IOUtils = {
   exists: async p => fs.existsSync(p),
   stat: async p => { const s = fs.statSync(p); return { size: s.size, lastModified: Math.floor(s.mtimeMs) }; },
@@ -13,19 +18,61 @@ const IOUtils = {
   makeDirectory: async (p) => fs.mkdirSync(p, { recursive: true }),
   remove: async (p, o = {}) => { try { fs.rmSync(p, { recursive: !!o.recursive, force: !!o.ignoreAbsent }); } catch (e) { if (!o.ignoreAbsent) throw e; } },
 };
-let unzipRuns = 0;
-const runProcess = async (cmd, args) => {
-  if (cmd.endsWith('unzip') || cmd.endsWith('tar.exe')) unzipRuns++;
-  try { execFileSync(cmd, args, { stdio: 'ignore' }); return { exitCode: 0 }; }
-  catch (e) { return { exitCode: e.status ?? 1 }; }
-};
 
-// The extractor is the host's own, so the plugin has to be told the truth
-// about which platform the suite is running on.
-const host = { isMac: process.platform === 'darwin',
-               isLinux: process.platform === 'linux',
-               isWin: process.platform === 'win32' };
-const { zotLookEpub: E } = loadPlugin({ IOUtils, zotero: host });
+let opened = 0;
+const entryList = (archive) =>
+  execFileSync('unzip', ['-Z1', archive], { encoding: 'utf8' })
+    .split('\n').map(l => l.trim()).filter(Boolean);
+const entryBuffer = (archive, entry) =>
+  execFileSync('unzip', ['-p', archive, entry], { maxBuffer: 64 * 1024 * 1024 });
+
+function openZip(archive) {
+  opened++;
+  const names = new Set(entryList(archive));
+  return {
+    archive,
+    hasEntry: (e) => names.has(e),
+    getEntry: (e) => ({ realSize: entryBuffer(archive, e).length }),
+    getInputStream: (e) => ({ buf: entryBuffer(archive, e), close() {} }),
+    close() {},
+  };
+}
+
+const host = {
+  File: {
+    getContentsAsync: async (stream) => stream.buf.toString('utf8'),
+    getBinaryContentsAsync: async (stream) => stream.buf.toString('binary'),
+  },
+};
+const { zotLookEpub: E, zotLookUtil: U } = loadPlugin({ IOUtils, zotero: host });
+
+/** Stands in for Zotero's EPUB: the spine, in reading order, as documents. */
+function openBook(archive) {
+  const zip = openZip(archive);
+  opened--;   // the book's own handle is not what the reuse counts measure
+  const read = (e) => entryBuffer(archive, e).toString('utf8');
+  const container = U.parseStrict(read('META-INF/container.xml'), 'application/xml');
+  const opfPath = container.querySelector('rootfile').getAttribute('full-path');
+  const opf = U.parseStrict(read(opfPath), 'application/xml');
+  const cut = opfPath.lastIndexOf('/');
+  const dir = cut === -1 ? '' : opfPath.substring(0, cut);
+  const byId = new Map();
+  for (const item of opf.querySelectorAll('manifest item')) {
+    byId.set(item.getAttribute('id'),
+             U.resolveRelativePath(item.getAttribute('href'), dir).path);
+  }
+  return {
+    close() { zip.close(); },
+    async* getSectionDocuments() {
+      for (const ref of opf.querySelectorAll('spine itemref')) {
+        const href = byId.get(ref.getAttribute('idref'));
+        if (!href || !zip.hasEntry(href)) continue;
+        yield { href, doc: U.parseStrict(read(href), 'application/xhtml+xml') };
+      }
+    },
+  };
+}
+
 let fail = 0;
 const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if (!ok) fail++;
   console.log((ok?'ok  ':'FAIL')+'  '+l+(ok?'':`\n      got:  ${JSON.stringify(g)}\n      want: ${JSON.stringify(w)}`)); };
@@ -33,7 +80,9 @@ const ok = (c, l) => eq(!!c, true, l);
 
 const TMP = fs.mkdtempSync(os.tmpdir() + '/zotlook-epub-');
 const BOOK = fileURLToPath(new URL('./fixtures/book.epub', import.meta.url));
-const env = { tempDir: TMP, runProcess };
+const extractEntry = (zip, entry, destPath) =>
+  fs.writeFileSync(destPath, entryBuffer(zip.archive, entry));
+const env = { outDir: TMP, openZip, openBook, extractEntry };
 
 // ── the table of contents ─────────────────────────────────────────────
 // The one thing a bundled EPUB viewer offers that this conversion did not.
@@ -42,9 +91,10 @@ const env = { tempDir: TMP, runProcess };
 // Their own extract directory: the reuse test further down counts what is
 // unpacked under TMP, and these books would be counted with it.
 const TOC_TMP = fs.mkdtempSync(os.tmpdir() + '/zotlook-toc-');
-const tocEnv = { tempDir: TOC_TMP, runProcess };
+const tocEnv = { outDir: TOC_TMP, openZip, openBook };
 
-function makeBook(dir, { nav = null, ncx = null } = {}) {
+function makeBook(dir, { nav = null, ncx = null, sharedImage = false,
+                        repeated = false } = {}) {
   fs.mkdirSync(dir + '/META-INF', { recursive: true });
   fs.mkdirSync(dir + '/OEBPS', { recursive: true });
   fs.writeFileSync(dir + '/mimetype', 'application/epub+zip');
@@ -53,11 +103,14 @@ function makeBook(dir, { nav = null, ncx = null } = {}) {
     + 'xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles>'
     + '<rootfile full-path="OEBPS/content.opf" '
     + 'media-type="application/oebps-package+xml"/></rootfiles></container>');
+  if (sharedImage) fs.writeFileSync(dir + '/OEBPS/shared.png', 'x');
+  const picture = sharedImage ? '<img src="shared.png" alt="s"/>' : '';
+  const echo = repeated ? '<p>Ein wiederholter Satz.</p>' : '';
   for (const [n, extra] of [[1, '<h1 id="intro">First</h1>'], [2, '<h1>Second</h1>']]) {
     fs.writeFileSync(`${dir}/OEBPS/ch${n}.xhtml`,
       '<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml"><head>'
-      + `<title>Chapter ${n}</title></head><body>${extra}`
-      + `<p>Body of chapter ${n}.</p></body></html>`);
+      + `<title>Chapter ${n}</title></head><body>${extra}${picture}`
+      + `<p>Body of chapter ${n}.</p>${echo}</body></html>`);
   }
   let items = '<item id="c1" href="ch1.xhtml" media-type="application/xhtml+xml"/>'
     + '<item id="c2" href="ch2.xhtml" media-type="application/xhtml+xml"/>';
@@ -140,19 +193,23 @@ function makeBook(dir, { nav = null, ncx = null } = {}) {
      'the chapter anchors are placed regardless, costing nothing');
 }
 
-// ── the extractor differs per platform ────────────────────────────────
-// /usr/bin/unzip is not a Windows tool; bsdtar ships with the system there
-// and reads the epub as the zip archive it is.
+// ── nothing is spawned and nothing is spread on disk ──────────────────
+// There used to be a per-platform extractor here — /usr/bin/unzip, and
+// bsdtar on Windows, since unzip is not a Windows tool — with a subprocess,
+// a timeout and a directory of loose files to clean up afterwards. The
+// platform's own zip reader does the same work in-process, identically
+// everywhere, which is why none of that is left.
 {
-  const { zotLookEpub: W } = loadPlugin({
-    zotero: { isMac: false, isLinux: false, isWin: true } });
-  const plan = W._unpackCommand('b.epub', 'd');
-  ok(plan.command.toLowerCase().endsWith('\\system32\\tar.exe'),
-     'Windows extracts with the bsdtar the system ships');
-  eq(plan.args, ['-xf', 'b.epub', '-C', 'd'], 'format detection is left to it');
-  const { zotLookEpub: M } = loadPlugin({ zotero: { isMac: true } });
-  eq(M._unpackCommand('b.epub', 'd').command, '/usr/bin/unzip',
-     'everywhere else unzip stays');
+  // Comments recall the old way on purpose; what matters is the code
+  const source = fs.readFileSync(new URL('../addon/epub.js', import.meta.url), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
+  ok(!/runProcess|tar\.exe|bsdtar/.test(source),
+     'the module names no external extractor');
+  ok(!/extractDir/.test(source), 'and no extraction directory');
+  for (const gone of ['_unpackCommand', '_unpack', '_readChapter', '_resolveSpine']) {
+    eq(typeof E[gone], 'undefined', gone + ' is gone');
+  }
 }
 
 const out = await E.convert(BOOK, env);
@@ -173,15 +230,26 @@ ok(!/onclick/i.test(html), 'inline handler removed');
 ok(!/javascript:/i.test(html), 'javascript: href removed');
 ok(/böse/.test(html), 'link text survives href removal');
 
-// ── URL rewriting
-ok(/file:\/\/.*OEBPS\/img\/pic%20one\.png/.test(html), 'image src rewritten and re-encoded');
-ok(/url\((&quot;|")file:\/\/.*OEBPS\/img\/bg\.png(&quot;|")\)/.test(html), 'style attribute url() rewritten');
-// url() inside a *linked* stylesheet needs no rewriting: WebKit resolves it
-// against the stylesheet's own file:// URL.
-ok(/book\.css/.test(html), 'linked stylesheet kept as a file:// link');
+// ── assets are written out beside the page
+// Not carried into it: base64 costs a third more and would have to be capped,
+// and a preview that leaves out part of a book is not a preview of that book.
+ok(/<img[^>]+src="asset\/OEBPS_img_pic%20one\.png"/.test(html),
+   'image points at the copy beside the page, its name kept and encoded');
+ok(/url\((&quot;|")asset\/OEBPS_img_bg\.png(&quot;|")\)/.test(html),
+   'and so does a url() in a style attribute');
+ok(!/data:image/.test(html), 'nothing is inlined');
+ok(!/file:\/\//.test(html), 'and nothing is an absolute path, so the entry can move');
+{
+  const asset = TMP + '/asset/OEBPS_img_pic one.png';
+  ok(fs.existsSync(asset), 'the file is really there');
+  eq(fs.readFileSync(asset).length, 1, 'with the bytes from the archive');
+}
 
 // ── stylesheets
-eq((html.match(/rel="stylesheet"/g) || []).length, 1, 'shared stylesheet linked once, not per chapter');
+// Linked as text rather than as a link, for the same reason
+eq((html.match(/rel="stylesheet"/g) || []).length, 0,
+   'no stylesheet is left as a link');
+ok(/Palatino/.test(html), "and the book's own rules are in the page");
 eq((html.match(/font-variant: small-caps/g) || []).length, 1, 'identical inline style deduplicated');
 ok(html.indexOf('Palatino') > html.indexOf('rel="stylesheet"'), 'base stylesheet comes after the book\'s own');
 
@@ -190,25 +258,364 @@ ok(!/<div\/>/.test(html), 'no self-closed div survives into the output');
 ok(/<div><\/div>/.test(html), 'XHTML empty element stays empty, does not swallow siblings');
 ok(/Mit Hintergrund/.test(html), 'content after an empty element survives');
 
-// ── caching
-const before = unzipRuns;
+// ── not answering the same question twice
+// The module used to keep a Map of what it had converted. It does not any
+// more: the host keeps one store for every derived file, so the answer
+// survives a restart instead of only the session. What is left here is that
+// converting twice lands in the same place, which is what lets the store
+// recognise it.
+const before = opened;
 const out2 = await E.convert(BOOK, env);
 eq(out2, out, 'second convert returns the same file');
-eq(unzipRuns, before, 'second convert does not unzip again');
+eq(opened, before + 1, 'and does the work again, since nothing here remembers');
+ok(!('_cache' in E), 'the module keeps no cache of its own any more');
 
-// Copy the fixture aside before touching it: the original is version-controlled
-const COPY = TMP + '/touched.epub';
-fs.copyFileSync(BOOK, COPY);
-await E.convert(COPY, env);
-const beforeTouch = unzipRuns;
-fs.utimesSync(COPY, new Date(), new Date(Date.now() + 5000));
-const out3 = await E.convert(COPY, env);
-eq(unzipRuns, beforeTouch + 1, 'changed source invalidates the cache');
-ok(out3, 'reconversion succeeds');
+// ── the host says where the page goes
+{
+  const given = TMP + '/given';
+  fs.mkdirSync(given, { recursive: true });
+  const out3 = await E.convert(BOOK, { ...env, outDir: given });
+  eq(out3, given + '/preview.html', 'the page is written where it was told');
+}
 
-// ── deterministic extract dir: no accumulation
-const dirs = fs.readdirSync(TMP).filter(d => d.startsWith('epub_'));
-eq(dirs.length, 2, 'each source gets exactly one extract directory, reused');
+// ── the archive is let go of again
+// An open handle keeps the file, which on Windows would stop Zotero from
+// replacing an attachment the user re-downloads.
+{
+  let closes = 0;
+  const counting = (archive) => {
+    const zip = openZip(archive);
+    return { ...zip, close() { closes++; zip.close(); } };
+  };
+  await E.convert(BOOK, { ...env, openZip: counting });
+  eq(closes, 1, 'the zip is closed when the conversion is done');
+
+  closes = 0;
+  await E.convert(BOOK, {
+    ...env, openZip: counting,
+    openBook: () => ({ close() {}, async* getSectionDocuments() { throw new Error('bang'); } }),
+  });
+  eq(closes, 1, 'and closed just as surely when the spine throws');
+}
+
+// ── what lands on disk is the page and the assets it names
+// Not the archive spread out: an epub carries files no chapter refers to, and
+// those have no business in a preview directory.
+{
+  const clean = fs.mkdtempSync(os.tmpdir() + '/zotlook-out-');
+  await E.convert(BOOK, { ...env, outDir: clean });
+  eq(fs.readdirSync(clean).sort(), ['asset', 'preview.html'],
+     'the page, and one directory beside it');
+  eq(fs.readdirSync(clean + '/asset').sort(),
+     ['OEBPS_img_bg.png', 'OEBPS_img_f.otf', 'OEBPS_img_pic one.png'],
+     'holding exactly what the book refers to');
+  fs.rmSync(clean, { recursive: true, force: true });
+}
+
+// ── annotations ───────────────────────────────────────────────────────
+// A PDF gets them from Zotero: PDFWorker.export bakes them into a copy. For
+// an epub there is no such export, so the CFI Zotero stored is resolved
+// against the very document it was written against — the section document,
+// before the page is assembled.
+//
+// The fixture's first chapter: <h1>, <p class="lead">, <img>, <div>,
+// <p style>, <script>, <a>, <a>, <p>. Element four is the lead paragraph,
+// so /4/4 is it and /1 its text. The spine is the third child of <package>,
+// hence /6, and the first itemref is /2.
+{
+  const cfi = (value) => JSON.stringify({
+    type: 'FragmentSelector',
+    conformsTo: 'http://www.idpf.org/epub/linking/cfi/epub-cfi.html',
+    value,
+  });
+  let lastPage = '';
+  const withNotes = async (annotations, outName) => {
+    const out = TMP + '/' + outName;
+    fs.mkdirSync(out, { recursive: true });
+    lastPage = fs.readFileSync(
+      await E.convert(BOOK, { ...env, outDir: out, annotations }), 'utf8');
+    // Only the body: the stylesheet names every one of these classes, so a
+    // search over the whole file would find them whether anything was marked
+    // or not. What is about the stylesheet asks lastPage instead.
+    return lastPage.slice(lastPage.indexOf('<body'));
+  };
+
+  const html = await withNotes([
+    { type: 'highlight', text: 'Erster Absatz.', color: '#ffd400',
+      comment: 'wichtig', sortIndex: '00000|00000000',
+      position: cfi('epubcfi(/6/2!/4/4,/1:0,/1:14)') },
+    { type: 'underline', text: 'Mit Hintergrund.', color: '#a28ae5',
+      comment: '', sortIndex: '00000|00000100',
+      position: cfi('epubcfi(/6/2!/4/10,/1:0,/1:16)') },
+  ], 'annot');
+
+  // Drawn as Zotero draws it: its reader styles an annotation in flowing
+  // text as backgroundColor: color + "80" for a highlight — half opacity,
+  // the same alpha its PDF canvas fills with — and as a real underline in
+  // the annotation's colour otherwise. A solid fill was what this did
+  // before, which made a purple passage hard to read and looked unlike the
+  // document it came from.
+  ok(/<span [^>]*background-color: #ffd40080;[^>]*>Erster Absatz\.<\/span>/.test(html),
+     'a highlight carries its colour at half opacity, exactly as Zotero does');
+  ok(/<span [^>]*text-decoration: underline[^>]*>Mit Hintergrund\.</.test(html)
+     && /text-decoration-color: #a28ae5/.test(html),
+     "an underline is a real underline, in the annotation's colour");
+  ok(/text-decoration-thickness: 2px; text-underline-offset: 2px/.test(html),
+     "with the thickness and offset from the reader's own stylesheet");
+  // The swatch in the list is filled in that colour too, so the question has
+  // to be put to the marked passage itself
+  {
+    const mark = html.match(/<span [^>]*>Mit Hintergrund\./);
+    ok(mark && !/background-color/.test(mark[0]),
+       'and nothing is filled in behind the words');
+  }
+  ok(/<details class="epub-annotations">/.test(html), 'and both are listed');
+  ok(/wichtig/.test(html), 'with the comment');
+  ok(!/epub-annotation-unplaced/.test(html), 'nothing reported as unplaceable');
+
+  // The list takes the reader to the passage: the marked place carries an
+  // anchor, the entry points at it. Same mechanism as the contents, which is
+  // measured to work in a panel that runs no scripts.
+  ok(/<span [^>]*id="zotlook-annot0"[^>]*>Erster Absatz\.<\/span>/.test(html),
+     'the first marked passage carries an anchor');
+  ok(/<a [^>]*class="epub-annotation-goto"[^>]*>/.test(html)
+     && /<a [^>]*href="#zotlook-annot0"[^>]*>/.test(html),
+     'and its entry in the list offers a way there');
+  ok(/id="zotlook-annot1"/.test(html) && /href="#zotlook-annot1"/.test(html),
+     'the second likewise, by its own name');
+
+  // Each entry folds: two lines of the passage on arrival, the rest and the
+  // link to it on demand. A list of long passages that showed all of them
+  // would be the book again rather than an index to it.
+  ok(/<details class="epub-annotation-entry"><summary>/.test(html),
+     'the entries fold');
+
+  // The quotation in the list is marked as the passage is marked — which is
+  // also what Zotero does in its own annotation list, the same span with the
+  // same style. A swatch alone says which colour was used; this says what
+  // was done with it, and that is what makes an entry recognisable.
+  {
+    const quoted = [...html.matchAll(/<q [^>]*style="([^"]*)"/g)].map(m => m[1]);
+    eq(quoted.length, 2, 'both quotations carry a style of their own');
+    ok(quoted.some(v => v.includes('background-color: #ffd40080')),
+       'the highlighted one is highlighted, at the same half opacity');
+    ok(quoted.some(v => v.includes('text-decoration-color: #a28ae5')),
+       'and the underlined one underlined, in its own colour');
+  }
+  ok(/epub-annotation-entry:not\(\[open\]\) q \{[^}]*line-clamp: 2/s.test(lastPage),
+     'closed, the quotation is cut to two lines');
+  ok(/max-height: 3\.1em/.test(lastPage),
+     'with a height to fall back on where the clamp is not understood');
+  ok(!/<details class="epub-annotation-entry" open/.test(html),
+     'and none of them starts open');
+
+  // A flex summary drops the native disclosure marker, so one is drawn.
+  // Without it the fold gives no sign that there is anything to unfold.
+  ok(/details\.epub-annotation-entry > summary \{[^}]*display: flex/s.test(lastPage),
+     'the summary is a row, so swatch and first line sit together');
+  ok(/details\.epub-annotation-entry > summary::before \{[^}]*content:/s.test(lastPage),
+     'and a marker is drawn, since flex takes the native one away');
+  ok(/details\.epub-annotation-entry\[open\] > summary::before \{ content:/.test(lastPage),
+     'which turns when it opens');
+
+  {
+    // A range across elements becomes several wrappers, and an id may occur
+    // once in a document — so the anchor goes on the first piece alone.
+    // Two of them would make the jump ambiguous and the markup invalid.
+    const across = await withNotes([
+      { type: 'highlight', text: '', color: '#ffd400', sortIndex: '00000|0',
+        position: cfi('epubcfi(/6/2!/4,/2/1:7,/4/1:6)') },
+    ], 'across');
+    ok((across.match(/class="zotlook-annotation"/g) || []).length >= 2,
+       'the range is marked in more than one piece');
+    eq((across.match(/id="zotlook-annot0"/g) || []).length, 1,
+       'and carries its anchor exactly once');
+    ok(/id="zotlook-annot0"[^>]*>Eins</.test(across)
+       || /id="zotlook-annot0"[^>]*>[^<]*Eins/.test(across),
+       'on the piece the reader arrives at first');
+  }
+  {
+    // Part of a paragraph, not the whole of it: the offsets are the point of
+    // the format, and a search for the text could never express this
+    const part = await withNotes([
+      { type: 'highlight', text: 'Erster', color: '#ffd400',
+        sortIndex: '00000|00000000',
+        position: cfi('epubcfi(/6/2!/4/4,/1:0,/1:6)') },
+    ], 'part');
+    ok(/<span [^>]*>Erster<\/span> Absatz\./.test(part),
+       'exactly the characters the offsets name');
+  }
+  {
+    // The second chapter is a different spine item, and an annotation in it
+    // must not be looked for in the first
+    const second = await withNotes([
+      { type: 'highlight', text: 'Ende.', color: '#5fb236',
+        sortIndex: '00001|00000000',
+        position: cfi('epubcfi(/6/4!/4/4,/1:0,/1:5)') },
+    ], 'second');
+    ok(/<span [^>]*>Ende\.<\/span>/.test(second),
+       'an annotation in the second chapter is marked there');
+    eq((second.match(/class="zotlook-annotation"/g) || []).length, 1,
+       'and nowhere else');
+  }
+  {
+    // A note has no position of its own, and a CFI can point at an element a
+    // later edition no longer has
+    const html2 = await withNotes([
+      { type: 'note', text: '', comment: 'Ein Gedanke', color: '#5fb236',
+        sortIndex: '00000|00000000', position: '' },
+      { type: 'highlight', text: 'nicht mehr da', color: '#ffd400',
+        sortIndex: '00000|00000100',
+        position: cfi('epubcfi(/6/2!/4/98,/1:0,/1:5)') },
+    ], 'unplaced');
+    ok(/Ein Gedanke/.test(html2), 'a note without a position still appears');
+    // Its own entry, not the neighbour's: the other annotation quotes text
+    // and is folded, so a search over the whole list would prove nothing
+    const noteEntry = html2.slice(html2.indexOf('Ein Gedanke') - 200,
+                                  html2.indexOf('Ein Gedanke'));
+    ok(!/<details/.test(noteEntry),
+       'and is not folded: it quotes nothing, so there is nothing to unfold');
+    ok(/epub-annotation-unplaced/.test(html2),
+       'and a CFI that no longer resolves is marked as such rather than dropped');
+    ok(!/<a href="#zotlook-annot/.test(html2),
+       'what is nowhere in the page is not offered as a link to it');
+    ok(!/class="zotlook-annotation"/.test(html2), 'nothing is marked wrongly');
+  }
+  {
+    const bare = await withNotes(undefined, 'noannot');
+    ok(!/epub-annotations|zotlook-annotation/.test(bare),
+       'without annotations the page carries no trace of them');
+  }
+}
+
+// ── the colour is taken as Zotero stores it ───────────────────────────
+{
+  const { zotLookEpub: E2 } = await import('./load.mjs').then(m => m.loadPlugin());
+  eq(E2._annotationStyle({ type: 'highlight', color: '#5fb236' }),
+     'background-color: #5fb23680;', 'a six-digit colour gains the alpha');
+  eq(E2._annotationStyle({ type: 'highlight', color: '#fd0' }),
+     'background-color: #ffdd0080;',
+     'a three-digit one is expanded first, or the alpha would land inside it');
+  eq(E2._annotationStyle({ type: 'highlight', color: '#5fb23640' }),
+     'background-color: #5fb23640;',
+     'and one that already carries an alpha keeps its own');
+  eq(E2._annotationStyle({ type: 'highlight', color: 'rgb(1,2,3)' }),
+     'background-color: rgb(1,2,3);',
+     'an unfamiliar notation is used as given, without an alpha it cannot '
+     + 'take — the wrong opacity is better than the wrong colour');
+  eq(E2._annotationStyle({ type: 'highlight', color: '' }),
+     'background-color: #ffd40080;',
+     'and only nothing at all falls back to the yellow Zotero starts with');
+
+  // Zotero's palette is eight colours; the field is a string, and plugins
+  // put their own in it. These three are zotQDA's, read out of a real
+  // library: 232 of 500 annotations there carry a colour Zotero never offers.
+  for (const colour of ['#ef5350', '#32bd59', '#008c7c']) {
+    eq(E2._annotationStyle({ type: 'highlight', color: colour }),
+       'background-color: ' + colour + '80;',
+       `${colour} from another palette is painted like any other`);
+    ok(E2._annotationStyle({ type: 'underline', color: colour })
+         .includes('text-decoration-color: ' + colour),
+       `${colour} underlines in its own colour too`);
+  }
+  ok(/text-decoration-color: #ff6666/.test(
+       E2._annotationStyle({ type: 'underline', color: '#ff6666' })),
+     'an underline takes the colour undiluted, as the reader does');
+}
+
+// ── the contents start closed ─────────────────────────────────────────
+// It was open when it stood above the book, where nothing was behind it. As
+// a menu over the page, open on arrival means covering the first thing a
+// reader looks at.
+{
+  // A book that has contents at all: the fixture carries no navigation
+  const withNav = makeBook(TMP + '/hasnav', { nav:
+    '<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" '
+    + 'xmlns:epub="http://www.idpf.org/2007/ops"><body><nav epub:type="toc">'
+    + '<ol><li><a href="ch1.xhtml">One</a></li>'
+    + '<li><a href="ch2.xhtml">Two</a></li></ol></nav></body></html>' });
+  const out = TMP + '/closed';
+  fs.mkdirSync(out, { recursive: true });
+  const page = fs.readFileSync(await E.convert(withNav, { ...env, outDir: out }), 'utf8');
+  const body = page.slice(page.indexOf('<body'));
+  ok(/<details class="epub-toc">/.test(body), 'the contents are there');
+  ok(!/<details[^>]*\bopen\b[^>]*class="epub-toc"/.test(body)
+     && !/<details class="epub-toc"[^>]*\bopen\b/.test(body),
+     'and closed, so the book is what one sees first');
+}
+
+// ── the two menus float ───────────────────────────────────────────────
+// A book wants the page to itself. The contents and the annotations are
+// reachable from a button in the corner instead of sitting in a block above
+// the text — and all of it is <details> and CSS, because a preview panel
+// runs no scripts: a menu that needed one would never open.
+{
+  const out = TMP + '/floating';
+  fs.mkdirSync(out, { recursive: true });
+  const page = fs.readFileSync(await E.convert(BOOK, { ...env, outDir: out }), 'utf8');
+
+  ok(!/<script/i.test(page), 'the page carries no script at all');
+  ok(/details\.epub-toc > summary[^}]*position: fixed/s.test(page)
+     || /details\.epub-toc > summary, details\.epub-annotations > summary \{[^}]*position: fixed/s.test(page),
+     'the summaries are floated out of the flow');
+  ok(/ol\.epub-toc-list, ol\.epub-annotation-list \{[^}]*position: fixed/s.test(page),
+     'and the lists appear over the text rather than pushing it down');
+  ok(/ol\.epub-toc-list \{ right/.test(page) && /ol\.epub-annotation-list \{ left/.test(page),
+     'the two sit in opposite corners, so neither label\'s width crowds the other');
+
+  // The triangle is hidden two ways: the three viewers are not one engine
+  ok(/list-style: none/.test(page), 'the marker is hidden by the standard property');
+  ok(/::-webkit-details-marker/.test(page), 'and by the WebKit one');
+
+  ok(/@media \(max-width: 420px\)/.test(page),
+     'a narrow panel gets the menus back in the flow, where they cover nothing');
+  ok(!/inset: 0/.test(page), 'nothing dims the page behind an open menu');
+}
+
+// ── an asset the book keeps referring to is written once ──────────────
+// A stylesheet's background, a chapter ornament: a book can name the same
+// file on every page, and each of those must not be a copy.
+{
+  // A book whose two chapters carry the same picture — the fixture names
+  // each of its files once, so it could never show this
+  const shared = makeBook(TMP + '/shared', { sharedImage: true });
+  let writes = 0;
+  const counting = (zip, entry, destPath) => {
+    writes++;
+    return extractEntry(zip, entry, destPath);
+  };
+  const out = TMP + '/once';
+  fs.mkdirSync(out, { recursive: true });
+  const page = fs.readFileSync(
+    await E.convert(shared, { ...env, outDir: out, extractEntry: counting }),
+    'utf8');
+  eq((page.match(/src="asset\/OEBPS_shared\.png"/g) || []).length, 2,
+     'both chapters point at it');
+  eq(writes, 1, 'and it was written out once');
+  eq(fs.readdirSync(out + '/asset'), ['OEBPS_shared.png'], 'one file');
+}
+
+// ── however big the book, all of it ───────────────────────────────────
+// There was a cap here once, on each asset and on the book as a whole. It
+// existed only because the assets were being carried into the page; written
+// out beside it there is nothing to cap, and a limit that silently dropped
+// half a volume has no business in a preview.
+{
+  const source = fs.readFileSync(new URL('../addon/epub.js', import.meta.url), 'utf8');
+  ok(!/MAX_ASSET_BYTES|MAX_TOTAL_ASSET_BYTES|budget/.test(source),
+     'no size limit is left in the module');
+  const huge = (archive) => {
+    const zip = openZip(archive);
+    return { ...zip, getEntry: () => ({ realSize: 900 * 1024 * 1024 }) };
+  };
+  const out = TMP + '/huge';
+  fs.mkdirSync(out, { recursive: true });
+  const big = fs.readFileSync(
+    await E.convert(BOOK, { ...env, outDir: out, openZip: huge }), 'utf8');
+  ok(/src="asset\//.test(big), 'a book claiming 900 MB assets is still written out whole');
+  eq(fs.readdirSync(out + '/asset').length, 3,
+     'every asset it refers to, none skipped');
+}
 
 fs.rmSync(TMP, { recursive: true, force: true });
 

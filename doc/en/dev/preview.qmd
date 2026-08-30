@@ -106,20 +106,123 @@ No system preview renders an EPUB, so this is the one format the plugin
 transforms rather than hands over. Everything else — MOBI, DJVU, whatever a
 preview extension claims — goes to the panel untouched.
 
-The plugin unpacks the archive into a temp directory, parses
-`META-INF/container.xml` and the OPF package document, and walks the spine in
-reading order, appending each chapter's `<body>` into a single output document.
-The book's own stylesheets, linked and inline, are pulled in so the original
-layout survives, with a Palatino base font, an 80 px margin and a 720 px
-book-width column applied on top. Relative URLs in markup **and in CSS** are
-rewritten to absolute `file://` paths, so images, fonts and inline SVGs resolve.
+The book is read **out of its archive**, through two readers the platform
+already provides. Gecko's `nsIZipReader` opens the container; Zotero's own
+`EPUB.mjs` — the module it uses for full-text indexing — joins the manifest to
+the spine and yields the sections in reading order, already parsed. Each
+chapter's `<body>` is appended into a single output document.
+
+::: {.callout-note title="Why so little of this is ours"}
+Until 1.2.0 the plugin spawned `/usr/bin/unzip`, or `tar.exe` on Windows, and
+spread the book across a temp directory — a subprocess and its timeout for
+something the platform does in-process, plus a directory to clean up. What
+Zotero already maintains is now used instead. What it does **not** offer is a
+converter: its EPUB reader is epub.js, which renders live in a Zotero window,
+and a preview panel runs no scripts at all. So the assembly stays ours.
+:::
+
+The book's own stylesheets, linked and inline, are carried in as text so the
+original layout survives, with a Palatino base font, an 80 px margin and a
+720 px book-width column applied on top. Images, fonts and inline SVGs — named
+in markup **and in CSS** — are written out into an `asset/` directory beside
+the page, once each however often the book names them, and referred to
+relatively from there.
+
+::: {.callout-note title="Why not embedded in the page"}
+They were, briefly, as `data:` URLs. That made the page self-contained, but
+base64 costs a third more than the file it encodes and the whole book has to be
+held as one string while it is built — which called for a size limit, and a
+limit means a preview that shows part of a book. A preview of part of a book is
+not a preview of that book. Written out beside the page there is nothing to
+limit: the volume can be any size, and the store removes the entry whole when
+its time comes.
+:::
 
 Parsing and assembly go through `DOMParser` and run on the document tree, so
 scripts and inline event handlers are removed as **nodes** rather than matched
-as text. A converted book is cached and reused until its file changes.
+as text. A converted book is kept and reused until its file changes — see
+[the store](contact-sheet.qmd).
 
-Unpacking uses `/usr/bin/unzip` on macOS and Linux, and `tar.exe` — the bsdtar
-Windows has shipped since Windows 10 — on Windows, which has no `unzip`.
+### Annotations
+
+Zotero keeps annotations in its database rather than in the file, for an EPUB
+as for a PDF. The PDF path asks Zotero to bake them in — `PDFWorker.export`
+writes a copy with the marks drawn on the page, and that copy is what the panel
+shows. **There is no such export for an EPUB.** Zotero's reader draws them live
+from an [EPUB CFI](https://idpf.org/epub/linking/cfi/), and the engine that
+resolves a CFI lives inside the reader's own bundle, reachable only from the
+reader.
+
+So the CFI is read here — only read: zotLook never writes one. `cfi.js` parses
+it and resolves it against the spine document, which is exactly the tree the
+CFI was written against and exactly what `getSectionDocuments()` hands over.
+That is why the marking happens per section, **before** the page is assembled:
+afterwards the tree the identifier describes no longer exists.
+
+The package path names the spine item — `/6` the `<spine>` among the package's
+children, `/14` the seventh `<itemref>` — and Zotero's own `annotationSortIndex`
+begins with that same number, two independent statements of one fact. The rest
+of the path walks the document to a text node, and the offsets are the extent.
+They are drawn as Zotero draws them, not as it seemed reasonable to draw
+them. Its reader styles an annotation in flowing text as
+
+``` js
+type === "underline" ? { textDecorationColor: color }
+                     : { backgroundColor: color + "80" }
+```
+
+— so a highlight carries its colour at **half opacity**, the same alpha the
+PDF canvas fills a highlight with, and an underline is a real underline in the
+annotation's colour, 2 px thick at 2 px offset from the reader's own
+stylesheet. A solid fill was what this did before: a purple or blue passage
+became hard to read, and it looked unlike the document it came from. A range
+crossing element boundaries becomes one wrapper per text node, which is what a
+browser does with a selection.
+
+The colour itself is whatever the annotation carries. Zotero offers eight, but
+the field holds a string and plugins put their own palettes in it — a library
+checked here had 232 of 500 annotations in colours Zotero never offers, from
+[zotQDA](https://github.com/fre-ms/zotQDA). All of them are six-digit hex,
+which is what Zotero's own reader requires too, since it appends the alpha as
+two more digits exactly as this does. A three-digit form is written out first,
+or the alpha would land inside the colour; anything else is passed on untouched
+and without an alpha, because an unexpected notation should cost the right
+opacity at worst, never the right colour.
+
+::: {.callout-note title="epub.js, not the paper"}
+A strict reading of EPUB CFI 1.1 interleaves elements and character data in one
+numbering, so that odd steps address the text *between* elements. epub.js
+counts text children among text children — and epub.js is what wrote every CFI
+this will ever read. Matching the writer is what makes the answer right.
+:::
+
+::: {.callout-note title="Nothing is dropped"}
+A note carries no text to place, a comment belongs to no particular word, and a
+highlight whose wording the markup broke differently cannot be found. All of
+them appear in a list behind a button in the corner, in reading order, with
+their colour and comment — and one that could not be placed is shown as such,
+rather than quietly missing.
+
+The quotation in an entry is marked as the passage is marked, which is what
+Zotero does in its own annotation list: the same span with the same style,
+`annotation-text` beside a menu button and a hint. A swatch alone says which
+colour was used; this says what was done with it.
+
+The menu opens **closed**, and each entry folds: the quotation is cut to two
+lines by the stylesheet — measured in Quick Look, which renders the clamp — and
+opening one shows the whole of it, the comment, and a link to the passage. One
+copy of the text either way, cut where it is shown rather than where it is
+built, so nothing is lost and nothing duplicated. A flex row puts the swatch
+beside the first line, which takes the native disclosure marker away, so one is
+drawn instead — steadier in any case across three engines that each draw their
+own differently.
+
+An entry whose passage **is** in the page links into it: the first piece of the
+marked range carries an anchor, and the entry points at it. First in
+reading order, not first wrapped — wrapping runs backwards, because splitting a
+text node moves every offset after it, and a reader following the link should
+arrive at the beginning of the passage rather than its end.
+:::
 
 ### The table of contents
 
@@ -137,6 +240,13 @@ within the same page are followed.
 
 Both were measured by clicking them in a real preview — the fold works, the jump
 works. That is why the contents are built this way and not another.
+
+The same element carries the **floating menu**: the `<summary>` is fixed to a
+corner as a button, and opening it lays the list over the text instead of
+pushing the book down. No script is involved in that either — `<details>` holds
+the state itself, which is the only reason such a menu can exist in a panel
+that runs none. Below 420 px the menus go back into the flow, where they cover
+nothing.
 :::
 
 Each chapter is given an **anchor of its own** during assembly (`zotlook-ch0`,

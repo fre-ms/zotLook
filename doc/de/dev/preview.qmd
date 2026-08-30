@@ -110,24 +110,135 @@ Keine Systemvorschau stellt ein EPUB dar. Es ist damit das einzige Format, das
 das Plugin wandelt statt weiterzureichen. Alles andere — MOBI, DJVU, was immer
 eine Vorschau-Erweiterung beansprucht — geht unverändert an die Ansicht.
 
-Das Plugin entpackt das Archiv in ein temporäres Verzeichnis, liest
-`META-INF/container.xml` und das OPF-Paketdokument und durchläuft die Spine in
-Lesereihenfolge, wobei es den `<body>` jedes Kapitels an ein einziges
-Ausgabedokument anhängt. Die buchspezifischen Stylesheets, verlinkte wie
-eingebettete, werden mitgeladen, damit der ursprüngliche Aufbau erhalten bleibt;
-darüber liegen eine Palatino-Grundschrift, 80 px Rand und eine 720 px breite
-Buchspalte. Relative Adressen im Markup **und im CSS** werden zu absoluten
-`file://`-Pfaden umgeschrieben, damit Bilder, Schriften und eingebettete SVGs
-sich auflösen.
+Das Buch wird **aus seinem Archiv heraus** gelesen, über zwei Leser, die die
+Plattform ohnehin mitbringt. Geckos `nsIZipReader` öffnet den Container;
+Zoteros eigenes `EPUB.mjs` — das Modul, mit dem es seinen Volltext indiziert —
+verbindet Manifest und Spine und liefert die Abschnitte in Lesereihenfolge,
+bereits geparst. Der `<body>` jedes Kapitels wird an ein einziges
+Ausgabedokument angehängt.
+
+::: {.callout-note title="Warum davon so wenig von uns stammt"}
+Bis 1.2.0 startete das Plugin `/usr/bin/unzip`, unter Windows `tar.exe`, und
+verteilte das Buch über ein temporäres Verzeichnis — ein Unterprozess samt
+Zeitüberschreitung für etwas, das die Plattform im eigenen Prozess erledigt,
+dazu ein Verzeichnis zum Aufräumen. Was Zotero ohnehin pflegt, wird jetzt
+benutzt. Was es **nicht** anbietet, ist ein Wandler: Sein EPUB-Betrachter ist
+epub.js, der zur Laufzeit in einem Zotero-Fenster rendert, und eine
+Systemvorschau führt überhaupt kein Skript aus. Der Zusammenbau bleibt deshalb
+unserer.
+:::
+
+Die buchspezifischen Stylesheets, verlinkte wie eingebettete, werden als Text
+übernommen, damit der ursprüngliche Aufbau erhalten bleibt; darüber liegen eine
+Palatino-Grundschrift, 80 px Rand und eine 720 px breite Buchspalte. Bilder,
+Schriften und eingebettete SVGs — im Markup **und im CSS** genannt — werden in
+ein Verzeichnis `asset/` neben der Seite geschrieben, jede Datei einmal, so oft
+das Buch sie auch nennt, und von dort relativ angesprochen.
+
+::: {.callout-note title="Warum nicht in die Seite eingebettet"}
+Kurzzeitig waren sie es, als `data:`-Adressen. Die Seite stand damit für sich
+allein — aber base64 kostet ein Drittel mehr als die Datei, die es kodiert, und
+das ganze Buch muss beim Erzeugen als eine Zeichenkette gehalten werden. Das
+verlangte nach einer Obergrenze, und eine Obergrenze heißt: eine Vorschau, die
+einen Teil des Buches zeigt. Eine Vorschau eines Teils ist keine Vorschau des
+Buches. Daneben geschrieben gibt es nichts zu begrenzen: Der Band darf beliebig
+groß sein, und der Speicher entfernt den Eintrag als Ganzes, wenn seine Zeit
+gekommen ist.
+:::
 
 Parsen und Zusammenbau laufen über `DOMParser` auf dem Dokumentbaum. Skripte
 und eingebettete Ereignisbehandler werden dadurch als **Knoten** entfernt statt
-als Text gesucht. Ein gewandeltes Buch wird zwischengespeichert und
-wiederverwendet, bis sich seine Datei ändert.
+als Text gesucht. Ein gewandeltes Buch wird behalten und wiederverwendet, bis
+sich seine Datei ändert — siehe [den Speicher](contact-sheet.qmd).
 
-Entpackt wird unter macOS und Linux mit `/usr/bin/unzip`, unter Windows mit
-`tar.exe` — dem bsdtar, das Windows seit Windows 10 mitbringt und das dort an
-die Stelle des fehlenden `unzip` tritt.
+### Annotationen
+
+Zotero bewahrt Annotationen in seiner Datenbank auf und nicht in der Datei —
+beim EPUB wie beim PDF. Für PDFs lässt zotLook sie von Zotero einarbeiten:
+`PDFWorker.export` schreibt eine Kopie mit den Markierungen auf der Seite, und
+diese Kopie wird gezeigt. **Für EPUB gibt es keinen solchen Export.** Zoteros
+Reader zeichnet sie zur Laufzeit aus einer [EPUB-CFI](https://idpf.org/epub/linking/cfi/),
+und die Maschinerie dafür steckt im Bündel des Readers und ist nur von dort
+erreichbar.
+
+Deshalb wird die CFI hier gelesen — nur gelesen: zotLook schreibt nie eine.
+`cfi.js` zerlegt sie und löst sie gegen das Spine-Dokument auf, also genau
+gegen den Baum, gegen den sie geschrieben wurde und den
+`getSectionDocuments()` liefert. Darum wird je Abschnitt markiert, **bevor**
+die Seite zusammengesetzt wird: danach gibt es den Baum, den der Bezeichner
+beschreibt, nicht mehr.
+
+Der Paketpfad benennt das Spine-Element — `/6` den `<spine>` unter den Kindern
+des Pakets, `/14` das siebte `<itemref>` —, und Zoteros eigener
+`annotationSortIndex` beginnt mit derselben Zahl: zwei unabhängige Angaben
+desselben Sachverhalts. Der übrige Pfad läuft durch das Dokument bis zu einem
+Textknoten, die Versätze sind die Ausdehnung. Gezeichnet wird, wie Zotero zeichnet, und nicht,
+wie es plausibel schien. Sein Reader gestaltet eine Annotation in fließendem
+Text so:
+
+``` js
+type === "underline" ? { textDecorationColor: color }
+                     : { backgroundColor: color + "80" }
+```
+
+Eine Hervorhebung trägt ihre Farbe also bei **halber Deckkraft** — derselbe
+Alphawert, mit dem auch die PDF-Fläche gefüllt wird —, und eine
+Unterstreichung ist eine echte Unterstreichung in der Annotationsfarbe, 2 px
+stark bei 2 px Abstand, aus dem Stylesheet des Readers. Vorher war es eine
+volle Füllung: eine violette oder blaue Stelle wurde schwer lesbar und sah dem
+Dokument unähnlich, aus dem sie stammte. Ein Bereich über Elementgrenzen
+hinweg wird zu je einer Umhüllung pro Textknoten — so, wie ein Browser es mit
+einer Auswahl hält.
+
+Die Farbe selbst ist die, die die Annotation trägt. Zotero bietet acht an, aber
+das Feld hält eine Zeichenkette, und Plugins legen eigene Paletten hinein — in
+einer hier geprüften Bibliothek trugen 232 von 500 Annotationen Farben, die
+Zotero nie anbietet, aus [zotQDA](https://github.com/fre-ms/zotQDA). Alle sind
+sechsstellige Hex-Werte, was auch Zoteros eigener Reader voraussetzt: Er hängt
+den Alphawert als zwei weitere Ziffern an, genau wie hier. Eine dreistellige
+Kurzform wird zuvor ausgeschrieben, sonst landete das Alpha in der Farbe
+selbst; alles andere wird unverändert und ohne Alpha durchgereicht, denn eine
+unerwartete Schreibweise soll höchstens die richtige Deckkraft kosten, niemals
+die richtige Farbe.
+
+::: {.callout-note title="epub.js, nicht das Papier"}
+Streng gelesen verschränkt EPUB CFI 1.1 Elemente und Zeichendaten in *einer*
+Nummerierung, sodass ungerade Schritte den Text *zwischen* Elementen
+adressieren. epub.js zählt Textkinder unter Textkindern — und epub.js hat jede
+CFI geschrieben, die hier je zu lesen sein wird. Sich nach dem Schreiber zu
+richten ist das, was die Antwort richtig macht.
+:::
+
+::: {.callout-note title="Nichts geht verloren"}
+Eine Notiz trägt keinen Text, den man verorten könnte, ein Kommentar gehört zu
+keinem einzelnen Wort, und eine Hervorhebung, deren Wortlaut das Markup anders
+umbrochen hat, lässt sich nicht finden. Sie alle stehen in einer Liste hinter
+einem Knopf in der Ecke, in Lesereihenfolge, mit Farbe und Kommentar — und was
+sich nicht verorten ließ, wird als solches gekennzeichnet, statt einfach zu
+fehlen.
+
+Das Zitat eines Eintrags ist so ausgezeichnet wie die Stelle selbst — und
+ebenso hält es Zotero in seiner eigenen Annotationsliste: dieselbe Auszeichnung
+mit demselben Stil, `annotation-text` neben Menüknopf und Hinweiszeile. Ein
+Farbfleck allein nennt die Farbe; dies nennt, was mit ihr getan wurde.
+
+Das Menü öffnet **geschlossen**, und jeder Eintrag ist gefaltet: Das Zitat wird
+vom Stylesheet auf zwei Zeilen gekürzt — in Quick Look nachgemessen, das die
+Begrenzung darstellt — und beim Aufklappen erscheinen der ganze Text, der
+Kommentar und ein Verweis auf die Stelle. In beiden Fällen dieselbe eine Kopie
+des Textes, gekürzt dort, wo er gezeigt wird, und nicht dort, wo er entsteht;
+so geht nichts verloren und nichts wird verdoppelt. Eine Flex-Zeile stellt den
+Farbfleck neben die erste Zeile, was das mitgelieferte Aufklapp-Dreieck
+verschwinden lässt — also wird eines selbst gezeichnet, was über drei
+Maschinen, die alle ihr eigenes zeichnen, ohnehin verlässlicher ist.
+
+Ein Eintrag, dessen Stelle **in** der Seite steht, verweist dorthin: Das erste
+Stück des markierten Bereichs trägt einen Anker, der Eintrag zeigt darauf.
+Das erste in Leserichtung, nicht das zuerst umschlossene — umschlossen wird
+rückwärts, weil das Teilen eines Textknotens jeden Versatz danach verschiebt,
+und wer dem Verweis folgt, soll am Anfang der Stelle ankommen und nicht an
+ihrem Ende.
+:::
 
 ### Das Inhaltsverzeichnis
 
@@ -147,6 +258,13 @@ ausgeführt.
 Beides wurde nachgemessen, indem in einer echten Vorschau geklickt wurde: Das
 Aufklappen funktioniert, der Sprung funktioniert. Deshalb ist das Verzeichnis so
 gebaut und nicht anders.
+
+Dasselbe Element trägt auch das **schwebende Menü**: Das `<summary>` steht als
+Knopf fest in einer Ecke, und beim Öffnen legt sich die Liste über den Text,
+statt das Buch nach unten zu schieben. Auch daran ist kein Skript beteiligt —
+`<details>` hält den Zustand selbst, und nur deshalb kann es ein solches Menü in
+einer Ansicht überhaupt geben, die keines ausführt. Unter 420 px rücken die
+Menüs zurück in den Textfluss, wo sie nichts verdecken.
 :::
 
 Jedes Kapitel bekommt beim Zusammenbau einen **eigenen Anker**

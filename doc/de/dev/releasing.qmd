@@ -23,6 +23,18 @@ hat. `test/release.test.mjs` bemerkt das, und der Fehlschlag bedeutet *Version
 erhöhen*, nicht *Prüfsumme nachziehen*.
 :::
 
+## Was zwischen Bauten erhalten bleibt
+
+Eine behaltene Vorschau ist auf den Bau geschlüsselt, der sie erzeugt hat — auf
+die Version und den Stempel, den `build.sh` ins Paket schreibt. Die Version
+allein unterschiede eine Freigabe von der anderen, was einem Nutzer genügt; sie
+unterschiede nicht einen Bau von 1.2.0 vom nächsten, worauf es beim Arbeiten an
+einer Version ankommt. Ohne den Stempel gibt der zweite Bau zurück, was der
+erste erzeugt hat, und die Änderung scheint nicht angekommen zu sein.
+
+Einträge anderer Bauten werden beim Start entfernt, ebenso die Ablage früherer
+Versionen, die niemand mehr liest und die sonst nichts je aufräumen würde.
+
 ## Verträglichkeit
 
 Der Update-Eintrag trägt bewusst **kein `strict_max_version`**. Zotero behandelt

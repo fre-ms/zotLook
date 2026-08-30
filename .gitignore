@@ -1,6 +1,8 @@
 .DS_Store
 build/
 addon/qlpreview
+# Written by build.sh, packaged, never committed
+addon/build.txt
 node_modules/
 
 # Per-language copies of doc/_theme and ../asset, recreated by doc/build.sh

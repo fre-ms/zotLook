@@ -25,6 +25,8 @@ zotlook-prefs-key-unset =
 zotlook-prefs-key-recording =
     .label = Tasten drücken …
 zotlook-prefs-conflict = { $shortcut } ist bereits belegt durch { $conflicts }. Die Kombination lässt sich dennoch verwenden — Kürzel anderer Plugins und des Systems selbst sind nicht prüfbar.
+
+zotlook-prefs-key-unreachable = Diese Kombination ist nicht bei Zotero angekommen. Das System oder eine andere Anwendung greift vor Zotero zu, zotLook kann sie also nicht verwenden — weder macOS noch Windows veröffentlicht eine Liste solcher Kürzel, deshalb zeigt sich das erst beim Versuch.
 zotlook-prefs-contactsheet-title = Seitenübersicht
 zotlook-prefs-contactsheet-help = Die Seitenübersicht zeigt jede Seite eines PDFs als Miniatur.
 zotlook-prefs-contactsheet-maxpages-help = Die Seiten werden parallel gerendert und als einzelne Bilddateien abgelegt; ein 300-seitiges Buch dauert damit rund sieben Sekunden, und die Vorschau selbst bleibt klein — eine Begrenzung ist im Regelfall nicht nötig. Trage hier nur dann eine Zahl ein, wenn Du mit ungewöhnlich großen Scans arbeitest und begrenzen willst, wie lange die Erzeugung dauern und wie viel temporären Speicherplatz sie belegen darf. 0 zeigt alle Seiten.
@@ -59,25 +61,37 @@ zotlook-prefs-epub-own =
     .label = EPUB mit zotLook darstellen
 
 # PDF-Annotationen
-zotlook-prefs-pdf-title = PDF
-zotlook-prefs-pdf-help = Zotero speichert Annotationen in seiner Datenbank, nicht in der PDF-Datei. Die gespeicherte Datei anzuzeigen ergibt deshalb ein unmarkiertes Dokument. Ist dies eingeschaltet, wird stattdessen eine Kopie mit eingezeichneten Annotationen erzeugt und verwendet — für die Vorschau ebenso wie für die Seitenübersicht. Anhänge ohne Annotationen werden vorher erkannt und kosten nichts. Ausschalten zeigt die Dateien genau so, wie sie gespeichert sind.
-zotlook-prefs-pdf-annotations =
-    .label = Annotationen in Vorschau und Seitenübersicht zeigen
 
 zotlook-sheet-truncated = Es werden die ersten { $shown } von { $total } Seiten gezeigt.
 
 zotlook-epub-contents = Inhalt
 
-zotlook-prefs-contactsheet-cache =
-    .label = Kontaktbögen behalten und wiederverwenden
+zotlook-epub-annotations = Annotationen
 
-zotlook-prefs-contactsheet-cache-help = Jede Seite eines langen Buches zu zeichnen dauert Sekunden. Ein einmal erstellter Bogen wird unverändert wieder gezeigt, bis sich die Datei, ihre Annotationen oder die Einstellungen darunter geändert haben. Behaltene Bögen liegen im temporären Bereich des Systems und werden nicht mit Ihrer Bibliothek gesichert.
+zotlook-epub-goto = Zur Stelle im Text
 
-zotlook-prefs-contactsheet-keepdays = Ungenutzte Bögen verwerfen nach
+zotlook-prefs-keep-title = Behaltene Vorschauen
 
-zotlook-prefs-contactsheet-keepdays-hint = Tagen (0 behält sie, bis das System seine temporären Dateien räumt)
+zotlook-prefs-keep =
+    .label = Erzeugte Vorschauen behalten und wiederverwenden
 
-zotlook-prefs-contactsheet-size = Derzeit belegt: { $size }
+zotlook-prefs-keep-help = Jede Seite eines langen Buches zu zeichnen oder ein EPUB zu entpacken und neu zusammenzusetzen dauert Sekunden. Einmal Erzeugtes wird unverändert wieder gezeigt, bis sich die Datei, ihre Annotationen oder die Einstellungen darunter geändert haben. Behaltene Vorschauen liegen im temporären Bereich des Systems und werden nicht mit Ihrer Bibliothek gesichert.
 
-zotlook-prefs-contactsheet-purge =
-    .label = Behaltene Bögen löschen
+zotlook-prefs-keep-days = Ungenutzte Vorschauen verwerfen nach
+
+zotlook-prefs-keep-days-hint = Tagen (0 behält sie, bis das System seine temporären Dateien räumt)
+
+zotlook-prefs-keep-size = Derzeit belegt: { $size }
+
+zotlook-prefs-keep-purge =
+    .label = Behaltene Vorschauen löschen
+
+zotlook-prefs-annotations-title = Annotationen
+
+zotlook-prefs-annotations-help = Zotero bewahrt Annotationen in seiner Datenbank auf und nicht in der Datei; eine Vorschau des gespeicherten Dokuments zeigt es deshalb unmarkiert. Anhänge ohne Annotationen werden erkannt, bevor irgendeine Arbeit beginnt — die Einstellungen wirken sich also nur auf Dokumente aus, die Sie tatsächlich bearbeitet haben.
+
+zotlook-prefs-pdf-annotations =
+    .label = In PDF-Vorschau und Seitenübersicht einzeichnen
+
+zotlook-prefs-epub-annotations =
+    .label = In EPUB-Vorschauen markieren

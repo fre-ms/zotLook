@@ -18,6 +18,9 @@ const used = new Set([
   ...[...src.matchAll(/_formatString\(\s*\n?\s*"([^"]+)"/g)].map(m => m[1]),
   ...[...src.matchAll(/data-l10n-id="([^"]+)"/g)].map(m => m[1]),
   ...[...src.matchAll(/setAttributes\([^,]+,\s*"([^"]+)"/g)].map(m => m[1]),
+  // The pane's row notes are named at the call site and set one level down
+  ...[...src.matchAll(/showNote\([^,]+,[^,]+,\s*"([^"]+)"/g)].map(m => m[1]),
+  ...[...src.matchAll(/\?\s*"(zotlook-[a-z-]+)"\s*:/g)].map(m => m[1]),
 ]);
 ok(used.size >= 20, `code references ${used.size} strings`);
 
@@ -101,6 +104,25 @@ const readPrefs = new Set([
 eq([...readPrefs].filter(p => !declaredPrefs.has(p)), [], 'every preference the code reads has a default');
 eq([...declaredPrefs].filter(p => !readPrefs.has(p)), [], 'no default is declared that nothing reads');
 ok([...declaredPrefs].every(p => p.startsWith('extensions.zotlook.')), 'all defaults sit on the plugin branch');
+
+// ── a string asked for must also be fetched ───────────────────────────
+// _string(id, fallback) answers from what _loadStrings put in the map, and
+// falls back silently to the English default when the id was never fetched.
+// That is how the annotations button stayed "Annotations" in a German Zotero:
+// the string existed in both locales, the call site was right, and the id was
+// missing from the one list that decides what is loaded.
+{
+  const loaded = new Set([
+    ...[...src.matchAll(/LOADED_STRINGS:\s*\[([^\]]+)\]/g)]
+      .flatMap(m => [...m[1].matchAll(/"([^"]+)"/g)].map(x => x[1])),
+    ...[...src.matchAll(/l10nID:\s*"([^"]+)"/g)].map(m => m[1]),
+  ]);
+  const asked = [...src.matchAll(/_string\(\s*\n?\s*"([^"]+)"/g)].map(m => m[1]);
+  ok(asked.length >= 3, `${asked.length} strings are asked for by id`);
+  for (const id of new Set(asked)) {
+    ok(loaded.has(id), `${id} is among the ids that get loaded`);
+  }
+}
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

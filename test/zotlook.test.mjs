@@ -170,13 +170,26 @@ const ok = (c,l)=>eq(!!c,true,l);
 
   // With the setting on, the path is replaced by the generated page
   {
-    const { zotLook: Q, zotLookEpub } = loadPlugin();
+    const { zotLook: Q, zotLookEpub } = loadPlugin({
+      IOUtils: {
+        makeDirectory: async () => {},
+        readUTF8: async () => { throw new Error('no key yet'); },
+        writeUTF8: async () => {},
+        remove: async () => {},
+        stat: async () => ({ size: 10, lastModified: 5 }),
+        exists: async () => false,
+      },
+    });
     let asked = null;
-    zotLookEpub.convert = async (p) => { asked = p; return '/tmp/preview.html'; };
-    Q._epubEnv = () => ({});
+    let workDir = null;
+    zotLookEpub.convert = async (p, env) => {
+      asked = p; workDir = env.outDir; return '/tmp/preview.html';
+    };
     eq(await Q._normalizeForPreview('/lib/book.epub'), '/tmp/preview.html',
        'the generated page is previewed');
     eq(asked, '/lib/book.epub', 'and the book was converted');
+    ok(workDir && workDir.includes('epub_book.epub'),
+       'into the entry the store handed out, not a directory of its own');
   }
 
   // With it off, the file goes to Quick Look untouched

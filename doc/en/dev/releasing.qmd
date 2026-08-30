@@ -22,6 +22,19 @@ checksum differs as soon as anything in the code has changed. `test/release.test
 catches that, and the failure means *bump the version*, not *update the hash*.
 :::
 
+## What is kept, between builds
+
+A kept preview is keyed on the build that made it — the version, and the stamp
+`build.sh` writes into the package. The version alone would tell one release
+from another, which is all a user needs; it would not tell one build of 1.2.0
+from the next, which is what anyone working on a version needs. Without the
+stamp a preview made by the first build is handed back by the second, and the
+change appears not to have arrived.
+
+Entries made by any other build are removed at startup, along with the layout
+of earlier versions, which nothing reads any more and nothing else would ever
+clear.
+
 ## Compatibility
 
 The update entry deliberately carries **no `strict_max_version`**. Zotero then

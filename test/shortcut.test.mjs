@@ -231,5 +231,30 @@ ok(true, 'no two default shortcuts collide with each other');
   eq(B._isTypeAheadKey(U.parseShortcut('Meta+y')), false, 'Cmd+Y cannot');
 }
 
+// ── however it was written down, it has to match a keystroke ──────────
+// Three functions produce a binding: parseShortcut from what is stored,
+// shortcutFromEvent from a keystroke, shortcutFromKeyElement from a Zotero
+// <key>. Two of them lower-cased the letter and one did not, so a stored
+// "Ctrl+Alt+K" — the way a person writes it by hand — was set, looked right
+// on the button, matched no event and collided with nothing.
+{
+  for (const written of ['Ctrl+Alt+K', 'Ctrl+Alt+k']) {
+    const stored = U.parseShortcut(written);
+    const pressed = U.shortcutFromEvent(
+      { key: 'K', code: 'KeyK', ctrlKey: true, altKey: true });
+    ok(U.shortcutsEqual(stored, pressed),
+       `"${written}" is the shortcut the keystroke produces`);
+    eq(U.formatShortcut(stored), 'Ctrl+Alt+k',
+       `"${written}" is stored back in one settled form`);
+  }
+  const el = { getAttribute: (n) => ({ key: 'K', modifiers: 'control,alt' })[n] || null };
+  ok(U.shortcutsEqual(U.parseShortcut('Ctrl+Alt+K'),
+                      U.shortcutFromKeyElement(el, false)),
+     'and it collides with the Zotero key element that carries it');
+  // The face is written the way a keyboard is labelled, whatever is stored
+  eq(U.describeShortcut(U.parseShortcut('Ctrl+Alt+k'), false), 'Ctrl+Alt+K',
+     'while the button still shows it upper case');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

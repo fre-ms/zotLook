@@ -11,9 +11,14 @@ description: >-
 Jede Funktion hat ein Kürzel. Ins Feld klicken, die Kombination drücken — sie
 gilt sofort, ohne Neustart.
 
-Die Seite **warnt**, wenn eine Kombination bereits belegt ist. Geprüft werden
-die Tasten des Hauptfensters, Zoteros einstellbare Kürzel und die übrigen
-Funktionen von zotLook.
+Die Seite **warnt unter der betroffenen Zeile**, wenn eine Kombination bereits
+belegt ist. Geprüft werden die Tasten des Hauptfensters, Zoteros einstellbare
+Kürzel und die übrigen Funktionen von zotLook. Die Warnung erscheint nicht nur
+im Augenblick der Aufnahme, sondern steht auch beim nächsten Öffnen der
+Einstellungen noch da — eine bestehende Doppelbelegung wäre sonst unsichtbar.
+
+Das ist keine Kosmetik: Tragen zwei zotLook-Funktionen dieselbe Kombination,
+gewinnt eine von beiden, und die andere zündet nie.
 
 ::: {.callout-important title="Ein sauberes Ergebnis bedeutet weniger, als es scheint"}
 Die Seite warnt, statt abzulehnen — mit Absicht. Zotero veröffentlicht keine
@@ -32,6 +37,22 @@ zurück:
 | Kontaktbogen | Strg+Umschalt+Leertaste |
 | Kontaktbogen im Fenster | Umschalt+Alt+Leertaste |
 
+## Kombinationen, die gar nicht ankommen
+
+Belegt das Betriebssystem oder eine andere Anwendung eine Kombination, greift
+sie zu, **bevor** Zotero die Tasten sieht. Es gibt dann nichts zu erkennen: der
+Tastendruck kommt nie an, und keine Liste ließe sich befragen — macOS gibt nur
+seine eigenen symbolischen Kürzel als undokumentierte Zahlen-IDs heraus, was
+andere Programme belegen, steht nirgends, und Windows kennt zu `RegisterHotKey`
+überhaupt keine Abfrage.
+
+Genau dieses Ausbleiben ist aber selbst ein Befund. Drücken Sie eine solche
+Kombination bei der Aufnahme, kommen die Modifikatortasten an — sie sind ganz
+gewöhnliche Tastenereignisse —, die eigentliche Taste dazwischen aber nicht.
+Lassen Sie wieder los, ohne dass etwas angekommen ist, sagt die Seite Ihnen
+das, statt weiter auf „Tasten drücken …" stehen zu bleiben. Wählen Sie dann
+eine andere Kombination.
+
 ## Welcher Anhang gezeigt wird
 
 Zwei Betriebsarten:
@@ -45,29 +66,6 @@ Zwei Betriebsarten:
 
 ## Der Kontaktbogen
 
-**Kontaktbögen behalten und wiederverwenden** (Vorgabe an) zeigt einen einmal
-erstellten Bogen unverändert wieder, statt jede Seite ein zweites Mal zu
-zeichnen. Neu gezeichnet wird er, sobald sich die Datei, ihre Annotationen, die
-Spaltenzahl oder das Seitenlimit geändert haben.
-
-Behaltene Bögen liegen im temporären Bereich des Systems, nicht in Ihrer
-Zotero-Bibliothek — sie werden also nicht mitgesichert. Abschalten, wenn Sie den
-Platz brauchen: dann wird jeder Bogen bei jedem Aufruf neu gezeichnet und
-überlebt die Sitzung nicht.
-
-**Ungenutzte Bögen verwerfen nach** (Vorgabe 30 Tagen) räumt auf, ohne dass Sie
-daran denken müssen. Gezählt wird ab der letzten *Benutzung*, nicht ab der
-Erstellung: Ein Buch, das Sie jede Woche aufschlagen, bleibt; eines, das Sie im
-März einmal angesehen haben, verschwindet. Geprüft wird beim Start von Zotero,
-nicht währenddessen — ein Bogen, der mitten in der Arbeit verschwindet, wäre
-verwirrender als der belegte Platz. Eine `0` schaltet das ab; dann bleiben die
-Bögen liegen, bis das System seinen temporären Bereich räumt, was macOS und
-Linux von selbst tun und Windows selten.
-
-**Behaltene Bögen löschen** wirft sie alle sofort weg. Daneben steht, wie viel
-sie derzeit belegen — ohne diese Zahl wäre das Drücken ein Ratespiel. Nach dem
-Löschen steht dort eine Null, und der nächste Aufruf zeichnet neu.
-
 **Spalten** (Vorgabe 5) bestimmt die Breite des Rasters. Weniger Spalten heißt
 größere Miniaturen, und der Renderer erhöht die Auflösung entsprechend, damit
 sie scharf bleiben, statt hochskaliert zu werden.
@@ -77,15 +75,72 @@ gezeichnet werden. Es ist für ungewöhnlich große Scans gedacht, um zu binden,
 wie lange die Erzeugung dauern und wie viel temporären Speicherplatz sie
 belegen darf. Greift es, sagt der Bogen es unten an.
 
+## Behaltene Vorschauen
+
+Zwei Dinge, die zotLook erzeugt, kosten Sekunden: der Kontaktbogen, der jede
+Seite eines Buches zeichnet, und die EPUB-Vorschau, die das Buch aus dem Archiv liest und
+zu einer Seite zusammensetzt. Beide werden behalten und wiederverwendet.
+
+**Erzeugte Vorschauen behalten und wiederverwenden** (Vorgabe an) tut genau
+das. Einmal Erzeugtes wird unverändert wieder gezeigt, bis sich etwas geändert
+hat, das es zur falschen Antwort machen würde — die Datei selbst, ihre
+Annotationen oder die Einstellungen, die ihre Gestalt bestimmen, etwa die
+Spaltenzahl des Kontaktbogens.
+
+Behaltene Vorschauen liegen im temporären Bereich des Systems, nicht in Ihrer
+Zotero-Bibliothek — sie werden also nicht mitgesichert. Abschalten, wenn Sie
+den Platz brauchen: dann wird bei jedem Aufruf alles neu erzeugt und überlebt
+die Sitzung nicht.
+
+**Ungenutzte Vorschauen verwerfen nach** (Vorgabe 30 Tagen) räumt auf, ohne
+dass Sie daran denken müssen. Gezählt wird ab der letzten *Benutzung*, nicht ab
+der Erstellung: Ein Buch, das Sie jede Woche aufschlagen, bleibt; eines, das
+Sie im März einmal angesehen haben, verschwindet. Geprüft wird beim Start von
+Zotero, nicht währenddessen — eine Vorschau, die mitten in der Arbeit
+verschwindet, wäre verwirrender als der belegte Platz. Eine `0` schaltet das
+ab; dann bleiben sie liegen, bis das System seinen temporären Bereich räumt,
+was macOS und Linux von selbst tun und Windows selten.
+
+**Behaltene Vorschauen löschen** wirft sie alle sofort weg. Daneben steht, wie
+viel sie derzeit belegen — ohne diese Zahl wäre das Drücken ein Ratespiel. Nach
+dem Löschen steht dort eine Null, und der nächste Aufruf erzeugt neu.
+
+::: {.callout-note title="Was nicht behalten wird"}
+Die annotierte Kopie eines PDFs entsteht auf demselben Weg, wird aber bewusst
+nicht behalten: sie ist eine vollständige Kopie des Dokuments, also das größte
+Stück hier bei der kleinsten Ersparnis — ein Export dauert einen Moment, wo ein
+Kontaktbogen Sekunden braucht. Sie lebt für die Sitzung und geht beim nächsten
+Start mit dem Arbeitsverzeichnis.
+:::
+
 ## Annotationen
 
-**Annotationen in die Vorschau zeichnen** ist voreingestellt an. Es exportiert
-eine Kopie des PDFs mit Ihren Zotero-Hervorhebungen, -Notizen, -Flächen und
--Freihandzeichnungen und zeigt diese Kopie statt der gespeicherten Datei.
+Zotero bewahrt Annotationen in seiner Datenbank auf und nicht in der Datei;
+eine Vorschau des gespeicherten Dokuments zeigte sie sonst unmarkiert. Es gibt
+einen Schalter je Format, beide voreingestellt an — die Arbeit dahinter ist
+verschieden.
 
-Abschalten zeigt die Datei so, wie sie gespeichert ist. Anhänge ohne
+**In PDF-Vorschau und Seitenübersicht einzeichnen** überlässt die Arbeit
+Zotero: Es schreibt eine Kopie mit Ihren Hervorhebungen, Notizen, Flächen und
+Freihandzeichnungen auf der Seite, und diese Kopie wird gezeigt. Das kostet
+eine Kopie des Dokuments — weshalb es sich lohnt, das einzeln abschalten zu
+können.
+
+**In EPUB-Vorschauen markieren** kostet nichts Nennenswertes, da die Seite
+ohnehin zusammengesetzt wird. Einen Export gibt es für EPUB nicht; zotLook
+liest deshalb die Position, die Zotero gespeichert hat — eine EPUB-CFI, die Kapitel, Element und
+die genauen Zeichen benennt — und markiert die Seite entsprechend:
+Hervorhebungen in ihrer eigenen Farbe hinterlegt, Unterstreichungen als solche
+gezeichnet. Ein Knopf in der Ecke der Vorschau öffnet eine Liste aller
+Annotationen in Lesereihenfolge — jedes Zitat so ausgezeichnet, wie es im Buch
+ausgezeichnet ist, damit ein Eintrag auf einen Blick wiedererkennbar ist —
+samt Kommentar; ein Klick auf einen Eintrag führt zur Stelle im Text. Dort stehen Notizen,
+die keine eigene Textstelle haben, und jede Position, die sich nicht mehr
+auflösen lässt, weil sich das Buch seither geändert hat.
+
+Abschalten zeigt das jeweilige Format so, wie es gespeichert ist. Anhänge ohne
 Annotationen werden ohnehin erkannt, bevor irgendeine Arbeit beginnt — die
-Einstellung wirkt sich also nur auf Dokumente aus, die Sie tatsächlich
+Einstellungen wirken sich also nur auf Dokumente aus, die Sie tatsächlich
 bearbeitet haben.
 
 ## EPUB

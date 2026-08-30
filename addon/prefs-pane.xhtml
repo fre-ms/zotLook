@@ -23,24 +23,26 @@
       <button id="zotlook-key-preview" class="zotlook-key-button"/>
       <button id="zotlook-clear-preview" data-l10n-id="zotlook-prefs-key-clear"/>
     </hbox>
+    <description id="zotlook-note-preview" class="zotlook-note" hidden="true"/>
     <hbox align="center" class="zotlook-row">
       <label class="zotlook-row-label" data-l10n-id="zotlook-prefs-key-notes"/>
       <button id="zotlook-key-notes" class="zotlook-key-button"/>
       <button id="zotlook-clear-notes" data-l10n-id="zotlook-prefs-key-clear"/>
     </hbox>
+    <description id="zotlook-note-notes" class="zotlook-note" hidden="true"/>
     <hbox align="center" class="zotlook-row">
       <label class="zotlook-row-label" data-l10n-id="zotlook-prefs-key-contactsheet"/>
       <button id="zotlook-key-contactSheet" class="zotlook-key-button"/>
       <button id="zotlook-clear-contactSheet" data-l10n-id="zotlook-prefs-key-clear"/>
     </hbox>
+    <description id="zotlook-note-contactSheet" class="zotlook-note" hidden="true"/>
 
     <hbox align="center" class="zotlook-row">
       <label class="zotlook-row-label" data-l10n-id="zotlook-prefs-key-contactsheet-window"/>
       <button id="zotlook-key-contactSheetWindow" class="zotlook-key-button"/>
       <button id="zotlook-clear-contactSheetWindow" data-l10n-id="zotlook-prefs-key-clear"/>
     </hbox>
-
-    <description id="zotlook-conflict" class="zotlook-conflict" hidden="true"/>
+    <description id="zotlook-note-contactSheetWindow" class="zotlook-note" hidden="true"/>
 
     <hbox>
       <button id="zotlook-reset-shortcuts"
@@ -96,11 +98,15 @@
   </groupbox>
 
   <groupbox>
-    <label><html:h2 data-l10n-id="zotlook-prefs-pdf-title"/></label>
-    <description data-l10n-id="zotlook-prefs-pdf-help"/>
+    <label><html:h2 data-l10n-id="zotlook-prefs-annotations-title"/></label>
+    <description data-l10n-id="zotlook-prefs-annotations-help"/>
     <checkbox id="zotlook-annotations"
               data-l10n-id="zotlook-prefs-pdf-annotations"
               preference="extensions.zotlook.previewAnnotations"
+              native="true"/>
+    <checkbox id="zotlook-epub-annotations"
+              data-l10n-id="zotlook-prefs-epub-annotations"
+              preference="extensions.zotlook.epubAnnotations"
               native="true"/>
   </groupbox>
 
@@ -115,25 +121,6 @@
 
   <groupbox>
     <label><html:h2 data-l10n-id="zotlook-prefs-contactsheet-title"/></label>
-    <checkbox id="zotlook-sheet-cache"
-              data-l10n-id="zotlook-prefs-contactsheet-cache"
-              preference="extensions.zotlook.cacheContactSheet"
-              native="true"/>
-    <description data-l10n-id="zotlook-prefs-contactsheet-cache-help"/>
-    <hbox align="center" class="zotlook-row">
-      <label control="zotlook-keep-days"
-             data-l10n-id="zotlook-prefs-contactsheet-keepdays"/>
-      <html:input id="zotlook-keep-days" type="number" min="0" max="3650"
-                  step="1" style="width: 6em;"
-                  preference="extensions.zotlook.contactSheetKeepDays"/>
-      <label class="zotlook-hint"
-             data-l10n-id="zotlook-prefs-contactsheet-keepdays-hint"/>
-    </hbox>
-    <hbox align="center" class="zotlook-row">
-      <button id="zotlook-purge-sheets"
-              data-l10n-id="zotlook-prefs-contactsheet-purge"/>
-      <label id="zotlook-cache-size" class="zotlook-hint"/>
-    </hbox>
     <description data-l10n-id="zotlook-prefs-contactsheet-help"/>
     <hbox align="center" class="zotlook-row">
       <label control="zotlook-columns"
@@ -155,4 +142,28 @@
       <label class="zotlook-hint" data-l10n-id="zotlook-prefs-contactsheet-unit"/>
     </hbox>
   </groupbox>
+
+  <groupbox>
+    <label><html:h2 data-l10n-id="zotlook-prefs-keep-title"/></label>
+    <checkbox id="zotlook-keep"
+              data-l10n-id="zotlook-prefs-keep"
+              preference="extensions.zotlook.keepPreviews"
+              native="true"/>
+    <description data-l10n-id="zotlook-prefs-keep-help"/>
+    <hbox align="center" class="zotlook-row">
+      <label control="zotlook-keep-days"
+             data-l10n-id="zotlook-prefs-keep-days"/>
+      <html:input id="zotlook-keep-days" type="number" min="0" max="3650"
+                  step="1" style="width: 6em;"
+                  preference="extensions.zotlook.previewKeepDays"/>
+      <label class="zotlook-hint"
+             data-l10n-id="zotlook-prefs-keep-days-hint"/>
+    </hbox>
+    <hbox align="center" class="zotlook-row">
+      <button id="zotlook-keep-purge"
+              data-l10n-id="zotlook-prefs-keep-purge"/>
+      <label id="zotlook-kept-size" class="zotlook-hint"/>
+    </hbox>
+  </groupbox>
+
 </vbox>

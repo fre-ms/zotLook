@@ -19,6 +19,7 @@ export default [
         TextEncoder: 'readonly', btoa: 'readonly',
         // The plugin's own modules, loaded into one shared scope
         zotLook: 'writable', zotLookUtil: 'writable', zotLookEpub: 'writable',
+        zotLookCfi: 'writable',
         zotLookSheet: 'writable', zotLookWinPreview: 'writable',
       },
     },

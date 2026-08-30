@@ -136,7 +136,7 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0,
 {
   // Switched off, nothing is kept and nothing is reused
   const { Q, made, attachment, written } = harness({
-    prefValues: { 'extensions.zotlook.cacheContactSheet': false } });
+    prefValues: { 'extensions.zotlook.keepPreviews': false } });
   const out = await Q._buildContactSheet([attachment]);
   const afterFirst = made.length;
   await Q._buildContactSheet([attachment]);
@@ -356,16 +356,20 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0,
 const DAY = 24 * 60 * 60 * 1000;
 
 function cacheHarness({ entries = [], now = 100 * DAY, prefValues = {} } = {}) {
-  // path -> {size, lastModified}; directories are listed by prefix
+  // path -> {size, lastModified}; a directory is anything with children
   const fs = new Map();
   for (const e of entries) {
-    const base = '/tmp/zt-cache/' + e.name;
-    fs.set(base + '.key', { size: 100, lastModified: e.used });
-    fs.set(base + '.html', { size: e.html ?? 1000, lastModified: e.used });
+    // One directory per entry, which is what makes the clearing general:
+    // it removes an entry without knowing what kind of thing is inside
+    const dir = '/tmp/zt-cache/' + e.name;
+    fs.set(dir + '/.key', { size: 100, lastModified: e.used });
+    fs.set(dir + '/' + e.name + '.html', { size: e.html ?? 1000, lastModified: e.used });
     for (let i = 1; i <= (e.images ?? 0); i++) {
-      fs.set(base + '_pages/p' + i + '.jpg', { size: 10000, lastModified: e.used });
+      fs.set(dir + '/' + e.name + '_pages/p' + i + '.jpg',
+             { size: 10000, lastModified: e.used });
     }
   }
+  const isDir = (path) => [...fs.keys()].some(p => p.startsWith(path + '/'));
   const IOUtils = {
     getChildren: async (dir) => {
       const prefix = dir.endsWith('/') ? dir : dir + '/';
@@ -380,9 +384,8 @@ function cacheHarness({ entries = [], now = 100 * DAY, prefValues = {} } = {}) {
       return [...out];
     },
     stat: async (path) => {
-      if (fs.has(path)) return fs.get(path);
-      // a directory, which is what the sheet's image folder is
-      for (const p of fs.keys()) if (p.startsWith(path + '/')) return { size: 0 };
+      if (fs.has(path)) return { type: 'regular', ...fs.get(path) };
+      if (isDir(path)) return { type: 'directory', size: 0 };
       throw new Error('no such file: ' + path);
     },
     remove: async (path, opts = {}) => {
@@ -395,7 +398,7 @@ function cacheHarness({ entries = [], now = 100 * DAY, prefValues = {} } = {}) {
     },
   };
   const { zotLook: Q } = loadPlugin({ IOUtils, prefValues });
-  Q._sheetCacheDirPath = () => '/tmp/zt-cache';
+  Q._derivedRoot = (keep) => (keep ? '/tmp/zt-cache' : '/tmp/zt');
   const realNow = Date.now;
   Date.now = () => now;
   return { Q, fs, restore: () => { Date.now = realNow; } };
@@ -406,7 +409,7 @@ function cacheHarness({ entries = [], now = 100 * DAY, prefValues = {} } = {}) {
     { name: 'a', used: 100 * DAY, images: 3 },
     { name: 'b', used: 99 * DAY, images: 2 },
   ] });
-  const bytes = await Q._keptSheetsSize();
+  const bytes = await Q._keptSize();
   eq(bytes, 2 * 100 + 2 * 1000 + 5 * 10000, 'the figure counts keys, sheets '
      + 'and every thumbnail behind them');
   eq(fs.size, 9, 'and reading the size removes nothing');
@@ -414,7 +417,7 @@ function cacheHarness({ entries = [], now = 100 * DAY, prefValues = {} } = {}) {
 }
 {
   const { Q, restore } = cacheHarness({ entries: [] });
-  eq(await Q._keptSheetsSize(), 0, 'an empty — or absent — cache is zero, '
+  eq(await Q._keptSize(), 0, 'an empty — or absent — cache is zero, '
      + 'not an error the pane has to catch');
   restore();
 }
@@ -424,7 +427,7 @@ function cacheHarness({ entries = [], now = 100 * DAY, prefValues = {} } = {}) {
     { name: 'a', used: 100 * DAY, images: 2 },
     { name: 'b', used: 10 * DAY, images: 1 },
   ] });
-  const result = await Q._purgeSheets();
+  const result = await Q._purgeKept();
   eq(result.count, 2, 'both sheets go, however recently used');
   eq(result.bytes, 2 * 100 + 2 * 1000 + 3 * 10000, 'and it reports what it freed');
   eq(fs.size, 0, 'nothing is left behind — not the keys, not the thumbnails');
@@ -434,38 +437,38 @@ function cacheHarness({ entries = [], now = 100 * DAY, prefValues = {} } = {}) {
   // The age-based clearing, which is the one that runs unattended and so
   // must not take a sheet somebody is still using
   const { Q, fs, restore } = cacheHarness({
-    prefValues: { 'extensions.zotlook.contactSheetKeepDays': 30 },
+    prefValues: { 'extensions.zotlook.previewKeepDays': 30 },
     entries: [
       { name: 'stale', used: 60 * DAY, images: 1 },
       { name: 'fresh', used: 95 * DAY, images: 1 },
     ] });
-  const result = await Q._expireSheets();
+  const result = await Q._expireKept();
   eq(result.count, 1, 'only the one nobody has opened in a month');
-  ok(!fs.has('/tmp/zt-cache/stale.html'), 'the stale sheet is gone');
-  ok(!fs.has('/tmp/zt-cache/stale_pages/p1.jpg'), 'its thumbnails with it');
-  ok(fs.has('/tmp/zt-cache/fresh.html'), 'the one in use stays');
-  ok(fs.has('/tmp/zt-cache/fresh.key'), 'key and all, so it is still reused');
+  ok(!fs.has('/tmp/zt-cache/stale/stale.html'), 'the stale sheet is gone');
+  ok(!fs.has('/tmp/zt-cache/stale/stale_pages/p1.jpg'), 'its thumbnails with it');
+  ok(fs.has('/tmp/zt-cache/fresh/fresh.html'), 'the one in use stays');
+  ok(fs.has('/tmp/zt-cache/fresh/.key'), 'key and all, so it is still reused');
   restore();
 }
 {
   // Zero has to mean off rather than "expire everything", which is what a
   // plain cutoff comparison would make of it
   const { Q, fs, restore } = cacheHarness({
-    prefValues: { 'extensions.zotlook.contactSheetKeepDays': 0 },
+    prefValues: { 'extensions.zotlook.previewKeepDays': 0 },
     entries: [{ name: 'ancient', used: 0, images: 1 }] });
-  const result = await Q._expireSheets();
+  const result = await Q._expireKept();
   eq(result.count, 0, 'zero switches the clearing off');
-  ok(fs.has('/tmp/zt-cache/ancient.html'), 'and keeps even an ancient sheet');
+  ok(fs.has('/tmp/zt-cache/ancient/ancient.html'), 'and keeps even an ancient sheet');
   restore();
 }
 {
   // Nonsense in the pref must not empty the cache
   for (const bad of [-5, 'x']) {
     const { Q, fs, restore } = cacheHarness({
-      prefValues: { 'extensions.zotlook.contactSheetKeepDays': bad },
+      prefValues: { 'extensions.zotlook.previewKeepDays': bad },
       entries: [{ name: 'a', used: 99 * DAY, images: 1 }] });
-    await Q._expireSheets();
-    ok(fs.has('/tmp/zt-cache/a.html'),
+    await Q._expireKept();
+    ok(fs.has('/tmp/zt-cache/a/a.html'),
        'a nonsensical keep-days (' + bad + ') falls back to the default');
     restore();
   }
@@ -474,7 +477,7 @@ function cacheHarness({ entries = [], now = 100 * DAY, prefValues = {} } = {}) {
   // A sheet without its key is a half-written one. It must not be counted as
   // kept, since the key is what _cachedSheet goes by.
   const { Q, restore } = cacheHarness({ entries: [{ name: 'a', used: 99 * DAY }] });
-  const fsEntry = await Q._keptSheets();
+  const fsEntry = await Q._keptEntries();
   eq(fsEntry.length, 1, 'a key marks a kept sheet');
   restore();
 }

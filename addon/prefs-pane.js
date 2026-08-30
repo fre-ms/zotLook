@@ -57,7 +57,7 @@
 		if (root.getAttribute("data-zotlook-initialized")) return;
 		root.setAttribute("data-zotlook-initialized", "1");
 
-		initSheetCache(root);
+		initKeptPreviews(root);
 
 		for (let action of ACTIONS) {
 			let button = root.querySelector("#zotlook-key-" + action.key);
@@ -71,10 +71,14 @@
 				clear.addEventListener("command", () => {
 					setPref(action.pref, action.default);
 					refresh(root, button, action);
-					showConflict(root, null);
+					refreshConflicts(root);
 				});
 			}
 		}
+
+		// A collision that already exists has to be visible on opening, not
+		// only when something is recorded anew
+		refreshConflicts(root);
 
 		initAttachmentOrder(root);
 
@@ -86,7 +90,7 @@
 					let button = root.querySelector("#zotlook-key-" + action.key);
 					if (button) refresh(root, button, action);
 				}
-				showConflict(root, null);
+				refreshConflicts(root);
 			});
 		}
 	}
@@ -121,6 +125,10 @@
 		root.ownerDocument.l10n.setAttributes(button, "zotlook-prefs-key-recording");
 
 		let recorded = null;
+		// Whether a modifier was ever seen going down. It is what makes the
+		// difference between "the user pressed nothing" and "the user pressed
+		// something that never got here".
+		let sawModifier = false;
 
 		let onKeyDown = (event) => {
 			event.preventDefault();
@@ -130,7 +138,10 @@
 				return;
 			}
 			let shortcut = zotLookUtil.shortcutFromEvent(event);
-			if (!shortcut) return; // modifiers only, so far
+			if (!shortcut) {
+				sawModifier = true; // modifiers only, so far
+				return;
+			}
 			recorded = shortcut;
 			button.removeAttribute("data-l10n-id");
 			button.setAttribute("label", describe(shortcut));
@@ -139,7 +150,27 @@
 		let onKeyUp = (event) => {
 			event.preventDefault();
 			event.stopPropagation();
-			if (recorded) finish(true);
+			if (recorded) {
+				finish(true);
+				return;
+			}
+
+			// Modifiers came and went, and nothing in between: the key itself
+			// never arrived. A combination the system or another application
+			// has claimed is taken before Zotero sees it, so this absence is
+			// the only evidence there is — no registry could be consulted for
+			// it, since neither macOS nor Windows publishes one. Reported as
+			// what it is, an observation, not a verdict.
+			if (
+				sawModifier &&
+				!event.ctrlKey &&
+				!event.altKey &&
+				!event.shiftKey &&
+				!event.metaKey
+			) {
+				finish(false);
+				showNote(root, action, "zotlook-prefs-key-unreachable");
+			}
 		};
 
 		let finish = (commit) => {
@@ -147,28 +178,28 @@
 			win.removeEventListener("keyup", onKeyUp, true);
 			if (commit && recorded) {
 				setPref(action.pref, zotLookUtil.formatShortcut(recorded));
-				showConflict(root, checkConflicts(root, action, recorded));
 			}
 			refresh(root, button, action);
+			refreshConflicts(root);
 		};
 
 		win.addEventListener("keydown", onKeyDown, true);
 		win.addEventListener("keyup", onKeyUp, true);
 	}
 
-	// ── Kept contact sheets ───────────────────────────────────────────
+	// ── Kept previews ───────────────────────────────────────────
 
 	/**
-	 * The button that throws the kept sheets away, and the figure beside it.
+	 * The button that throws the kept previews away, and the figure beside it.
 	 *
 	 * Without the figure nobody can tell whether pressing it is worth
 	 * anything, so it is shown before the button is offered and again
 	 * afterwards — the second time it reads zero, which is the confirmation
 	 * that the press did something.
 	 */
-	function initSheetCache(root) {
-		let button = root.querySelector("#zotlook-purge-sheets");
-		let label = root.querySelector("#zotlook-cache-size");
+	function initKeptPreviews(root) {
+		let button = root.querySelector("#zotlook-keep-purge");
+		let label = root.querySelector("#zotlook-kept-size");
 		if (!button || !label) return;
 
 		// Not the bare zotLook: this script runs in the preferences window,
@@ -178,10 +209,10 @@
 
 		let show = async () => {
 			try {
-				let bytes = await plugin()._keptSheetsSize();
+				let bytes = await plugin()._keptSize();
 				root.ownerDocument.l10n.setAttributes(
 					label,
-					"zotlook-prefs-contactsheet-size",
+					"zotlook-prefs-keep-size",
 					{ size: formatBytes(bytes) }
 				);
 				label.hidden = false;
@@ -198,7 +229,7 @@
 		button.addEventListener("command", async () => {
 			button.disabled = true;
 			try {
-				await plugin()._purgeSheets();
+				await plugin()._purgeKept();
 			} catch (e) {
 				Zotero.debug("zotLook: could not clear kept sheets: " + e);
 			}
@@ -387,15 +418,48 @@
 		return out;
 	}
 
-	function showConflict(root, args) {
-		let el = root.querySelector("#zotlook-conflict");
+	/**
+	 * The note under one shortcut row.
+	 *
+	 * One per row rather than one for all four: a single line under the whole
+	 * group could not say which row it meant, and it only ever appeared in
+	 * the moment of recording — so a collision that already existed was
+	 * invisible on opening the pane.
+	 */
+	function showNote(root, action, id, args) {
+		let el = root.querySelector("#zotlook-note-" + action.key);
 		if (!el) return;
-		if (!args) {
+		if (!id) {
 			el.hidden = true;
+			el.removeAttribute("data-l10n-id");
 			return;
 		}
-		root.ownerDocument.l10n.setAttributes(el, "zotlook-prefs-conflict", args);
+		root.ownerDocument.l10n.setAttributes(el, id, args);
 		el.hidden = false;
+	}
+
+	/**
+	 * Marks every row whose shortcut is already answered by something else,
+	 * and clears the marks that no longer apply.
+	 *
+	 * Run whenever a shortcut changes and once when the pane opens, which is
+	 * the point: two zotLook actions sharing a combination are not merely
+	 * untidy — bindings.find() takes the first match, so one of them silently
+	 * never fires, and until now nothing said so after the fact.
+	 */
+	function refreshConflicts(root) {
+		for (let action of ACTIONS) {
+			let button = root.querySelector("#zotlook-key-" + action.key);
+			let shortcut = zotLookUtil.parseShortcut(
+				getPref(action.pref, action.default)
+			);
+			let args = shortcut ? checkConflicts(root, action, shortcut) : null;
+			if (button) {
+				if (args) button.setAttribute("data-conflict", "true");
+				else button.removeAttribute("data-conflict");
+			}
+			showNote(root, action, args ? "zotlook-prefs-conflict" : null, args);
+		}
 	}
 
 	// ── Wait for the fragment to be inserted ──────────────────────────

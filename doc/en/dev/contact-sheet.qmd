@@ -119,17 +119,27 @@ labels and the links can be changed and tested without a PDF anywhere in sight.
 
 ## What is kept, and how it goes away again
 
-A finished sheet stays put — in `zotLook-cache`, a sibling of the working
-directory that is emptied on every start. Beside it lies a `….key` file holding
-one line of plugin version, path, size and modification time of the file,
-annotation state, column count and page limit. If it still matches on the next
-call the sheet is shown; otherwise it is drawn again.
+The sheet is not the only thing here that is made from an attachment and costs
+seconds to make; the EPUB preview and the annotated copy of a PDF are too. All
+three go through one store, which is what keeps the answers to *is this still
+right* and *when does it go away* in a single place.
+
+An entry is a **directory** holding whatever that kind of artefact consists of
+— a sheet with its thumbnails, an assembled EPUB page — plus a `.key` file naming
+what it was made from: plugin version, path, size and modification time of the
+source, and for the sheet also the annotation state, the column count and the
+page limit. A directory rather than files side by side is what lets the
+clearing remove an entry without knowing what kind it is.
 
 The key file is written **last**, and only on success. An aborted run therefore
-leaves no key behind, and a half-built sheet cannot be mistaken for a finished
+leaves no key behind, and a half-built entry cannot be mistaken for a finished
 one. On every hit it is rewritten: its modification time thus means "last used"
 rather than "built", which is the distinction the age-based clearing lives on.
 
+Kept entries sit in `zotLook-cache`, a sibling of the working directory that is
+emptied on every start. What is *not* kept — the annotated copy — goes into the
+working directory itself and is swept away with it.
+
 The clearing runs at startup rather than on a timer. A directory listing costs
-nothing, and a clearing that happened mid-session would make the same sheet
+nothing, and a clearing that happened mid-session would make the same preview
 appear at once one moment and not the next.

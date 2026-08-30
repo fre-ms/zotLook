@@ -2,10 +2,12 @@
 /* global Services */
 
 // Loaded in dependency order into the shared plugin scope
-var SCRIPTS = ["util.js", "sheet.js", "epub.js", "winpreview.js", "zotlook.js"];
+var SCRIPTS = ["util.js", "cfi.js", "sheet.js", "epub.js", "winpreview.js",
+	"zotlook.js"];
 
 var zotLook;
 var zotLookUtil;
+var zotLookCfi;
 var zotLookEpub;
 var zotLookWinPreview;
 
@@ -49,6 +51,7 @@ function shutdown() {
 	zotLook = undefined;
 	zotLookEpub = undefined;
 	zotLookUtil = undefined;
+	zotLookCfi = undefined;
 	zotLookWinPreview = undefined;
 }
 
