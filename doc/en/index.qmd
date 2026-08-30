@@ -103,7 +103,7 @@ nothing at all. The setting is under [Settings](settings.qmd).
   "applicationCategory": "ResearchApplication",
   "operatingSystem": "macOS, Windows, Linux",
   "programmingLanguage": "JavaScript",
-  "softwareVersion": "1.1.9",
+  "softwareVersion": "1.2.0",
   "license": "https://opensource.org/license/mit",
   "author": [
     {

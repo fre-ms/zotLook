@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "zotLook",
-    "version": "1.1.9",
+    "version": "1.2.0",
     "description": "Preview attachments by pressing Space, through the system's own preview panel",
     "homepage_url": "https://github.com/fre-ms/zotLook",
     "author": "fre.ms and Guillaume Chapron",
