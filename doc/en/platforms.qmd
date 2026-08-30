@@ -68,7 +68,7 @@ working where you are.
 The one gap is Sushi. Its renderer really does follow links, and it cannot load
 a `zotero:` URL — so the links are made inert there on purpose, because a click
 that fails takes the whole preview down with it. The window variant
-(**Ctrl+Shift+Tab**) gives Linux the clickable sheet. There is more on that in
+(**Ctrl+Alt+Space**) gives Linux the clickable sheet. There is more on that in
 [The contact sheet](dev/contact-sheet.qmd).
 
 ## Seen side by side
@@ -99,7 +99,7 @@ file, so what is previewed is an exported copy with them drawn in.
 ![Windows · QuickLook](asset/screenshot/windows-contact-sheet.png){group="sheet"}
 :::
 
-### Ctrl+Shift+Tab — the sheet in a Zotero window
+### Ctrl+Alt+Space — the sheet in a Zotero window
 
 ::: {layout-ncol="3"}
 ![macOS](asset/screenshot/macos-contact-sheet-window.png){group="window"}

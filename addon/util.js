@@ -211,21 +211,34 @@ var zotLookUtil = {
 	 * contact sheet sits on Ctrl+Shift+Space: free on all three systems, where
 	 * plain Ctrl+Space is the input-method toggle on two of them.
 	 *
-	 * The windowed sheet moved to Ctrl+Shift+Tab, which was read out of
-	 * Zotero rather than assumed free. Bare Shift+Tab could not have it:
-	 * zoteroPane.js turns Tab and Shift+Tab into focus movement across
-	 * twenty-two targets, and taking it would have stopped anyone tabbing
-	 * backwards out of the item list. With Control held that handler returns
-	 * at once — it drops any Tab carrying a modifier other than Shift — and
-	 * Zotero's own tab switching sits on Ctrl+PageUp/PageDown, on macOS also
-	 * on Cmd+Shift+[ / ]. Its tab bar is no XUL tabbox either, so the toolkit
-	 * does not claim Ctrl+Tab the way a browser does.
+	 * The windowed sheet sits on Ctrl+Alt+Space, one modifier away from the
+	 * sheet itself: the two do the same thing, one in the system's panel and
+	 * one in a Zotero window, and near-identical work should be near-
+	 * identical to reach.
+	 *
+	 * Checked rather than assumed, on all three. Microsoft's own list of
+	 * Windows shortcuts claims Alt+Space (window menu), Ctrl+Space (Chinese
+	 * IME) and Win+Space with Win+Shift+Space (input languages) — and not
+	 * Ctrl+Alt+Space. That list is also why the Windows key is no candidate
+	 * here: Win+Space is spoken for, and Win combinations rarely reach an
+	 * application at all. GNOME takes Alt+Space and usually Super+Space, not
+	 * this. Zotero binds no <key> to the space bar and handles no Alt+Space
+	 * of its own; its configurable shortcuts are single letters.
+	 *
+	 * One caveat, measured on a Mac: ⌃⌥Space is Apple's "previous input
+	 * source", switched off where only one input source is configured and on
+	 * where several are. On such a machine the default is swallowed, and the
+	 * setting is where it gets changed.
+	 *
+	 * Ctrl+Shift+Tab held this for one version. It is free — zoteroPane.js
+	 * drops any Tab carrying a modifier other than Shift — but it says
+	 * nothing about what it does, where a space bar says a great deal.
 	 */
 	SHORTCUT_DEFAULTS: {
 		"key.preview": "Space",
 		"key.notes": "Shift+Space",
 		"key.contactSheet": "Ctrl+Shift+Space",
-		"key.contactSheetWindow": "Ctrl+Shift+Tab",
+		"key.contactSheetWindow": "Ctrl+Alt+Space",
 	},
 
 	/** The shipped shortcut for one action, or "" if there is no such action. */

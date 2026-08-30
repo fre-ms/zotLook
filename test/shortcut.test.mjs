@@ -144,18 +144,27 @@ ok(true, 'no two default shortcuts collide with each other');
 }
 
 // ── the shipped shortcuts avoid the system's own ──────────────────────
-// macOS binds Ctrl+Space and Ctrl+Option+Space to cycling input sources, and
-// Cmd+Space and Cmd+Option+Space to Spotlight and the Finder search window.
-// Those bindings return the moment a second keyboard layout is enabled, so a
-// default must not sit on them.
+// macOS binds Cmd+Space and Cmd+Option+Space to Spotlight and the Finder
+// search window, and Ctrl+Space to cycling input sources. Windows claims
+// Alt+Space for the window menu, Ctrl+Space for the Chinese IME, and
+// Win+Space with Win+Shift+Space for input languages. None of those may
+// carry a default.
+//
+// Ctrl+Option+Space is the deliberate exception, and it is one: macOS lists
+// it as "previous input source", switched off where a machine has one input
+// source and on where it has several. It is taken anyway, because the
+// windowed sheet does what Ctrl+Shift+Space does and should be as close to
+// reach — and because a machine that does claim it says so at once, where
+// the setting is what puts it right.
 {
   const { zotLook: Q, zotLookUtil: U } = loadPlugin();
-  const systemShortcuts = ['Ctrl+Space', 'Ctrl+Alt+Space', 'Meta+Space', 'Alt+Meta+Space']
+  const systemShortcuts = ['Ctrl+Space', 'Meta+Space', 'Alt+Meta+Space',
+    'Alt+Space', 'Meta+Shift+Space']
     .map((s) => U.parseShortcut(s));
   for (const binding of Q.bindings) {
     const clash = systemShortcuts.find((sys) => U.shortcutsEqual(sys, binding));
     eq(clash, undefined,
-       `${U.describeShortcut(binding)} (${binding.open}) avoids the macOS defaults`);
+       `${U.describeShortcut(binding)} (${binding.open}) avoids the system defaults`);
   }
 }
 

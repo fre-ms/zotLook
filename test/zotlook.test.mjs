@@ -37,19 +37,21 @@ const ok = (c,l)=>eq(!!c,true,l);
   eq(press({code:'Space', metaKey:true}).opened, null, 'Cmd+Space ignored (Spotlight)');
   eq(press({code:'Space', shiftKey:true, altKey:true}).opened, null,
      'Shift+Option+Space is nobody\'s any more');
-  eq(press({code:'Tab', ctrlKey:true, shiftKey:true}).opened, '_openContactSheetInViewer',
-     'Ctrl+Shift+Tab opens the sheet in a window');
-  // Bare Shift+Tab belongs to Zotero: zoteroPane.js moves focus backwards
-  // across twenty-two targets with it, and taking it would have stopped
-  // anyone tabbing out of the item list
+  // Tab carries nothing of ours. Bare Shift+Tab belongs to Zotero, which
+  // moves focus backwards across twenty-two targets with it; Ctrl+Shift+Tab
+  // held the windowed sheet for one version and gave it up for a key that
+  // says what it does.
   eq(press({code:'Tab', shiftKey:true}).opened, null,
-     'while Shift+Tab alone is left to Zotero, which moves focus with it');
-  eq(press({code:'Tab', ctrlKey:true}).opened, null, 'and Ctrl+Tab is nobody\'s');
+     'Shift+Tab is left to Zotero, which moves focus with it');
+  eq(press({code:'Tab', ctrlKey:true, shiftKey:true}).opened, null,
+     'and Ctrl+Shift+Tab is nobody\'s again');
   eq(press({code:'Space', ctrlKey:true}).prevented, false, 'an unmatched key is not consumed');
   eq(press({key:'y', metaKey:true}).opened, null,
      'Cmd+Y does nothing: the second preview shortcut was removed');
-  eq(press({code:'Space', altKey:true, ctrlKey:true}).opened, null,
-     'Ctrl+Option+Space is left alone: macOS uses it for input sources');
+  eq(press({code:'Space', altKey:true, ctrlKey:true}).opened,
+     '_openContactSheetInViewer',
+     'Ctrl+Option+Space opens the sheet in a window — one modifier from the '
+     + 'sheet itself, since the two do the same thing in different frames');
 
   // toggle + escape
   Q._isActive = true;

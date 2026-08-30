@@ -21,7 +21,7 @@ pref("extensions.zotlook.key.contactSheet", "Ctrl+Shift+Space");
 // Shift+Option+Space rather than Ctrl+Option+Space: the latter is the macOS
 // default for cycling input sources, which springs back into life as soon as
 // a second keyboard layout is enabled.
-pref("extensions.zotlook.key.contactSheetWindow", "Ctrl+Shift+Tab");
+pref("extensions.zotlook.key.contactSheetWindow", "Ctrl+Alt+Space");
 
 // Columns in the contact sheet grid. Fewer columns means larger thumbnails,
 // and the renderer raises the rendered resolution to match.

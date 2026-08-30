@@ -35,7 +35,7 @@ zurück:
 | Vorschau | Leertaste |
 | Notizen | Umschalt+Leertaste |
 | Kontaktbogen | Strg+Umschalt+Leertaste |
-| Kontaktbogen im Fenster | Strg+Umschalt+Tab |
+| Kontaktbogen im Fenster | Strg+Alt+Leertaste |
 
 ## Kombinationen, die gar nicht ankommen
 
