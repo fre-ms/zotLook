@@ -108,7 +108,7 @@ Normalfall kostet also gar nichts. Die Einstellung finden Sie unter
   "applicationCategory": "ResearchApplication",
   "operatingSystem": "macOS, Windows, Linux",
   "programmingLanguage": "JavaScript",
-  "softwareVersion": "1.2.1",
+  "softwareVersion": "1.2.2",
   "license": "https://opensource.org/license/mit",
   "author": [
     {
