@@ -71,11 +71,16 @@ It exists for unusually large scans, to bound how long generation may take and
 how much temporary disk space it may use. When it bites, the sheet says so at
 the bottom.
 
+Both apply to PDFs. A book's page overview is laid out by the window it is shown
+in — as many tiles per row as fit — and nothing is rendered, so neither setting
+has anything to act on.
+
 ## Kept previews
 
-Two of the things zotLook makes cost seconds to make: the contact sheet, which
-draws every page of a book, and the EPUB preview, which unpacks the book and
-reassembles it as one page. Both are kept and shown again.
+The things zotLook makes cost seconds to make: the contact sheet, which draws
+every page of a book; the EPUB preview, which unpacks the book and reassembles
+it as one page; and a book's page overview, which cuts that assembly at its
+printed page marks. All of them are kept and shown again.
 
 **Keep converted previews and show them again** (default on) does that. What
 was made once is shown unchanged until something that would make it the wrong

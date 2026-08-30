@@ -45,6 +45,11 @@ system already has. Click any image for the full-size version.
   that runs none.
 - **Clicking a page of the contact sheet** opens it in Zotero's reader at that
   page.
+- **A book gets a page overview too**, where it can have one. A reflowable EPUB
+  has no pages of its own, but one published beside a print edition usually
+  carries that edition's pagination along with it — and zotLook cuts the book
+  at those marks, one tile per printed page, each linking back into the reader.
+  A book carrying none says so rather than showing arbitrary slices.
 - **Previews are kept and shown again**, across restarts, until the file, its
   annotations or the settings behind them change. What they occupy is shown in
   the settings, where they can also be cleared.

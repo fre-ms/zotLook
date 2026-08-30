@@ -13,11 +13,11 @@ Every action has exactly one shortcut, and every one of them is
 |---|---|
 | **Space** | Preview the selected item's attachment. Again, or **Escape**, to dismiss. |
 | **Shift+Space** | Preview the item's notes, rendered as a page. |
-| **Ctrl+Shift+Space** | Contact sheet: every page of a PDF as a thumbnail. |
+| **Ctrl+Shift+Space** | Contact sheet: every page of a PDF as a thumbnail, or a book’s printed pages. |
 | **Ctrl+Alt+Space** | The same sheet in a Zotero window, which stays open beside the reader. |
 
 The same actions sit in the right-click menu. The contact sheet entries appear
-only when the selection actually contains a PDF.
+only when the selection actually contains a PDF or an EPUB.
 
 The defaults are the same on every system; only the way they are written
 differs, since ⌃⇧ are macOS keycaps and mean nothing elsewhere. They avoid the
@@ -79,6 +79,27 @@ figure you remember, or for seeing at a glance which pages you marked up.
 The window variant (**Ctrl+Alt+Space**) puts the same sheet in a Zotero window.
 The difference is what happens after a click: the panel closes as it hands over
 to the reader, the window stays open beside it.
+
+### A page overview of a book
+
+The same shortcut on an EPUB gives a sheet too — which sounds impossible,
+because a reflowable book has no pages. It has none of its own. But a book
+published beside a print edition usually carries that edition's pagination
+along with it, marked in the text and listed in the navigation, so that a
+citation to page 212 still means something. Where those marks are there, zotLook
+cuts the book at them and shows a page at a time.
+
+- **Each tile is that page's own text**, in the book's own typography, shrunk.
+  It is not a facsimile — the printed layout is in the PDF and nowhere in the
+  EPUB — but it is enough to see where a table sits or a chapter begins.
+- **Clicking a page opens the book at it**, in Zotero's reader, exactly as the
+  PDF sheet's thumbnails do.
+- **Annotations are drawn in**, as they are on the PDF sheet and in the EPUB
+  preview.
+- **A book without printed page numbers says so.** Most trade fiction carries
+  none, and nothing can invent one; a sheet of arbitrary slices would be worse
+  than none. Academic publishers — Springer, O'Reilly, most textbooks — usually
+  do carry them.
 
 ## Which attachment gets previewed
 

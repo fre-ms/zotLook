@@ -13,11 +13,11 @@ Jede Funktion hat genau ein Kürzel, und jedes davon ist
 |---|---|
 | **Leertaste** | Anhang des gewählten Eintrags anzeigen. Nochmals oder **Escape** schließt. |
 | **Umschalt+Leertaste** | Notizen des Eintrags als Seite anzeigen. |
-| **Strg+Umschalt+Leertaste** | Kontaktbogen: jede Seite eines PDFs als Miniatur. |
+| **Strg+Umschalt+Leertaste** | Kontaktbogen: jede Seite eines PDFs als Miniatur, oder die gedruckten Seiten eines Buches. |
 | **Strg+Alt+Leertaste** | Derselbe Bogen in einem Zotero-Fenster, das neben dem Reader stehen bleibt. |
 
 Dieselben Funktionen stehen im Kontextmenü. Die Einträge zum Kontaktbogen
-erscheinen nur, wenn die Auswahl tatsächlich ein PDF enthält.
+erscheinen nur, wenn die Auswahl tatsächlich ein PDF oder ein EPUB enthält.
 
 Die Vorgaben sind auf allen Systemen dieselben; nur die Schreibweise
 unterscheidet sich, denn ⌃⇧ sind macOS-Tastenkappen und bedeuten anderswo
@@ -84,6 +84,28 @@ zu sehen, welche Seiten man bearbeitet hat.
 Die Fenster-Variante (**Strg+Alt+Leertaste**) zeigt denselben Bogen in einem
 Zotero-Fenster. Der Unterschied liegt danach: Die Systemvorschau schließt sich,
 wenn sie an den Reader übergibt, das Fenster bleibt daneben stehen.
+
+### Die Seitenübersicht eines Buches
+
+Dasselbe Kürzel liefert auch für ein EPUB einen Bogen — was unmöglich klingt,
+denn ein umfließendes Buch hat keine Seiten. Eigene hat es keine. Aber ein Buch,
+das neben einer gedruckten Ausgabe erscheint, führt deren Paginierung meist mit:
+im Text markiert und in der Navigation gelistet, damit ein Zitat auf Seite 212
+weiterhin etwas bedeutet. Wo diese Marken stehen, schneidet zotLook das Buch an
+ihnen und zeigt es Seite für Seite.
+
+- **Jede Kachel ist der Text genau dieser Seite**, in der Typografie des Buches,
+  verkleinert. Ein Faksimile ist das nicht — das gedruckte Layout steckt im PDF
+  und nirgends im EPUB —, aber es genügt, um zu sehen, wo eine Tabelle steht
+  oder ein Kapitel beginnt.
+- **Ein Klick öffnet das Buch an dieser Seite**, in Zoteros Reader, genau wie
+  die Miniaturen des PDF-Bogens.
+- **Annotationen sind eingezeichnet**, wie auf dem PDF-Bogen und in der
+  EPUB-Vorschau.
+- **Ein Buch ohne gedruckte Seitenzahlen sagt das.** Belletristik führt meist
+  keine, und erfinden lässt sich keine; ein Bogen aus willkürlichen Abschnitten
+  wäre schlechter als keiner. Wissenschaftliche Verlage — Springer, O'Reilly,
+  die meisten Lehrbücher — führen sie in der Regel.
 
 ## Welcher Anhang gezeigt wird
 

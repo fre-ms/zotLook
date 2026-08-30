@@ -73,6 +73,19 @@ Der Ordner heißt `zotLook-cache` und liegt im Zotero-Profil innerhalb des
 Cache-Verzeichnisses des Systems; Sie dürfen ihn bei geschlossenem Zotero auch
 von Hand löschen — siehe [Einstellungen](settings.qmd).
 
+## Die Seitenübersicht eines Buches meldet, es führe keine gedruckten Seitenzahlen
+
+Das ist die ehrliche Antwort und kein Fehlschlag. Ein EPUB fließt um und hat
+keine eigenen Seiten; die Zahlen einer Seitenübersicht gehören einer gedruckten
+Ausgabe und stehen nur dann bereit, wenn der Verlag sie in die Datei
+übernommen hat — im Text als `epub:type="pagebreak"` markiert oder in der
+Navigation gelistet. Etwa jedes achte Buch führt sie mit, und das sind
+überwiegend die wissenschaftlichen: Springer, O'Reilly, Lehrbücher.
+
+Wo sie fehlen, kann sie niemand nachliefern, und ein an willkürlichen Stellen
+geschnittener Bogen wäre schlechter als keiner. Zum Lesen dient die gewöhnliche
+Vorschau (**Leertaste**).
+
 ## Eine EPUB-Annotation steht in der Liste, ist aber nicht im Text markiert
 
 Die Liste über dem Buch führt jede Annotation; eine, die sich nicht verorten

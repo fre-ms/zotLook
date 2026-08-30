@@ -71,6 +71,12 @@ zotlook-epub-annotations = Annotationen
 
 zotlook-epub-goto = Zur Stelle im Text
 
+zotlook-epub-nopages = Dieses Buch führt keine gedruckten Seitenzahlen.
+
+zotlook-epub-nopages-hint = Ein EPUB fließt um und hat keine eigenen Seiten. Eine Seitenübersicht kann nur die Paginierung einer gedruckten Ausgabe zeigen, sofern die Datei sie mitführt — diese tut es nicht. Zum Lesen dient die gewöhnliche Vorschau.
+
+zotlook-epub-frontmatter = Vor Seite eins
+
 zotlook-prefs-keep-title = Zwischengespeicherte Vorschauen
 
 zotlook-prefs-keep =

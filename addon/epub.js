@@ -203,6 +203,91 @@ var zotLookEpub = {
 		"}",
 	].join("\n"),
 
+	// ── The page sheet ────────────────────────────────────────────────
+	//
+	// A tile is a page-shaped box holding that page's own text at the book's
+	// own typography, shrunk. Shrunk rather than re-typeset: transform: scale
+	// keeps the proportions the book gives its headings, its verse, its
+	// tables, and those proportions are most of what makes a page
+	// recognisable at a glance.
+	//
+	// The inner box is laid out at reading width and then scaled, so the line
+	// breaks are the ones the book would have — not the two-words-a-line a
+	// 200px column would produce. What does not fit is clipped, exactly as a
+	// printed page clips at its foot.
+	//
+	// No script, again: the sheet has to work in a preview panel that runs
+	// none. Everything here is layout.
+
+	SHEET_CSS: [
+		"body.epub-sheet-body {",
+		"  max-width: none !important;",
+		"  padding: 24px !important;",
+		"  background: #eceae6 !important;",
+		"}",
+		"div.epub-sheet {",
+		"  display: grid;",
+		"  grid-template-columns: repeat(auto-fill, minmax(210px, 210px));",
+		"  gap: 26px 22px;",
+		"  justify-content: center;",
+		"}",
+		"div.epub-page { width: 210px; }",
+		"div.epub-page a { text-decoration: none; color: inherit; }",
+		"div.epub-paper {",
+		"  width: 210px;",
+		"  height: 297px;",
+		"  overflow: hidden;",
+		"  background: #fff;",
+		"  border: 1px solid #cfcdc8;",
+		"  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);",
+		"  box-sizing: border-box;",
+		"}",
+		// The inner box is the page at reading size; the scale is what makes
+		// it a thumbnail. 700 × 0.3 = 210, which is the paper above.
+		"div.epub-paper-inner {",
+		"  width: 700px;",
+		"  height: 990px;",
+		"  padding: 40px 44px;",
+		"  box-sizing: border-box;",
+		"  transform: scale(0.3);",
+		"  transform-origin: top left;",
+		"  font-size: 16px;",
+		"  line-height: 1.5;",
+		"  overflow: hidden;",
+		"}",
+		// The book's own rules may float, absolutely position or hide things
+		// in ways that assume a whole document around them
+		"div.epub-paper-inner * {",
+		"  position: static !important;",
+		"  float: none !important;",
+		"  max-width: 100% !important;",
+		"}",
+		"div.epub-paper-inner img, div.epub-paper-inner svg {",
+		"  max-height: 600px;",
+		"  height: auto;",
+		"}",
+		"div.epub-page-label {",
+		"  margin-top: 6px;",
+		"  text-align: center;",
+		"  font-size: 12px;",
+		"  color: #55534f;",
+		"  font-family: -apple-system, Segoe UI, Cantarell, sans-serif;",
+		"}",
+		// A page that could not be linked still gets its number, but nothing
+		// should suggest it can be clicked
+		"div.epub-page a:hover div.epub-paper { border-color: #8a8781; }",
+		"div.epub-sheet-notice {",
+		"  max-width: 34em;",
+		"  margin: 12vh auto;",
+		"  text-align: center;",
+		"}",
+		"div.epub-sheet-notice h1 { font-size: 1.3em; font-weight: normal; }",
+		"p.epub-sheet-hint { color: #66635e; font-size: 0.92em; }",
+		"@media print {",
+		"  div.epub-paper { box-shadow: none; }",
+		"}",
+	].join("\n"),
+
 	log(msg) {
 		Zotero.debug("zotLook/epub: " + msg);
 	},
@@ -253,12 +338,17 @@ var zotLookEpub = {
 				return null;
 			}
 
-			let html = await this._buildHtml(zip, sections, title, nav, env);
+			let sheet = env.mode === "sheet";
+			let html = sheet
+				? await this._buildSheet(zip, sections, title, env, pkg)
+				: await this._buildHtml(zip, sections, title, nav, env);
 			if (!html) return null;
 
-			let outputPath = PathUtils.join(env.outDir, "preview.html");
+			let outputPath = PathUtils.join(
+				env.outDir, sheet ? "sheet.html" : "preview.html"
+			);
 			await IOUtils.writeUTF8(outputPath, html);
-			this.log("Wrote preview: " + outputPath);
+			this.log("Wrote " + (sheet ? "sheet" : "preview") + ": " + outputPath);
 			return outputPath;
 		} finally {
 			this._close(zip, book);
@@ -391,7 +481,26 @@ var zotLookEpub = {
 		return {
 			doc: opfDoc,
 			dir: cut === -1 ? "" : opfPath.substring(0, cut),
+			// Which child of <package> the spine is, because that is the
+			// first step of every CFI into this book: /6 in the usual
+			// metadata, manifest, spine order
+			spineStep: this._spineStep(opfDoc),
 		};
+	},
+
+	/** The spine's position among the package's element children. */
+	_spineStep(opfDoc) {
+		let pkg = opfDoc.documentElement;
+		if (!pkg) return 2;
+		let at = -1;
+		for (let child of pkg.childNodes) {
+			if (child.nodeType !== 1) continue;
+			at++;
+			if ((child.tagName || "").toLowerCase().replace(/^.*:/, "") === "spine") {
+				return at;
+			}
+		}
+		return 2;   // the conventional order, and the only sensible guess
 	},
 
 	/**
@@ -870,6 +979,481 @@ var zotLookEpub = {
 
 	ANNOTATIONS_LABEL: "Annotations",
 	GOTO_LABEL: "Go to the passage",
+
+	/**
+	 * The book cut into one piece per printed page.
+	 *
+	 * A page mark rarely sits between two paragraphs; it sits inside one, and
+	 * everything after it belongs to the next page. So the tree is copied
+	 * rather than sliced: elements that hold no mark are cloned whole, and
+	 * those that do are walked into, with their ancestors mirrored again in
+	 * the piece that follows. That keeps every piece well formed — a half
+	 * paragraph in a page of its own, with its own <p> around it.
+	 *
+	 * @returns {Array<{label: string|null, node: Element, section: number,
+	 *                  mark: Element|null}>}
+	 */
+	_buildPages(out, sections) {
+		let pages = [];
+		let current = -1;
+
+		let openPage = (label, section, mark) => {
+			pages.push({
+				label,
+				node: out.createElement("div"),
+				chain: new Map(),
+				section,
+				mark,
+			});
+			current = pages.length - 1;
+		};
+		// What comes before the first mark is the book's front matter: kept,
+		// because a reader looking for the title page should find it, and
+		// labelled with nothing because it carries no printed number
+		openPage(null, 0, null);
+
+		let mirror = (path) => {
+			let page = pages[current];
+			let parent = page.node;
+			for (let el of path) {
+				let clone = page.chain.get(el);
+				if (!clone) {
+					clone = out.importNode(el.cloneNode(false), false);
+					page.chain.set(el, clone);
+					parent.appendChild(clone);
+				}
+				parent = clone;
+			}
+			return parent;
+		};
+
+		let walk = (node, path, marks, ancestors, section) => {
+			for (let child of Array.prototype.slice.call(node.childNodes)) {
+				if (marks.has(child)) {
+					let mark = marks.get(child);
+					openPage(mark.label, section, child);
+					// A pagebreak span is a marker and nothing else. A node
+					// the navigation pointed at is the heading or paragraph
+					// the page opens with, and belongs in it.
+					if (mark.inline) continue;
+					mirror(path).appendChild(out.importNode(child, true));
+					continue;
+				}
+				if (child.nodeType === 3) {
+					let text = String(child.data || "");
+					if (!text.trim() && !pages[current].node.childNodes.length) {
+						continue;   // no page starts with the whitespace of the last
+					}
+					mirror(path).appendChild(out.createTextNode(text));
+					continue;
+				}
+				if (child.nodeType !== 1) continue;
+				let name = (child.tagName || "").toLowerCase();
+				if (name === "script" || name === "style") continue;
+
+				if (ancestors.has(child)) {
+					walk(child, path.concat([child]), marks, ancestors, section);
+				} else {
+					mirror(path).appendChild(out.importNode(child, true));
+				}
+			}
+		};
+
+		let index = -1;
+		for (let section of sections) {
+			index++;
+			let body = this._bodyOf(section.doc);
+			if (!body) continue;
+
+			let marks = new Map();
+			let ancestors = new Set();
+			for (let mark of section.marks || []) {
+				marks.set(mark.node, mark);
+				for (let at = mark.node.parentNode; at && at !== body.parentNode;
+					at = at.parentNode) {
+					ancestors.add(at);
+				}
+			}
+			walk(body, [], marks, ancestors, index);
+			// The mirrored chain belongs to one section's elements; the next
+			// section brings different ones, and a page carrying on across
+			// the boundary starts a fresh chain for them
+			pages[current].chain.clear();
+		}
+
+		return pages.filter((page) => page.node.childNodes.length);
+	},
+
+	/**
+	 * The contact sheet of a paginated book.
+	 *
+	 * Each tile is a page-shaped box holding that page's own text at its own
+	 * typography, scaled down. It is not a facsimile — the printed layout
+	 * lives in the PDF and nowhere in the EPUB — but it is that page's
+	 * content, and enough to see where a table sits or a chapter begins.
+	 */
+	async _buildSheet(zip, sections, title, env, pkg) {
+		let out = zotLookUtil.newHtmlDocument();
+		if (!out) return null;
+		out.title = title;
+
+		let seenCssUrls = new Set();
+		let seenInlineCss = new Set();
+		let written = new Map();
+
+		let sectionIndex = -1;
+		for (let section of sections) {
+			sectionIndex++;
+			let doc = section.doc;
+			let body = doc && this._bodyOf(doc);
+			if (!body) continue;
+
+			// The marked-up pages are the ones worth picking out of a sheet,
+			// which is the same reason the PDF sheet renders the annotated
+			// copy rather than the stored file.
+			this._markSection(doc, sectionIndex, env.annotations);
+
+			let cut = section.href.lastIndexOf("/");
+			let fileDir = cut === -1 ? "" : section.href.substring(0, cut);
+			await this._collectStyles(
+				zip, doc, fileDir, out, seenCssUrls, seenInlineCss, env, written
+			);
+			zotLookUtil.sanitize(body);
+			await this._rewriteUrls(zip, body, fileDir, env, written);
+		}
+
+		// Only now, on the trees the split will actually walk
+		await this._attachPageMarks(zip, pkg, sections);
+
+		let pages = this._buildPages(out, sections);
+		if (!pages.some((page) => page.label)) {
+			// Not a failure: most reflowable books simply have no printed
+			// edition to be paginated after, and saying so is the answer.
+			this.log("No printed page numbers in this book");
+			return this._sheetNotice(out, title);
+		}
+
+		out.body.className = "epub-sheet-body";
+		let grid = out.createElement("div");
+		grid.className = "epub-sheet";
+		for (let page of pages) {
+			grid.appendChild(this._pageTile(out, page, env, pkg.spineStep));
+		}
+		out.body.appendChild(grid);
+
+		let base = out.createElement("style");
+		base.textContent = this.BASE_CSS + "\n" + this.SHEET_CSS;
+		out.head.appendChild(base);
+		return zotLookUtil.serializeHtmlDocument(out);
+	},
+
+	/**
+	 * What a book without printed pages gets instead.
+	 *
+	 * An EPUB reflows, so it has no pages of its own; the numbers a page sheet
+	 * shows are a print edition's, carried along in the file. Where the
+	 * publisher did not carry them, no amount of work will invent them, and a
+	 * sheet of arbitrary slices would be worse than none.
+	 */
+	_sheetNotice(out, title) {
+		out.body.className = "epub-sheet-body";
+		let box = out.createElement("div");
+		box.className = "epub-sheet-notice";
+
+		let head = out.createElement("h1");
+		head.textContent = title;
+		box.appendChild(head);
+
+		let text = out.createElement("p");
+		text.textContent = this.NO_PAGES_LABEL;
+		box.appendChild(text);
+
+		let hint = out.createElement("p");
+		hint.className = "epub-sheet-hint";
+		hint.textContent = this.NO_PAGES_HINT;
+		box.appendChild(hint);
+
+		out.body.appendChild(box);
+		let base = out.createElement("style");
+		base.textContent = this.BASE_CSS + "\n" + this.SHEET_CSS;
+		out.head.appendChild(base);
+		return zotLookUtil.serializeHtmlDocument(out);
+	},
+
+	NO_PAGES_LABEL: "This book carries no printed page numbers.",
+	NO_PAGES_HINT: "An EPUB reflows and has no pages of its own. A page "
+		+ "overview can only show the pagination of a printed edition where "
+		+ "the file carries it — this one does not. Use the ordinary preview "
+		+ "to read the book.",
+
+	/** One tile: the page, its number, and a way into the reader. */
+	_pageTile(out, page, env, spineStep) {
+		let tile = out.createElement("div");
+		tile.className = "epub-page";
+
+		let paper = out.createElement("div");
+		paper.className = "epub-paper";
+		let inner = out.createElement("div");
+		inner.className = "epub-paper-inner";
+		inner.appendChild(page.node);
+		paper.appendChild(inner);
+
+		let cfi = page.mark
+			? zotLookCfi.forNode(spineStep, page.section, page.mark)
+			: null;
+		if (cfi && env.readerLink) {
+			let link = out.createElement("a");
+			// New window for the same measured reason the PDF sheet uses it:
+			// Quick Look refuses ordinary navigation but hands a new-window
+			// request to the system, and Sushi ignores it rather than
+			// replacing the sheet with an error box
+			link.setAttribute("target", "_blank");
+			link.setAttribute(
+				"href",
+				env.readerLink + "?cfi=" + encodeURIComponent(cfi)
+			);
+			link.appendChild(paper);
+			tile.appendChild(link);
+		} else {
+			tile.appendChild(paper);
+		}
+
+		let label = out.createElement("div");
+		label.className = "epub-page-label";
+		label.textContent = page.label || this.FRONT_LABEL;
+		tile.appendChild(label);
+		return tile;
+	},
+
+	FRONT_LABEL: "Before page one",
+
+	// ── Printed pages ─────────────────────────────────────────────────
+	//
+	// A reflowable book has no pages, which is the whole point of the format
+	// and the reason a contact sheet of one seemed impossible. But a book
+	// published beside a print edition carries the print edition's pagination
+	// anyway: EPUB 3 marks it with epub:type="pagebreak" and lists it in a
+	// page-list navigation, EPUB 2 in the NCX's pageList. In a library of
+	// 1175 books, a sample of 120 found it in about one in eight — and those
+	// were the academic ones, Springer and O'Reilly and textbooks.
+	//
+	// Where it is there, the book can be cut at those marks and shown a page
+	// at a time. Where it is not, saying so is the honest answer.
+
+	/**
+	 * Hangs each section's page marks on it, ready for the split.
+	 *
+	 * The navigation is read first because it is the book's own statement of
+	 * what its pages are; the marks in the text are what the split actually
+	 * cuts at. Where both are there they agree, and the text wins, because a
+	 * position is what is needed and a list of hrefs is not.
+	 */
+	async _attachPageMarks(zip, pkg, sections) {
+		let listed = [];
+		try {
+			listed = await this._readPageList(zip, pkg.doc, pkg.dir);
+		} catch (e) {
+			this.log("Could not read the page list: " + e);
+		}
+
+		let byFile = new Map();
+		for (let entry of listed) {
+			if (!byFile.has(entry.href)) byFile.set(entry.href, []);
+			byFile.get(entry.href).push(entry);
+		}
+
+		let total = 0;
+		for (let section of sections) {
+			section.marks = section.doc
+				? this._pageMarksIn(section.doc, byFile.get(section.href))
+				: [];
+			total += section.marks.length;
+		}
+		this.log("Page marks found: " + total
+			+ " (page list: " + listed.length + ")");
+	},
+
+	/**
+	 * The page marks of one section, in document order.
+	 *
+	 * Taken from the marks themselves where the book sets them, which is the
+	 * common case and needs nothing else. A book that lists its pages in the
+	 * navigation but sets no marks in the text is met by looking its listed
+	 * fragments up by id.
+	 *
+	 * @returns {Array<{label: string, node: Element}>}
+	 */
+	_pageMarksIn(doc, listed) {
+		let marks = [];
+		let body = this._bodyOf(doc);
+		if (!body) return marks;
+
+		for (let el of body.querySelectorAll("*")) {
+			let type = (el.getAttributeNS
+				&& el.getAttributeNS(this.EPUB_NS, "type"))
+				|| el.getAttribute("epub:type");
+			let role = el.getAttribute("role");
+			let isMark =
+				(type && /\bpagebreak\b/.test(type)) ||
+				(role && /\bdoc-pagebreak\b/.test(role));
+			if (!isMark) continue;
+			marks.push({ label: this._markLabel(el), node: el, inline: true });
+		}
+		if (marks.length) return marks;
+
+		// Nothing in the text: fall back to what the navigation listed
+		for (let entry of listed || []) {
+			if (!entry.id) continue;
+			let node = doc.getElementById && doc.getElementById(entry.id);
+			if (node) marks.push({ label: entry.label, node, inline: false });
+		}
+		// Listed order is the book's order, but ids are looked up one by one,
+		// so put them back into the order the document has them in
+		marks.sort((a, b) => this._precedes(a.node, b.node) ? -1 : 1);
+		return marks;
+	},
+
+	EPUB_NS: "http://www.idpf.org/2007/ops",
+
+	/** The printed number a mark carries. */
+	_markLabel(el) {
+		for (let name of ["title", "aria-label", "id"]) {
+			let value = (el.getAttribute(name) || "").trim();
+			if (!value) continue;
+			// An id is a last resort and usually reads "PB212"
+			if (name === "id") {
+				let digits = value.replace(/^[^0-9ivxlcIVXLC]*/, "");
+				return digits || value;
+			}
+			return value;
+		}
+		return this._collapse(el.textContent || "");
+	},
+
+	/** Whether a comes before b in the document. */
+	_precedes(a, b) {
+		if (!a || !b || a === b) return false;
+		if (typeof a.compareDocumentPosition === "function") {
+			// DOCUMENT_POSITION_FOLLOWING
+			return (a.compareDocumentPosition(b) & 4) !== 0;
+		}
+		return false;
+	},
+
+	/**
+	 * The page-list a book carries, as {label, href, id} per entry.
+	 *
+	 * EPUB 3 keeps it in the navigation document beside the table of
+	 * contents; EPUB 2 in the NCX the spine points at. Both are read, the
+	 * newer first, exactly as the contents are.
+	 */
+	async _readPageList(zip, opfDoc, opfDir) {
+		let navHref = null;
+		for (let item of opfDoc.querySelectorAll("manifest item")) {
+			let props = (item.getAttribute("properties") || "").split(/\s+/);
+			if (props.includes("nav")) {
+				navHref = item.getAttribute("href");
+				break;
+			}
+		}
+		if (navHref) {
+			let target = zotLookUtil.resolveRelativePath(navHref, opfDir);
+			let entries = target
+				? await this._readPageListDocument(zip, target.path)
+				: [];
+			if (entries.length) return entries;
+		}
+
+		let spine = opfDoc.querySelector("spine");
+		let toc = spine && spine.getAttribute("toc");
+		if (toc) {
+			for (let item of opfDoc.querySelectorAll("manifest item")) {
+				if (item.getAttribute("id") !== toc) continue;
+				let target = zotLookUtil.resolveRelativePath(
+					item.getAttribute("href"),
+					opfDir
+				);
+				if (target) return this._readNcxPageList(zip, target.path);
+			}
+		}
+		return [];
+	},
+
+	/** EPUB 3: <nav epub:type="page-list"> in the navigation document. */
+	async _readPageListDocument(zip, path) {
+		let doc = await this._readEntryDoc(zip, path);
+		if (!doc) return [];
+		let nav = null;
+		for (let candidate of doc.querySelectorAll("nav")) {
+			let type = candidate.getAttribute("epub:type") || "";
+			if (/\bpage-list\b/.test(type)) {
+				nav = candidate;
+				break;
+			}
+		}
+		if (!nav) return [];
+		let cut = path.lastIndexOf("/");
+		let dir = cut === -1 ? "" : path.substring(0, cut);
+		return this._pageEntries(nav.querySelectorAll("a"), dir, (a) =>
+			this._collapse(a.textContent || "")
+		);
+	},
+
+	/** EPUB 2: <pageList> in the NCX. */
+	async _readNcxPageList(zip, path) {
+		let doc = await this._readEntryDoc(zip, path);
+		if (!doc) return [];
+		let list = this._findByLocalName(doc, "pagelist");
+		if (!list) return [];
+		let cut = path.lastIndexOf("/");
+		let dir = cut === -1 ? "" : path.substring(0, cut);
+
+		let named = (el, name) =>
+			(el.localName || el.nodeName || "").toLowerCase()
+				.replace(/^.*:/, "") === name;
+
+		let entries = [];
+		for (let target of [...list.children]) {
+			if (!named(target, "pagetarget")) continue;
+			let content = this._findByLocalName(target, "content");
+			let label = this._findByLocalName(target, "text");
+			if (!content) continue;
+			let href = content.getAttribute("src") || "";
+			let resolved = this._splitHref(href, dir);
+			if (!resolved) continue;
+			entries.push({
+				label: this._collapse(label ? label.textContent : "") ||
+					resolved.id,
+				href: resolved.path,
+				id: resolved.id,
+			});
+		}
+		return entries;
+	},
+
+	_pageEntries(anchors, dir, labelOf) {
+		let entries = [];
+		for (let a of anchors) {
+			let resolved = this._splitHref(a.getAttribute("href") || "", dir);
+			if (!resolved) continue;
+			entries.push({
+				label: labelOf(a) || resolved.id,
+				href: resolved.path,
+				id: resolved.id,
+			});
+		}
+		return entries;
+	},
+
+	/** An href out of a navigation, as {path, id}. */
+	_splitHref(href, dir) {
+		let hash = href.indexOf("#");
+		let file = hash >= 0 ? href.slice(0, hash) : href;
+		let id = hash >= 0 ? href.slice(hash + 1) : "";
+		if (!file) return null;
+		let target = zotLookUtil.resolveRelativePath(file, dir);
+		return target ? { path: target.path, id } : null;
+	},
 
 	// ── Annotations ───────────────────────────────────────────────────
 	//

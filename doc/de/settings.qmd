@@ -75,11 +75,18 @@ gezeichnet werden. Es ist für ungewöhnlich große Scans gedacht, um zu binden,
 wie lange die Erzeugung dauern und wie viel temporären Speicherplatz sie
 belegen darf. Greift es, sagt der Bogen es unten an.
 
+Beides gilt für PDFs. Die Seitenübersicht eines Buches richtet sich nach dem
+Fenster, in dem sie steht — so viele Kacheln je Reihe, wie hineinpassen —, und
+gezeichnet wird dabei nichts; keine der beiden Einstellungen hat also etwas,
+woran sie greifen könnte.
+
 ## Zwischengespeicherte Vorschauen
 
-Zwei Dinge, die zotLook erzeugt, kosten Sekunden: der Kontaktbogen, der jede
-Seite eines Buches zeichnet, und die EPUB-Vorschau, die das Buch aus dem Archiv liest und
-zu einer Seite zusammensetzt. Beide werden behalten und wiederverwendet.
+Was zotLook erzeugt, kostet Sekunden: der Kontaktbogen, der jede Seite eines
+Buches zeichnet; die EPUB-Vorschau, die das Buch aus dem Archiv liest und zu
+einer Seite zusammensetzt; und die Seitenübersicht eines Buches, die diese
+Zusammensetzung an ihren gedruckten Seitenmarken schneidet. Alle werden
+behalten und wiederverwendet.
 
 **Erzeugte Vorschauen zwischenspeichern und wiederverwenden** (Vorgabe an) tut genau
 das. Einmal Erzeugtes wird unverändert wieder gezeigt, bis sich etwas geändert

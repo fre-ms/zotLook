@@ -51,6 +51,9 @@ var zotLook = {
 		"zotlook-epub-contents",
 		"zotlook-epub-annotations",
 		"zotlook-epub-goto",
+		"zotlook-epub-nopages",
+		"zotlook-epub-nopages-hint",
+		"zotlook-epub-frontmatter",
 	],
 
 	L10N_FILE: "zotlook.ftl",
@@ -76,14 +79,14 @@ var zotLook = {
 			l10nID: "zotlook-menu-preview",
 			fallback: "Quick Look",
 			open: "_openQuickLook",
-			needsPDF: false,
+			needsPages: false,
 		},
 		{
 			id: "zotlook-contactsheet-menu-item",
 			l10nID: "zotlook-menu-contactsheet",
 			fallback: "Quick Look Contact Sheet",
 			open: "_openContactSheet",
-			needsPDF: true,
+			needsPages: true,
 			needsSystemPreview: true,
 		},
 		{
@@ -91,7 +94,7 @@ var zotLook = {
 			l10nID: "zotlook-menu-contactsheet-window",
 			fallback: "Contact Sheet in a Window (clickable)",
 			open: "_openContactSheetInViewer",
-			needsPDF: true,
+			needsPages: true,
 		},
 	],
 
@@ -572,31 +575,55 @@ var zotLook = {
 		if (entry.needsSystemPreview && !this._contactSheetPreviewable()) {
 			return false;
 		}
-		if (!entry.needsPDF) return true;
-		return this._hasPDF(items);
+		if (!entry.needsPages) return true;
+		return this._hasPageable(items);
+	},
+
+	/** As defensive as the PDF check beside it, and for the same reason. */
+	_isEPUBAttachment(item) {
+		try {
+			if (
+				typeof item.isEPUBAttachment === "function" &&
+				item.isEPUBAttachment()
+			) {
+				return true;
+			}
+			let name = item.attachmentFilename || "";
+			return name.toLowerCase().endsWith(".epub");
+		} catch (e) {
+			this.log("Could not inspect attachment: " + e);
+			return false;
+		}
 	},
 
 	/**
-	 * Whether the selection holds anything the contact sheet could render.
+	 * Whether the selection holds anything a page overview could be made of.
+	 *
+	 * A PDF, or a book: an EPUB gets a sheet cut at the printed page marks it
+	 * carries, and where it carries none it gets a sheet saying so. Which is
+	 * why a book counts here even though most books have no pagination — the
+	 * menu entry that leads to the explanation must not be the one that is
+	 * hidden.
 	 *
 	 * Deliberately synchronous: this runs while the context menu is opening,
 	 * so it interrogates the items rather than resolving file paths.
 	 */
-	_hasPDF(items) {
+	_hasPageable(items) {
+		let pageable = (item) =>
+			this._isPDFAttachment(item) || this._isEPUBAttachment(item);
+
 		for (let item of items) {
 			if (item.isNote()) continue;
 
 			if (item.isAttachment()) {
-				if (this._isPDFAttachment(item)) return true;
+				if (pageable(item)) return true;
 				continue;
 			}
 
 			if (typeof item.getAttachments !== "function") continue;
 			for (let attID of item.getAttachments(false)) {
 				let attachment = Zotero.Items.get(attID);
-				if (attachment && this._isPDFAttachment(attachment)) {
-					return true;
-				}
+				if (attachment && pageable(attachment)) return true;
 			}
 		}
 		return false;
@@ -709,16 +736,23 @@ var zotLook = {
 	 * Renders the contact sheet and returns the path to its HTML, or null.
 	 */
 	async _buildContactSheet(items) {
-		if (!this._contactSheetSupported()) {
-			this.log("No page renderer is available on this platform");
-			return null;
-		}
-
 		// Resolve to an attachment item rather than a bare path: the reader
 		// links in the sheet need the item's key and library
 		let chosen = await this._pickPdfAttachment(items);
 		if (!chosen) {
-			this.log("No PDF files for contact sheet");
+			// No PDF, but a book may still be worth leafing through: an EPUB
+			// published beside a print edition carries that edition's
+			// pagination, and a sheet can be cut at it. One that carries none
+			// gets a sheet saying so, which is why this returns rather than
+			// falling through.
+			let book = await this._pickEpubAttachment(items);
+			if (book) return this._epubSheet(book.path, book.item);
+			this.log("No PDF or EPUB files for contact sheet");
+			return null;
+		}
+
+		if (!this._contactSheetSupported()) {
+			this.log("No page renderer is available on this platform");
 			return null;
 		}
 
@@ -1480,6 +1514,19 @@ var zotLook = {
 	 * @returns {Promise<Array<{item: Zotero.Item, path: string}>>}
 	 */
 	async _pickPdfAttachment(items) {
+		return this._pickAttachment(items, (a) => this._isPDFAttachment(a), "PDF");
+	},
+
+	/** The same, for the books that can carry a page sheet of their own. */
+	async _pickEpubAttachment(items) {
+		return this._pickAttachment(items, (a) => this._isEPUBAttachment(a), "EPUB");
+	},
+
+	/**
+	 * The first attachment among the selection that the test accepts and
+	 * whose file can actually be reached.
+	 */
+	async _pickAttachment(items, accept, label) {
 		let candidates = [];
 
 		for (let item of items) {
@@ -1492,7 +1539,7 @@ var zotLook = {
 					: []);
 
 			for (let attachment of attachments) {
-				if (attachment && this._isPDFAttachment(attachment)) {
+				if (attachment && accept(attachment)) {
 					candidates.push(attachment);
 				}
 			}
@@ -1503,7 +1550,7 @@ var zotLook = {
 			this.log(
 				"Contact sheet uses the first of " +
 					candidates.length +
-					" candidate PDFs"
+					" candidate " + label + "s"
 			);
 		}
 
@@ -1673,6 +1720,18 @@ var zotLook = {
 			zotLookEpub.GOTO_LABEL = this._string(
 				"zotlook-epub-goto",
 				zotLookEpub.GOTO_LABEL
+			);
+			zotLookEpub.NO_PAGES_LABEL = this._string(
+				"zotlook-epub-nopages",
+				zotLookEpub.NO_PAGES_LABEL
+			);
+			zotLookEpub.NO_PAGES_HINT = this._string(
+				"zotlook-epub-nopages-hint",
+				zotLookEpub.NO_PAGES_HINT
+			);
+			zotLookEpub.FRONT_LABEL = this._string(
+				"zotlook-epub-frontmatter",
+				zotLookEpub.FRONT_LABEL
 			);
 		} catch (e) {
 			this.log("Could not load localization: " + e);
@@ -2334,6 +2393,69 @@ var zotLook = {
 			path,
 			Object.assign(this._epubEnv(entry.dir), { annotations })
 		);
+		if (!html) return null;
+		await this._derivedCommit(entry, key);
+		return html;
+	},
+
+	/**
+	 * The page overview of a book, made once and kept.
+	 *
+	 * Shares everything with the EPUB preview but the mode: the same store,
+	 * the same key, the same clearing of a stale entry. What differs is that
+	 * the conversion cuts the book at its printed page marks instead of
+	 * running it together, and that each page is a link back into the reader.
+	 */
+	async _epubSheet(path, attachment) {
+		let name = "epubsheet_" + zotLookUtil.safeName(PathUtils.filename(path), 60);
+		let keep = this._keepPreviews();
+		let entry = await this._derivedEntry(name, keep);
+
+		let annotations = this._epubAnnotations(attachment);
+		let key = keep
+			? [
+				this._tag(),
+				path,
+				await this._fileIdentity(path),
+				this._annotationKeyPart(attachment, "epubAnnotations"),
+			].join("|")
+			: null;
+
+		let kept = await this._derivedHit(entry, key, "sheet.html");
+		if (kept) {
+			this.log("Reusing the EPUB page sheet built earlier: " + kept);
+			return kept;
+		}
+
+		try {
+			await IOUtils.remove(entry.dir, { recursive: true, ignoreAbsent: true });
+			await IOUtils.makeDirectory(entry.dir, {
+				ignoreExisting: true,
+				createAncestors: true,
+			});
+		} catch (e) {
+			this.log("Could not clear the EPUB sheet entry: " + e);
+		}
+
+		let progress = this._showProgress(
+			this._string(
+				"zotlook-progress-contactsheet",
+				"Generating contact sheet…"
+			)
+		);
+		let html;
+		try {
+			html = await zotLookEpub.convert(
+				path,
+				Object.assign(this._epubEnv(entry.dir), {
+					annotations,
+					mode: "sheet",
+					readerLink: this._readerLink(attachment),
+				})
+			);
+		} finally {
+			this._closeProgress(progress);
+		}
 		if (!html) return null;
 		await this._derivedCommit(entry, key);
 		return html;

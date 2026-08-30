@@ -17,7 +17,7 @@ const mkParent = (attIds) => ({ isNote: () => false, isAttachment: () => false,
   getAttachments: () => attIds });
 const Items = { get: (id) => store.get(id) };
 
-// ── _hasPDF / _menuApplies ────────────────────────────────────────────
+// ── _hasPageable / _menuApplies ───────────────────────────────────────
 {
   const { zotLook: Q } = loadPlugin({ Items });
   const pdfAtt = store.get(mkAtt({ pdf: true, name: 'a.pdf' }));
@@ -25,20 +25,26 @@ const Items = { get: (id) => store.get(id) };
   const notyped = store.get(mkAtt({ pdf: false, name: 'scan.PDF', hasApi: false }));
   const note = { isNote: () => true, isAttachment: () => false };
 
-  eq(Q._hasPDF([pdfAtt]), true, 'selected PDF attachment counts');
-  eq(Q._hasPDF([epubAtt]), false, 'EPUB attachment does not');
-  eq(Q._hasPDF([notyped]), true, 'PDF without content type falls back to filename');
-  eq(Q._hasPDF([note]), false, 'a note does not');
-  eq(Q._hasPDF([]), false, 'empty selection does not');
-  eq(Q._hasPDF([mkParent([epubAtt.id, pdfAtt.id])]), true, 'parent with a child PDF counts');
-  eq(Q._hasPDF([mkParent([epubAtt.id])]), false, 'parent without a PDF does not');
-  eq(Q._hasPDF([{ isNote: () => false, isAttachment: () => false }]), false, 'item without getAttachments is survivable');
+  const txtAtt = store.get(mkAtt({ pdf: false, name: 'notes.txt' }));
 
-  const preview = Q.MENU_ITEMS.find(e => !e.needsPDF);
-  const sheet = Q.MENU_ITEMS.find(e => e.needsPDF);
+  eq(Q._hasPageable([pdfAtt]), true, 'selected PDF attachment counts');
+  // A book can be cut at its printed page marks, and where it has none the
+  // sheet says so — which is an answer, and needs the entry to be there
+  eq(Q._hasPageable([epubAtt]), true, 'an EPUB counts too, now that it has a sheet');
+  eq(Q._hasPageable([txtAtt]), false, 'something that is neither does not');
+  eq(Q._hasPageable([notyped]), true, 'PDF without content type falls back to filename');
+  eq(Q._hasPageable([note]), false, 'a note does not');
+  eq(Q._hasPageable([]), false, 'empty selection does not');
+  eq(Q._hasPageable([mkParent([txtAtt.id, pdfAtt.id])]), true, 'parent with a child PDF counts');
+  eq(Q._hasPageable([mkParent([txtAtt.id])]), false, 'parent with neither does not');
+  eq(Q._hasPageable([{ isNote: () => false, isAttachment: () => false }]), false, 'item without getAttachments is survivable');
+
+  const preview = Q.MENU_ITEMS.find(e => !e.needsPages);
+  const sheet = Q.MENU_ITEMS.find(e => e.needsPages);
   eq(Q._menuApplies(preview, [epubAtt]), true, 'preview entry shown for any selection');
   eq(Q._menuApplies(preview, []), false, 'preview entry hidden for empty selection');
-  eq(Q._menuApplies(sheet, [epubAtt]), false, 'contact sheet hidden without a PDF');
+  eq(Q._menuApplies(sheet, [epubAtt]), true, 'page overview shown for a book as well');
+  eq(Q._menuApplies(sheet, [txtAtt]), false, 'and hidden where there are no pages to show');
   eq(Q._menuApplies(sheet, [pdfAtt]), true, 'contact sheet shown with a PDF');
   eq(Q._menuApplies(sheet, undefined), false, 'missing item list is survivable');
 }
@@ -106,7 +112,11 @@ const Items = { get: (id) => store.get(id) };
 
   selected[0] = store.get(mkAtt({ pdf: false, name: 'm.epub' }));
   Q._onMenuShowing(doc);
-  eq(doc.getElementById(Q.MENU_ITEMS[1].id).hidden, true, 'contact sheet hidden without a PDF');
+  eq(doc.getElementById(Q.MENU_ITEMS[1].id).hidden, false, 'page overview shown for a book');
+  selected[0] = store.get(mkAtt({ pdf: false, name: 'm.txt' }));
+  Q._onMenuShowing(doc);
+  eq(doc.getElementById(Q.MENU_ITEMS[1].id).hidden, true,
+     'and hidden where there are no pages to show');
   eq(doc.getElementById(Q.MENU_ITEMS[0].id).hidden, false, 'preview still shown');
   eq(doc.getElementById(Q.SEPARATOR_ID).hidden, false, 'separator stays while anything shows');
 
@@ -172,9 +182,9 @@ const Items = { get: (id) => store.get(id) };
   };
   const { zotLook: Q } = loadPlugin({ Items });
   let threw = false, result = null;
-  try { result = Q._hasPDF([hostile]); } catch (e) { threw = true; }
+  try { result = Q._hasPageable([hostile]); } catch (e) { threw = true; }
   eq(threw, false, 'an attachment whose filename getter throws is survivable');
-  eq(result, false, 'and it simply does not count as a PDF');
+  eq(result, false, 'and simply counts as neither');
 }
 
 // ── addToWindow must be idempotent ────────────────────────────────────

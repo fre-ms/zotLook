@@ -117,6 +117,49 @@ var zotLookCfi = {
 		};
 	},
 
+	/**
+	 * The identifier that points at one node — the inverse of resolve().
+	 *
+	 * Written only for links out of a preview into Zotero's reader, which
+	 * accepts a CFI on zotero://open-pdf. It follows the same step rules the
+	 * reading side does, so the two are each other's inverse and a test can
+	 * say so.
+	 *
+	 * @param {number} spineStep     the <spine>'s place among the package
+	 *   element's element children, counted from zero
+	 * @param {number} itemrefStep   the spine item's position, from zero
+	 * @param {Node} node            in that spine item's document
+	 * @returns {string|null}
+	 */
+	forNode(spineStep, itemrefStep, node) {
+		if (!node || !node.ownerDocument) return null;
+		let root = node.ownerDocument.documentElement;
+		if (!root) return null;
+
+		let steps = [];
+		for (let at = node; at && at !== root; at = at.parentNode) {
+			let parent = at.parentNode;
+			if (!parent) return null;   // detached: nothing to point at
+			let step =
+				at.nodeType === 1
+					? (this._elementChildren(parent).indexOf(at) + 1) * 2
+					: this._textChildren(parent).indexOf(at) * 2 + 1;
+			if (step < 1) return null;
+			steps.unshift(step);
+		}
+		if (!steps.length) return null;
+
+		return (
+			"epubcfi(/" +
+			(spineStep + 1) * 2 +
+			"/" +
+			(itemrefStep + 1) * 2 +
+			"!/" +
+			steps.join("/") +
+			")"
+		);
+	},
+
 	// ── Reading the notation ──────────────────────────────────────────
 
 	_parsePath(text) {
@@ -211,6 +254,15 @@ var zotLookCfi = {
 		);
 	},
 
+	/** Text children, as the reading side counts them. */
+	_textChildren(node) {
+		if (!node || !node.childNodes) return [];
+		return Array.prototype.filter.call(
+			node.childNodes,
+			(child) => child.nodeType === 3
+		);
+	},
+
 	/**
 	 * A text child by index.
 	 *
@@ -219,11 +271,7 @@ var zotLookCfi = {
 	 */
 	_textStep(node, step) {
 		if (!node || !node.childNodes) return null;
-		let texts = Array.prototype.filter.call(
-			node.childNodes,
-			(child) => child.nodeType === 3
-		);
-		return texts[step.index] || null;
+		return this._textChildren(node)[step.index] || null;
 	},
 
 	/** The character offset a path ends on, or 0. */

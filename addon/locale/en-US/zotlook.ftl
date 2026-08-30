@@ -69,6 +69,12 @@ zotlook-epub-annotations = Annotations
 
 zotlook-epub-goto = Go to the passage
 
+zotlook-epub-nopages = This book carries no printed page numbers.
+
+zotlook-epub-nopages-hint = An EPUB reflows and has no pages of its own. A page overview can only show the pagination of a printed edition where the file carries it — this one does not. Use the ordinary preview to read the book.
+
+zotlook-epub-frontmatter = Before page one
+
 zotlook-prefs-keep-title = Kept previews
 
 zotlook-prefs-keep =

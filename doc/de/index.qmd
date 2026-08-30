@@ -78,6 +78,13 @@ als Miniatur in einem scrollbaren Raster. Ein Klick auf eine Seite öffnet sie i
 Zotero-Reader. Bei langen Dokumenten dauert das einige Sekunden, und das Plugin
 sagt es, während es arbeitet.
 
+Ein EPUB bekommt ebenfalls einen, sofern es geht. Ein umfließendes Buch hat
+keine eigenen Seiten, aber eines, das neben einer gedruckten Ausgabe erscheint,
+führt deren Paginierung meist mit — und wo das der Fall ist, schneidet zotLook
+das Buch an diesen Marken und zeigt es Seite für Seite, jede Kachel mit einem
+Weg zurück in den Reader. Ein Buch ohne solche Marken sagt das, statt
+willkürliche Abschnitte zu zeigen.
+
 Liegt die Datei nur in der Cloud und nicht auf diesem Rechner, lädt zotLook sie
 zuerst herunter, statt zu melden, sie fehle.
 

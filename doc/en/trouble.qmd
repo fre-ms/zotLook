@@ -70,6 +70,19 @@ The folder is `zotLook-cache` in the Zotero profile inside the system's cache
 directory, and you may delete it by hand with Zotero closed — see
 [Settings](settings.qmd).
 
+## The page overview of a book says it has no printed page numbers
+
+That is the honest answer rather than a failure. An EPUB reflows and has no
+pages of its own; the numbers a page overview shows belong to a printed edition
+and are only there when the publisher carried them into the file — marked in the
+text as `epub:type="pagebreak"`, or listed in the navigation. Roughly one book
+in eight carries them, and those are mostly the academic ones: Springer,
+O'Reilly, textbooks.
+
+Where they are missing, nothing can supply them, and a sheet cut at arbitrary
+points would be worse than none. Use the ordinary preview (**Space**) to read
+the book.
+
 ## An EPUB annotation is listed but not marked in the text
 
 The list above the book shows every annotation; one that could not be placed in

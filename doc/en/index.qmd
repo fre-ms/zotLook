@@ -75,6 +75,12 @@ thumbnail in a scrollable grid. Clicking a page opens it in Zotero's reader at
 that page. On a long document the sheet takes a few seconds and says so while it
 works.
 
+An EPUB gets one too, where it can. A reflowable book has no pages of its own,
+but one published beside a print edition usually carries that edition's
+pagination along with it — and where it does, zotLook cuts the book at those
+marks and shows it a page at a time, each tile linking back into the reader. A
+book carrying none says so rather than showing arbitrary slices.
+
 If the file is stored in the cloud and not on this machine, zotLook downloads it
 first rather than reporting that it is missing.
 

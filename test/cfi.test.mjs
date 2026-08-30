@@ -202,5 +202,46 @@ const SECTION = `<?xml version="1.0"?>
      'and the numbers run with the text, not against it');
 }
 
+// ── writing one, and reading it back ──────────────────────────────────
+// The only reason to write a CFI is a link out of the preview into Zotero's
+// reader, which takes one on zotero://open-pdf. Writing follows the same step
+// rules as reading, so the two are each other's inverse — which is a property
+// worth asserting rather than hoping for.
+{
+  const doc = xml(SECTION);
+  const targets = [
+    doc.querySelector('#one'),
+    doc.querySelector('#intro'),
+    doc.querySelectorAll('p')[1],
+  ];
+  for (const node of targets) {
+    const written = C.forNode(2, 0, node);
+    ok(/^epubcfi\(\/6\/2!\//.test(written),
+       `a node yields a CFI into the first spine item: ${written}`);
+    const back = C.resolve(doc, C.parse(written));
+    eq(back && back.startNode === node, true,
+       'and reading it back lands on the very node it was written for');
+  }
+}
+{
+  const doc = xml(SECTION);
+  // A text node, which is what a page marker's neighbours often are
+  const text = doc.querySelector('#one').firstChild;
+  const written = C.forNode(2, 3, text);
+  eq(C.parse(written).spine.map(s => s.index), [2, 3],
+     'the spine item is carried as given');
+  eq(C.resolve(doc, C.parse(written)).startNode, text,
+     'and a text node is found again too');
+}
+{
+  eq(C.forNode(2, 0, null), null, 'nothing in, nothing out');
+  const doc = xml(SECTION);
+  const loose = doc.createElement('p');
+  eq(C.forNode(2, 0, loose), null,
+     'a node in no tree has no place to point at');
+  eq(C.forNode(2, 0, doc.documentElement), null,
+     'and the root is where a path starts, not something it can name');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

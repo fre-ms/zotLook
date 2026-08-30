@@ -176,10 +176,41 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0,
      'the configured column count reaches the sheet');
 }
 
+// ── a book takes the other route ──────────────────────────────────────
+// A reflowable book has no pages to render, but one published beside a print
+// edition carries that edition's pagination, and the sheet is cut at it. So a
+// selection with no PDF in it is not the end of the matter any more.
+{
+  const { Q, attachment } = harness({ pdf: false });
+  const asked = [];
+  Q._epubSheet = async (path, item) => { asked.push([path, item.key]); return '/out/sheet.html'; };
+  eq(await Q._buildContactSheet([attachment]), '/out/sheet.html',
+     'an EPUB gets a page sheet of its own');
+  eq(asked, [['/lib/paper.pdf', 'ABCD1234']],
+     'built from the book itself, with the item behind it for the reader links');
+}
+{
+  // Both present: the PDF wins, because its pages are real ones
+  const { Q, made } = harness();
+  const book = { id: 2, key: 'BOOK', libraryID: 1, isNote: () => false,
+                 isAttachment: () => true, isPDFAttachment: () => false,
+                 attachmentFilename: 'same.epub' };
+  const paper = { id: 1, key: 'ABCD1234', libraryID: 1, isNote: () => false,
+                  isAttachment: () => true, isPDFAttachment: () => true,
+                  attachmentFilename: 'paper.pdf' };
+  Q._epubSheet = async () => '/out/sheet.html';
+  const out = await Q._buildContactSheet([book, paper]);
+  ok(out && out.endsWith('.html') && !out.includes('/out/'),
+     'the PDF is rendered rather than the book: ' + out);
+  ok(made.length > 0, 'and the renderers did run');
+}
+
 // ── failure paths return null rather than a broken path ───────────────
 {
   const { Q, attachment } = harness({ pdf: false });
-  eq(await Q._buildContactSheet([attachment]), null, 'a non-PDF yields nothing');
+  attachment.attachmentFilename = 'notes.txt';
+  eq(await Q._buildContactSheet([attachment]), null,
+     'something that is neither yields nothing');
 }
 {
   const { Q, attachment } = harness({ exitCode: 1 });

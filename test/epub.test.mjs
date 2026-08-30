@@ -1,77 +1,11 @@
 import fs from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { loadPlugin } from './load.mjs';
+import {
+  openZip, openBook, extractEntry, plugin, counts, makeBook,
+} from './book.mjs';
 
-// The book is read out of its archive now, through two readers the platform
-// provides: Gecko's nsIZipReader and Zotero's EPUB module. Neither exists
-// here, so both are stood in for — the zip by shelling out to unzip for one
-// entry at a time, which is what a zip reader does, and the book by the same
-// manifest-and-spine join Zotero performs. What is under test is everything
-// the module does with what they hand it.
-const IOUtils = {
-  exists: async p => fs.existsSync(p),
-  stat: async p => { const s = fs.statSync(p); return { size: s.size, lastModified: Math.floor(s.mtimeMs) }; },
-  readUTF8: async p => fs.readFileSync(p, 'utf8'),
-  writeUTF8: async (p, d) => fs.writeFileSync(p, d),
-  makeDirectory: async (p) => fs.mkdirSync(p, { recursive: true }),
-  remove: async (p, o = {}) => { try { fs.rmSync(p, { recursive: !!o.recursive, force: !!o.ignoreAbsent }); } catch (e) { if (!o.ignoreAbsent) throw e; } },
-};
-
-let opened = 0;
-const entryList = (archive) =>
-  execFileSync('unzip', ['-Z1', archive], { encoding: 'utf8' })
-    .split('\n').map(l => l.trim()).filter(Boolean);
-const entryBuffer = (archive, entry) =>
-  execFileSync('unzip', ['-p', archive, entry], { maxBuffer: 64 * 1024 * 1024 });
-
-function openZip(archive) {
-  opened++;
-  const names = new Set(entryList(archive));
-  return {
-    archive,
-    hasEntry: (e) => names.has(e),
-    getEntry: (e) => ({ realSize: entryBuffer(archive, e).length }),
-    getInputStream: (e) => ({ buf: entryBuffer(archive, e), close() {} }),
-    close() {},
-  };
-}
-
-const host = {
-  File: {
-    getContentsAsync: async (stream) => stream.buf.toString('utf8'),
-    getBinaryContentsAsync: async (stream) => stream.buf.toString('binary'),
-  },
-};
-const { zotLookEpub: E, zotLookUtil: U } = loadPlugin({ IOUtils, zotero: host });
-
-/** Stands in for Zotero's EPUB: the spine, in reading order, as documents. */
-function openBook(archive) {
-  const zip = openZip(archive);
-  opened--;   // the book's own handle is not what the reuse counts measure
-  const read = (e) => entryBuffer(archive, e).toString('utf8');
-  const container = U.parseStrict(read('META-INF/container.xml'), 'application/xml');
-  const opfPath = container.querySelector('rootfile').getAttribute('full-path');
-  const opf = U.parseStrict(read(opfPath), 'application/xml');
-  const cut = opfPath.lastIndexOf('/');
-  const dir = cut === -1 ? '' : opfPath.substring(0, cut);
-  const byId = new Map();
-  for (const item of opf.querySelectorAll('manifest item')) {
-    byId.set(item.getAttribute('id'),
-             U.resolveRelativePath(item.getAttribute('href'), dir).path);
-  }
-  return {
-    close() { zip.close(); },
-    async* getSectionDocuments() {
-      for (const ref of opf.querySelectorAll('spine itemref')) {
-        const href = byId.get(ref.getAttribute('idref'));
-        if (!href || !zip.hasEntry(href)) continue;
-        yield { href, doc: U.parseStrict(read(href), 'application/xhtml+xml') };
-      }
-    },
-  };
-}
+const { zotLookEpub: E, zotLookUtil: U } = plugin;
 
 let fail = 0;
 const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if (!ok) fail++;
@@ -80,8 +14,6 @@ const ok = (c, l) => eq(!!c, true, l);
 
 const TMP = fs.mkdtempSync(os.tmpdir() + '/zotlook-epub-');
 const BOOK = fileURLToPath(new URL('./fixtures/book.epub', import.meta.url));
-const extractEntry = (zip, entry, destPath) =>
-  fs.writeFileSync(destPath, entryBuffer(zip.archive, entry));
 const env = { outDir: TMP, openZip, openBook, extractEntry };
 
 // ── the table of contents ─────────────────────────────────────────────
@@ -93,50 +25,6 @@ const env = { outDir: TMP, openZip, openBook, extractEntry };
 const TOC_TMP = fs.mkdtempSync(os.tmpdir() + '/zotlook-toc-');
 const tocEnv = { outDir: TOC_TMP, openZip, openBook };
 
-function makeBook(dir, { nav = null, ncx = null, sharedImage = false,
-                        repeated = false } = {}) {
-  fs.mkdirSync(dir + '/META-INF', { recursive: true });
-  fs.mkdirSync(dir + '/OEBPS', { recursive: true });
-  fs.writeFileSync(dir + '/mimetype', 'application/epub+zip');
-  fs.writeFileSync(dir + '/META-INF/container.xml',
-    '<?xml version="1.0"?><container version="1.0" '
-    + 'xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles>'
-    + '<rootfile full-path="OEBPS/content.opf" '
-    + 'media-type="application/oebps-package+xml"/></rootfiles></container>');
-  if (sharedImage) fs.writeFileSync(dir + '/OEBPS/shared.png', 'x');
-  const picture = sharedImage ? '<img src="shared.png" alt="s"/>' : '';
-  const echo = repeated ? '<p>Ein wiederholter Satz.</p>' : '';
-  for (const [n, extra] of [[1, '<h1 id="intro">First</h1>'], [2, '<h1>Second</h1>']]) {
-    fs.writeFileSync(`${dir}/OEBPS/ch${n}.xhtml`,
-      '<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml"><head>'
-      + `<title>Chapter ${n}</title></head><body>${extra}${picture}`
-      + `<p>Body of chapter ${n}.</p>${echo}</body></html>`);
-  }
-  let items = '<item id="c1" href="ch1.xhtml" media-type="application/xhtml+xml"/>'
-    + '<item id="c2" href="ch2.xhtml" media-type="application/xhtml+xml"/>';
-  let spineAttr = '';
-  if (nav) {
-    fs.writeFileSync(dir + '/OEBPS/nav.xhtml', nav);
-    items += '<item id="nav" href="nav.xhtml" properties="nav" '
-      + 'media-type="application/xhtml+xml"/>';
-  }
-  if (ncx) {
-    fs.writeFileSync(dir + '/OEBPS/toc.ncx', ncx);
-    items += '<item id="ncx" href="toc.ncx" '
-      + 'media-type="application/x-dtbncx+xml"/>';
-    spineAttr = ' toc="ncx"';
-  }
-  fs.writeFileSync(dir + '/OEBPS/content.opf',
-    '<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" '
-    + 'version="3.0" unique-identifier="i"><metadata '
-    + 'xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>A Book</dc:title>'
-    + '</metadata><manifest>' + items + '</manifest>'
-    + `<spine${spineAttr}><itemref idref="c1"/><itemref idref="c2"/></spine>`
-    + '</package>');
-  const epub = dir + '.epub';
-  execFileSync('zip', ['-qr', epub, '.'], { cwd: dir });
-  return epub;
-}
 
 {
   // EPUB 3, with a nested entry and one pointing at an id inside a chapter
@@ -264,10 +152,10 @@ ok(/Mit Hintergrund/.test(html), 'content after an empty element survives');
 // survives a restart instead of only the session. What is left here is that
 // converting twice lands in the same place, which is what lets the store
 // recognise it.
-const before = opened;
+const before = counts.opened;
 const out2 = await E.convert(BOOK, env);
 eq(out2, out, 'second convert returns the same file');
-eq(opened, before + 1, 'and does the work again, since nothing here remembers');
+eq(counts.opened, before + 1, 'and does the work again, since nothing here remembers');
 ok(!('_cache' in E), 'the module keeps no cache of its own any more');
 
 // ── the host says where the page goes
