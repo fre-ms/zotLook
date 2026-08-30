@@ -55,7 +55,7 @@ zotlook-prefs-type-other = Anything else
 
 # EPUB rendering
 zotlook-prefs-epub-title = EPUB
-zotlook-prefs-epub-help = No system preview shows an EPUB on its own, so zotLook builds one: the book is unpacked and its chapters joined into a single styled page. A preview extension that handles EPUB will usually render the book better, so turn this off to let one take over — with none installed, EPUB attachments then have no preview at all.
+zotlook-prefs-epub-help = No system preview shows an EPUB on its own, so zotLook builds one: the book is unpacked and its chapters joined into a single styled page. If you would rather use a preview extension of the operating system than the one built into zotLook, you can switch zotLook's EPUB preview off here. With no such extension installed, EPUB attachments then have no preview at all.
 zotlook-prefs-epub-own =
     .label = Render EPUB with zotLook
 
@@ -74,7 +74,7 @@ zotlook-prefs-keep-title = Kept previews
 zotlook-prefs-keep =
     .label = Keep converted previews and show them again
 
-zotlook-prefs-keep-help = Drawing every page of a long book, or reading an EPUB out of its archive and reassembling it, takes seconds. What has been made once is shown again unchanged until the file, its annotations or the settings behind it have changed. Kept previews live in the system's temporary area and are not backed up with your library.
+zotlook-prefs-keep-help = Drawing every page of a long book, or reading an EPUB out of its archive and reassembling it, takes seconds. What has been made once is shown again unchanged until the file, its annotations or the settings behind it have changed. Kept previews live in the profile's cache area and are not backed up with your library.
 
 zotlook-prefs-keep-days = Drop previews unused for
 

@@ -57,7 +57,7 @@ zotlook-prefs-type-other = Alles Übrige
 
 # EPUB-Darstellung
 zotlook-prefs-epub-title = EPUB
-zotlook-prefs-epub-help = Keine Systemvorschau zeigt EPUBs von sich aus an, deshalb baut zotLook selbst eine: das Buch wird entpackt und seine Kapitel zu einer gestalteten Seite zusammengefügt. Eine Vorschau-Erweiterung für EPUB stellt das Buch in aller Regel besser dar — schalte dies aus, um ihr den Vortritt zu lassen. Ohne eine solche Erweiterung haben EPUB-Anhänge dann gar keine Vorschau.
+zotlook-prefs-epub-help = Keine Systemvorschau zeigt EPUBs von sich aus an, deshalb baut zotLook selbst eine: das Buch wird entpackt und seine Kapitel zu einer gestalteten Seite zusammengefügt. Wenn Sie statt der in zotLook integrierten Vorschau lieber eine Vorschau-Erweiterung des Betriebssystems nutzen möchten, können Sie die zotLook-EPUB-Vorschau hier deaktivieren. Ohne eine solche Erweiterung haben EPUB-Anhänge dann gar keine Vorschau.
 zotlook-prefs-epub-own =
     .label = EPUB mit zotLook darstellen
 
@@ -71,12 +71,12 @@ zotlook-epub-annotations = Annotationen
 
 zotlook-epub-goto = Zur Stelle im Text
 
-zotlook-prefs-keep-title = Behaltene Vorschauen
+zotlook-prefs-keep-title = Zwischengespeicherte Vorschauen
 
 zotlook-prefs-keep =
-    .label = Erzeugte Vorschauen behalten und wiederverwenden
+    .label = Erzeugte Vorschauen zwischenspeichern und wiederverwenden
 
-zotlook-prefs-keep-help = Jede Seite eines langen Buches zu zeichnen oder ein EPUB zu entpacken und neu zusammenzusetzen dauert Sekunden. Einmal Erzeugtes wird unverändert wieder gezeigt, bis sich die Datei, ihre Annotationen oder die Einstellungen darunter geändert haben. Behaltene Vorschauen liegen im temporären Bereich des Systems und werden nicht mit Ihrer Bibliothek gesichert.
+zotlook-prefs-keep-help = Jede Seite eines langen Buches zu zeichnen oder ein EPUB zu entpacken und neu zusammenzusetzen dauert Sekunden. Einmal Erzeugtes wird unverändert wieder gezeigt, bis sich die Datei, ihre Annotationen oder die Einstellungen darunter geändert haben. Zwischengespeicherte Vorschauen liegen im Cache-Bereich des Profils und werden nicht mit Ihrer Bibliothek gesichert.
 
 zotlook-prefs-keep-days = Ungenutzte Vorschauen verwerfen nach
 
@@ -85,7 +85,7 @@ zotlook-prefs-keep-days-hint = Tagen (0 behält sie, bis das System seine tempor
 zotlook-prefs-keep-size = Derzeit belegt: { $size }
 
 zotlook-prefs-keep-purge =
-    .label = Behaltene Vorschauen löschen
+    .label = Zwischengespeicherte Vorschauen löschen
 
 zotlook-prefs-annotations-title = Annotationen
 

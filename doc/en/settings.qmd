@@ -145,6 +145,7 @@ only matter for documents you have actually marked up.
 **Render EPUBs into a preview page** is on by default, because no system
 preview shows an EPUB on its own.
 
-Turn it off if you have installed a preview extension that handles EPUB better
-than this conversion does — the book then goes to the panel untouched, like any
-other file.
+If you would rather use a preview extension of the operating system than the
+one built into zotLook, switch zotLook's EPUB preview off here — the book then
+goes to the panel untouched, like any other file. With no such extension
+installed, EPUB attachments then have no preview at all.

@@ -75,19 +75,19 @@ gezeichnet werden. Es ist für ungewöhnlich große Scans gedacht, um zu binden,
 wie lange die Erzeugung dauern und wie viel temporären Speicherplatz sie
 belegen darf. Greift es, sagt der Bogen es unten an.
 
-## Behaltene Vorschauen
+## Zwischengespeicherte Vorschauen
 
 Zwei Dinge, die zotLook erzeugt, kosten Sekunden: der Kontaktbogen, der jede
 Seite eines Buches zeichnet, und die EPUB-Vorschau, die das Buch aus dem Archiv liest und
 zu einer Seite zusammensetzt. Beide werden behalten und wiederverwendet.
 
-**Erzeugte Vorschauen behalten und wiederverwenden** (Vorgabe an) tut genau
+**Erzeugte Vorschauen zwischenspeichern und wiederverwenden** (Vorgabe an) tut genau
 das. Einmal Erzeugtes wird unverändert wieder gezeigt, bis sich etwas geändert
 hat, das es zur falschen Antwort machen würde — die Datei selbst, ihre
 Annotationen oder die Einstellungen, die ihre Gestalt bestimmen, etwa die
 Spaltenzahl des Kontaktbogens.
 
-Behaltene Vorschauen liegen im Cache-Bereich des Profils, nicht in Ihrer
+Zwischengespeicherte Vorschauen liegen im Cache-Bereich des Profils, nicht in Ihrer
 Zotero-Bibliothek — sie werden also nicht mitgesichert. Der temporäre Bereich
 des Systems, der naheliegende Ort, ist der eine, an dem sie nicht liegen
 können: Zotero räumt sein eigenes Temp-Verzeichnis bei jedem Beenden
@@ -110,7 +110,7 @@ Zotero, nicht währenddessen — eine Vorschau, die mitten in der Arbeit
 verschwindet, wäre verwirrender als der belegte Platz. Eine `0` schaltet das
 ab; dann bleiben sie liegen, bis Sie sie selbst löschen.
 
-**Behaltene Vorschauen löschen** wirft sie alle sofort weg. Daneben steht, wie
+**Zwischengespeicherte Vorschauen löschen** wirft sie alle sofort weg. Daneben steht, wie
 viel sie derzeit belegen — ohne diese Zahl wäre das Drücken ein Ratespiel. Nach
 dem Löschen steht dort eine Null, und der nächste Aufruf erzeugt neu.
 
@@ -157,6 +157,8 @@ bearbeitet haben.
 **EPUBs zu einer Vorschauseite rendern** ist voreingestellt an, weil keine
 Systemvorschau ein EPUB von sich aus darstellt.
 
-Abschalten, wenn Sie eine Vorschau-Erweiterung installiert haben, die EPUB
-besser beherrscht als diese Wandlung — das Buch geht dann unverändert an die
-Vorschau, wie jede andere Datei.
+Wenn Sie statt der in zotLook integrierten Vorschau lieber eine
+Vorschau-Erweiterung des Betriebssystems nutzen möchten, können Sie die
+zotLook-EPUB-Vorschau hier deaktivieren — das Buch geht dann unverändert an die
+Vorschau, wie jede andere Datei. Ohne eine solche Erweiterung haben
+EPUB-Anhänge dann gar keine Vorschau.
