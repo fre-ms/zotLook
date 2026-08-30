@@ -1,0 +1,99 @@
+---
+title: "Wenn etwas schiefgeht"
+description: >-
+  Wo zotLook notiert, warum eine Vorschau scheiterte, was zuerst zu prüfen ist und was in eine Fehlermeldung gehört.
+---
+
+Das meiste, was zotLook tut, geschieht in einem fremden Programm — der Vorschau
+des Betriebssystems. Bleibt sie leer, liegt es deshalb meist an einer von
+wenigen gewöhnlichen Ursachen. Diese Seite nennt die Reihenfolge, in der es
+sich zu prüfen lohnt, und die eine Datei, die sagt, was wirklich geschehen ist.
+
+## Auf die Leertaste passiert nichts
+
+**Ist das Vorschauprogramm da?** Unter Linux steuert das Plugin GNOME Sushi
+(`apt install gnome-sushi`), unter Windows
+[QuickLook](https://github.com/QL-Win/QuickLook), das **laufen** muss. macOS
+braucht nichts weiter. Die Seite [Plattformen](platforms.qmd) sagt, was jedes
+davon darstellen kann.
+
+**Gehört das Kürzel noch Ihnen?** Eine Kombination, die das System oder eine
+andere Anwendung für sich beansprucht, erreicht Zotero gar nicht erst. Die
+Aufnahme in **Einstellungen → zotLook** sagt es Ihnen: Knopf drücken, Ihre
+Kombination drücken — kam nichts an, steht es da, statt dass die Aufnahme
+schweigend wartet.
+
+**Liegt ein anderes Plugin auf derselben Taste?** zotLook installiert sich
+**neben** Guillaume Chaprons Zotero7QuickLook, nicht darüber — verschiedene
+Plugin-Kennungen. Sind beide installiert, ist die Leertaste doppelt belegt.
+Entscheiden Sie sich für eines.
+
+## Der Kontaktbogen scheitert oder bleibt leer
+
+zotLook schreibt auf, warum. Zoteros Debug-Ausgabe teilen sich alle Plugins,
+und ein geschwätziges übertönt alles andere — deshalb landet das, was das
+Plugin zuletzt protokolliert hat, in einer eigenen Datei:
+
+::: {.panel-tabset}
+### macOS
+
+``` bash
+cat "$(getconf DARWIN_USER_TEMP_DIR)org.zotero.zotero/zotLook/last-failure.log"
+```
+
+### Linux
+
+``` bash
+cat /tmp/zotero/zotLook/last-failure.log
+```
+
+### Windows
+
+``` powershell
+type "$env:TEMP\zotero\zotLook\last-failure.log"
+```
+:::
+
+Darin stehen die letzten zweihundert Protokollzeilen des Plugins und sonst
+nichts — keine Dokumentinhalte, keine Bibliotheksdaten. Sie lohnt es, einer
+Fehlermeldung unverändert beizulegen.
+
+Das genaue Temp-Verzeichnis ist Zoteros eigenes. Existieren die Pfade oben
+nicht, nennt es **Hilfe → Debug-Ausgabe → Ausgabe anzeigen** in der Kopfzeile.
+
+## Eine zwischengespeicherte Vorschau wirkt veraltet
+
+Das sollte nicht vorkommen: Ein Eintrag wird neu erzeugt, sobald sich die
+Datei, ihre Annotationen oder die Einstellungen dahinter geändert haben. Ist
+doch einer alt, räumt **Einstellungen → zotLook → Zwischengespeicherte
+Vorschauen löschen** alle weg, und der nächste Aufruf erzeugt neu. Die Zahl
+daneben nennt den belegten Platz; nach dem Löschen steht dort eine Null.
+
+Der Ordner heißt `zotLook-cache` und liegt im Zotero-Profil innerhalb des
+Cache-Verzeichnisses des Systems; Sie dürfen ihn bei geschlossenem Zotero auch
+von Hand löschen — siehe [Einstellungen](settings.qmd).
+
+## Eine EPUB-Annotation steht in der Liste, ist aber nicht im Text markiert
+
+Die Liste über dem Buch führt jede Annotation; eine, die sich nicht verorten
+ließ, wird als solche gekennzeichnet, statt zu fehlen. Das geschieht, wenn die
+von Zotero gespeicherte Position sich nicht mehr auflösen lässt — meist, weil
+sich das Buch seit dem Anlegen der Annotation geändert hat und das benannte
+Kapitel oder Element nicht mehr dort steht.
+
+## Melden
+
+Bitte als Issue: **<https://github.com/fre-ms/zotLook/issues>**
+
+Am meisten hilft:
+
+- Betriebssystem samt Version und Ihre Zotero-Version,
+- was Sie gedrückt und was Sie erwartet haben,
+- `last-failure.log`, wenn ein Kontaktbogen oder ein EPUB beteiligt war,
+- beim EPUB: ob Sie das Buch weitergeben können — die sperrigen sind meist auf
+  eine Art sperrig, die keine Beschreibung einfängt.
+
+zotLook wird auf macOS, Windows und Linux geprüft, aber auf einer schmalen
+Auswahl von Versionen. Andere Kombinationen werden Dinge zutage fördern. Ich
+kann nicht versprechen, alles zu beheben — aber eine Meldung mit der obigen
+Datei genügt meist, um zu sehen, was geschehen ist.

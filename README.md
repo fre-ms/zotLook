@@ -34,11 +34,20 @@ system already has. Click any image for the full-size version.
 
 - Anything the system's preview panel can show, plus **EPUB**, which zotLook
   renders itself because no system preview does.
-- **Zotero's annotations are drawn in.** Zotero keeps them in its database
-  rather than in the file, so a preview of the stored PDF would otherwise be
-  unmarked.
+- **Your annotations are in the preview** — in a PDF and in an EPUB alike.
+  Zotero keeps them in its database rather than in the file, so a preview of
+  the stored document would otherwise be unmarked. An EPUB is marked where you
+  marked it: zotLook resolves the EPUB CFI Zotero stored, and draws highlights
+  and underlines the way Zotero's own reader draws them.
+- **An EPUB carries its contents and its annotations** behind a button in each
+  corner, opening over the page. Clicking an annotation takes you to the
+  passage. No script is involved, which is what lets it work in a preview panel
+  that runs none.
 - **Clicking a page of the contact sheet** opens it in Zotero's reader at that
   page.
+- **Previews are kept and shown again**, across restarts, until the file, its
+  annotations or the settings behind them change. What they occupy is shown in
+  the settings, where they can also be cleared.
 - Synced files that are not downloaded locally are fetched first.
 - Shortcuts, which attachment wins, the grid and the page limit are all
   configurable under **Settings → zotLook**. English and German.
@@ -73,6 +82,13 @@ alone.
 How all of it works — driving each system's preview, the EPUB conversion, the
 contact sheet renderer, the test suite and the release process — is in the
 [developer guide](https://zotlook.org/latest/en/dev/architecture.html).
+
+## Something not working?
+
+[When something goes wrong](https://zotlook.org/latest/en/trouble.html) says
+what to check first and where zotLook writes down why a preview failed — a file
+worth attaching to a report. Bugs and requests:
+[issues](https://github.com/fre-ms/zotLook/issues).
 
 ## Provenance
 

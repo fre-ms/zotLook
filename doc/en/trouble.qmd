@@ -1,0 +1,95 @@
+---
+title: "When something goes wrong"
+description: >-
+  Where zotLook writes down why a preview failed, what to check first, and what to put in a bug report.
+---
+
+Most of what zotLook does happens in someone else's program — the system's
+preview panel — so when nothing appears, the reason is usually one of a few
+ordinary things. This page is the order worth checking them in, and where to
+find the one file that says what actually happened.
+
+## Nothing happens on Space
+
+**Is the preview program there?** On Linux the plugin drives GNOME Sushi
+(`apt install gnome-sushi`); on Windows, [QuickLook](https://github.com/QL-Win/QuickLook),
+which has to be **running**. macOS needs nothing installed. The
+[Platforms](platforms.qmd) page says what each one can show.
+
+**Is the shortcut still yours?** A combination the system or another
+application has claimed never reaches Zotero at all. The recording in
+**Settings → zotLook** says so when it happens: press the button, press your
+combination, and if nothing arrived it tells you rather than waiting silently.
+
+**Is another plugin on the same key?** zotLook installs beside Guillaume
+Chapron's Zotero7QuickLook rather than over it — different plugin IDs — so with
+both installed, Space is claimed twice. Pick one.
+
+## The contact sheet fails or comes out empty
+
+zotLook writes down why. Zotero's debug output is shared with every plugin and
+a chatty one drowns everything else out, so the last thing the plugin logged
+before a failure goes into a file of its own:
+
+::: {.panel-tabset}
+### macOS
+
+``` bash
+cat "$(getconf DARWIN_USER_TEMP_DIR)org.zotero.zotero/zotLook/last-failure.log"
+```
+
+### Linux
+
+``` bash
+cat /tmp/zotero/zotLook/last-failure.log
+```
+
+### Windows
+
+``` powershell
+type "$env:TEMP\zotero\zotLook\last-failure.log"
+```
+:::
+
+It holds the plugin's own last two hundred log lines and nothing else — no
+document contents, no library data. It is worth attaching to a bug report
+verbatim.
+
+The exact temp directory is Zotero's own, so if the paths above do not exist,
+**Help → Debug Output Logging → View Output** names it at the top.
+
+## A kept preview looks out of date
+
+It should not: an entry is remade as soon as the file, its annotations or the
+settings behind it change. If one is stale anyway, **Settings → zotLook →
+Delete kept previews** clears them all, and the next call makes them afresh.
+The figure beside the button says what they occupy; after the deletion it reads
+zero.
+
+The folder is `zotLook-cache` in the Zotero profile inside the system's cache
+directory, and you may delete it by hand with Zotero closed — see
+[Settings](settings.qmd).
+
+## An EPUB annotation is listed but not marked in the text
+
+The list above the book shows every annotation; one that could not be placed in
+the page is shown as such rather than left out. That happens when the position
+Zotero stored no longer resolves — most often because the book itself has
+changed since the annotation was made, so the chapter or the element it names
+is no longer where it was.
+
+## Reporting it
+
+Please open an issue: **<https://github.com/fre-ms/zotLook/issues>**
+
+What helps most:
+
+- your operating system and version, and your Zotero version;
+- what you pressed and what you expected;
+- `last-failure.log` if the contact sheet or an EPUB was involved;
+- for an EPUB, whether the book is one you can share — the awkward ones are
+  usually awkward in a way no description conveys.
+
+zotLook is tested on macOS, Windows and Linux, but on a narrow set of versions.
+Other combinations will turn up things. I cannot promise to fix everything, but
+a report with the file above in it is usually enough to see what happened.

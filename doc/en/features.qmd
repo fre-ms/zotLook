@@ -42,11 +42,20 @@ laid over the top. Images, fonts and inline SVGs resolve, because relative URLs
 in both markup and CSS are rewritten. A converted book is cached until the file
 changes.
 
-At the top sits a **table of contents** that folds away and whose entries jump
-to the chapter — inside the system preview too, where JavaScript is disabled.
-The titles and their nesting come from the navigation the book carries, so they
-are the publisher's rather than guesses drawn from headings. A book with no
-navigation gets no box.
+**Your annotations are in it.** Zotero stores the position of an EPUB
+annotation as an EPUB CFI — spine item, element path, character offsets — and
+zotLook resolves that identifier against the chapter it names, so a passage is
+marked where you marked it. Highlights carry their colour at half opacity and
+underlines are drawn as underlines, the way Zotero's own reader draws them, and
+palettes beyond Zotero's eight work as well as its own.
+
+**A button in each corner** opens the contents and the annotations over the
+page. The contents come from the navigation the book carries, so the titles and
+their nesting are the publisher's rather than guesses drawn from headings; the
+annotations are listed in reading order, each quotation cut to two lines until
+you unfold it, and clicking one takes you to the passage. Both are `<details>`
+and CSS — a preview panel runs no scripts, so a menu needing one would never
+open. A book with no navigation gets no contents button.
 
 Because the plugin cannot reliably tell whether you have an EPUB preview
 extension installed, the conversion is a [setting](settings.qmd) rather than a

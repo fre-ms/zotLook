@@ -61,6 +61,8 @@ website:
         href: settings.qmd
       - text: Platforms
         href: platforms.qmd
+      - text: When something goes wrong
+        href: trouble.qmd
       - section: Developer guide
         contents:
           - text: Architecture

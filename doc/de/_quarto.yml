@@ -57,6 +57,8 @@ website:
         href: settings.qmd
       - text: Plattformen
         href: platforms.qmd
+      - text: Wenn etwas schiefgeht
+        href: trouble.qmd
       - section: Entwicklung
         contents:
           - text: Architektur

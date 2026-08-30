@@ -44,12 +44,22 @@ Schriften und eingebettete SVGs finden sich, weil relative Adressen sowohl im
 Markup als auch im CSS umgeschrieben werden. Ein gewandeltes Buch wird
 zwischengespeichert, bis sich die Datei ändert.
 
-Am Kopf steht ein **Inhaltsverzeichnis**, das sich zuklappen lässt und aus dem
-ein Klick ins jeweilige Kapitel springt — auch in der Systemvorschau, in der
-JavaScript abgeschaltet ist. Die Titel und ihre Verschachtelung stammen aus der
-Navigation, die das Buch selbst mitbringt, sind also die des Verlags und nicht
-aus Überschriften geraten. Bringt ein Buch keine Navigation mit, entfällt der
-Kasten.
+**Ihre Annotationen stehen darin.** Zotero speichert die Position einer
+EPUB-Annotation als EPUB-CFI — Spine-Eintrag, Elementpfad, Zeichenversätze —,
+und zotLook löst diesen Bezeichner gegen das Kapitel auf, das er benennt. Eine
+Stelle wird also dort markiert, wo Sie sie markiert haben. Hervorhebungen
+tragen ihre Farbe bei halber Deckkraft, Unterstreichungen sind echte
+Unterstreichungen — so, wie Zoteros eigener Reader sie zeichnet —, und Paletten
+jenseits von Zoteros acht Farben funktionieren ebenso gut wie seine eigenen.
+
+**In jeder Ecke ein Knopf** blendet Inhaltsverzeichnis und Annotationen über
+der Seite ein. Die Titel und ihre Verschachtelung stammen aus der Navigation,
+die das Buch selbst mitbringt, sind also die des Verlags und nicht aus
+Überschriften geraten; die Annotationen stehen in Lesereihenfolge, jedes Zitat
+auf zwei Zeilen gekürzt, bis Sie es aufklappen, und ein Klick führt zur Stelle
+im Text. Beides ist `<details>` und CSS — eine Vorschau führt kein Skript aus,
+ein Menü, das eines bräuchte, ginge dort nie auf. Bringt ein Buch keine
+Navigation mit, entfällt der Inhalts-Knopf.
 
 Weil das Plugin nicht zuverlässig feststellen kann, ob eine EPUB-Erweiterung
 installiert ist, ist die Wandlung eine [Einstellung](settings.qmd) statt einer
