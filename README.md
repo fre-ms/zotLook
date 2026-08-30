@@ -19,16 +19,18 @@ viewer of its own, but drives the preview panel the system already has:
 📖 **[Documentation — zotlook.org](https://zotlook.org)** ·
 [Deutsche Fassung](https://zotlook.org/latest/de/)
 
-![zotLook screenshot](asset/screenshot.png)
-
 ## What it does
 
-| Shortcut | |
-|---|---|
-| **Space** | Preview the selected item's attachment |
-| **Shift+Space** | Preview its notes |
-| **Ctrl+Shift+Space** | Contact sheet — every page of a PDF as a thumbnail |
-| **Shift+Alt+Space** | The same sheet in a Zotero window |
+The same three keystrokes on all three systems, each driving the preview that
+system already has. Click any image for the full-size version.
+
+|  | **macOS** · Quick Look | **Linux** · GNOME Sushi | **Windows** · QuickLook |
+|---|:---:|:---:|:---:|
+| **Space**<br>preview the attachment | [<img src="asset/screenshot/macos-preview.png" width="240" alt="Quick Look showing an annotated PDF page on macOS">](asset/screenshot/macos-preview.png) | [<img src="asset/screenshot/linux-preview.png" width="240" alt="GNOME Sushi showing an annotated PDF page on Linux">](asset/screenshot/linux-preview.png) | [<img src="asset/screenshot/windows-preview.png" width="240" alt="QuickLook showing an annotated PDF page on Windows">](asset/screenshot/windows-preview.png) |
+| **Ctrl+Shift+Space**<br>contact sheet | [<img src="asset/screenshot/macos-contact-sheet.png" width="240" alt="Contact sheet of every page in Quick Look on macOS">](asset/screenshot/macos-contact-sheet.png) | [<img src="asset/screenshot/linux-contact-sheet.png" width="240" alt="Contact sheet of every page in GNOME Sushi on Linux">](asset/screenshot/linux-contact-sheet.png) | [<img src="asset/screenshot/windows-contact-sheet.png" width="240" alt="Contact sheet of every page in QuickLook on Windows">](asset/screenshot/windows-contact-sheet.png) |
+| **Shift+Alt+Space**<br>the same sheet in a Zotero window | [<img src="asset/screenshot/macos-contact-sheet-window.png" width="240" alt="Contact sheet in a Zotero window on macOS">](asset/screenshot/macos-contact-sheet-window.png) | [<img src="asset/screenshot/linux-contact-sheet-window.png" width="240" alt="Contact sheet in a Zotero window on Linux">](asset/screenshot/linux-contact-sheet-window.png) | [<img src="asset/screenshot/windows-contact-sheet-window.png" width="240" alt="Contact sheet in a Zotero window on Windows">](asset/screenshot/windows-contact-sheet-window.png) |
+
+**Shift+Space** previews the item's notes.
 
 - Anything the system's preview panel can show, plus **EPUB**, which zotLook
   renders itself because no system preview does.

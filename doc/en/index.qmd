@@ -33,7 +33,7 @@ rather than in the file, so a preview would normally show the document without
 them. The feature can be switched off in zotLook if you would rather see the
 file as it is stored.
 
-![](asset/screenshot.png)
+![](asset/screenshot/linux-contact-sheet-logo.png){fig-alt="The contact sheet under GNOME Sushi on Linux, showing a PDF whose sixteen pages reproduce the zotLook logo"}
 
 ## What you need
 
@@ -42,7 +42,7 @@ file as it is stored.
 | **Zotero** | 7 or later. Tested with [**Zotero**](https://www.zotero.org/) **10**. |
 | **macOS** | macOS 12 (Monterey) or later. Nothing to install, Quick Look is part of the system. |
 | **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). On Debian and Ubuntu: `sudo apt install gnome-sushi`. |
-| **Windows** | a running [QuickLook](https://github.com/QL-Win/QuickLook). The Store build and the one from the website work alike. |
+| **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook). The Store and website versions work alike. |
 
 ## Install
 
@@ -64,9 +64,9 @@ Space key will be claimed twice.
 ## Getting started with zotLook
 
 Select an item and press **Space**. If the item is a parent rather than an
-attachment, zotLook picks one of its attachments — a PDF before an EPUB before
-anything else, and you can [change that order](settings.qmd). Press **Space**
-again, or **Escape**, to dismiss the preview.
+attachment, zotLook picks one of its attachments — a PDF before an EPUB, and
+an EPUB before anything else. You can [change that order](settings.qmd). Press
+**Space** again, or **Escape**, to dismiss the preview.
 
 **Shift+Space** previews the item's notes instead, rendered as a page.
 

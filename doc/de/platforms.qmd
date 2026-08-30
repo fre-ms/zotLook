@@ -2,6 +2,7 @@
 title: "Plattformen"
 description: >-
   Welche Dateiformate die Vorschau je System zeigt, was macOS, Linux und Windows brauchen, und wie man sie mit Plugins erweitert.
+lightbox: auto
 ---
 
 zotLook bringt keinen Betrachter mit. Es steuert die Vorschau an, die das System
@@ -71,6 +72,50 @@ eine `zotero:`-Adresse nicht laden — die Verweise sind dort deshalb absichtlic
 wirkungslos, denn ein fehlschlagender Klick reißt die ganze Vorschau mit sich.
 Die Fenster-Variante (**Umschalt+Alt+Leertaste**) gibt Linux den anklickbaren
 Bogen. Mehr dazu unter [Der Kontaktbogen](dev/contact-sheet.qmd).
+
+## Nebeneinander gesehen
+
+Dieselben drei Tastengriffe auf jedem System, jeder treibt die Vorschau an, die
+das System ohnehin hat. Verschieden ist das Fenster um die Seite herum, nicht
+das, was zotLook tut.
+
+### Leertaste — der Anhang
+
+::: {layout-ncol="3"}
+![macOS · Quick Look](asset/screenshot/macos-preview.png){group="preview"}
+
+![Linux · GNOME Sushi](asset/screenshot/linux-preview.png){group="preview"}
+
+![Windows · QuickLook](asset/screenshot/windows-preview.png){group="preview"}
+:::
+
+Die Hervorhebungen sind Zoteros eigene. Sie stehen in seiner Datenbank und
+nicht in der Datei; gezeigt wird deshalb eine exportierte Kopie, in die sie
+eingezeichnet sind.
+
+### Strg+Umschalt+Leertaste — der Kontaktbogen
+
+::: {layout-ncol="3"}
+![macOS · Quick Look](asset/screenshot/macos-contact-sheet.png){group="sheet"}
+
+![Linux · GNOME Sushi](asset/screenshot/linux-contact-sheet.png){group="sheet"}
+
+![Windows · QuickLook](asset/screenshot/windows-contact-sheet.png){group="sheet"}
+:::
+
+### Umschalt+Alt+Leertaste — der Bogen im Zotero-Fenster
+
+::: {layout-ncol="3"}
+![macOS](asset/screenshot/macos-contact-sheet-window.png){group="window"}
+
+![Linux](asset/screenshot/linux-contact-sheet-window.png){group="window"}
+
+![Windows](asset/screenshot/windows-contact-sheet-window.png){group="window"}
+:::
+
+Das ist ein Zotero-Fenster statt der Systemanzeige — deshalb sieht es überall
+gleich aus, und deshalb funktionieren die Seitenverweise auch unter Linux, wo
+sie es in Sushi nicht können.
 
 ## Welche Formate wo angezeigt werden
 

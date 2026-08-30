@@ -17,7 +17,7 @@ website:
     Look unter macOS, GNOME Sushi unter Linux und QuickLook unter Windows.
     Mit eingezeichneten Zotero-Annotationen, Kontaktbögen aller Seiten und
     EPUB-Vorschau.
-  image: asset/screenshot.png
+  image: asset/screenshot/linux-contact-sheet-logo.png
   favicon: asset/favicon.svg
   open-graph: true
   twitter-card: true

@@ -21,7 +21,7 @@ website:
     Preview Zotero attachments by pressing Space — through Quick Look on
     macOS, GNOME Sushi on Linux and QuickLook on Windows. With your Zotero
     annotations drawn in, contact sheets of every page, and EPUB previews.
-  image: asset/screenshot.png
+  image: asset/screenshot/linux-contact-sheet-logo.png
   favicon: asset/favicon.svg
   open-graph: true
   twitter-card: true

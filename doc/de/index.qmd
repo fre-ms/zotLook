@@ -8,7 +8,7 @@ description: >-
 
 **zotLook** ist ein Plugin für den quelloffenen Literaturmanager
 [**Zotero**](https://www.zotero.org/). Es zeigt den Anhang des ausgewählten
-Zotero-Eintrags in einer Vorschau, sobald Sie **Leertaste** drücken — so, wie
+Zotero-Eintrags in einer Vorschau, sobald Sie die **Leertaste** drücken — so, wie
 ein Dateimanager es tut. zotLook bringt dafür keinen eigenen Betrachter mit,
 sondern steuert die Vorschau an, die das System bereits hat:
 
@@ -35,7 +35,7 @@ in seiner Datenbank auf und nicht in der Datei; normalerweise zeigte die Vorscha
 daher das Dokument ohne Annotationen. Auf Wunsch lässt sich die Funktion in zotLook
 abschalten.
 
-![](asset/screenshot.png)
+![](asset/screenshot/linux-contact-sheet-logo.png){fig-alt="Der Kontaktbogen unter GNOME Sushi auf Linux, mit einem PDF, dessen sechzehn Seiten das zotLook-Logo ergeben"}
 
 ## Voraussetzungen
 
@@ -44,7 +44,7 @@ abschalten.
 | **Zotero** | 7 oder neuer. Getestet mit [**Zotero**](https://www.zotero.org/) **10**. |
 | **macOS** | Ab macOS 12 (Monterey). Nichts zu installieren, Quick Look gehört zum System. |
 | **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). Unter Debian und Ubuntu: `sudo apt install gnome-sushi`. |
-| **Windows** | laufendes [QuickLook](https://github.com/QL-Win/QuickLook). Fassung aus dem Store und von der Webseite funktionieren gleichermaßen. |
+| **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook). Die Versionen des Stores und der Webseite funktionieren gleichermaßen. |
 
 ## Installation
 
@@ -54,7 +54,7 @@ abschalten.
 3. Zahnrad → **Add-on aus Datei installieren …**
 4. Die geladene Datei wählen, dann Zotero neu starten.
 
-Von da an sucht Zotero selbst nach neuen Fassungen und aktualisiert das Plugin,
+Von da an sucht Zotero selbst nach neuen Versionen und aktualisiert das Plugin,
 ohne dass Sie sich darum kümmern müssen.
 
 ::: {.callout-note}
@@ -65,9 +65,9 @@ schalten Sie eines ab, sonst wird die Leertaste doppelt beansprucht.
 
 ## Schnellstart mit zotLook
 
-Wählen Sie einen Eintrag und drücken Sie **Leertaste**. Handelt es sich um einen
+Wählen Sie einen Eintrag und drücken Sie die **Leertaste**. Handelt es sich um einen
 Elterneintrag statt um einen Anhang, sucht zotLook einen Anhang aus — ein PDF vor
-einem EPUB vor allem anderen, und diese
+einem EPUB und ein EPUB vor allem anderen. Diese
 [Reihenfolge lässt sich ändern](settings.qmd). Ein zweites Mal **Leertaste**
 oder **Escape** schließt die Vorschau wieder.
 
