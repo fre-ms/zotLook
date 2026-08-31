@@ -107,7 +107,7 @@ Offline-Reparaturen angewandt und je Sprache ein verlinktes PDF mit Typst
 gebaut.
 
 Die Seite steht auf dem
-[zotqda-quarto-theme](https://github.com/fre-ms/zotqda-quarto-theme), das nach
+[easyQDA-quarto-theme](https://github.com/easyqda/easyQDA-quarto-theme), das nach
 `doc/_theme/` **vendort** ist, damit die Dokumentation ohne Nachbar-Checkout
 baut. `doc/update-theme.sh` holt eine neuere Fassung herein.
 

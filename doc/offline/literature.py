@@ -3,7 +3,7 @@
 
 Macht die Literaturliste **für Zotero lesbar** (COinS / Z39.88) und hängt an
 jeden Eintrag Download-Buttons (BibTeX, RIS) — die beiden Funktionen aus
-curriculum-mis-med, hier ins zotqda-quarto-theme zurückmigriert.
+curriculum-mis-med, hier ins easyQDA-quarto-theme zurückmigriert.
 
 Anders als dort werden die kuratierten, **nach Fragestellung gruppierten**
 Tabellen der zotQDA-Ökosystem-Seiten NICHT durch eine flache CSL-Liste

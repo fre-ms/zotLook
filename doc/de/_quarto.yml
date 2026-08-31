@@ -88,6 +88,6 @@ website:
       [Datenschutz](https://zotlook.org/latest/de/privacy.html)
 
 format:
-  zotqda-theme-html:
+  easyqda-theme-html:
     css: fonts/noto.css
     include-after-body: theme/scripts.html

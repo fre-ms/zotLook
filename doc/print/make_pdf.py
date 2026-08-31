@@ -19,7 +19,7 @@ front matter of the language's index.qmd (falling back to
 apart. The author — mandatory, the orange-book cover Quarto uses for
 Typst books fails without one — is resolved centrally: the AUTHOR
 argument wins, then the same front matter's ``author:``, then the theme
-extension's ``author:`` (``_extensions/zotqda-theme/_extension.yml``,
+extension's ``author:`` (``_extensions/easyqda-theme/_extension.yml``,
 mirrored into every language project), so a site needs no per-page
 author to build.
 
@@ -41,12 +41,13 @@ import yaml
 
 def fonts_dir():
     # The Noto Sans TTFs sit beside this script in the theme repository
-    # (print/fonts/); a site that vendors the script into code/ keeps
-    # them under asset/fonts/ttf instead (excluded from publishing —
-    # the woff2 subsets serve the website). Both layouts work
-    # unpatched.
+    # (print/font/, and print/fonts/ in checkouts made before it was
+    # renamed); a site that vendors the script into code/ keeps them under
+    # asset/fonts/ttf instead (excluded from publishing — the woff2 subsets
+    # serve the website). All three layouts work unpatched.
     here = Path(__file__).resolve().parent
-    for cand in (here / "fonts", here.parent / "asset" / "fonts" / "ttf"):
+    for cand in (here / "font", here / "fonts",
+                 here.parent / "asset" / "fonts" / "ttf"):
         if cand.is_dir():
             return cand
     raise SystemExit(f"make_pdf: no font directory (looked beside {here} "
@@ -68,7 +69,7 @@ def theme_author(lang_dir):
     # build mirrors that extension into every language project. Reading
     # it here means a site inherits the author centrally and no PDF
     # breaks for want of a per-page ``author:``.
-    ext = lang_dir / "_extensions" / "zotqda-theme" / "_extension.yml"
+    ext = lang_dir / "_extensions" / "easyqda-theme" / "_extension.yml"
     if ext.exists():
         return (yaml.safe_load(ext.read_text("utf-8")) or {}).get("author")
     return None

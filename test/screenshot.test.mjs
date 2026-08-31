@@ -107,10 +107,22 @@ function imagesIn(file) {
 // They are 15 MB, they are excluded from git, and the language mirror would
 // otherwise carry them into the site twice over.
 {
-  const build = fs.readFileSync(ROOT + 'doc/build.sh', 'utf8');
+  // Continuations joined first: the check used to read one line and find
+  // the exclusion on it, which stopped being true the moment the command
+  // was wrapped — and a guard that a line break can switch off is not one.
+  const build = fs.readFileSync(ROOT + 'doc/build.sh', 'utf8')
+    .replace(/\\\n\s*/g, ' ');
   const mirror = build.split('\n').find(l => l.includes('../asset/'));
-  ok(mirror && /--exclude\s+"screenshot\/original\/"/.test(mirror),
-     'build.sh keeps screenshot/original out of the language mirror');
+  ok(mirror, 'build.sh mirrors asset/ into the language projects');
+  ok(/--exclude\s+"screenshot\/original\/"/.test(mirror),
+     'and keeps screenshot/original out of it');
+  // macOS leaves undeletable tombstones beside files deleted in the Finder;
+  // rsync stops on one, so every mirror here has to skip them or a build
+  // fails over a file nobody wanted
+  for (const line of build.split('\n').filter(l => l.startsWith('  rsync'))) {
+    ok(/--exclude\s+"\*\.gitFinderDeleted"/.test(line),
+       'each mirror skips the macOS tombstones: ' + line.trim().slice(0, 58));
+  }
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');

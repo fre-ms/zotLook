@@ -1,5 +1,5 @@
 #!/bin/sh
-# Pull the current zotqda-quarto-theme into this repository. The theme is
+# Pull the current easyQDA-quarto-theme into this repository. The theme is
 # vendored — the single copy of _extensions/ and fonts/ lives in
 # doc/_theme/, offline/ and print/ beside it, and gen_langmap.py in doc/ —
 # so the documentation builds without a sibling checkout (CI). build.sh
@@ -7,21 +7,25 @@
 # theme, then rebuild and commit.
 #
 # The theme source is, in order of preference:
-#   1. $ZOTQDA_THEME, if set;
-#   2. a sibling checkout ../../zotqda-quarto-theme (the dev layout);
-#   3. otherwise it is cloned from GitHub into ../../zotqda-quarto-theme.
+#   1. $EASYQDA_THEME, if set;
+#   2. a sibling checkout ../../easyQDA-quarto-theme (the dev layout);
+#   3. otherwise it is cloned from GitHub into ../../easyQDA-quarto-theme.
+# The theme was renamed twice on its way here — the repository from
+# zotqda-quarto-theme, the extension from zotqda-theme to easyqda-theme, and
+# its font directory from fonts/ to font/ — so an old checkout beside this
+# one will not do; the names below are the current ones.
 # When the source is a clean git checkout, it is fast-forwarded to the
 # published tip first, so a re-run vendors the current release; a checkout
 # with local changes is used as-is (uncommitted theme work is preserved).
 set -e
 cd "$(dirname "$0")"
 
-REPO="https://github.com/fre-ms/zotqda-quarto-theme.git"
-THEME="${ZOTQDA_THEME:-../../zotqda-quarto-theme}"
+REPO="https://github.com/easyqda/easyQDA-quarto-theme.git"
+THEME="${EASYQDA_THEME:-../../easyQDA-quarto-theme}"
 
 if [ ! -d "$THEME/_extensions" ]; then
-  if [ -n "$ZOTQDA_THEME" ]; then
-    echo "update-theme.sh: \$ZOTQDA_THEME=$ZOTQDA_THEME has no _extensions/" >&2
+  if [ -n "$EASYQDA_THEME" ]; then
+    echo "update-theme.sh: \$EASYQDA_THEME=$EASYQDA_THEME has no _extensions/" >&2
     exit 1
   fi
   echo "update-theme.sh: no theme beside this checkout — cloning $REPO"
@@ -39,12 +43,31 @@ if [ -d "$THEME/.git" ]; then
   fi
 fi
 
-rm -rf _theme/_extensions _theme/fonts offline print
+# Mirrored rather than removed and re-copied, and for one macOS reason:
+# deleting a tracked file through the Finder leaves a zero-byte tombstone
+# named "<file> \016.gitFinderDeleted" that its own owner may not open or
+# remove, and that is recreated as fast as it is moved aside. `rm -rf` then
+# fails on the directory holding one and takes the whole vendoring down with
+# it, and `cp -R` onto a directory that therefore still exists nests a copy
+# inside it — which is how doc/offline/offline/ came about once.
+#
+# rsync has neither failure mode: the excluded tombstones are also protected
+# from --delete, so what is left behind is exactly them, and they are
+# harmless — build.sh excludes the same pattern when it mirrors the theme
+# into the language projects, and .gitignore keeps them out of the
+# repository.
 mkdir -p _theme
-cp -R "$THEME/_extensions" _theme/_extensions
-cp -R "$THEME/fonts" _theme/fonts
-cp -R "$THEME/offline" offline
-cp -R "$THEME/print" print
+for pair in "_extensions:_theme/_extensions" "font:_theme/fonts" \
+            "offline:offline" "print:print"; do
+  src="${pair%%:*}"; dst="${pair##*:}"
+  if [ ! -d "$THEME/$src" ]; then
+    echo "update-theme.sh: $THEME has no $src/" >&2
+    exit 1
+  fi
+  mkdir -p "$dst"
+  rsync -a --delete --exclude '*.gitFinderDeleted' "$THEME/$src/" "$dst/"
+done
+
 cp "$THEME/script/gen_langmap.py" gen_langmap.py
 
 rev=$(git -C "$THEME" rev-parse --short HEAD 2>/dev/null || echo unknown)

@@ -102,7 +102,7 @@ Both language projects render into `site/{en,de}`, the offline repairs are
 applied, and one linked PDF per language is built with Typst.
 
 The site is built on the
-[zotqda-quarto-theme](https://github.com/fre-ms/zotqda-quarto-theme), which is
+[easyQDA-quarto-theme](https://github.com/easyqda/easyQDA-quarto-theme), which is
 **vendored** into `doc/_theme/` so the documentation builds without a sibling
 checkout. `doc/update-theme.sh` pulls a newer copy in.
 

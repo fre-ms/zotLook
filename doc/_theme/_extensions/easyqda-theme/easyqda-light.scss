@@ -4,24 +4,24 @@
 // family identity of the existing zotQDA sites; everything else is
 // neutral greys tuned for long-form reading.
 
-$zq-accent:     #3f51b5;   // indigo 500 — active markers, links
-$zq-accent-ink: #3547a8;   // slightly deeper for links on white
-$zq-ink:        #212630;
-$zq-muted:      #5d6572;
-$zq-surface:    #f5f6f8;   // code blocks, banners
-$zq-border:     #e5e7eb;
+$eq-accent:     #3f51b5;   // indigo 500 — active markers, links
+$eq-accent-ink: #3547a8;   // slightly deeper for links on white
+$eq-ink:        #212630;
+$eq-muted:      #5d6572;
+$eq-surface:    #f5f6f8;   // code blocks, banners
+$eq-border:     #e5e7eb;
 
 // White header with a hairline, like the Zensical sites.
-$zq-navbar-bg:  #ffffff;
-$zq-navbar-fg:  $zq-ink;
+$eq-navbar-bg:  #ffffff;
+$eq-navbar-fg:  $eq-ink;
 
 // Active sidebar page as a soft indigo pill.
-$zq-pill: rgba(63, 81, 181, 0.10);
+$eq-pill: rgba(63, 81, 181, 0.10);
 
 $body-bg:    #ffffff;
-$body-color: $zq-ink;
-$primary:    $zq-accent;
-$link-color: $zq-accent-ink;
+$body-color: $eq-ink;
+$primary:    $eq-accent;
+$link-color: $eq-accent-ink;
 
 // Inline code in the body ink, not Bootstrap's pink.
 $code-bg:    #eef0f4;

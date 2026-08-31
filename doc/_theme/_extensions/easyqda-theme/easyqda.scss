@@ -1,10 +1,10 @@
 /*-- scss:defaults --*/
 
-// Shared defaults, compiled once per palette (zotqda-light.scss or
-// zotqda-dark.scss defines the $zq-* variables first).
+// Shared defaults, compiled once per palette (easyqda-light.scss or
+// easyqda-dark.scss defines the $eq-* variables first).
 
 // Noto Sans, self-hosted: the host site ships the woff2 files and
-// fonts/noto.css (see the extension's fonts/ directory) — no font
+// font/noto.css (see the repository's font/ directory) — no font
 // request ever leaves the page, which the bundled, consent-free help
 // requires. Sites without the fonts fall back to the system stack.
 $font-family-sans-serif: "Noto Sans", system-ui, -apple-system,
@@ -21,15 +21,15 @@ $link-decoration: none !default;
 $link-hover-decoration: underline !default;
 
 // Quarto layout variables.
-$navbar-bg: $zq-navbar-bg !default;
-$navbar-fg: $zq-navbar-fg !default;
+$navbar-bg: $eq-navbar-bg !default;
+$navbar-fg: $eq-navbar-fg !default;
 $footer-bg: transparent !default;
-$footer-fg: $zq-muted !default;
-$toc-color: $zq-muted !default;
-$toc-active-border: $zq-accent !default;
-$code-block-bg: $zq-surface !default;
+$footer-fg: $eq-muted !default;
+$toc-color: $eq-muted !default;
+$toc-active-border: $eq-accent !default;
+$code-block-bg: $eq-surface !default;
 $code-block-border-left: false !default;
-$table-border-color: $zq-border !default;
+$table-border-color: $eq-border !default;
 
 /*-- scss:rules --*/
 
@@ -39,7 +39,7 @@ $table-border-color: $zq-border !default;
 
 .navbar {
   box-shadow: none;
-  border-bottom: 1px solid $zq-border;
+  border-bottom: 1px solid $eq-border;
   padding-top: 0.4rem;
   padding-bottom: 0.4rem;
 }
@@ -49,7 +49,7 @@ $table-border-color: $zq-border !default;
 // translucent, blurred pane. The id out-specifies Quarto's own
 // background rule.
 #quarto-header .navbar {
-  background-color: rgba($zq-navbar-bg, 0.8);
+  background-color: rgba($eq-navbar-bg, 0.8);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
@@ -166,6 +166,29 @@ h1, .title {
   margin-block-end: 1.6rem;
 }
 
+// The description from a page's front matter, set as a standfirst.
+//
+// Quarto already writes it into the title block, but leaves it looking
+// exactly like the first paragraph of the page — so a sentence meant to say
+// what the page is for reads as prose that repeats itself. It is set apart
+// the way a deck is set apart in print: a size up from the body, a tone
+// down from it, and a hairline closing the block off from the text proper.
+//
+// Not bold. A whole paragraph in bold competes with the heading above it
+// and asks to be read twice as loudly as it deserves; weight is for words
+// inside a sentence, and this is a sentence beside a title.
+#title-block-header .description {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: $eq-muted;
+  max-width: 46rem;
+  margin-block: 0.4rem 0;
+  padding-block-end: 1.15rem;
+  // On the .description itself, so a page carrying none is closed off by
+  // nothing rather than by a rule under its bare title
+  border-block-end: 1px solid $eq-border;
+}
+
 h2 {
   font-size: 1.45rem;
   font-weight: 650;
@@ -184,12 +207,12 @@ h4 {
 }
 
 p, li {
-  color: $zq-ink;
+  color: $eq-ink;
 }
 
 blockquote.blockquote {
-  border-left: 3px solid $zq-border;
-  color: $zq-muted;
+  border-left: 3px solid $eq-border;
+  color: $eq-muted;
   font-size: 1rem;
 }
 
@@ -221,7 +244,7 @@ main.content a:not(.nav-link):hover {
 // clears the text on every side, instead of hugging it.
 .sidebar-item-text.sidebar-link {
   display: block;
-  color: $zq-muted;
+  color: $eq-muted;
   line-height: 1.45;
   padding: 0.4rem 0.75rem;
   margin-left: -0.75rem;
@@ -238,7 +261,7 @@ main.content a:not(.nav-link):hover {
 }
 
 .sidebar-item-text.sidebar-link:hover {
-  color: $zq-ink;
+  color: $eq-ink;
   background: rgba(127, 127, 127, 0.08);
   text-decoration: none;
 }
@@ -246,9 +269,9 @@ main.content a:not(.nav-link):hover {
 // The page you are on: a soft accent pill, like Zensical's.
 .sidebar-item-text.sidebar-link.active,
 .sidebar-item-text.sidebar-link.active:hover {
-  color: $zq-accent;
+  color: $eq-accent;
   font-weight: 600;
-  background: $zq-pill;
+  background: $eq-pill;
 }
 
 // Section headers: page-coloured and semibold, with air above so the
@@ -259,11 +282,11 @@ main.content a:not(.nav-link):hover {
 
 .sidebar-item-section > .sidebar-item-container .sidebar-item-text {
   font-weight: 600;
-  color: $zq-ink;
+  color: $eq-ink;
 }
 
 .sidebar-item-section .sidebar-item-toggle {
-  color: $zq-muted;
+  color: $eq-muted;
 }
 
 // ---------------------------------------------------------------------------
@@ -274,12 +297,12 @@ main.content a:not(.nav-link):hover {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: $zq-muted;
+  color: $eq-muted;
 }
 
 .margin-sidebar .nav-link {
   font-size: 0.9rem;
-  color: $zq-muted;
+  color: $eq-muted;
 }
 
 // Zensical's roomier rhythm between the entries. Quarto sets its own
@@ -296,7 +319,7 @@ main.content a:not(.nav-link):hover {
 .margin-sidebar .nav-link.active,
 .sidebar nav[role="doc-toc"] ul > li > a.active,
 .sidebar nav[role="doc-toc"] ul > li > ul > li > a.active {
-  color: $zq-accent !important;
+  color: $eq-accent !important;
 }
 
 // ---------------------------------------------------------------------------
@@ -335,7 +358,7 @@ pre.sourceCode {
 }
 
 .table thead th {
-  border-bottom: 2px solid $zq-border;
+  border-bottom: 2px solid $eq-border;
   font-weight: 600;
 }
 
@@ -347,19 +370,19 @@ pre.sourceCode {
 // Footer.
 
 .nav-footer {
-  border-top: 1px solid $zq-border;
+  border-top: 1px solid $eq-border;
   font-size: 0.8rem;
-  color: $zq-muted;
+  color: $eq-muted;
 }
 
 .nav-footer a {
-  color: $zq-muted;
+  color: $eq-muted;
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 
 .nav-footer a:hover {
-  color: $zq-accent;
+  color: $eq-accent;
 }
 
 // ---------------------------------------------------------------------------
@@ -373,11 +396,11 @@ pre.sourceCode {
   gap: 0.75rem;
   margin: 0 0 1.5rem;
   padding: 0.6rem 1rem;
-  border: 1px solid $zq-border;
+  border: 1px solid $eq-border;
   border-radius: $border-radius;
   font-size: 0.85rem;
   line-height: 1.5;
-  background: $zq-surface;
+  background: $eq-surface;
 }
 
 .qda-version--old {

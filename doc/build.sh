@@ -26,13 +26,20 @@ command -v "$GEN_PY" >/dev/null 2>&1 || GEN_PY=python3
 # disposable copy before the render, because Quarto resolves extensions and
 # resources only inside a project directory. The plugin's own images are
 # mirrored in the same way, so a page can refer to asset/ in either language.
+#
+# The exclusion is for macOS. Deleting a tracked file through the Finder
+# leaves a zero-byte tombstone named "<file> \016.gitFinderDeleted" that the
+# owner may not open — rsync reports "Permission denied" and stops, and the
+# whole build fails over a file nobody wanted. They are recreated as fast as
+# they are moved aside, so they are skipped rather than fought with.
 for lang in en de; do
-  rsync -a --delete _theme/_extensions/ "$lang/_extensions/"
-  rsync -a --delete _theme/fonts/ "$lang/fonts/"
+  rsync -a --delete --exclude "*.gitFinderDeleted" _theme/_extensions/ "$lang/_extensions/"
+  rsync -a --delete --exclude "*.gitFinderDeleted" _theme/fonts/ "$lang/fonts/"
   # The screenshot originals stay out: 15 MB of them, and the pages use
   # the resized versions beside them. Mirrored they would be published
   # twice over, once per language.
-  rsync -a --delete --exclude "screenshot/original/" ../asset/ "$lang/asset/"
+  rsync -a --delete --exclude "screenshot/original/" \
+    --exclude "*.gitFinderDeleted" ../asset/ "$lang/asset/"
   # The favicon is the plugin's own 32 px icon rather than the logo: a
   # favicon is drawn into a square box, and the logo is 64x72 with
   # outlines and text lines that close up into grey at that size.

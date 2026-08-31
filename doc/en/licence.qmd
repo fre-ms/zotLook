@@ -39,7 +39,7 @@ The original copyright notice is kept alongside the fork's; see
 ## Components this documentation uses
 
 The site is built with [Quarto](https://quarto.org) on the
-[zotqda-quarto-theme](https://github.com/fre-ms/zotqda-quarto-theme) (MIT), with
+[easyQDA-quarto-theme](https://github.com/easyqda/easyQDA-quarto-theme) (MIT), with
 [Noto Sans](https://fonts.google.com/noto) under the SIL Open Font License.
 
 The plugin itself has **no runtime dependencies**. It renders PDF pages with the

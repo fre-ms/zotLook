@@ -39,7 +39,7 @@ Upstream-Code erhalten ist, steht unter [Herkunft](origins.qmd).
 ## Bestandteile dieser Dokumentation
 
 Die Seite ist mit [Quarto](https://quarto.org) auf dem
-[zotqda-quarto-theme](https://github.com/fre-ms/zotqda-quarto-theme) (MIT)
+[easyQDA-quarto-theme](https://github.com/easyqda/easyQDA-quarto-theme) (MIT)
 gebaut, mit [Noto Sans](https://fonts.google.com/noto) unter der SIL Open Font
 License.
 

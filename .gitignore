@@ -22,3 +22,8 @@ doc/.quarto/
 
 # The built site; published from CI, never committed
 site/
+
+# Deleting a tracked file through the macOS Finder leaves a zero-byte
+# tombstone beside it that its owner may not remove. It is not ours and it
+# must never be committed.
+*.gitFinderDeleted
