@@ -34,7 +34,7 @@ command -v "$GEN_PY" >/dev/null 2>&1 || GEN_PY=python3
 # they are moved aside, so they are skipped rather than fought with.
 for lang in en de; do
   rsync -a --delete --exclude "*.gitFinderDeleted" _theme/_extensions/ "$lang/_extensions/"
-  rsync -a --delete --exclude "*.gitFinderDeleted" _theme/fonts/ "$lang/fonts/"
+  rsync -a --delete --exclude "*.gitFinderDeleted" _theme/font/ "$lang/font/"
   # The screenshot originals stay out: 15 MB of them, and the pages use
   # the resized versions beside them. Mirrored they would be published
   # twice over, once per language.

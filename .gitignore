@@ -10,8 +10,8 @@ node_modules/
 # doc/_theme/ and leave the vendored theme itself out of the repository.
 doc/en/_extensions/
 doc/de/_extensions/
-doc/en/fonts/
-doc/de/fonts/
+doc/en/font/
+doc/de/font/
 doc/en/asset/
 doc/de/asset/
 doc/en/theme/

@@ -1,7 +1,6 @@
 ---
 title: "zotLook"
 subtitle: "Documentation"
-author: "fre.ms"
 description: >-
   What zotLook is, what it needs, and how to install it: preview Zotero attachments with the Space key on macOS, Linux and Windows.
 ---

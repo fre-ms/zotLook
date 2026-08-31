@@ -1,6 +1,6 @@
 #!/bin/sh
 # Pull the current easyQDA-quarto-theme into this repository. The theme is
-# vendored — the single copy of _extensions/ and fonts/ lives in
+# vendored — the single copy of _extensions/ and font/ lives in
 # doc/_theme/, offline/ and print/ beside it, and gen_langmap.py in doc/ —
 # so the documentation builds without a sibling checkout (CI). build.sh
 # mirrors _theme/ into the language projects. Run this after changing the
@@ -13,7 +13,10 @@
 # The theme was renamed twice on its way here — the repository from
 # zotqda-quarto-theme, the extension from zotqda-theme to easyqda-theme, and
 # its font directory from fonts/ to font/ — so an old checkout beside this
-# one will not do; the names below are the current ones.
+# one will not do; the names below are the current ones. This repository
+# follows the theme's names rather than translating them, so the copy is
+# one-to-one and the next rename shows up here as a missing directory
+# instead of quietly landing under the old name.
 # When the source is a clean git checkout, it is fast-forwarded to the
 # published tip first, so a re-run vendors the current release; a checkout
 # with local changes is used as-is (uncommitted theme work is preserved).
@@ -57,7 +60,7 @@ fi
 # into the language projects, and .gitignore keeps them out of the
 # repository.
 mkdir -p _theme
-for pair in "_extensions:_theme/_extensions" "font:_theme/fonts" \
+for pair in "_extensions:_theme/_extensions" "font:_theme/font" \
             "offline:offline" "print:print"; do
   src="${pair%%:*}"; dst="${pair##*:}"
   if [ ! -d "$THEME/$src" ]; then
@@ -72,4 +75,4 @@ cp "$THEME/script/gen_langmap.py" gen_langmap.py
 
 rev=$(git -C "$THEME" rev-parse --short HEAD 2>/dev/null || echo unknown)
 echo "theme vendored from $THEME @ $rev" \
-     "(extensions, fonts, offline, print, gen_langmap)"
+     "(extensions, font, offline, print, gen_langmap)"

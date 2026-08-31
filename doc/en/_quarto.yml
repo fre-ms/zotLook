@@ -4,7 +4,7 @@ project:
   type: website
   output-dir: ../../site/en
   resources:
-    - fonts/
+    - font/
 
 # en-GB, not a bare "en": it fixes the variant for spell-checkers, screen
 # readers and the PDF's hyphenation. The hreflang annotations stay at the
@@ -93,5 +93,5 @@ website:
 
 format:
   easyqda-theme-html:
-    css: fonts/noto.css
+    css: font/noto.css
     include-after-body: theme/scripts.html
