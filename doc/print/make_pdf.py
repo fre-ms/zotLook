@@ -8,7 +8,7 @@ project in LANG_DIR — the chapter order is the sidebar order, read from
 the project's _quarto.yml, so the PDF cannot fall behind a page that was
 added; top-level sidebar sections become book parts carrying the
 section's title. Renders with Typst: no TeX toolchain, Noto Sans
-embedded from the fonts/ directory beside this script, a linked table
+embedded from the font/ directory beside this script, a linked table
 of contents, and citations linked to one bibliography at the end (the
 pages' own ``::: {#refs}`` placements are stripped — in a single volume
 the literature belongs in one place).
@@ -41,17 +41,21 @@ import yaml
 
 def fonts_dir():
     # The Noto Sans TTFs sit beside this script in the theme repository
-    # (print/font/, and print/fonts/ in checkouts made before it was
-    # renamed); a site that vendors the script into code/ keeps them under
-    # asset/fonts/ttf instead (excluded from publishing — the woff2 subsets
-    # serve the website). All three layouts work unpatched.
+    # (print/font/); a site that vendors the script into code/ keeps
+    # them under asset/font/ttf instead (excluded from publishing —
+    # the woff2 subsets serve the website). Both layouts work
+    # unpatched, and both under their pre-rename plural names too, so
+    # a checkout or a vendoring site from before the rename keeps
+    # building.
     here = Path(__file__).resolve().parent
     for cand in (here / "font", here / "fonts",
+                 here.parent / "asset" / "font" / "ttf",
                  here.parent / "asset" / "fonts" / "ttf"):
         if cand.is_dir():
             return cand
-    raise SystemExit(f"make_pdf: no font directory (looked beside {here} "
-                     "and under asset/fonts/ttf)")
+    raise SystemExit(f"make_pdf: no font directory (looked for font/ and "
+                     f"fonts/ beside {here} and under asset/font/ttf and "
+                     "asset/fonts/ttf)")
 
 REFS_BLOCK = re.compile(
     r"\n#+ [^\n]*\{\.unnumbered\}\n+::: \{#refs\}\n:::\n?|\n::: \{#refs\}\n:::\n?")

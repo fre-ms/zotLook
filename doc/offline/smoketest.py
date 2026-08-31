@@ -14,7 +14,7 @@ every regression while this pipeline was built:
   (dead when the index cannot be fetched).
 * Math: pages that reference the vendored MathJax must render at least
   one mjx-container.
-* Fonts: when the site ships fonts/noto.css, "Noto Sans" must report
+* Fonts: when the site ships font/noto.css, "Noto Sans" must report
   loaded.
 * No page may reference a known CDN host (also enforced by
   postprocess.py; re-checked here as a belt).
