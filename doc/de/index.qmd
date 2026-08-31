@@ -42,10 +42,30 @@ abschalten.
 
 | | |
 |---|---|
-| **Zotero** | 7 oder neuer. Getestet mit [**Zotero**](https://www.zotero.org/) **10**. |
+| **Zotero** | [**Zotero**](https://www.zotero.org/) **10** — damit wird zotLook entwickelt und geprüft. Zu älteren Versionen siehe unten. |
 | **macOS** | Ab macOS 12 (Monterey). Nichts zu installieren, Quick Look gehört zum System. |
 | **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). Unter Debian und Ubuntu: `sudo apt install gnome-sushi`. |
 | **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook). Die Versionen des Stores und der Webseite funktionieren gleichermaßen. |
+
+### Ältere Zotero-Versionen
+
+zotLook **installiert sich** weiterhin ab Zotero 7 und funktioniert dort
+möglicherweise auch. Entwickelt und geprüft wurde es auf 7, 8 und 9 aber nicht,
+also wird darüber auch nichts behauptet. Ein Blick in Zoteros eigene Quellen
+sagt immerhin so viel:
+
+- Alles Übrige, was das Plugin aufruft, gibt es bereits in **7.0.0** —
+  `zotero://open-pdf?cfi=`, `PreferencePanes.register`, `PDFWorker.export`,
+  `getMainWindows`.
+- `EPUB.mjs`, worauf die EPUB-Vorschau und die EPUB-Seitenübersicht aufbauen,
+  taucht erst in **Zotero 8** auf. Darunter kann alles, was mit EPUB zu tun
+  hat, nicht funktionieren.
+- Ob Zotero 7 sein mitgeliefertes pdf.js dort liegen hat, wo der Kontaktbogen
+  es sucht, konnte ich nicht prüfen.
+
+Wenn Sie zotLook auf einem älteren Zotero betreiben — erfolgreich oder nicht —,
+[schreiben Sie es bitte](https://github.com/fre-ms/zotLook/issues). Rückmeldungen
+sind willkommen und werden hier nachgetragen.
 
 ## Installation
 

@@ -39,10 +39,28 @@ file as it is stored.
 
 | | |
 |---|---|
-| **Zotero** | 7 or later. Tested with [**Zotero**](https://www.zotero.org/) **10**. |
+| **Zotero** | [**Zotero**](https://www.zotero.org/) **10** — the version zotLook is developed and tested against. On older ones, see below. |
 | **macOS** | macOS 12 (Monterey) or later. Nothing to install, Quick Look is part of the system. |
 | **Linux** | [GNOME Sushi](https://gitlab.gnome.org/GNOME/sushi). On Debian and Ubuntu: `sudo apt install gnome-sushi`. |
 | **Windows** | [QuickLook](https://github.com/QL-Win/QuickLook). The Store and website versions work alike. |
+
+### Older versions of Zotero
+
+zotLook still **installs** on Zotero 7 and later, and may well work there, but it
+has been neither developed nor tested on 7, 8 or 9, so nothing about them is
+claimed. Reading Zotero's own sources says this much:
+
+- Everything else the plugin calls is there in **7.0.0** already —
+  `zotero://open-pdf?cfi=`, `PreferencePanes.register`, `PDFWorker.export`,
+  `getMainWindows`.
+- `EPUB.mjs`, which the EPUB preview and the EPUB page overview are built on,
+  first appears in **Zotero 8**. Below that, nothing to do with EPUB can work.
+- Whether Zotero 7 keeps its bundled pdf.js where the contact sheet looks for
+  it, I could not check.
+
+If you run zotLook on an older Zotero — successfully or not — please
+[say so](https://github.com/fre-ms/zotLook/issues). Reports are welcome and will
+be noted here.
 
 ## Install
 

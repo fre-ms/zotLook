@@ -3,13 +3,13 @@
 <img src="asset/zotlook-logo.svg" alt="" width="88" align="right">
 
 [![CI](https://github.com/fre-ms/zotLook/actions/workflows/ci.yml/badge.svg)](https://github.com/fre-ms/zotLook/actions/workflows/ci.yml)
-[![Zotero 7–10](https://img.shields.io/badge/Zotero-7%E2%80%9310-CC2936?logo=zotero&logoColor=white)](https://www.zotero.org)
+[![Zotero 10](https://img.shields.io/badge/Zotero-10-CC2936?logo=zotero&logoColor=white)](https://www.zotero.org)
 ![macOS | Linux | Windows](https://img.shields.io/badge/macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 [![Latest release](https://img.shields.io/github/v/release/fre-ms/zotLook)](https://github.com/fre-ms/zotLook/releases)
 [![License: MIT](https://img.shields.io/github/license/fre-ms/zotLook)](LICENSE)
 
-A plugin for Zotero 7 and later, in this form tested with Zotero 10, that previews
-attachments when you press **Space**, the way a file manager does. It carries no
+A plugin for Zotero 10 — the version it is developed and tested against — that
+previews attachments when you press **Space**, the way a file manager does. It carries no
 viewer of its own, but drives the preview panel the system already has:
 
 - [**Quick Look**](https://en.wikipedia.org/wiki/Quick_Look) on **macOS**,
@@ -59,10 +59,29 @@ system already has. Click any image for the full-size version.
 
 ## Requirements
 
-- **Zotero 7** or later
+- **Zotero 10** — the version zotLook is developed and tested against
 - **macOS 12** or later — nothing else to install
 - or **Linux** with GNOME Sushi (`apt install gnome-sushi`)
 - or **Windows** with [QuickLook](https://github.com/QL-Win/QuickLook) running
+
+### Older versions of Zotero
+
+zotLook still **installs** on Zotero 7 and later, and may well work there, but it
+has been neither developed nor tested on 7, 8 or 9, so nothing about them is
+claimed. Reading Zotero's own sources says this much:
+
+- Everything else the plugin calls is there in **7.0.0** already —
+  `zotero://open-pdf?cfi=`, `PreferencePanes.register`, `PDFWorker.export`,
+  `getMainWindows`.
+- `EPUB.mjs`, which the EPUB preview and the EPUB page overview are built on,
+  first appears in **Zotero 8**. Below that, everything to do with EPUB cannot
+  work.
+- Whether Zotero 7 keeps its bundled pdf.js where the contact sheet looks for it,
+  I could not check.
+
+If you run zotLook on an older Zotero — successfully or not — please
+[say so](https://github.com/fre-ms/zotLook/issues). Reports are welcome and will
+be reflected here.
 
 ## Install
 

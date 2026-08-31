@@ -76,18 +76,29 @@ for (const lang of ['de', 'en']) {
 
   ok(badges.length >= 4, `the head carries badges (${badges.length})`);
 
-  // Zotero 7–10 against strict_min_version / strict_max_version. Zotero writes
-  // "7 beta" as 6.999, so the badge says 7 where the manifest says 6.999 —
-  // that is a rendering of the same fact, not a second one.
+  // The badge names the version zotLook is developed and tested against, and
+  // that is deliberately narrower than the range it installs into. Claiming
+  // the whole installable range would be claiming 7, 8 and 9, which have
+  // never been run — EPUB.mjs, which everything EPUB is built on, does not
+  // exist before Zotero 8 at all. So the badge is held against
+  // strict_max_version, and the gap below it has to be spoken for in prose
+  // rather than left for a reader to discover.
   const zotero = badges.find(b => /badge\/Zotero-/.test(b));
-  ok(zotero, 'one of them states the Zotero range');
+  ok(zotero, 'one of them states the Zotero version');
   const shown = zotero.match(/badge\/Zotero-([^-?]+)/)[1];
-  const [lo, hi] = shown.split(/[–-]/);
   const min = z.strict_min_version, max = z.strict_max_version;
-  eq(lo, String(Math.ceil(parseFloat(min))),
-     `badge's lower bound ${lo} is manifest ${min} rounded up, as Zotero writes it`);
-  eq(hi, max.replace(/\.\*$/, ''),
-     `and its upper bound ${hi} is manifest ${max}`);
+  eq(shown, max.replace(/\.\*$/, ''),
+     `the badge says ${shown}, the version tested, which is manifest ${max}`);
+  ok(!/[–-]/.test(shown),
+     'and states one version rather than a range it has not been run across');
+
+  // The manifest stays open below it on purpose, so that anyone on an older
+  // Zotero can try; that is only defensible while the README says as much.
+  eq(min, '6.999', 'the manifest still installs on Zotero 7, as Zotero writes it');
+  ok(/## Older versions of Zotero/.test(readme),
+     'and the README has a section about what that does and does not mean');
+  ok(/EPUB\.mjs/.test(readme) && /Zotero 8/.test(readme),
+     'naming the one dependency that certainly is not there below Zotero 8');
 
   // The platform badge against the platforms the plugin actually drives
   const platforms = badges.find(b => /macOS/.test(b) && !/Zotero/.test(b));
