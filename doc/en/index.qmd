@@ -21,7 +21,7 @@ has:
 Beyond that, **Ctrl+Shift+Space** builds a **contact sheet** of a PDF: a grid of
 every page, its column count adjustable. **That helps most with long documents
 such as books**, because the system's preview will show you every page but only
-one at a time. The finished contact sheet is shown, again, by the system
+one or two at a time. The contact sheet zotLook builds is shown by the system
 preview — and **a click on a page opens it in Zotero's reader**. Building one
 can take a few seconds; a progress indicator names the page zotLook is
 currently rendering.
@@ -92,6 +92,54 @@ drawn in, and previews that copy rather than the stored file.
 Attachments that carry no annotations are recognised before any work starts,
 and an export is reused until you add or change one, so the usual case costs
 nothing at all. The setting is under [Settings](settings.qmd).
+
+## But Zotero already has a preview
+
+It does, and zotLook does not replace it. The item pane shows the attachment
+with its annotations on it, and needs nothing else installed at all. For *what is
+this?* it is the right answer.
+
+For looking at a document more closely it is only so much use, and was probably
+never meant to be more.
+
+- It shows **a single thumbnail**, moved through with two buttons or the arrow
+  keys.
+- The **thumbnail is no wider than the item pane**, its height following the
+  page's proportions. There is no setting for either.
+- Nothing in it can be **clicked, selected or copied** — web snapshots are the
+  exception, and there selection is switched off instead.
+- Zotero's own preview currently (Zotero 10) handles **four formats only: PDF,
+  EPUB, web snapshot, image** — video and audio are marked in the source as
+  still to come.
+
+zotLook sets out to complement it on exactly those points: *looking at something
+properly without opening it.*
+
+- **Far larger — and as large as you like.** The preview windows of all three
+  systems can be dragged to any size, and what they show scales with them.
+- **Independent of the item pane**, which does not have to be open for it.
+- **All of it at once.** **Ctrl+Shift+Space** builds a *contact sheet*: a
+  compact overview of every page of a PDF. Where a book carries a printed
+  pagination, the same holds for an EPUB.
+- **To the passage you want in a couple of moves.** An EPUB preview keeps its
+  contents and its annotations behind a button each, above the text; Zotero's
+  preview knows only forward and back.
+- **From the overview into the reader.** Opening the reader at the page you were
+  looking at is a feature of Zotero's preview — there for a PDF only. zotLook
+  reproduces it in its own: a click on a page opens it in the reader, **for an
+  EPUB as well**.
+- **A document, not a picture.** What the system's preview program allows —
+  selecting text, copying it, scrolling — is thereby available for Zotero
+  attachments too.
+- **Broad support for file formats:** whatever the system's preview can show,
+  zotLook can show. [Platforms](platforms.qmd) describes what each system
+  manages on its own — and
+  [that can be extended considerably](platforms.qmd#extending-the-preview).
+- **One key, and gone again.** Space to look, Space or Escape to dismiss. No tab
+  is opened and none has to be closed.
+
+So zotLook and Zotero's own preview answer different questions — *what is this?*
+and *let me actually look at it* — and sit well side by side.
 
 ## Where to go next
 

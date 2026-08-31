@@ -23,15 +23,16 @@ Darüber hinaus erzeugt zotLook mit **Strg+Umschalt+Leertaste** **Kontaktbögen*
 von PDF-Dateien: ein Übersichtsraster über alle Seiten, dessen Spaltenzahl sich
 einstellen lässt. **Das hilft vor allem bei umfangreichen Dokumenten wie Büchern**,
 denn die Vorschau des Betriebssystems zeigt zwar jede Seite, aber immer nur eine
-auf einmal. Den fertigen Kontaktbogen zeigt wiederum die Systemvorschau — und
-**ein Klick auf eine Seite öffnet sie im Zotero-Reader**. Das Erzeugen kann einige
+bzw. wenige auf einmal.
+Der Kontaktbogen, den zotLook generiert, wird von der Systemvorschau angezeigt — und
+**ein Klick auf eine Seite öffnet sie im Zotero-Reader**. Das Erzeugen des Kontaktbogens kann einige
 Sekunden dauern; eine Verlaufsanzeige nennt dabei die Seite, für die zotLook
 gerade die Vorschau generiert.
 
 Eine Besonderheit von zotLook ist neben der **plattformübergreifenden Vorschau**,
 dass **Zotero-Annotationen Bestandteil der Vorschau** werden — in der
 Vorschau des Betriebssystems wie auch im Kontaktbogen. Zotero bewahrt Annotationen
-in seiner Datenbank auf und nicht in der Datei; normalerweise zeigte die Vorschau
+in seiner Datenbank auf und nicht in der Datei; normalerweise zeigte die Vorschau des Betriebssystems 
 daher das Dokument ohne Annotationen. Auf Wunsch lässt sich die Funktion in zotLook
 abschalten.
 
@@ -98,6 +99,57 @@ Anhänge ohne Annotationen werden erkannt, bevor irgendeine Arbeit beginnt, und
 ein Export wird wiederverwendet, bis Sie eine hinzufügen oder ändern. Der
 Normalfall kostet also gar nichts. Die Einstellung finden Sie unter
 [Einstellungen](settings.qmd).
+
+## Zotero hat doch schon eine Vorschau
+
+Hat es, und zotLook ersetzt sie nicht. Die Seitenleiste zeigt den Anhang mit
+seinen Annotationen darauf — ganz ohne externe Programme. Auf die Frage *Was ist
+das?* ist sie die richtige Antwort.
+
+Für eine eingehendere Vorschau von Dokumenten ist sie jedoch nur bedingt
+geeignet und wahrscheinlich auch gar nicht dafür gedacht.
+
+- Sie zeigt **eine einzelne Miniatur**, durch die man mit zwei Knöpfen oder den
+  Pfeiltasten blättert.
+- Die **Breite der Miniatur ist auf die der Seitenleiste beschränkt**, ihre Höhe
+  folgt den Seitenverhältnissen.
+- In der Miniatur lässt sich **nichts anklicken, markieren oder kopieren** —
+  Webschnappschüsse sind die Ausnahme, dort ist dafür das Markieren
+  abgeschaltet.
+- Die Zotero-eigene Vorschau kennt aktuell (Zotero 10) **nur vier Formate: PDF,
+  EPUB, Webschnappschuss, Bild** — Video und Audio stehen im Quelltext als noch
+  zu erledigen.
+
+zotLook möchte die integrierte Vorschau genau in diesen Punkten ergänzen: *etwas
+richtig ansehen, ohne es zu öffnen.*
+
+- **Deutlich größer — und so groß, wie Sie möchten.** Die Vorschaufenster aller
+  drei Systeme lassen sich frei in der Größe ziehen, und der dargestellte Inhalt
+  skaliert mit.
+- **Unabhängig von der Seitenleiste**, die dafür nicht geöffnet sein muss.
+- **Alles auf einmal.** **Strg+Umschalt+Leertaste** erzeugt einen
+  *Kontaktbogen*: einen kompakten Überblick über alle Seiten eines PDFs. Führt
+  ein Buch eine gedruckte Paginierung mit, gilt das auch für EPUB.
+- **In wenigen Griffen zum gesuchten Abschnitt.** Die EPUB-Vorschau hält
+  Inhaltsverzeichnis und Annotationen hinter je einem Knopf über dem Text
+  bereit; Zoteros Vorschau kennt nur vor und zurück.
+- **Aus der Übersicht in den Reader.** Den Reader an der gerade angesehenen
+  Seite zu öffnen, ist eine Funktion von Zoteros Vorschau — dort allerdings nur
+  beim PDF. zotLook bildet sie in seiner Vorschau nach: ein Klick auf eine Seite
+  öffnet sie im Reader, **beim EPUB ebenso**.
+- **Ein Dokument, kein Bild.** Was das Vorschauprogramm des Betriebssystems
+  erlaubt — Text markieren, kopieren, scrollen —, steht damit auch für
+  Zotero-Anhänge zur Verfügung.
+- **Breite Unterstützung von Dateiformaten:** Was die Vorschau des
+  Betriebssystems kann, kann auch zotLook. Die Seite
+  [Plattformen](platforms.qmd) beschreibt, was die Systeme von Haus aus zeigen —
+  [erweitern lässt sich das noch erheblich](platforms.qmd#die-vorschau-erweitern).
+- **Eine Taste, und wieder weg.** Leertaste zum Ansehen, Leertaste oder Escape
+  zum Schließen. Kein Tab, der aufgeht, und keiner, der zugemacht werden muss.
+
+zotLook und Zoteros eigene Vorschau beantworten also verschiedene Fragen — *Was
+ist das?* und *Lass mich das mal richtig ansehen* — und sind somit nebeneinander
+gut aufgehoben.
 
 ## Weiter
 
