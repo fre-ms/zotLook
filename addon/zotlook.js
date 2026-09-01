@@ -255,7 +255,20 @@ var zotLook = {
 		let keydownHandler = (event) => this._onKeyDown(event, window);
 		itemsTree.addEventListener("keydown", keydownHandler, true);
 
-		let listeners = { keydownHandler, itemsTree };
+		// A second listener on the window itself, for closing only. The one
+		// on the tree opens a preview and needs the tree's focus to beat its
+		// find-as-you-type; but the press that closes one can come from
+		// anywhere in the window — Escape after a context-menu command lands
+		// on whatever the menu left focused, not on the tree — so closing is
+		// caught a level up. It runs first, being the ancestor, and stops the
+		// event only when it actually closes something, so the tree listener
+		// and Zotero's own Escape are untouched the rest of the time.
+		let closeHandler = (event) => this._onCloseKey(event);
+		if (typeof window.addEventListener === "function") {
+			window.addEventListener("keydown", closeHandler, true);
+		}
+
+		let listeners = { keydownHandler, itemsTree, closeHandler, window };
 
 		this._addMenuToWindow(window, doc, listeners);
 
@@ -267,12 +280,23 @@ var zotLook = {
 		let listeners = this._windowListeners.get(window);
 		if (!listeners) return;
 
-		// Remove keyboard listener
+		// Remove keyboard listeners
 		listeners.itemsTree.removeEventListener(
 			"keydown",
 			listeners.keydownHandler,
 			true
 		);
+		if (
+			listeners.closeHandler &&
+			listeners.window &&
+			typeof listeners.window.removeEventListener === "function"
+		) {
+			listeners.window.removeEventListener(
+				"keydown",
+				listeners.closeHandler,
+				true
+			);
+		}
 
 		// Remove context menu listener and elements
 		if (listeners.menuPopup && listeners.popupShowHandler) {
@@ -428,6 +452,43 @@ var zotLook = {
 		let items = window.ZoteroPane && window.ZoteroPane.getSelectedItems();
 		if (items && items.length > 0) {
 			this[binding.open](items);
+		}
+	},
+
+	/**
+	 * Closing, caught at the window rather than at the item tree.
+	 *
+	 * Opening a preview needs the tree's focus, to get in front of its
+	 * find-as-you-type; closing one does not, and the press that closes it
+	 * often comes from elsewhere — Escape right after a context-menu command
+	 * lands on whatever the menu left focused, not on the tree, so a listener
+	 * only on the tree never sees it. This one sits on the window, runs
+	 * before the tree's (it is the ancestor in the capture phase), and stops
+	 * the event only when it actually closes something, so nothing else about
+	 * Escape or the shortcuts changes.
+	 */
+	_onCloseKey(event) {
+		if (event.key === "Escape") {
+			if (this._isActive || this._pipeShown) {
+				event.preventDefault();
+				event.stopPropagation();
+				this._closeQuickLook();
+			} else if (this._viewer) {
+				event.preventDefault();
+				event.stopPropagation();
+				this._closeViewer();
+			}
+			return;
+		}
+
+		// The windowed sheet's own shortcut, pressed again to close it
+		if (this._viewer) {
+			let own = this.bindings.find((b) => b.close === "_closeViewer");
+			if (own && this._matchesBinding(event, own)) {
+				event.preventDefault();
+				event.stopPropagation();
+				this._closeViewer();
+			}
 		}
 	},
 
@@ -766,7 +827,17 @@ var zotLook = {
 	_adoptViewer(win) {
 		if (!win || win === this._viewer) return;
 		this._releaseViewer();
+		this._viewer = win;
+
+		// A keydown listener catches the closing press while the sheet is in
+		// this same process. The window declares maychangeremoteness, though,
+		// so it may load the file in a content process of its own — and then
+		// this listener never hears the key. The <key> elements below are
+		// heard whatever the process, being chrome-level shortcuts; keeping
+		// both means the window closes on its shortcut and on Escape whether
+		// or not the load went remote.
 		let handler = (event) => this._onViewerKeyDown(event);
+		this._viewerKeyHandler = handler;
 		try {
 			win.addEventListener("keydown", handler, true);
 			win.addEventListener(
@@ -781,10 +852,27 @@ var zotLook = {
 			);
 		} catch (e) {
 			this.log("Could not listen to the contact sheet window: " + e);
-			return;
 		}
-		this._viewer = win;
-		this._viewerKeyHandler = handler;
+
+		// The document may not be built yet when openInViewer returns, so
+		// the keys are installed now and again on load; the second is a
+		// no-op once the first has taken.
+		let install = () => {
+			try {
+				if (this._installViewerKeys(win)) {
+					this.log("Contact sheet window keys installed");
+				}
+			} catch (e) {
+				this.log("Could not add the contact sheet window's keys: " + e);
+			}
+		};
+		install();
+		try {
+			win.addEventListener("load", install, { once: true });
+		} catch (e) {
+			// The window is already gone
+		}
+		this.log("Adopted the contact sheet window");
 	},
 
 	_onViewerKeyDown(event) {
@@ -794,7 +882,66 @@ var zotLook = {
 		if (!closes) return;
 		event.preventDefault();
 		event.stopPropagation();
+		this.log("Closing the contact sheet window from a key in it");
 		this._closeViewer();
+	},
+
+	/**
+	 * Adds Escape and the windowed sheet's own shortcut to the viewer window
+	 * as chrome-level <key>s, both firing the window's existing cmd_close
+	 * (window.close()). This is what closes the window when the file loaded
+	 * into a content process of its own, where a plain keydown listener is
+	 * never reached.
+	 *
+	 * @returns {boolean} whether the keys are in place
+	 */
+	_installViewerKeys(win) {
+		let doc = win.document;
+		if (!doc || !doc.documentElement) return false;
+		if (doc.getElementById("zotlook-viewer-keys")) return true;
+		if (typeof doc.createXULElement !== "function") return false;
+
+		let keyset = doc.createXULElement("keyset");
+		keyset.id = "zotlook-viewer-keys";
+
+		let addKey = (attrs) => {
+			let key = doc.createXULElement("key");
+			for (let name in attrs) {
+				if (attrs[name] != null) key.setAttribute(name, attrs[name]);
+			}
+			// The window's own close command, defined in basicViewer.xhtml
+			key.setAttribute("command", "cmd_close");
+			keyset.appendChild(key);
+		};
+
+		addKey({ keycode: "VK_ESCAPE" });
+		let own = this.bindings.find((b) => b.close === "_closeViewer");
+		if (own) addKey(this._xulKeyAttrs(own));
+
+		doc.documentElement.appendChild(keyset);
+		return true;
+	},
+
+	/**
+	 * A shortcut binding as the attributes of a XUL <key>. Space is named by
+	 * its key code, which sits in the same place on every layout; a letter or
+	 * digit by the character it produces, as elsewhere in this plugin.
+	 */
+	_xulKeyAttrs(b) {
+		let mods = [];
+		if (b.ctrl) mods.push("control");
+		if (b.alt) mods.push("alt");
+		if (b.shift) mods.push("shift");
+		if (b.meta) mods.push("meta");
+		let attrs = { modifiers: mods.join(",") };
+		if (b.code === "Space") attrs.keycode = "VK_SPACE";
+		else if (b.code && b.code.indexOf("Key") === 0) {
+			attrs.key = b.code.slice(3).toLowerCase();
+		} else if (b.code && b.code.indexOf("Digit") === 0) {
+			attrs.key = b.code.slice(5);
+		} else if (b.key) attrs.key = b.key;
+		else if (b.code) attrs.keycode = "VK_" + b.code.toUpperCase();
+		return attrs;
 	},
 
 	/**
@@ -813,15 +960,29 @@ var zotLook = {
 		return true;
 	},
 
-	/** Forgets the window without closing it: the listener must not outlive
-	 *  the plugin, the window may. */
+	/** Forgets the window without closing it: neither the listener nor the
+	 *  injected keys must outlive the plugin, the window may. */
 	_releaseViewer() {
 		let win = this._viewer;
-		if (win && this._viewerKeyHandler) {
+		if (win) {
+			if (this._viewerKeyHandler) {
+				try {
+					win.removeEventListener(
+						"keydown",
+						this._viewerKeyHandler,
+						true
+					);
+				} catch (e) {
+					// The window is already gone
+				}
+			}
 			try {
-				win.removeEventListener("keydown", this._viewerKeyHandler, true);
+				let keyset =
+					win.document &&
+					win.document.getElementById("zotlook-viewer-keys");
+				if (keyset) keyset.remove();
 			} catch (e) {
-				// The window is already gone
+				// Likewise
 			}
 		}
 		this._viewer = null;

@@ -503,23 +503,38 @@ const ok = (c,l)=>eq(!!c,true,l);
 
 // ── the sheet's window answers its own shortcut and Escape ────────────
 // It has the keyboard from the moment it opens, so the closing press lands
-// there, not in the item list.
+// there, not in the item list. A plain listener catches it in-process; the
+// injected <key>s catch it even when the file loads in a process of its own.
 {
   const { zotLook: Q, zotLookUtil: U } = loadPlugin();
+  // A window with just enough of a XUL document for the key injection
   const makeWin = () => {
+    const byId = {};
+    const docEl = {
+      appendChild(n) { if (n.id) byId[n.id] = n; this._child = n; },
+    };
+    const doc = {
+      documentElement: docEl,
+      getElementById: (id) => byId[id] || null,
+      createXULElement: (tag) => ({
+        tag, id: '', attrs: {}, children: [],
+        setAttribute(k, v) { this.attrs[k] = v; },
+        appendChild(c) { this.children.push(c); },
+        remove() { if (this.id) delete byId[this.id]; },
+      }),
+    };
+    let keydowns = 0;
     const listeners = {};
     return {
-      closed: false, listeners,
-      addEventListener: (type, fn) => { listeners[type] = fn; },
+      closed: false, listeners, document: doc,
+      keydowns: () => keydowns,
+      addEventListener: (type, fn) => { if (type === 'keydown') keydowns++; listeners[type] = fn; },
       removeEventListener: (type) => { delete listeners[type]; },
       close() { this.closed = true; if (listeners.unload) listeners.unload(); },
     };
   };
-  const ev = (o) => {
-    const e = { code:'', key:'', shiftKey:false, altKey:false, metaKey:false, ctrlKey:false,
-      prevented:false, preventDefault(){ this.prevented = true; }, stopPropagation(){}, ...o };
-    return e;
-  };
+  const ev = (o) => ({ code:'', key:'', shiftKey:false, altKey:false, metaKey:false, ctrlKey:false,
+    prevented:false, preventDefault(){ this.prevented = true; }, stopPropagation(){}, ...o });
   const key = U.parseShortcut(U.defaultShortcut('key.contactSheetWindow'));
   const own = { code: key.code, ctrlKey: !!key.ctrl, shiftKey: !!key.shift,
                 altKey: !!key.alt, metaKey: !!key.meta };
@@ -528,6 +543,16 @@ const ok = (c,l)=>eq(!!c,true,l);
   Q._adoptViewer(w);
   ok(w.listeners.keydown, 'the window is listened to');
   eq(Q._viewer, w, 'and remembered');
+
+  // the chrome-level keys, for when the listener above cannot hear the press
+  const keyset = w.document.getElementById('zotlook-viewer-keys');
+  ok(keyset, 'a keyset is installed in the window');
+  eq(keyset.children.length, 2, 'Escape and the windowed sheet’s own shortcut');
+  eq(keyset.children[0].attrs.keycode, 'VK_ESCAPE', 'the first is Escape');
+  eq(keyset.children[0].attrs.command, 'cmd_close', 'firing the window’s own close');
+  eq(keyset.children[1].attrs.keycode, 'VK_SPACE', 'the second is the shortcut’s Space');
+  eq(keyset.children[1].attrs.modifiers, 'control,alt', 'with its modifiers');
+  eq(keyset.children[1].attrs.command, 'cmd_close', 'also closing the window');
 
   const space = ev({ code:'Space' }); w.listeners.keydown(space);
   eq(w.closed, false, 'Space leaves the window alone: it scrolls the sheet');
@@ -553,10 +578,51 @@ const ok = (c,l)=>eq(!!c,true,l);
   const w4 = makeWin();
   Q._adoptViewer(w4);
   Q._adoptViewer(w4);
-  eq(Object.keys(w4.listeners).length, 2, 'adopting the same window twice listens once');
+  eq(w4.keydowns(), 1, 'adopting the same window twice listens once');
   Q._releaseViewer();
   eq(w4.closed, false, 'released at shutdown, the window stays');
   eq(w4.listeners.keydown, undefined, 'without the listener');
+  eq(w4.document.getElementById('zotlook-viewer-keys'), null, 'and without the keys');
+}
+
+// ── closing is caught at the window, not only at the item tree ────────
+// Escape after a context-menu command lands wherever the menu left focus,
+// so the close handler sits on the window and works from anywhere in it.
+{
+  const { zotLook: Q, zotLookUtil: U } = loadPlugin();
+  const ev = (o) => ({ code:'', key:'', shiftKey:false, altKey:false, metaKey:false, ctrlKey:false,
+    prevented:false, preventDefault(){ this.prevented = true; }, stopPropagation(){}, ...o });
+  let closedQL = 0; Q._closeQuickLook = () => { closedQL++; };
+  let closedViewer = 0; Q._closeViewer = () => { if (!Q._viewer) return false; Q._viewer = null; closedViewer++; return true; };
+
+  // Escape closes the QuickLook preview when one may be showing
+  Q._isActive = false; Q._pipeShown = true; Q._viewer = null;
+  let e = ev({ key:'Escape' }); Q._onCloseKey(e);
+  eq(closedQL, 1, 'Escape closes the system preview from anywhere in the window');
+  eq(e.prevented, true, 'and is consumed');
+
+  // Escape closes the window when that is what is open
+  Q._pipeShown = false; Q._viewer = {};
+  e = ev({ key:'Escape' }); Q._onCloseKey(e);
+  eq(closedViewer, 1, 'Escape closes the contact sheet window');
+  eq(e.prevented, true, 'and is consumed');
+
+  // Escape with nothing open is left entirely alone
+  Q._viewer = null;
+  e = ev({ key:'Escape' }); Q._onCloseKey(e);
+  eq(e.prevented, false, 'Escape with nothing up is not consumed');
+
+  // the windowed shortcut closes the window from anywhere too
+  const key = U.parseShortcut(U.defaultShortcut('key.contactSheetWindow'));
+  Q._viewer = {};
+  e = ev({ code: key.code, ctrlKey: !!key.ctrl, shiftKey: !!key.shift, altKey: !!key.alt, metaKey: !!key.meta });
+  Q._onCloseKey(e);
+  eq(closedViewer, 2, 'the windowed shortcut closes it, wherever the focus is');
+
+  // an unrelated key is never touched
+  Q._viewer = {};
+  e = ev({ code:'Space' }); Q._onCloseKey(e);
+  eq(e.prevented, false, 'Space is left for the tree to open a preview with');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
