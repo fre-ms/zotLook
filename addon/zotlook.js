@@ -953,10 +953,36 @@ var zotLook = {
 		if (!win) return false;
 		this._releaseViewer();
 		try {
-			if (!win.closed) win.close();
+			if (win.closed) return true;
+		} catch (e) {
+			// Some window references do not expose `closed`; press on
+		}
+		// close() called on the reference openInViewer hands back is a
+		// silent no-op here — the key handler fires, close() is reached, and
+		// the window stays. The window's own cmd_close runs window.close() in
+		// the window's own scope, which is the path Ctrl+W takes and the one
+		// that actually closes it. close() stays as the fallback.
+		let how = "none";
+		try {
+			let cmd =
+				win.document && win.document.getElementById("cmd_close");
+			if (cmd && typeof cmd.doCommand === "function") {
+				cmd.doCommand();
+				how = "command";
+			} else if (typeof win.close === "function") {
+				win.close();
+				how = "close";
+			}
 		} catch (e) {
 			this.log("Could not close the contact sheet window: " + e);
+			try {
+				win.close();
+				how = "close-fallback";
+			} catch (e2) {
+				// Nothing more to try
+			}
 		}
+		this.log("Closed the contact sheet window (" + how + ")");
 		return true;
 	},
 

@@ -510,10 +510,15 @@ const ok = (c,l)=>eq(!!c,true,l);
   // A window with just enough of a XUL document for the key injection
   const makeWin = () => {
     const byId = {};
-    const docEl = {
-      appendChild(n) { if (n.id) byId[n.id] = n; this._child = n; },
-    };
-    const doc = {
+    const listeners = {};
+    const win = { closed: false, closedBy: null, listeners };
+    // close() on the plugin's reference is a silent no-op in the real window,
+    // so the window's own cmd_close is what must be used; both are provided
+    // here, and closedBy records which path ran.
+    const shut = (how) => { win.closed = true; win.closedBy = how; if (listeners.unload) listeners.unload(); };
+    byId['cmd_close'] = { doCommand: () => shut('command') };
+    const docEl = { appendChild(n) { if (n.id) byId[n.id] = n; } };
+    win.document = {
       documentElement: docEl,
       getElementById: (id) => byId[id] || null,
       createXULElement: (tag) => ({
@@ -524,14 +529,11 @@ const ok = (c,l)=>eq(!!c,true,l);
       }),
     };
     let keydowns = 0;
-    const listeners = {};
-    return {
-      closed: false, listeners, document: doc,
-      keydowns: () => keydowns,
-      addEventListener: (type, fn) => { if (type === 'keydown') keydowns++; listeners[type] = fn; },
-      removeEventListener: (type) => { delete listeners[type]; },
-      close() { this.closed = true; if (listeners.unload) listeners.unload(); },
-    };
+    win.keydowns = () => keydowns;
+    win.addEventListener = (type, fn) => { if (type === 'keydown') keydowns++; listeners[type] = fn; };
+    win.removeEventListener = (type) => { delete listeners[type]; };
+    win.close = () => shut('close');
+    return win;
   };
   const ev = (o) => ({ code:'', key:'', shiftKey:false, altKey:false, metaKey:false, ctrlKey:false,
     prevented:false, preventDefault(){ this.prevented = true; }, stopPropagation(){}, ...o });
@@ -560,6 +562,7 @@ const ok = (c,l)=>eq(!!c,true,l);
 
   const esc = ev({ key:'Escape' }); w.listeners.keydown(esc);
   eq(w.closed, true, 'Escape closes it');
+  eq(w.closedBy, 'command', 'through the window’s own cmd_close, not the reference’s no-op close()');
   eq(esc.prevented, true, 'and is consumed');
   eq(Q._viewer, null, 'the window is forgotten as it goes');
   eq(Q._closeViewer(), false, 'and there is nothing left to close');
