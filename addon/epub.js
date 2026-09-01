@@ -1372,28 +1372,27 @@ var zotLookEpub = {
 	/**
 	 * A CFI naming where a page begins, in the form the reader can follow.
 	 *
-	 * A collapsed CFI naming the empty pagebreak <span> alone gives epub.js no
-	 * range to set and the reader arrives nowhere, so a range is needed. The
-	 * text after the mark is the page's first character — but a mark sits
-	 * mid-paragraph, in a paragraph that began on the previous printed page,
-	 * and a range starting there leaves the mark just above the fold, so the
-	 * reader's page indicator reads the previous page. The range is therefore
-	 * anchored at the mark itself and closed one character into that text:
-	 * the reader scrolls the mark to the top and reads this page, which is
-	 * what the book's own page-list entry points at. A mark taken from the
-	 * navigation is a heading that contains its text and starts its own line;
-	 * there the plain text range already lands right, and forRange declines.
+	 * Not the mark itself: a pagebreak mark is an empty <span>, and a CFI
+	 * naming an element gives epub.js no range end to set, so the reader
+	 * scrolls a collapsed range and arrives nowhere. What is addressed is the
+	 * first text the page contains — but one character in, not at its very
+	 * start. The reader keeps a page mapping that places each printed page at
+	 * the first character of its text and reads the current page as the last
+	 * one strictly before the cursor; a link landing exactly on that first
+	 * character therefore shows the page before. One character in is inside
+	 * this page, still its first word, and past the boundary the reader
+	 * compares against. Confirmed against the reader's own saved mapping,
+	 * where page N sits at offset 0 of the very node addressed here.
 	 */
 	_markCfi(spineStep, spinePos, mark, body) {
 		let text = this._firstTextFrom(mark.node, body);
 		if (!text) return null;
-		if (mark.inline) {
-			let ranged = zotLookCfi.forRange(
-				spineStep, spinePos, mark.node, text, 1
-			);
-			if (ranged) return ranged;
-		}
-		return zotLookCfi.forTextRange(spineStep, spinePos, text, 0, 1);
+		// A one-character text (a bare page number, say) has no room to step
+		// into; there the start of it is all there is.
+		let start = (text.data || "").length > 1 ? 1 : 0;
+		return zotLookCfi.forTextRange(
+			spineStep, spinePos, text, start, start + 1
+		);
 	},
 
 	/**

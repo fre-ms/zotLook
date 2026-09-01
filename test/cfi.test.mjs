@@ -271,33 +271,5 @@ const SECTION = `<?xml version="1.0"?>
      'and the root is where a path starts, not something it can name');
 }
 
-// ── a range anchored at one node, closed in another ───────────────────
-// The pagebreak marker is an empty span mid-paragraph; the page's text
-// follows it. A range from the marker into that text anchors navigation at
-// the marker — where the book's page-list points — so the reader reads the
-// page as this one, not the one the marker ends.
-{
-  const doc = xml('<?xml version="1.0"?>'
-    + '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>T</title></head>'
-    + '<body><p>vorher <span id="p2"/>nachher.</p></body></html>');
-  const p = doc.getElementsByTagName('p')[0];
-  const span = p.getElementsByTagName('span')[0];
-  const after = span.nextSibling;
-
-  const cfi = C.forRange(2, 0, span, after, 1);
-  ok(cfi && cfi.indexOf('!') !== -1 && (cfi.match(/,/g) || []).length === 2,
-     'forRange writes a two-sided range: ' + cfi);
-  const range = C.resolve(doc, C.parse(cfi));
-  ok(range, 'which resolves in the document');
-  eq(range.startNode.nodeName.toLowerCase(), 'span',
-     'starting at the mark element itself');
-  eq(range.endNode.data, 'nachher.', 'and ending in the text after it');
-  eq(range.endOffset, 1, 'one character in, so there is something to scroll to');
-
-  eq(C.forRange(2, 0, p, after, 1), null,
-     'an ancestor and its own descendant make no two-sided range');
-  eq(C.forRange(2, 0, null, after, 1), null, 'nothing in, nothing out');
-}
-
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);
