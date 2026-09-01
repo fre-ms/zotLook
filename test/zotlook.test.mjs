@@ -681,6 +681,41 @@ const ok = (c,l)=>eq(!!c,true,l);
   ok(ours !== readerOpen, 'sanity: ours really was a wrapper');
 }
 
+// ── the system preview closes on the handoff too ──────────────────────
+// QuickLook and Sushi are other applications; a click in them never focuses
+// a Zotero window, so focus cannot tell the handoff apart. But each shows one
+// file, or a sheet whose only links open the reader — so a reader opening
+// while the preview is up is that click, and the preview closes behind it,
+// the same as the window. The watch is in place only while a preview is up.
+{
+  const readerOpens = [];
+  const orig = async (...a) => { readerOpens.push(a); return 'r'; };
+  const Reader = { open: orig };
+  const { zotLook: Q } = loadPlugin({ zotero: { Reader } });
+  let pipe = 0, sushi = 0;
+  Q._dismissPipePreview = () => { pipe++; Q._pipeShown = false; Q._syncReaderHook(); };
+  Q._dismissSushiPreview = () => { sushi++; Q._sushiShown = false; Q._syncReaderHook(); };
+
+  eq(Reader.open, orig, 'with no preview up, Reader.open is untouched');
+
+  Q._pipeShown = true; Q._syncReaderHook();
+  ok(Reader.open !== orig, 'a shown system preview watches Reader.open');
+  eq(await Reader.open(1, { page: 2 }), 'r', 'the wrapped open still answers');
+  eq(readerOpens.length, 1, 'and still opens the reader');
+  eq(pipe, 1, 'the QuickLook preview closes behind the handoff');
+  eq(Reader.open, orig, 'and with nothing left up, the watch is lifted');
+
+  Q._sushiShown = true; Q._syncReaderHook();
+  ok(Reader.open !== orig, 'a Sushi preview watches too');
+  await Reader.open(2, {});
+  eq(sushi, 1, 'and Sushi closes behind the handoff');
+  eq(Reader.open, orig, 'and the watch is lifted again');
+
+  await Reader.open(3, {});
+  eq(pipe, 1, 'a reader opened with nothing up dismisses nothing');
+  eq(sushi, 1, 'for either preview');
+}
+
 // ── closing is caught at the window, not only at the item tree ────────
 // Escape after a context-menu command lands wherever the menu left focus,
 // so the close handler sits on the window and works from anywhere in it.

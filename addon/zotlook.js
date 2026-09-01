@@ -883,7 +883,7 @@ var zotLook = {
 					if (closed && this._viewer === win) {
 						this._viewer = null;
 						this._viewerKeyHandler = null;
-						this._unhookReaderHandoff();
+						this._syncReaderHook();
 					}
 				},
 				{ once: true }
@@ -911,7 +911,7 @@ var zotLook = {
 		} catch (e) {
 			// The window is already gone
 		}
-		this._hookReaderHandoff();
+		this._syncReaderHook();
 		this.log("Adopted the contact sheet window");
 	},
 
@@ -947,6 +947,14 @@ var zotLook = {
 			} catch (e) {
 				// A window that cannot answer is not this window
 			}
+			// The system preview cannot be asked who has the keyboard — it
+			// is another application, and a click in it never focuses a
+			// Zotero window. But it shows one file, or a sheet whose only
+			// links open the reader, so a reader opening while it is up is
+			// that handoff: close it behind the reader, the same as the
+			// window. Read before the open, in case it clears the flag.
+			let pipeUp = plugin._pipeShown;
+			let sushiUp = plugin._sushiShown;
 			let result = await original.apply(this, args);
 			if (fromViewer) {
 				plugin.log(
@@ -954,9 +962,29 @@ var zotLook = {
 				);
 				plugin._closeViewer();
 			}
+			if (pipeUp || sushiUp) {
+				plugin.log(
+					"Reader opened while the preview was up; closing it behind the handoff"
+				);
+				if (pipeUp) plugin._dismissPipePreview();
+				if (sushiUp) plugin._dismissSushiPreview();
+			}
 			return result;
 		};
 		Zotero.Reader.open = this._readerOpenPatched;
+	},
+
+	/**
+	 * Keeps the reader-open watch in place for exactly as long as some
+	 * preview it would close is up — the window, the system panel, or Sushi —
+	 * and lifts it once none is, so nothing else's reader opens are wrapped.
+	 */
+	_syncReaderHook() {
+		if (this._viewer || this._pipeShown || this._sushiShown) {
+			this._hookReaderHandoff();
+		} else {
+			this._unhookReaderHandoff();
+		}
 	},
 
 	_unhookReaderHandoff() {
@@ -1171,7 +1199,7 @@ var zotLook = {
 		}
 		this._viewer = null;
 		this._viewerKeyHandler = null;
-		this._unhookReaderHandoff();
+		this._syncReaderHook();
 	},
 
 	/**
@@ -2611,6 +2639,7 @@ var zotLook = {
 			this._sushiShown = true;
 			this._ensureSushiMonitor();
 		}
+		this._syncReaderHook();
 		return accepted;
 	},
 
@@ -2656,6 +2685,7 @@ var zotLook = {
 			this._winPreview().postLine(plan.pipePath, plan.pipeLine);
 			this.log("Preview request delivered");
 			if (plan.shows !== undefined) this._pipeShown = plan.shows;
+			this._syncReaderHook();
 			return true;
 		} catch (e) {
 			this.log("The preview request was refused: " + e);
@@ -2847,6 +2877,7 @@ var zotLook = {
 			if (this._sushiShown) {
 				this.log("Sushi reports its window gone");
 				this._sushiShown = false;
+				this._syncReaderHook();
 			}
 			return;
 		}
@@ -2918,6 +2949,7 @@ var zotLook = {
 	 */
 	_dismissSushiPreview() {
 		this._sushiShown = false;
+		this._syncReaderHook();
 		this._dbusSend()
 			.then((command) =>
 				this._deliver({
@@ -2938,6 +2970,7 @@ var zotLook = {
 
 	_dismissPipePreview() {
 		this._pipeShown = false;
+		this._syncReaderHook();
 		this._windowsPlan(zotLookUtil.quickLookPipeLine("Close", ""), false)
 			.then((plan) => this._deliver(plan))
 			.catch((e) => this.log("Could not close the preview: " + e));
