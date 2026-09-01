@@ -27,6 +27,9 @@ var zotLook = {
 	// The Zotero window holding a contact sheet, while one is open
 	_viewer: null,
 	_viewerKeyHandler: null,
+	// Zotero.Reader.open, unwrapped — held only while the window lives
+	_readerOpenOriginal: null,
+	_readerOpenPatched: null,
 	_launching: false,
 	_tempDir: null,
 	// binary name -> deployed path
@@ -812,9 +815,12 @@ var zotLook = {
 	 * The per-page links work in both, by different routes. Quick Look
 	 * refuses ordinary navigation but hands a new-window request to the
 	 * system handler, so a click there opens the reader and closes the
-	 * preview as it goes. This window keeps the sheet up alongside the
-	 * reader, which is the reason to have it. See the comment in
-	 * zotLookSheet.html for what the target attribute is doing.
+	 * preview as it goes. This window does the same — the click hands over
+	 * to the reader and the window closes behind it; see
+	 * _hookReaderHandoff. What the window offers over the panel is a sheet
+	 * that needs no system preview at all and scrolls under the keyboard.
+	 * See the comment in zotLookSheet.html for what the target attribute is
+	 * doing.
 	 */
 	async _openContactSheetInViewer(items) {
 		return this._withLaunchGuard(async () => {
@@ -877,6 +883,7 @@ var zotLook = {
 					if (closed && this._viewer === win) {
 						this._viewer = null;
 						this._viewerKeyHandler = null;
+						this._unhookReaderHandoff();
 					}
 				},
 				{ once: true }
@@ -904,7 +911,63 @@ var zotLook = {
 		} catch (e) {
 			// The window is already gone
 		}
+		this._hookReaderHandoff();
 		this.log("Adopted the contact sheet window");
+	},
+
+	/**
+	 * Closes the window once a click in it has done its work.
+	 *
+	 * The click itself cannot be listened for: the sheet may load in a
+	 * content process of its own, where no chrome listener hears it. What
+	 * every click ends in, from whichever process it started, is
+	 * Zotero.Reader.open — so that is what is watched, for exactly as long
+	 * as the window lives. Whether an opening came from this window is
+	 * decided by who held the keyboard as the call began: the click that
+	 * caused it focused the window first, and a reader opened from anywhere
+	 * else finds the focus elsewhere and leaves the sheet alone.
+	 */
+	_hookReaderHandoff() {
+		if (this._readerOpenOriginal) return;
+		if (!Zotero.Reader || typeof Zotero.Reader.open !== "function") {
+			this.log("No Zotero.Reader to watch; the window stays on click");
+			return;
+		}
+		let plugin = this;
+		let original = Zotero.Reader.open;
+		this._readerOpenOriginal = original;
+		this._readerOpenPatched = async function (...args) {
+			let fromViewer = false;
+			try {
+				fromViewer = !!(
+					plugin._viewer &&
+					plugin._viewer.document &&
+					plugin._viewer.document.hasFocus()
+				);
+			} catch (e) {
+				// A window that cannot answer is not this window
+			}
+			let result = await original.apply(this, args);
+			if (fromViewer) {
+				plugin.log(
+					"Reader opened from the contact sheet window; handing over"
+				);
+				plugin._closeViewer();
+			}
+			return result;
+		};
+		Zotero.Reader.open = this._readerOpenPatched;
+	},
+
+	_unhookReaderHandoff() {
+		if (!this._readerOpenOriginal) return;
+		// Only our own wrapper is ours to remove: another plugin may have
+		// wrapped on top of it since, and restoring would wipe their patch.
+		if (Zotero.Reader && Zotero.Reader.open === this._readerOpenPatched) {
+			Zotero.Reader.open = this._readerOpenOriginal;
+		}
+		this._readerOpenOriginal = null;
+		this._readerOpenPatched = null;
 	},
 
 	_onViewerKeyDown(event) {
@@ -1108,6 +1171,7 @@ var zotLook = {
 		}
 		this._viewer = null;
 		this._viewerKeyHandler = null;
+		this._unhookReaderHandoff();
 	},
 
 	/**

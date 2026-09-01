@@ -14,7 +14,7 @@ Jede Funktion hat genau ein Kürzel, und jedes davon ist
 | **Leertaste** | Anhang des gewählten Eintrags anzeigen. Nochmals oder **Escape** schließt. |
 | **Umschalt+Leertaste** | Notizen des Eintrags als Seite anzeigen. |
 | **Strg+Umschalt+Leertaste** | Kontaktbogen: jede Seite eines PDFs als Miniatur, oder die gedruckten Seiten eines Buches. |
-| **Strg+Alt+Leertaste** | Derselbe Bogen in einem Zotero-Fenster, das neben dem Reader stehen bleibt. Nochmals schließt es — oder **Escape**, **Leertaste** oder **q** im Fenster, die Tasten, die auch die Systemvorschau schließen. |
+| **Strg+Alt+Leertaste** | Derselbe Bogen in einem Zotero-Fenster: Er blättert unter der Tastatur und braucht keine Systemvorschau. Nochmals schließt es — oder **Escape**, **Leertaste** oder **q**, die Tasten, die auch die Systemvorschau schließen. Ein Klick auf eine Seite übergibt an den Reader und schließt es. |
 
 Jedes Kürzel ist sein eigener Schalter: Der Druck, der eine Vorschau geöffnet
 hat, schließt sie wieder, und **Escape** tut dasselbe. Ein anderes Kürzel,
@@ -95,8 +95,9 @@ zu sehen, welche Seiten man bearbeitet hat.
   Bogen, wie viele Seiten er zeigt.
 
 Die Fenster-Variante (**Strg+Alt+Leertaste**) zeigt denselben Bogen in einem
-Zotero-Fenster. Der Unterschied liegt danach: Die Systemvorschau schließt sich,
-wenn sie an den Reader übergibt, das Fenster bleibt daneben stehen.
+Zotero-Fenster — dort blättert er unter der Tastatur und braucht keine
+Systemvorschau. Ein Klick übergibt überall gleich: Der Reader öffnet auf der
+Seite, und Bogen wie Vorschau schließen sich hinter der Übergabe.
 
 ### Die Seitenübersicht eines Buches
 

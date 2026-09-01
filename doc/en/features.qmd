@@ -14,7 +14,7 @@ Every action has exactly one shortcut, and every one of them is
 | **Space** | Preview the selected item's attachment. Again, or **Escape**, to dismiss. |
 | **Shift+Space** | Preview the item's notes, rendered as a page. |
 | **Ctrl+Shift+Space** | Contact sheet: every page of a PDF as a thumbnail, or a book’s printed pages. |
-| **Ctrl+Alt+Space** | The same sheet in a Zotero window, which stays open beside the reader. Again to close it — or **Escape**, **Space** or **q** in the window, the keys that close the system preview. |
+| **Ctrl+Alt+Space** | The same sheet in a Zotero window: it scrolls under the keyboard and needs no system preview. Again to close it — or **Escape**, **Space** or **q**, the keys that close the system preview. A click on a page hands over to the reader and closes it. |
 
 Each shortcut is its own switch: the press that put a preview up takes it down
 again, and **Escape** does the same. A different shortcut while one is showing
@@ -87,9 +87,10 @@ figure you remember, or for seeing at a glance which pages you marked up.
   be set for unusually large scans; when it bites, the sheet says how many pages
   it is showing.
 
-The window variant (**Ctrl+Alt+Space**) puts the same sheet in a Zotero window.
-The difference is what happens after a click: the panel closes as it hands over
-to the reader, the window stays open beside it.
+The window variant (**Ctrl+Alt+Space**) puts the same sheet in a Zotero window,
+where it scrolls under the keyboard and needs no system preview. A click hands
+over the same way everywhere: the reader opens at that page, and sheet and
+panel alike close behind the handoff.
 
 ### A page overview of a book
 

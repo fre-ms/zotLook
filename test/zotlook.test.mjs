@@ -521,7 +521,10 @@ const ok = (c,l)=>eq(!!c,true,l);
 // there, not in the item list. A plain listener catches it in-process; the
 // injected <key>s catch it even when the file loads in a process of its own.
 {
-  const { zotLook: Q, zotLookUtil: U } = loadPlugin();
+  const readerOpens = [];
+  const readerOpen = async (...args) => { readerOpens.push(args); return 'reader'; };
+  const Reader = { open: readerOpen };
+  const { zotLook: Q, zotLookUtil: U } = loadPlugin({ zotero: { Reader } });
   // A window with just enough of a XUL document for the key injection
   const makeWin = () => {
     const byId = {};
@@ -534,7 +537,9 @@ const ok = (c,l)=>eq(!!c,true,l);
     byId['cmd_close'] = { doCommand: () => shut('command') };
     const docEl = { appendChild(n) { if (n.id) byId[n.id] = n; } };
     win.browser = { focused: 0, focus() { this.focused++; } };
+    win.active = false;
     win.document = {
+      hasFocus: () => win.active,
       documentElement: docEl,
       getElementById: (id) => byId[id] || null,
       querySelector: (sel) => (sel === 'browser' ? win.browser : null),
@@ -643,6 +648,37 @@ const ok = (c,l)=>eq(!!c,true,l);
   eq(w4.listeners.keydown, undefined, 'without the listener');
   eq(w4.document.getElementById('zotlook-viewer-keys'), null, 'and without the keys');
 
+  // ── a click hands over to the reader, and the window goes with it ──
+  // The click itself may happen in a content process no chrome listener
+  // hears, so what is watched is where every click ends: Zotero.Reader.open.
+  eq(Reader.open, readerOpen, 'before any window, Reader.open is untouched');
+  const w5 = makeWin();
+  Q._adoptViewer(w5);
+  ok(Reader.open !== readerOpen, 'an adopted window watches Reader.open');
+
+  // A reader opened from elsewhere leaves the sheet alone
+  w5.active = false;
+  eq(await Reader.open(1, { page: 3 }), 'reader', 'the wrapped open still answers');
+  eq(readerOpens.length, 1, 'and still opens the reader');
+  eq(w5.closed, false, 'a reader opened elsewhere leaves the window standing');
+
+  // One opened by a click in the window closes it behind the handoff
+  w5.active = true;
+  eq(await Reader.open(1, { page: 5 }), 'reader', 'the handoff answers too');
+  eq(w5.closed, true, 'and the window closes behind it');
+  eq(w5.closedBy, 'command', 'through its own close command');
+  eq(Reader.open, readerOpen, 'with the window gone, Reader.open is its old self');
+
+  // A wrapper someone else laid on top of ours is not clobbered
+  const w6 = makeWin();
+  Q._adoptViewer(w6);
+  const foreign = async (...a) => Reader.open === foreign && 'foreign';
+  const ours = Reader.open;
+  Reader.open = foreign;
+  Q._releaseViewer();
+  eq(Reader.open, foreign, 'releasing under a foreign wrapper leaves it be');
+  Reader.open = readerOpen;
+  ok(ours !== readerOpen, 'sanity: ours really was a wrapper');
 }
 
 // ── closing is caught at the window, not only at the item tree ────────
