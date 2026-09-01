@@ -572,10 +572,22 @@ const ok = (c,l)=>eq(!!c,true,l);
   w2.listeners.keydown(ev(own));
   eq(w2.closed, true, 'its own shortcut closes it from inside');
 
+  // An unload while the window is merely swapping its initial document for
+  // the file — closed still false — must not forget it, or the key listener
+  // is left firing against nothing and the window never closes.
   const w3 = makeWin();
   Q._adoptViewer(w3);
   w3.listeners.unload();
-  eq(Q._viewer, null, 'a window the user closed is forgotten');
+  eq(Q._viewer, w3, 'a spurious unload leaves the window adopted');
+  const s = ev({ key:'Escape' }); w3.listeners.keydown(s);
+  eq(w3.closed, true, 'so Escape still closes it afterwards');
+
+  // The window the user closes by hand is forgotten, so the next press opens
+  // a fresh one rather than being swallowed
+  const w3b = makeWin();
+  Q._adoptViewer(w3b);
+  w3b.close();
+  eq(Q._viewer, null, 'a window closed by hand is forgotten');
   eq(Q._closeViewer(), false, 'so the shortcut opens rather than closes next time');
 
   const w4 = makeWin();

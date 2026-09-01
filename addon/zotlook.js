@@ -840,10 +840,23 @@ var zotLook = {
 		this._viewerKeyHandler = handler;
 		try {
 			win.addEventListener("keydown", handler, true);
+			// Only a real close should forget the window. An unload can also
+			// arrive while the browser swaps its initial document for the
+			// file — and forgetting the window then, but leaving the key
+			// listener on it, left the listener firing against a null
+			// reference and nothing ever closing. Guarded on win.closed so
+			// the swap is ignored and only the close is heeded.
 			win.addEventListener(
 				"unload",
 				() => {
-					if (this._viewer === win) {
+					let closed = false;
+					try {
+						closed = !!win.closed;
+					} catch (e) {
+						// treat an unreadable state as still open
+					}
+					this.log("Contact sheet window unload (closed=" + closed + ")");
+					if (closed && this._viewer === win) {
 						this._viewer = null;
 						this._viewerKeyHandler = null;
 					}
@@ -882,7 +895,10 @@ var zotLook = {
 		if (!closes) return;
 		event.preventDefault();
 		event.stopPropagation();
-		this.log("Closing the contact sheet window from a key in it");
+		this.log(
+			"Closing the contact sheet window from a key in it (viewer=" +
+				!!this._viewer + ")"
+		);
 		this._closeViewer();
 	},
 
@@ -951,12 +967,17 @@ var zotLook = {
 	_closeViewer() {
 		let win = this._viewer;
 		if (!win) return false;
-		this._releaseViewer();
+		let alreadyClosed = false;
 		try {
-			if (win.closed) return true;
+			alreadyClosed = !!win.closed;
 		} catch (e) {
-			// Some window references do not expose `closed`; press on
+			// Some window references do not expose `closed`; assume open
 		}
+		this._releaseViewer();
+		// A window the user already closed by hand is not ours to close
+		// again — and saying so lets the caller open a fresh one rather
+		// than swallow the press.
+		if (alreadyClosed) return false;
 		// close() called on the reference openInViewer hands back is a
 		// silent no-op here — the key handler fires, close() is reached, and
 		// the window stays. The window's own cmd_close runs window.close() in
