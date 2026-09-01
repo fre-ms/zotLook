@@ -113,6 +113,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
                    wait: async () => { waited = true; return { exitCode: 0 }; },
                    kill(){} };
         } }})}});
+    Q._ensureSushiMonitor = () => {};
     await Q._launchPreview(['/a/paper.pdf']);
     eq(waited, true, 'the request is awaited rather than fired and forgotten');
     eq(Q._proc, null, 'but nothing is held: there is no process to dismiss');
@@ -128,6 +129,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
           'Error org.freedesktop.DBus.Error.ServiceUnknown: The name is not ' +
           'provided by any .service files') }})}});
     Q._writeFailureReport = async (what) => { reports.push(what); };
+    Q._ensureSushiMonitor = () => {};
     await Q._launchPreview(['/a/paper.pdf']);
     eq(logs.some(l => /refused \(exit 1\)/.test(l)), true, 'a refusal is logged');
     eq(logs.some(l => /gnome-sushi/.test(l)), true,
@@ -142,6 +144,7 @@ const eq = (g, w, l) => { const ok = JSON.stringify(g) === JSON.stringify(w); if
       ChromeUtils: { importESModule: () => ({ Subprocess: {
         call: async () => stubProc(0) }})}});
     Q._writeFailureReport = async (what) => { reports.push(what); };
+    Q._ensureSushiMonitor = () => {};
     await Q._launchPreview(['/a/paper.pdf']);
     eq(reports, [], 'nothing reported when the request succeeds');
   }

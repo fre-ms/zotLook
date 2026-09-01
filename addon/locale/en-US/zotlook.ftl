@@ -34,6 +34,12 @@ zotlook-prefs-contactsheet-columns-hint = fewer columns means larger thumbnails
 zotlook-prefs-contactsheet-maxpages = Limit to at most
 zotlook-prefs-contactsheet-unit = pages (0 = no limit)
 
+# Arrow keys in the system preview (Linux only; hidden elsewhere)
+zotlook-prefs-arrows-title = Arrow keys in the preview
+zotlook-prefs-arrows-help = The system preview keeps the arrow keys and reports each press as selection movement — that is how Files walks its list with the preview open. With this on, zotLook answers the same way: arrows walk your item list and the preview follows. Off, they do nothing there. Scrolling inside the preview itself is the wheel's job, or the Page keys after a click into the window.
+zotlook-prefs-arrows-walk =
+    .label = Arrow keys in the preview walk the item list
+
 # Attachment priority
 zotlook-prefs-attachment-title = Which attachment to preview
 zotlook-prefs-attachment-help = When an item holds more than one attachment, only one is previewed. This decides which.

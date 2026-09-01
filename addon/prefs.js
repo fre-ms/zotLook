@@ -57,6 +57,13 @@ pref("extensions.zotlook.attachmentOrder", "pdf,epub,html,image,video,other");
 // cannot tell whether one is installed — hence a switch rather than a guess.
 pref("extensions.zotlook.epubOwnRenderer", true);
 
+// Sushi keeps the arrow keys for itself and reports each press as selection
+// movement — that is how GNOME's Files walks its list with the preview open.
+// On, zotLook answers the same way: an arrow in the preview moves through the
+// item list and the preview follows. Off, arrows in the preview do nothing.
+// Read only where Sushi is the preview; the other systems say nothing back.
+pref("extensions.zotlook.sushiArrowSelection", true);
+
 // Zotero keeps annotations in its database rather than in the PDF, so a plain
 // preview shows an unmarked document. Exporting a copy with them drawn in is
 // skipped entirely for attachments that have none.

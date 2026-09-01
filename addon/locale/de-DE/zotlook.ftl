@@ -36,6 +36,12 @@ zotlook-prefs-contactsheet-columns-hint = weniger Spalten bedeutet größere Min
 zotlook-prefs-contactsheet-maxpages = Höchstens
 zotlook-prefs-contactsheet-unit = Seiten (0 = ohne Begrenzung)
 
+# Pfeiltasten in der Systemvorschau (nur Linux; sonst verborgen)
+zotlook-prefs-arrows-title = Pfeiltasten in der Vorschau
+zotlook-prefs-arrows-help = Die Systemvorschau behält die Pfeiltasten und meldet jeden Druck als Auswahlbewegung — so wandert Dateien bei offener Vorschau durch seine Liste. Ist dies an, antwortet zotLook genauso: Pfeiltasten wandern durch die Trefferliste, die Vorschau zieht nach. Aus heißt: sie tun dort nichts. Geblättert wird in der Vorschau selbst mit dem Mausrad — oder mit den Bild-Tasten nach einem Klick in das Fenster.
+zotlook-prefs-arrows-walk =
+    .label = Pfeiltasten in der Vorschau wandern durch die Trefferliste
+
 # Anhang-Priorität
 zotlook-prefs-attachment-title = Welcher Anhang angezeigt wird
 zotlook-prefs-attachment-help = Enthält ein Eintrag mehrere Anhänge, wird nur einer angezeigt. Das hier entscheidet, welcher.

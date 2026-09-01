@@ -53,6 +53,21 @@ Lassen Sie wieder los, ohne dass etwas angekommen ist, sagt die Seite Ihnen
 das, statt weiter auf „Tasten drücken …" stehen zu bleiben. Wählen Sie dann
 eine andere Kombination.
 
+## Pfeiltasten in der Vorschau
+
+Nur unter Linux, und nur dort zeigt die Seite diesen Abschnitt. GNOMEs
+Vorschau behält die Pfeiltasten und meldet jeden Druck als Auswahlbewegung —
+so wandert Dateien bei offener Vorschau durch seine Dateiliste. **Pfeiltasten
+in der Vorschau wandern durch die Trefferliste** (Vorgabe an) lässt zotLook
+genauso antworten: Ein Pfeil in der Vorschau bewegt die Auswahl in Ihrer
+Trefferliste, und die Vorschau zieht nach, sobald die Tasten zur Ruhe kommen.
+Ausgeschaltet tun Pfeiltasten in der Vorschau nichts — blättern können sie so
+oder so nicht, die Vorschau lässt sie nie bis zum Dokument durch.
+
+Geblättert wird in der Vorschau mit dem Mausrad; die Bild-Tasten kommen dazu,
+sobald einmal in das Vorschaufenster geklickt wurde — der Klick gibt dem
+Inhalt den Tastaturfokus.
+
 ## Welcher Anhang gezeigt wird
 
 Zwei Betriebsarten:

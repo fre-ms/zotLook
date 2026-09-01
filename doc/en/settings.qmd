@@ -50,6 +50,21 @@ the key between them does not. Let go without anything having arrived and the
 pane tells you so, rather than sitting on "press keys…" indefinitely. Choose a
 different combination.
 
+## Arrow keys in the preview
+
+Linux only, and only there does the pane show it. GNOME's preview keeps the
+arrow keys to itself and reports each press as selection movement — that is
+how Files walks its file list with the preview open. **Arrow keys in the
+preview walk the item list** (default on) makes zotLook answer the same way:
+an arrow in the preview moves the selection in your item list and the preview
+follows once the keys come to rest. Switched off, arrows in the preview do
+nothing — they cannot scroll it either way, since the preview never lets them
+through to the document.
+
+Scrolling inside the preview is the wheel's job; the Page keys join in after a
+click into the preview window, which is what hands its content the keyboard
+focus.
+
 ## Which attachment is previewed
 
 Two modes:

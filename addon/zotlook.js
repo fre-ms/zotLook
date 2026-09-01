@@ -20,6 +20,10 @@ var zotLook = {
 	_pipeShown: false,
 	// Its Sushi counterpart: a ShowFile went out and may still be showing
 	_sushiShown: false,
+	// The long-running listener for what Sushi says back — see
+	// _ensureSushiMonitor
+	_sushiMonitor: null,
+	_sushiPreviewTimer: null,
 	// The Zotero window holding a contact sheet, while one is open
 	_viewer: null,
 	_viewerKeyHandler: null,
@@ -38,6 +42,15 @@ var zotLook = {
 	// returns as soon as the window has been handed its file, so this only has
 	// to cover starting the service, which D-Bus does on the first request.
 	PREVIEW_REPLY_TIMEOUT_MS: 10000,
+
+	// How long the preview waits behind a moving selection. Arrows move the
+	// selection at once; the preview follows when the keys come to rest, so a
+	// held key walks the list without a ShowFile for every row passed.
+	SUSHI_STEP_PREVIEW_DELAY_MS: 150,
+
+	// Gtk.DirectionType, as Sushi's SelectionEvent reports it: TAB_FORWARD 0,
+	// TAB_BACKWARD 1, UP 2, DOWN 3, LEFT 4, RIGHT 5.
+	SUSHI_NEXT_DIRECTIONS: [0, 3, 5],
 
 	// Per-window cleanup tracking
 	_windowListeners: new Map(),
@@ -2530,7 +2543,10 @@ var zotLook = {
 			this.log("Failed to launch the preview: " + e);
 		}
 		if (accepted && plan.shows !== undefined) this._pipeShown = plan.shows;
-		if (accepted && plan.sushiShows) this._sushiShown = true;
+		if (accepted && plan.sushiShows) {
+			this._sushiShown = true;
+			this._ensureSushiMonitor();
+		}
 		return accepted;
 	},
 
@@ -2681,6 +2697,150 @@ var zotLook = {
 	 * and the message closes a window rather than starting anything that
 	 * would have to be watched.
 	 */
+	/**
+	 * Where gdbus is. Looked up on PATH with the usual place as fallback,
+	 * like dbus-send: one is for calls, the other is the only one of the two
+	 * that can sit on the bus and listen.
+	 */
+	async _gdbus() {
+		const { Subprocess } = this._subprocess();
+		if (Subprocess && typeof Subprocess.pathSearch === "function") {
+			try {
+				return await Subprocess.pathSearch("gdbus");
+			} catch (e) {
+				this.log("gdbus is not on PATH: " + e);
+			}
+		}
+		return "/usr/bin/gdbus";
+	},
+
+	/**
+	 * Listens to what Sushi says back, for as long as the session runs.
+	 *
+	 * Sushi keeps the arrow keys to itself — they are window accelerators —
+	 * but it does not keep them quiet: each press goes out on the bus as a
+	 * SelectionEvent, which is how Files walks its list with the preview
+	 * open. This monitor is zotLook answering the same way: an arrow in the
+	 * preview moves the selection in Zotero and the preview follows.
+	 *
+	 * The same wiretap hears the previewer's Visible property drop to false,
+	 * which is the one reliable word that the window is gone — however it
+	 * went: our Close, the toggle, or q, Space or Escape pressed inside it.
+	 * That keeps _sushiShown honest, and honest is what gates the arrows:
+	 * a preview Files opened must not walk Zotero's list.
+	 */
+	async _ensureSushiMonitor() {
+		if (this._sushiMonitor) return;
+		const { Subprocess } = this._subprocess();
+		let proc;
+		try {
+			proc = await Subprocess.call({
+				command: await this._gdbus(),
+				arguments: [
+					"monitor",
+					"--session",
+					"--dest",
+					"org.gnome.NautilusPreviewer",
+				],
+			});
+		} catch (e) {
+			this.log("Could not listen for Sushi's arrow keys: " + e);
+			return;
+		}
+		this._sushiMonitor = proc;
+		this.log("Listening for Sushi's selection events");
+		this._pumpSushiMonitor(proc);
+	},
+
+	/** Reads the monitor line by line for as long as it lives. */
+	async _pumpSushiMonitor(proc) {
+		let rest = "";
+		try {
+			for (;;) {
+				let chunk = await proc.stdout.readString();
+				if (!chunk) break;
+				let lines = (rest + chunk).split("\n");
+				rest = lines.pop();
+				for (let line of lines) {
+					this._onSushiMonitorLine(line);
+				}
+			}
+		} catch (e) {
+			this.log("The Sushi monitor stopped: " + e);
+		}
+		if (this._sushiMonitor === proc) this._sushiMonitor = null;
+	},
+
+	/**
+	 * One line of monitor output. Two kinds matter; everything else is the
+	 * bus being chatty.
+	 */
+	_onSushiMonitorLine(line) {
+		if (
+			line.indexOf("PropertiesChanged") !== -1 &&
+			line.indexOf("'Visible': <false>") !== -1
+		) {
+			if (this._sushiShown) {
+				this.log("Sushi reports its window gone");
+				this._sushiShown = false;
+			}
+			return;
+		}
+
+		let event = /\.SelectionEvent \(uint\d+ (\d+),?\)/.exec(line);
+		if (!event) return;
+		// Not ours: a preview Files opened also speaks here
+		if (!this._sushiShown) return;
+		// The walking is a choice, and the settings pane offers it. The
+		// monitor runs regardless: it is also what keeps _sushiShown honest.
+		if (!this._pref("sushiArrowSelection", true)) return;
+		let direction = Number(event[1]);
+		let step =
+			this.SUSHI_NEXT_DIRECTIONS.indexOf(direction) !== -1 ? 1 : -1;
+		this._stepSelection(step);
+	},
+
+	/**
+	 * One arrow's worth of movement: the selection at once, the preview when
+	 * the keys come to rest.
+	 *
+	 * The plain preview, deliberately, whatever put the current one up: an
+	 * arrow walks the list the way it walks it in Files, and a contact sheet
+	 * per step would mean seconds of rendering for rows only passed through.
+	 */
+	_stepSelection(step) {
+		try {
+			let win = Zotero.getMainWindow();
+			let view = win && win.ZoteroPane && win.ZoteroPane.itemsView;
+			if (!view || !view.selection) return;
+
+			let row = Number(view.selection.focused) + step;
+			if (row < 0 || row >= view.rowCount) return;
+			view.selection.select(row);
+			if (typeof view.ensureRowIsVisible === "function") {
+				view.ensureRowIsVisible(row);
+			}
+		} catch (e) {
+			this.log("Could not move the selection: " + e);
+			return;
+		}
+
+		if (this._sushiPreviewTimer) clearTimeout(this._sushiPreviewTimer);
+		this._sushiPreviewTimer = setTimeout(() => {
+			this._sushiPreviewTimer = null;
+			// The window may have been closed while the timer ran
+			if (!this._sushiShown) return;
+			try {
+				let win = Zotero.getMainWindow();
+				let items =
+					win && win.ZoteroPane && win.ZoteroPane.getSelectedItems();
+				if (items && items.length > 0) this._openQuickLook(items);
+			} catch (e) {
+				this.log("Could not preview the stepped selection: " + e);
+			}
+		}, this.SUSHI_STEP_PREVIEW_DELAY_MS);
+	},
+
 	/**
 	 * Sends Sushi its Close, for a press the plugin can still hear.
 	 *
@@ -3324,6 +3484,18 @@ var zotLook = {
 
 	shutdown() {
 		this._closeQuickLook();
+		if (this._sushiPreviewTimer) {
+			clearTimeout(this._sushiPreviewTimer);
+			this._sushiPreviewTimer = null;
+		}
+		if (this._sushiMonitor) {
+			try {
+				this._sushiMonitor.kill();
+			} catch (e) {
+				// Already gone
+			}
+			this._sushiMonitor = null;
+		}
 		this._releaseViewer();
 		this._dropResourceAlias();
 		this._unregisterPreferencePane();

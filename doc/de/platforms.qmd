@@ -44,10 +44,16 @@ wenn Zotero den Fokus hat; dort schaltet derselbe Druck, der eine Vorschau
 geöffnet hat, sie nach wie vor um. Das ist Sushi, wie es gedacht ist, kein
 verlorenes Tastenkürzel.
 
-Auch die Pfeiltasten gehören zu diesem Entwurf: Sushi meldet sie dem, der es
-geöffnet hat, als Auswahlbewegung — so wandert Dateien bei offener Vorschau
-durch seine Liste — im Dokument blättern sie deshalb nie. Geblättert wird in
-einer Sushi-Vorschau mit dem Mausrad.
+Auch die Pfeiltasten gehören zu diesem Entwurf: Sushi behält sie und meldet
+jeden Druck dem, der es geöffnet hat, als Auswahlbewegung — so wandert Dateien
+bei offener Vorschau durch seine Liste. zotLook antwortet genauso, abschaltbar
+in seinen Einstellungen: Ein Pfeil in der Vorschau bewegt die Auswahl in Ihrer
+Trefferliste, und die Vorschau folgt, sobald die Tasten zur Ruhe kommen. Sie
+folgt mit der einfachen Vorschau, was auch immer eben zu sehen war — ein
+Kontaktbogen für jede durchlaufene Zeile hieße Sekunden Rechenzeit pro
+Schritt. Geblättert wird im Dokument selbst weiterhin mit dem Mausrad — die
+Bild-Tasten kommen dazu, sobald einmal in das Vorschaufenster geklickt wurde;
+der Klick gibt dem Inhalt den Tastaturfokus.
 
 KDE hat keinen vergleichbaren systemweiten Vorschaudienst — Kiview ist eine
 Dolphin-Erweiterung ohne äußere Schnittstelle — dort wird deshalb nichts

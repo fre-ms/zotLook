@@ -23,8 +23,9 @@ the same file on Space, and back on the sheet's shortcut.
 
 On Linux that holds while Zotero has the keyboard. GNOME focuses the preview as
 it opens — the same happens when Files opens one — and from then on the window
-answers its own keys: **Space**, **Escape** or **q** close it. Back in Zotero,
-the shortcuts speak again.
+answers its own keys: **Space**, **Escape** or **q** close it, and the **arrow
+keys** walk your item list with the preview following, exactly as they walk the
+file list in Files. Back in Zotero, the shortcuts speak again.
 
 The same actions sit in the right-click menu. The contact sheet entries appear
 only when the selection actually contains a PDF or an EPUB.

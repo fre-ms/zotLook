@@ -50,6 +50,17 @@
     </hbox>
   </groupbox>
 
+  <!-- Only Sushi says anything back about its keys, so this group exists
+       only where Sushi does; init() hides it elsewhere. -->
+  <groupbox id="zotlook-arrows-group">
+    <label><html:h2 data-l10n-id="zotlook-prefs-arrows-title"/></label>
+    <description data-l10n-id="zotlook-prefs-arrows-help"/>
+    <checkbox id="zotlook-arrows-walk"
+              data-l10n-id="zotlook-prefs-arrows-walk"
+              preference="extensions.zotlook.sushiArrowSelection"
+              native="true"/>
+  </groupbox>
+
   <groupbox>
     <label><html:h2 data-l10n-id="zotlook-prefs-attachment-title"/></label>
     <description data-l10n-id="zotlook-prefs-attachment-help"/>

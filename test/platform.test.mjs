@@ -218,6 +218,9 @@ const on = (platform, prefValues = {}) => {
         wait: async () => ({ exitCode: 0 }), kill(){} }; } } }) },
   });
   const settle = () => new Promise((r) => setTimeout(r, 0));
+  // The selection monitor a delivery brings up has its own suite; here it
+  // would only be counted as a launch it is not.
+  Q._ensureSushiMonitor = () => {};
 
   const plan = await Q._previewCommand(['/a/paper.pdf']);
   eq(plan.sushiShows, true, 'a ShowFile may put a preview up');

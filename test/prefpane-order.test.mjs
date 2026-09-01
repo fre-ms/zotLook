@@ -11,6 +11,20 @@ const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++
 const ok=(c,l)=>eq(!!c,true,l);
 
 
+// ── the arrow setting shows itself only where Sushi is the preview ────
+// Only Sushi reports its keys back; on macOS and Windows the switch would be
+// a promise nothing keeps.
+{
+  const mac = await openPane({}, true);
+  eq(mac.doc.getElementById('zotlook-arrows-group').hasAttribute('hidden')
+     || mac.doc.getElementById('zotlook-arrows-group').hidden === true, true,
+     'macOS: the group is hidden');
+  const linux = await openPane({}, false, { isLinux: true });
+  eq(linux.doc.getElementById('zotlook-arrows-group').hidden === true
+     && linux.doc.getElementById('zotlook-arrows-group').hasAttribute('hidden'), false,
+     'Linux: the group is shown');
+}
+
 // ── "Restore defaults" has to offer a shortcut that can actually fire ──
 // The pane writes an explicit value rather than clearing the preference, so
 // its idea of the default is what the user ends up with — and Alt+Space, the

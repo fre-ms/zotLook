@@ -83,6 +83,12 @@
 
 		initKeptPreviews(root);
 
+		// The arrow setting governs what Sushi reports back, and only Sushi
+		// reports anything; on the other systems the switch would be a
+		// promise nothing keeps.
+		let arrows = root.querySelector("#zotlook-arrows-group");
+		if (arrows) arrows.hidden = !Zotero.isLinux;
+
 		for (let action of ACTIONS) {
 			let button = root.querySelector("#zotlook-key-" + action.key);
 			let clear = root.querySelector("#zotlook-clear-" + action.key);
