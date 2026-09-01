@@ -158,6 +158,41 @@ var zotLookWinPreview = {
 	},
 
 	/**
+	 * Keeps the keyboard in Zotero while the preview appears.
+	 *
+	 * QuickLook shows its window without activating it, unless its own
+	 * "focus window on open" setting says otherwise — and then whether that
+	 * succeeds is Windows' decision, not QuickLook's: a process may take
+	 * the foreground only while the user's last input did not go to another
+	 * application by keyboard. So a preview opened with Space never took
+	 * the focus, and one opened from the context menu, by mouse, could —
+	 * after which the next Space went to QuickLook rather than to Zotero,
+	 * and no shortcut reached the plugin again until the user clicked back.
+	 *
+	 * The lock asked for here is exactly the state keyboard input puts the
+	 * system into, requested explicitly, so the mouse case behaves like the
+	 * keyboard case. Windows lifts it on the user's next click elsewhere or
+	 * on Alt, so nothing has to be undone. Only the foreground process may
+	 * ask; when Zotero is not it, the call returns false and nothing changes.
+	 */
+	lockForeground() {
+		const ctypes = this._ctypes();
+		const user32 = ctypes.open("user32.dll");
+		try {
+			const LockSetForegroundWindow = user32.declare(
+				"LockSetForegroundWindow",
+				ctypes.winapi_abi,
+				ctypes.int32_t,
+				ctypes.uint32_t // uLockCode
+			);
+			const LSFW_LOCK = 1;
+			return !!LockSetForegroundWindow(LSFW_LOCK);
+		} finally {
+			user32.close();
+		}
+	},
+
+	/**
 	 * CreateFileW reports failure as INVALID_HANDLE_VALUE, which is -1, not
 	 * null — a null check alone would read every failure as success.
 	 */

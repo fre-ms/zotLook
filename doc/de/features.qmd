@@ -14,7 +14,13 @@ Jede Funktion hat genau ein Kürzel, und jedes davon ist
 | **Leertaste** | Anhang des gewählten Eintrags anzeigen. Nochmals oder **Escape** schließt. |
 | **Umschalt+Leertaste** | Notizen des Eintrags als Seite anzeigen. |
 | **Strg+Umschalt+Leertaste** | Kontaktbogen: jede Seite eines PDFs als Miniatur, oder die gedruckten Seiten eines Buches. |
-| **Strg+Alt+Leertaste** | Derselbe Bogen in einem Zotero-Fenster, das neben dem Reader stehen bleibt. |
+| **Strg+Alt+Leertaste** | Derselbe Bogen in einem Zotero-Fenster, das neben dem Reader stehen bleibt. Nochmals, oder **Escape** in diesem Fenster, schließt es. |
+
+Jedes Kürzel ist sein eigener Schalter: Der Druck, der eine Vorschau geöffnet
+hat, schließt sie wieder, und **Escape** tut dasselbe. Ein anderes Kürzel,
+während eine Vorschau steht, wechselt zu dem, was es zeigt — ein Kontaktbogen
+weicht auf die Leertaste der einfachen Vorschau derselben Datei, und auf sein
+Kürzel kehrt er zurück.
 
 Dieselben Funktionen stehen im Kontextmenü. Die Einträge zum Kontaktbogen
 erscheinen nur, wenn die Auswahl tatsächlich ein PDF oder ein EPUB enthält.

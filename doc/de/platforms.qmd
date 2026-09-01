@@ -52,7 +52,11 @@ behaupten, die Store-Fassung sei von der Pipe abgeschottet — heute gemessen is
 sie es nicht.
 
 Die Vorschau öffnet sich, ohne Zotero den Fokus zu nehmen, die Tastatur bleibt
-also dort, wo Sie sind.
+also dort, wo Sie sind — und zotLook bittet Windows, es dabei zu belassen, auch
+wenn die Vorschau mit der Maus aus dem Kontextmenü gestartet wurde, dem einen
+Fall, in dem QuickLook ihn sonst nehmen könnte. Das Kürzel, das eine Vorschau
+geöffnet hat, schließt sie wieder, und **Escape** ebenso. Klicken Sie in die
+Vorschau, gelten stattdessen QuickLooks eigene Tasten, bis Sie zurückklicken.
 
 :::
 

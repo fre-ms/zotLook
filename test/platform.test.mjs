@@ -202,5 +202,45 @@ const on = (platform, prefValues = {}) => {
   }
 }
 
+// ── on Windows, Escape reaches QuickLook, and the keyboard stays put ──
+{
+  const Q = on('Win');
+  const posted = [], calls = [];
+  Q._winPreview = () => ({
+    pipePath: () => '\\\\.\\pipe\\QuickLook.App.Pipe.S-1-5-21-9',
+    lockForeground: () => { calls.push('lock'); return true; },
+    postLine: (p, line) => { calls.push('post'); posted.push(line); },
+  });
+  const settle = () => new Promise((r) => setTimeout(r, 0));
+
+  const plan = await Q._previewCommand(['C:\\a\\p.pdf']);
+  eq(plan.shows, true, 'a Toggle may put a preview up');
+  eq(await Q._deliver(plan), true, 'and is delivered');
+  eq(calls, ['lock', 'post'], 'the foreground is locked before the line goes out, not after');
+  eq(Q._pipeShown, true, 'so the plugin knows something may be showing');
+
+  Q._closeQuickLook();
+  await settle();   // the Close is not awaited by the key handler that sends it
+  eq(posted[1], 'QuickLook.App.PipeMessages.Close||', "Escape becomes QuickLook's Close");
+  eq(calls.filter((c) => c === 'lock').length, 1, 'closing locks nothing');
+  eq(Q._pipeShown, false, 'and nothing is showing any more');
+
+  Q._closeQuickLook();
+  await settle();
+  eq(posted.length, 2, 'a second Escape sends nothing: there is nothing to close');
+}
+{
+  // A refused request leaves the state alone: nothing went up
+  const Q = on('Win');
+  Q._winPreview = () => ({
+    pipePath: () => 'P',
+    lockForeground: () => true,
+    postLine: () => { const e = new Error('no pipe'); e.quickLookAbsent = true; throw e; },
+  });
+  Q._writeFailureReport = async () => {};
+  eq(await Q._deliver(await Q._previewCommand(['C:\\a\\p.pdf'])), false, 'refused');
+  eq(Q._pipeShown, false, 'and not believed to be showing');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

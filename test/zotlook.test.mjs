@@ -467,5 +467,97 @@ const ok = (c,l)=>eq(!!c,true,l);
 }
 
 
+// ── every shortcut is a switch, and Escape closes on every route ──────
+// QuickLook on Windows toggles by itself and leaves no process behind, so
+// _isActive never says a preview is up there; _pipeShown does.
+{
+  const { zotLook: Q, zotLookUtil: U } = loadPlugin();
+  const win = { ZoteroPane: { getSelectedItems: () => [{}] } };
+  const press = (o) => {
+    let prevented = false;
+    Q._onKeyDown({ code:'', key:'', shiftKey:false, altKey:false, metaKey:false, ctrlKey:false,
+      preventDefault(){prevented=true}, stopPropagation(){}, ...o }, win);
+    return prevented;
+  };
+  let closed = 0; Q._closeQuickLook = () => { closed++; };
+  Q._isActive = false; Q._pipeShown = true;
+  eq(press({ key:'Escape' }), true, 'Escape while QuickLook shows something is consumed');
+  eq(closed, 1, 'and closes it');
+  Q._pipeShown = false;
+  eq(press({ key:'Escape' }), false, 'Escape with nothing up is left to Zotero');
+  eq(closed, 1, 'and closes nothing');
+
+  // The window route: its shortcut closes the window it opened
+  const key = U.parseShortcut(U.defaultShortcut('key.contactSheetWindow'));
+  const own = { code: key.code, ctrlKey: !!key.ctrl, shiftKey: !!key.shift,
+                altKey: !!key.alt, metaKey: !!key.meta };
+  let opened = 0; Q._openContactSheetInViewer = () => { opened++; };
+  Q._closeViewer = () => false;
+  press(own); eq(opened, 1, 'with no window open, the shortcut opens one');
+  Q._closeViewer = () => true;
+  press(own); eq(opened, 1, 'with one open, it closes that instead');
+  // The other shortcuts leave the window alone: it stays beside the reader
+  let previews = 0; Q._openQuickLook = () => { previews++; };
+  press({ code:'Space' }); eq(previews, 1, 'Space still previews while the window is open');
+}
+
+// ── the sheet's window answers its own shortcut and Escape ────────────
+// It has the keyboard from the moment it opens, so the closing press lands
+// there, not in the item list.
+{
+  const { zotLook: Q, zotLookUtil: U } = loadPlugin();
+  const makeWin = () => {
+    const listeners = {};
+    return {
+      closed: false, listeners,
+      addEventListener: (type, fn) => { listeners[type] = fn; },
+      removeEventListener: (type) => { delete listeners[type]; },
+      close() { this.closed = true; if (listeners.unload) listeners.unload(); },
+    };
+  };
+  const ev = (o) => {
+    const e = { code:'', key:'', shiftKey:false, altKey:false, metaKey:false, ctrlKey:false,
+      prevented:false, preventDefault(){ this.prevented = true; }, stopPropagation(){}, ...o };
+    return e;
+  };
+  const key = U.parseShortcut(U.defaultShortcut('key.contactSheetWindow'));
+  const own = { code: key.code, ctrlKey: !!key.ctrl, shiftKey: !!key.shift,
+                altKey: !!key.alt, metaKey: !!key.meta };
+
+  const w = makeWin();
+  Q._adoptViewer(w);
+  ok(w.listeners.keydown, 'the window is listened to');
+  eq(Q._viewer, w, 'and remembered');
+
+  const space = ev({ code:'Space' }); w.listeners.keydown(space);
+  eq(w.closed, false, 'Space leaves the window alone: it scrolls the sheet');
+  eq(space.prevented, false, 'and is not consumed');
+
+  const esc = ev({ key:'Escape' }); w.listeners.keydown(esc);
+  eq(w.closed, true, 'Escape closes it');
+  eq(esc.prevented, true, 'and is consumed');
+  eq(Q._viewer, null, 'the window is forgotten as it goes');
+  eq(Q._closeViewer(), false, 'and there is nothing left to close');
+
+  const w2 = makeWin();
+  Q._adoptViewer(w2);
+  w2.listeners.keydown(ev(own));
+  eq(w2.closed, true, 'its own shortcut closes it from inside');
+
+  const w3 = makeWin();
+  Q._adoptViewer(w3);
+  w3.listeners.unload();
+  eq(Q._viewer, null, 'a window the user closed is forgotten');
+  eq(Q._closeViewer(), false, 'so the shortcut opens rather than closes next time');
+
+  const w4 = makeWin();
+  Q._adoptViewer(w4);
+  Q._adoptViewer(w4);
+  eq(Object.keys(w4.listeners).length, 2, 'adopting the same window twice listens once');
+  Q._releaseViewer();
+  eq(w4.closed, false, 'released at shutdown, the window stays');
+  eq(w4.listeners.keydown, undefined, 'without the listener');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

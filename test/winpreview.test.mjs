@@ -215,5 +215,25 @@ const calledNames = (state) => state.calls.map(([n]) => n);
   eq(reports.length, 1, 'and the failure report is written here too');
 }
 
+// ── keeping the keyboard where it is ──────────────────────────────────
+// Whether QuickLook's window may take the foreground is Windows' decision,
+// made by whether the user's last input was a key. The lock asked for here
+// is that same state, requested explicitly, so a preview opened by mouse
+// behaves like one opened by key.
+{
+  let code = null;
+  const { W, state } = loadW({
+    LockSetForegroundWindow: (args) => { code = args[0]; return 1; },
+  });
+  eq(W.lockForeground(), true, 'the foreground lock is asked for');
+  eq(code, 1, 'LSFW_LOCK');
+  ok(calledNames(state).includes('close user32.dll'), 'and user32 is released');
+}
+{
+  const { W } = loadW({ LockSetForegroundWindow: () => 0 });
+  eq(W.lockForeground(), false,
+     'refused when Zotero is not the foreground process, and that is all that happens');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

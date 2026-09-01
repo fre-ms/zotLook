@@ -50,7 +50,11 @@ alike. Older accounts of this integration say the Store build is sandboxed away
 from the pipe — measured today, it is not.
 
 The preview opens without taking focus away from Zotero, so the keyboard keeps
-working where you are.
+working where you are — and zotLook asks Windows to keep it that way even when
+the preview was started with the mouse, from the context menu, which is the one
+case where QuickLook could otherwise take it. The shortcut that opened a preview
+closes it again, and so does **Escape**. Click into the preview and QuickLook's
+own keys apply instead, until you click back.
 
 :::
 

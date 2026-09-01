@@ -13,6 +13,14 @@ var zotLook = {
 	// Process state
 	_proc: null,
 	_isActive: false,
+	// Whether a request that shows something has gone down QuickLook's pipe
+	// since the last one that closed it. QuickLook toggles on its own, so
+	// this can be stale in one direction — set while nothing is showing any
+	// more — and a Close sent then is a harmless no-op.
+	_pipeShown: false,
+	// The Zotero window holding a contact sheet, while one is open
+	_viewer: null,
+	_viewerKeyHandler: null,
 	_launching: false,
 	_tempDir: null,
 	// binary name -> deployed path
@@ -297,7 +305,13 @@ var zotLook = {
 	 */
 	KEY_ACTIONS: [
 		{ pref: "key.notes", open: "_openNotePreview" },
-		{ pref: "key.contactSheetWindow", open: "_openContactSheetInViewer" },
+		// The window is the one thing here that stays open on its own, so
+		// its shortcut has a second half: pressed again, it closes it
+		{
+			pref: "key.contactSheetWindow",
+			open: "_openContactSheetInViewer",
+			close: "_closeViewer",
+		},
 		{ pref: "key.contactSheet", open: "_openContactSheet" },
 		{ pref: "key.preview", open: "_openQuickLook" },
 	],
@@ -317,7 +331,10 @@ var zotLook = {
 					this.log("Unusable shortcut for " + action.pref + ": " + raw);
 					return null;
 				}
-				return Object.assign({}, shortcut, { open: action.open });
+				return Object.assign({}, shortcut, {
+					open: action.open,
+					close: action.close || null,
+				});
 			}).filter(Boolean);
 		}
 		return this._bindings;
@@ -375,7 +392,7 @@ var zotLook = {
 
 	_onKeyDown(event, window) {
 		if (event.key === "Escape") {
-			if (!this._isActive) return;
+			if (!this._isActive && !this._pipeShown) return;
 			event.preventDefault();
 			event.stopPropagation();
 			this._closeQuickLook();
@@ -404,6 +421,9 @@ var zotLook = {
 			this._closeQuickLook();
 			return;
 		}
+
+		// A window an earlier press opened is closed by the same press again
+		if (binding.close && this[binding.close]()) return;
 
 		let items = window.ZoteroPane && window.ZoteroPane.getSelectedItems();
 		if (items && items.length > 0) {
@@ -722,14 +742,90 @@ var zotLook = {
 		return this._withLaunchGuard(async () => {
 			let sheet = await this._buildContactSheet(items);
 			if (!sheet) return false;
+			let win = null;
 			try {
-				Zotero.openInViewer(PathUtils.toFileURI(sheet));
+				win = Zotero.openInViewer(PathUtils.toFileURI(sheet));
 			} catch (e) {
 				this.log("Could not open the contact sheet in a window: " + e);
 				return false;
 			}
+			this._adoptViewer(win);
 			return true;
 		});
+	},
+
+	/**
+	 * Takes charge of the window the sheet was opened in.
+	 *
+	 * The window has the keyboard from the moment it opens, so the press
+	 * that would close it — its own shortcut again, or Escape — lands here
+	 * and not in the item list. Both are answered in the window itself.
+	 * Nothing else is: Space scrolls the sheet there, as it does on any
+	 * page, and the other shortcuts belong to the item list.
+	 */
+	_adoptViewer(win) {
+		if (!win || win === this._viewer) return;
+		this._releaseViewer();
+		let handler = (event) => this._onViewerKeyDown(event);
+		try {
+			win.addEventListener("keydown", handler, true);
+			win.addEventListener(
+				"unload",
+				() => {
+					if (this._viewer === win) {
+						this._viewer = null;
+						this._viewerKeyHandler = null;
+					}
+				},
+				{ once: true }
+			);
+		} catch (e) {
+			this.log("Could not listen to the contact sheet window: " + e);
+			return;
+		}
+		this._viewer = win;
+		this._viewerKeyHandler = handler;
+	},
+
+	_onViewerKeyDown(event) {
+		let own = this.bindings.find((b) => b.close === "_closeViewer");
+		let closes =
+			event.key === "Escape" || (own && this._matchesBinding(event, own));
+		if (!closes) return;
+		event.preventDefault();
+		event.stopPropagation();
+		this._closeViewer();
+	},
+
+	/**
+	 * Closes the sheet's window if one is open.
+	 * @returns {boolean} whether there was one to close
+	 */
+	_closeViewer() {
+		let win = this._viewer;
+		if (!win) return false;
+		this._releaseViewer();
+		try {
+			if (!win.closed) win.close();
+		} catch (e) {
+			this.log("Could not close the contact sheet window: " + e);
+		}
+		return true;
+	},
+
+	/** Forgets the window without closing it: the listener must not outlive
+	 *  the plugin, the window may. */
+	_releaseViewer() {
+		let win = this._viewer;
+		if (win && this._viewerKeyHandler) {
+			try {
+				win.removeEventListener("keydown", this._viewerKeyHandler, true);
+			} catch (e) {
+				// The window is already gone
+			}
+		}
+		this._viewer = null;
+		this._viewerKeyHandler = null;
 	},
 
 	/**
@@ -1922,8 +2018,10 @@ var zotLook = {
 	async _launchPreview(filePaths) {
 		// Callers run inside _withLaunchGuard, so no guard of our own here.
 		// A preview opened from the context menu can arrive while another one
-		// is still up; replace it rather than orphaning the process.
-		this._closeQuickLook();
+		// is still up; replace it rather than orphaning the process. Only
+		// the process is taken down here: a preview that toggles on its own
+		// must not be closed first, or a second press would reopen it.
+		this._killPreviewProcess();
 
 		let plan = await this._previewCommand(filePaths);
 		if (!plan) {
@@ -1931,11 +2029,10 @@ var zotLook = {
 			return;
 		}
 
-		// A pipe plan is delivered from this very process — a few Win32
-		// calls, no subprocess — and QuickLook itself provides the toggle,
-		// so like the D-Bus route it leaves nothing to track or kill.
-		if (plan.pipePath) {
-			await this._postPipeMessage(plan);
+		// A one-shot request hands the toggling to the viewer itself, so
+		// there is nothing to track or kill — see _deliver
+		if (!plan.holdsProcess) {
+			await this._deliver(plan);
 			return;
 		}
 
@@ -1943,28 +2040,13 @@ var zotLook = {
 		this.log("Launching: " + plan.command + " " + plan.arguments.join(" "));
 
 		try {
-			let call = {
+			let proc = await Subprocess.call({
 				command: plan.command,
 				arguments: plan.arguments,
-			};
-			// The one-shot request's stderr is read, for the reason it gives
-			// when it fails. A viewer held open for the length of a preview
-			// gets none: nothing would drain that pipe, and a chatty helper
-			// would eventually block on a full one.
-			if (!plan.holdsProcess) call.stderr = "pipe";
-
-			let proc = await Subprocess.call(call);
+			});
 
 			// Only a viewer that stays running for as long as the preview is
-			// visible can be tracked and dismissed. A one-shot request hands
-			// the toggling to the viewer itself — but it is still waited for,
-			// because it is a D-Bus call whose delivery depends on the sender
-			// staying connected until it has been answered.
-			if (!plan.holdsProcess) {
-				await this._awaitPreviewRequest(proc);
-				return;
-			}
-
+			// visible can be tracked and dismissed.
 			this._proc = proc;
 			this._isActive = true;
 
@@ -2065,33 +2147,75 @@ var zotLook = {
 						filePaths.length
 				);
 			}
-			let line = zotLookUtil.quickLookPipeLine("Toggle", filePaths[0]);
-			try {
-				return {
-					pipePath: this._winPreview().pipePath(),
-					pipeLine: line,
-					holdsProcess: false,
-				};
-			} catch (e) {
-				this.log(
-					"Falling back to PowerShell for the pipe write: " + e
-				);
-			}
-			return {
-				command: await this._powershell(),
-				arguments: [
-					"-NoProfile",
-					"-NonInteractive",
-					"-EncodedCommand",
-					zotLookUtil.encodePowerShell(
-						zotLookUtil.quickLookFallbackScript(line)
-					),
-				],
-				holdsProcess: false,
-			};
+			return this._windowsPlan(
+				zotLookUtil.quickLookPipeLine("Toggle", filePaths[0]),
+				true
+			);
 		}
 
 		return null;
+	},
+
+	/**
+	 * One line for QuickLook's pipe, as a plan: written from this process
+	 * where ctypes is there, by PowerShell where it is not.
+	 *
+	 * @param {boolean} shows whether the line puts a preview up — a Toggle
+	 *   may, a Close never does — which is what Escape later goes by
+	 */
+	async _windowsPlan(line, shows) {
+		try {
+			return {
+				pipePath: this._winPreview().pipePath(),
+				pipeLine: line,
+				holdsProcess: false,
+				shows,
+			};
+		} catch (e) {
+			this.log("Falling back to PowerShell for the pipe write: " + e);
+		}
+		return {
+			command: await this._powershell(),
+			arguments: [
+				"-NoProfile",
+				"-NonInteractive",
+				"-EncodedCommand",
+				zotLookUtil.encodePowerShell(
+					zotLookUtil.quickLookFallbackScript(line)
+				),
+			],
+			holdsProcess: false,
+			shows,
+		};
+	},
+
+	/**
+	 * Delivers a one-shot request: a pipe plan from this very process — a
+	 * few Win32 calls, no subprocess — and any other through a subprocess
+	 * that is waited for, because a D-Bus call's delivery depends on the
+	 * sender staying connected until it has been answered.
+	 *
+	 * @returns {Promise<boolean>} whether the request was accepted
+	 */
+	async _deliver(plan) {
+		if (plan.pipePath) return this._postPipeMessage(plan);
+
+		const { Subprocess } = this._subprocess();
+		this.log("Launching: " + plan.command + " " + plan.arguments.join(" "));
+		let accepted = false;
+		try {
+			// stderr is read, for the reason the request gives when it fails
+			let proc = await Subprocess.call({
+				command: plan.command,
+				arguments: plan.arguments,
+				stderr: "pipe",
+			});
+			accepted = await this._awaitPreviewRequest(proc);
+		} catch (e) {
+			this.log("Failed to launch the preview: " + e);
+		}
+		if (accepted && plan.shows !== undefined) this._pipeShown = plan.shows;
+		return accepted;
 	},
 
 	/** Overridable for tests, like _subprocess. */
@@ -2122,13 +2246,26 @@ var zotLook = {
 	 * QuickLook simply is not running — which postLine marks on the error.
 	 */
 	async _postPipeMessage(plan) {
+		// Asked for before the window appears, so the keyboard stays in
+		// Zotero whether the preview was started by key or by mouse — see
+		// zotLookWinPreview.lockForeground. Its failure is not the request's.
+		if (plan.shows) {
+			try {
+				this._winPreview().lockForeground();
+			} catch (e) {
+				this.log("Could not keep the keyboard in Zotero: " + e);
+			}
+		}
 		try {
 			this._winPreview().postLine(plan.pipePath, plan.pipeLine);
 			this.log("Preview request delivered");
+			if (plan.shows !== undefined) this._pipeShown = plan.shows;
+			return true;
 		} catch (e) {
 			this.log("The preview request was refused: " + e);
 			if (e && e.quickLookAbsent) this._logQuickLookMissing();
 			await this._writeFailureReport("the preview request was refused");
+			return false;
 		}
 	},
 
@@ -2179,7 +2316,7 @@ var zotLook = {
 		let { exitCode } = await proc.wait();
 		if (exitCode === 0) {
 			this.log("Preview request delivered");
-			return;
+			return true;
 		}
 
 		complaint = complaint.trim();
@@ -2201,15 +2338,37 @@ var zotLook = {
 			this._logQuickLookMissing();
 		}
 		await this._writeFailureReport("the preview request was refused");
+		return false;
 	},
 
+	/**
+	 * Takes down whatever preview is up: the helper process on macOS, or
+	 * QuickLook's window on Windows, which is asked to close over the pipe.
+	 */
 	_closeQuickLook() {
+		this._killPreviewProcess();
+		if (this._pipeShown) this._dismissPipePreview();
+	},
+
+	_killPreviewProcess() {
 		if (this._proc) {
 			this.log("Closing the preview");
 			this._proc.kill();
 			this._proc = null;
 			this._isActive = false;
 		}
+	},
+
+	/**
+	 * Sends QuickLook its Close. Not awaited: the callers are key handlers,
+	 * and the message closes a window rather than starting anything that
+	 * would have to be watched.
+	 */
+	_dismissPipePreview() {
+		this._pipeShown = false;
+		this._windowsPlan(zotLookUtil.quickLookPipeLine("Close", ""), false)
+			.then((plan) => this._deliver(plan))
+			.catch((e) => this.log("Could not close the preview: " + e));
 	},
 
 	// ── File path resolution ──────────────────────────────────────────
@@ -2808,6 +2967,7 @@ var zotLook = {
 
 	shutdown() {
 		this._closeQuickLook();
+		this._releaseViewer();
 		this._dropResourceAlias();
 		this._unregisterPreferencePane();
 		if (Zotero.zotLook === this) delete Zotero.zotLook;
