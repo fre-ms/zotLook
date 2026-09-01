@@ -3,9 +3,9 @@
     "zotlook@fre.ms": {
       "updates": [
         {
-          "version": "1.3.1",
-          "update_link": "https://github.com/fre-ms/zotLook/releases/download/v1.3.1/zotlook-1.3.1.xpi",
-          "update_hash": "sha256:4e441f0c963214d5477d01db758587d2f87cd19f82602ffc4a5126775bfa4678",
+          "version": "1.3.2",
+          "update_link": "https://github.com/fre-ms/zotLook/releases/download/v1.3.2/zotlook-1.3.2.xpi",
+          "update_hash": "sha256:7b1c8bff2255adad956fdbef4336691623345d53735eb62d31c6ddf172572dc0",
           "applications": {
             "zotero": {
               "strict_min_version": "6.999"
