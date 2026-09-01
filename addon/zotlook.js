@@ -1326,14 +1326,59 @@ var zotLook = {
 	async _dropEntry(entry) {
 		try {
 			await IOUtils.remove(entry.keyPath, { ignoreAbsent: true });
-			await IOUtils.remove(entry.dir, {
-				recursive: true,
-				ignoreAbsent: true,
-			});
+			await this._removeTree(entry.dir);
 			return true;
 		} catch (e) {
 			this.log("Could not remove a kept preview: " + e);
 			return false;
+		}
+	},
+
+	/**
+	 * Removes a directory tree, read-only files included.
+	 *
+	 * Zotero's zip reader extracts an entry with the permissions the archive
+	 * recorded, and the assets of an EPUB are commonly stored read-only. On
+	 * Windows that attribute makes the file undeletable, IOUtils.remove then
+	 * reports the directory as not empty, and the entry — its key already
+	 * gone — stays for good: uncounted, uncleared by age, and untouched by
+	 * the button that promises to clear it. The write bit is put back
+	 * before a second attempt, which is what an `rm -rf` does on its own.
+	 */
+	async _removeTree(dir) {
+		try {
+			await IOUtils.remove(dir, { recursive: true, ignoreAbsent: true });
+			return;
+		} catch (e) {
+			// Retried below with the files made writable
+		}
+		await this._makeWritable(dir);
+		await IOUtils.remove(dir, { recursive: true, ignoreAbsent: true });
+	},
+
+	async _makeWritable(dir) {
+		let children;
+		try {
+			children = await IOUtils.getChildren(dir);
+		} catch (e) {
+			return;
+		}
+		for (let child of children) {
+			let stat;
+			try {
+				stat = await IOUtils.stat(child);
+			} catch (e) {
+				continue;
+			}
+			if (stat.type === "directory") {
+				await this._makeWritable(child);
+				continue;
+			}
+			try {
+				await IOUtils.setPermissions(child, 0o666);
+			} catch (e) {
+				// Then the removal below will say so
+			}
 		}
 	},
 
@@ -2952,8 +2997,17 @@ var zotLook = {
 				reader.open(Zotero.File.pathToFile(path));
 				return reader;
 			},
-			extractEntry: (zip, entry, destPath) =>
-				zip.extract(entry, Zotero.File.pathToFile(destPath)),
+			extractEntry: async (zip, entry, destPath) => {
+				zip.extract(entry, Zotero.File.pathToFile(destPath));
+				// The reader keeps the archive's permission bits, and an
+				// asset stored read-only would come out undeletable on
+				// Windows — see _removeTree. Written, not merely copied.
+				try {
+					await IOUtils.setPermissions(destPath, 0o644);
+				} catch (e) {
+					// Best effort; the removal side copes as well
+				}
+			},
 			openBook: (path) => {
 				let { EPUB } = ChromeUtils.importESModule(
 					"chrome://zotero/content/EPUB.mjs"
@@ -2989,10 +3043,12 @@ var zotLook = {
 		// from a previous session.
 		let dir = this._getTempDirPath();
 		try {
-			await IOUtils.remove(dir, { recursive: true });
+			await this._removeTree(dir);
 			this.log("Cleaned temp directory: " + dir);
 		} catch (e) {
-			// Nothing to clean — the directory may not exist yet
+			// A missing directory does not throw; anything else is a
+			// leftover that will still be there next time, so say so
+			this.log("Could not clean the temp directory: " + e);
 		}
 	},
 };

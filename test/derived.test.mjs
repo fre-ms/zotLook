@@ -453,6 +453,52 @@ function session(disk, prefValues = {}, source = { size: 10, mtime: 5 }) {
   eq(seen.size, 0, 'a setting already made under the new name is not overwritten');
 }
 
+// ── an entry with read-only files in it can still be dropped ──────────
+// Zotero's zip reader keeps the archive's permission bits, and EPUB assets
+// are commonly stored read-only; on Windows IOUtils.remove then fails with
+// "directory not empty" and the entry stays for good, its key already gone.
+{
+  const files = new Map([
+    ['/c/entry/.key', { ro: false }],
+    ['/c/entry/preview.html', { ro: false }],
+    ['/c/entry/asset/cover.jpg', { ro: true }],
+    ['/c/entry/asset/deep/font.ttf', { ro: true }],
+  ]);
+  const under = (dir) => [...files.keys()].filter(k => k.startsWith(dir + '/'));
+  const permissions = [];
+  const IOUtils = {
+    remove: async (p, opts = {}) => {
+      if (files.delete(p)) return;
+      const inside = under(p);
+      if (!inside.length) { if (!opts.ignoreAbsent) throw new Error('absent'); return; }
+      if (inside.some(k => files.get(k).ro)) {
+        throw new Error("Could not remove `" + p + "': the directory is not empty (NS_ERROR_FILE_DIR_NOT_EMPTY)");
+      }
+      for (const k of inside) files.delete(k);
+    },
+    getChildren: async (dir) => {
+      const out = new Set();
+      for (const k of under(dir)) {
+        const rest = k.slice(dir.length + 1);
+        const cut = rest.indexOf('/');
+        out.add(dir + '/' + (cut === -1 ? rest : rest.slice(0, cut)));
+      }
+      return [...out];
+    },
+    stat: async (p) => files.has(p) ? { type: 'regular' } : { type: 'directory' },
+    setPermissions: async (p, mode) => { permissions.push([p, mode]); files.get(p).ro = false; },
+  };
+  const { zotLook: Q, logs } = loadPlugin({ IOUtils });
+  eq(await Q._dropEntry({ dir: '/c/entry', keyPath: '/c/entry/.key' }), true,
+     'the entry goes even though half of it was read-only');
+  eq(files.size, 0, 'and nothing of it is left behind');
+  const touched = permissions.map(([p]) => p);
+  ok(touched.includes('/c/entry/asset/cover.jpg') && touched.includes('/c/entry/asset/deep/font.ttf'),
+     'the read-only files had their write bit put back, however deep they sat');
+  ok(permissions.every(([, mode]) => mode === 0o666), 'as plain writable files');
+  ok(!logs.some(l => /Could not remove/.test(l)), 'with nothing to complain about');
+}
+
 // ── where the kept store lives ────────────────────────────────────────
 // Zotero deletes its whole temp directory at every shutdown — an
 // AsyncShutdown blocker registered inside getTempDirectory — so a kept
