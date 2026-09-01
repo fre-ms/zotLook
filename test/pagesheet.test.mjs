@@ -145,15 +145,18 @@ const PAGED = [
   book.close();
   const landed = C.resolve(sections[0].doc, parsed);
   ok(landed, 'the CFI resolves in the book as the reader will open it');
-  eq(landed.startNode.data, ' mitten drin umbricht.',
-     'onto the first text the page contains');
-  eq([landed.startOffset, landed.endOffset], [0, 1],
+  eq(landed.endNode.data, ' mitten drin umbricht.',
+     'ending in the first text the page contains');
+  eq(landed.endOffset, 1,
      'over its first character, so the range has something to scroll to');
+  eq(landed.startNode.nodeType, 1,
+     'and anchored at the page mark itself, where the book\'s page-list points, '
+     + 'so the reader reads this page rather than the one the mark ends');
 
   const third = C.parse(decodeURIComponent(linkOf(found[3]).split('?cfi=')[1]));
   eq(C.spineIndex(third), 1, 'page three begins in the second');
-  eq(C.resolve(sections[1].doc, third).startNode.data, 'Seite drei.',
-     'on the text that follows its own mark');
+  eq(C.resolve(sections[1].doc, third).endNode.data, 'Seite drei.',
+     'ending in the text that follows its own mark');
 }
 {
   // The spine step must be the itemref's own position, not the position of
@@ -251,8 +254,8 @@ const PAGED = [
   book.close();
   const landed = C.resolve(sections[0].doc, cfi);
   ok(landed, 'and the link still resolves in the untouched book');
-  eq(landed.startNode.data, 'Seite sieben.',
-     'onto the text the page really begins with');
+  eq(landed.endNode.data, 'Seite sieben.',
+     'ending in the text the page really begins with');
 }
 
 // ── the book's own links must not break the tile's ────────────────────

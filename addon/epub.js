@@ -1372,15 +1372,27 @@ var zotLookEpub = {
 	/**
 	 * A CFI naming where a page begins, in the form the reader can follow.
 	 *
-	 * Not the mark itself. A pagebreak mark is an empty <span>, and a CFI
-	 * naming an element gives epub.js no range end to set, so the reader
-	 * scrolls a collapsed range and arrives nowhere. What is addressed is the
-	 * first character of the first text the page contains, which is where a
-	 * reader would look anyway.
+	 * A collapsed CFI naming the empty pagebreak <span> alone gives epub.js no
+	 * range to set and the reader arrives nowhere, so a range is needed. The
+	 * text after the mark is the page's first character — but a mark sits
+	 * mid-paragraph, in a paragraph that began on the previous printed page,
+	 * and a range starting there leaves the mark just above the fold, so the
+	 * reader's page indicator reads the previous page. The range is therefore
+	 * anchored at the mark itself and closed one character into that text:
+	 * the reader scrolls the mark to the top and reads this page, which is
+	 * what the book's own page-list entry points at. A mark taken from the
+	 * navigation is a heading that contains its text and starts its own line;
+	 * there the plain text range already lands right, and forRange declines.
 	 */
 	_markCfi(spineStep, spinePos, mark, body) {
 		let text = this._firstTextFrom(mark.node, body);
 		if (!text) return null;
+		if (mark.inline) {
+			let ranged = zotLookCfi.forRange(
+				spineStep, spinePos, mark.node, text, 1
+			);
+			if (ranged) return ranged;
+		}
 		return zotLookCfi.forTextRange(spineStep, spinePos, text, 0, 1);
 	},
 

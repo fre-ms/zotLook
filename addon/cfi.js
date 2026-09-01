@@ -161,6 +161,39 @@ var zotLookCfi = {
 		);
 	},
 
+	/**
+	 * A range CFI from one node to a text offset in another.
+	 *
+	 * Where forTextRange addresses inside a single text node, this spans two:
+	 * a start node and an end text node that share an ancestor. Its use is the
+	 * pagebreak marker — an empty span mid-paragraph — as the start, and the
+	 * first character of the page's text as the end. Anchoring the range at
+	 * the marker is what a page-list entry does, so the reader scrolls the
+	 * marker to the top and reads the page as this one, not the one it ends.
+	 *
+	 * Returns null when the two do not straddle a shared parent — when one
+	 * contains the other, there is no two-sided range to make, and the caller
+	 * falls back to a plain text range.
+	 */
+	forRange(spineStep, itemrefStep, startNode, endNode, endOffset) {
+		let s = this._stepsTo(startNode);
+		let e = this._stepsTo(endNode);
+		if (!s || !e) return null;
+		let i = 0;
+		while (i < s.length && i < e.length && s[i] === e[i]) i++;
+		// A shared parent, and each side a step past it: anything else is one
+		// nested in the other, which has no two-sided range
+		if (i === 0 || i >= s.length || i >= e.length) return null;
+		let parent = s.slice(0, i).join("/");
+		let start = s.slice(i).join("/");
+		let end = e.slice(i).join("/");
+		let to = Math.max(0, endOffset | 0);
+		return this._wrap(
+			spineStep, itemrefStep,
+			parent + ",/" + start + ",/" + end + ":" + to
+		);
+	},
+
 	/** The document path to a node, as CFI steps, or null. */
 	_stepsTo(node) {
 		if (!node || !node.ownerDocument) return null;
