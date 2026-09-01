@@ -36,6 +36,19 @@ Sushi muss nicht laufen: zotLook erreicht es über D-Bus, und D-Bus startet es
 bei Bedarf. Es funktioniert auch außerhalb von GNOME, solange der Dienst
 installiert ist und ein Sitzungsbus läuft.
 
+Eine Gewohnheit des Desktops wandert mit: Sobald die Vorschau öffnet, gibt
+GNOME ihr die Tastatur — genau wie beim Öffnen aus Dateien heraus. Von da an
+beantwortet das Fenster seine eigenen Tasten — **Leertaste**, **Escape** oder
+**q** schließen es — und zotLooks Kürzel erreichen das Plugin erst wieder,
+wenn Zotero den Fokus hat; dort schaltet derselbe Druck, der eine Vorschau
+geöffnet hat, sie nach wie vor um. Das ist Sushi, wie es gedacht ist, kein
+verlorenes Tastenkürzel.
+
+Auch die Pfeiltasten gehören zu diesem Entwurf: Sushi meldet sie dem, der es
+geöffnet hat, als Auswahlbewegung — so wandert Dateien bei offener Vorschau
+durch seine Liste — im Dokument blättern sie deshalb nie. Geblättert wird in
+einer Sushi-Vorschau mit dem Mausrad.
+
 KDE hat keinen vergleichbaren systemweiten Vorschaudienst — Kiview ist eine
 Dolphin-Erweiterung ohne äußere Schnittstelle — dort wird deshalb nichts
 angesteuert.

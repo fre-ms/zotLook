@@ -202,6 +202,55 @@ const on = (platform, prefValues = {}) => {
   }
 }
 
+// ── on Linux, Escape reaches Sushi; the chord stays a live toggle ─────
+// Once the preview opens, GNOME hands it the keyboard — as it does when
+// Files opens it — and Sushi then answers its own keys: Space, Escape and q
+// all close it. The plugin hears nothing until Zotero is focused again, so
+// what it can do is answer the presses it does hear: Escape back in Zotero
+// sends Sushi its Close.
+{
+  const launched = [];
+  const { zotLook: Q } = loadPlugin({
+    zotero: { isMac: false, isLinux: true, isWin: false },
+    ChromeUtils: { importESModule: () => ({ Subprocess: {
+      call: async (o) => { launched.push(o.arguments); return {
+        stderr: { readString: async () => '' },
+        wait: async () => ({ exitCode: 0 }), kill(){} }; } } }) },
+  });
+  const settle = () => new Promise((r) => setTimeout(r, 0));
+
+  const plan = await Q._previewCommand(['/a/paper.pdf']);
+  eq(plan.sushiShows, true, 'a ShowFile may put a preview up');
+  eq(await Q._deliver(plan), true, 'and is delivered');
+  eq(Q._sushiShown, true, 'so the plugin knows something may be showing');
+
+  Q._closeQuickLook();
+  await settle(); await settle(); await settle();
+  eq(launched.length, 2, "Escape becomes Sushi's Close");
+  eq(launched[1][launched[1].length - 1], 'org.gnome.NautilusPreviewer.Close',
+     'the method that closes rather than toggles');
+  eq(launched[1].includes('--print-reply'), true,
+     'delivered like every one-shot call, or activation drops it');
+  eq(Q._sushiShown, false, 'and nothing is showing any more');
+
+  Q._closeQuickLook();
+  await settle(); await settle();
+  eq(launched.length, 2, 'a second Escape sends nothing: there is nothing to close');
+}
+{
+  // A refused request leaves the state alone: nothing went up
+  const { zotLook: Q } = loadPlugin({
+    zotero: { isMac: false, isLinux: true, isWin: false },
+    ChromeUtils: { importESModule: () => ({ Subprocess: {
+      call: async () => ({
+        stderr: { readString: async () => 'Error org.freedesktop.DBus.Error.ServiceUnknown' },
+        wait: async () => ({ exitCode: 1 }), kill(){} }) } }) },
+  });
+  Q._writeFailureReport = async () => {};
+  eq(await Q._deliver(await Q._previewCommand(['/a/p.pdf'])), false, 'refused');
+  eq(Q._sushiShown, false, 'and not believed to be showing');
+}
+
 // ── on Windows, Escape reaches QuickLook, and the keyboard stays put ──
 {
   const Q = on('Win');

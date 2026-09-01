@@ -18,6 +18,8 @@ var zotLook = {
 	// this can be stale in one direction — set while nothing is showing any
 	// more — and a Close sent then is a harmless no-op.
 	_pipeShown: false,
+	// Its Sushi counterpart: a ShowFile went out and may still be showing
+	_sushiShown: false,
 	// The Zotero window holding a contact sheet, while one is open
 	_viewer: null,
 	_viewerKeyHandler: null,
@@ -416,7 +418,9 @@ var zotLook = {
 
 	_onKeyDown(event, window) {
 		if (event.key === "Escape") {
-			if (!this._isActive && !this._pipeShown) return;
+			if (!this._isActive && !this._pipeShown && !this._sushiShown) {
+				return;
+			}
 			event.preventDefault();
 			event.stopPropagation();
 			this._closeQuickLook();
@@ -469,7 +473,7 @@ var zotLook = {
 	 */
 	_onCloseKey(event) {
 		if (event.key === "Escape") {
-			if (this._isActive || this._pipeShown) {
+			if (this._isActive || this._pipeShown || this._sushiShown) {
 				event.preventDefault();
 				event.stopPropagation();
 				this._closeQuickLook();
@@ -834,8 +838,9 @@ var zotLook = {
 		// so it may load the file in a content process of its own — and then
 		// this listener never hears the key. The <key> elements below are
 		// heard whatever the process, being chrome-level shortcuts; keeping
-		// both means the window closes on its shortcut and on Escape whether
-		// or not the load went remote.
+		// both means the window closes on its shortcut, on Escape, and on
+		// the system preview's own keys — Space and q — whether or not the
+		// load went remote.
 		let handler = (event) => this._onViewerKeyDown(event);
 		this._viewerKeyHandler = handler;
 		try {
@@ -878,6 +883,7 @@ var zotLook = {
 			} catch (e) {
 				this.log("Could not add the contact sheet window's keys: " + e);
 			}
+			this._focusViewerContent(win);
 		};
 		install();
 		try {
@@ -891,7 +897,9 @@ var zotLook = {
 	_onViewerKeyDown(event) {
 		let own = this.bindings.find((b) => b.close === "_closeViewer");
 		let closes =
-			event.key === "Escape" || (own && this._matchesBinding(event, own));
+			event.key === "Escape" ||
+			(own && this._matchesBinding(event, own)) ||
+			this._isViewerCloseKey(event);
 		if (!closes) return;
 		event.preventDefault();
 		event.stopPropagation();
@@ -900,6 +908,55 @@ var zotLook = {
 				!!this._viewer + ")"
 		);
 		this._closeViewer();
+	},
+
+	/**
+	 * Puts the keyboard into the sheet itself.
+	 *
+	 * The window opens with its focus nowhere in particular, and a page
+	 * without the keyboard answers no key: arrows and the Page keys scrolled
+	 * nothing while the wheel — which needs no focus — worked. Focused when
+	 * the window is adopted and again when its load lands, because the
+	 * browser may not exist yet the first time.
+	 */
+	_focusViewerContent(win) {
+		try {
+			let browser =
+				win.document && typeof win.document.querySelector === "function"
+					? win.document.querySelector("browser")
+					: null;
+			if (browser && typeof browser.focus === "function") {
+				browser.focus();
+				return true;
+			}
+		} catch (e) {
+			this.log("Could not focus the contact sheet window: " + e);
+		}
+		return false;
+	},
+
+	/**
+	 * The keys the system preview answers, answered here too.
+	 *
+	 * Sushi and QuickLook both close on a bare Space and on q, and this
+	 * window stands where they stand — a reader who has learnt the preview's
+	 * reflexes should not need a second set for the window that replaces it.
+	 * Bare presses only: a modifier means the press is someone else's, and a
+	 * field that takes typing keeps its letters.
+	 */
+	_isViewerCloseKey(event) {
+		if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
+			return false;
+		}
+		let target = event.target;
+		if (
+			target &&
+			(target.isContentEditable ||
+				/^(input|textarea|select)$/i.test(target.tagName || ""))
+		) {
+			return false;
+		}
+		return event.code === "Space" || (event.key || "").toLowerCase() === "q";
 	},
 
 	/**
@@ -933,6 +990,10 @@ var zotLook = {
 		addKey({ keycode: "VK_ESCAPE" });
 		let own = this.bindings.find((b) => b.close === "_closeViewer");
 		if (own) addKey(this._xulKeyAttrs(own));
+		// The system preview's own keys — see _isViewerCloseKey. No
+		// modifiers attribute means the bare key, and only the bare key.
+		addKey({ keycode: "VK_SPACE" });
+		addKey({ key: "q" });
 
 		doc.documentElement.appendChild(keyset);
 		return true;
@@ -2390,6 +2451,7 @@ var zotLook = {
 					"boolean:true",
 				],
 				holdsProcess: false,
+				sushiShows: true,
 			};
 		}
 
@@ -2468,6 +2530,7 @@ var zotLook = {
 			this.log("Failed to launch the preview: " + e);
 		}
 		if (accepted && plan.shows !== undefined) this._pipeShown = plan.shows;
+		if (accepted && plan.sushiShows) this._sushiShown = true;
 		return accepted;
 	},
 
@@ -2601,6 +2664,7 @@ var zotLook = {
 	_closeQuickLook() {
 		this._killPreviewProcess();
 		if (this._pipeShown) this._dismissPipePreview();
+		if (this._sushiShown) this._dismissSushiPreview();
 	},
 
 	_killPreviewProcess() {
@@ -2617,6 +2681,37 @@ var zotLook = {
 	 * and the message closes a window rather than starting anything that
 	 * would have to be watched.
 	 */
+	/**
+	 * Sends Sushi its Close, for a press the plugin can still hear.
+	 *
+	 * Once the preview is up, GNOME hands it the keyboard, and Sushi answers
+	 * its own keys — Space, Escape and q all close it; the plugin never sees
+	 * a key again until Zotero is focused. This is for the other half:
+	 * Escape pressed back in Zotero. Like the pipe's flag, _sushiShown can be
+	 * stale in one direction — the user may have closed the window from
+	 * inside it — and a Close with no window up closes nothing, at the cost
+	 * of briefly waking the service.
+	 */
+	_dismissSushiPreview() {
+		this._sushiShown = false;
+		this._dbusSend()
+			.then((command) =>
+				this._deliver({
+					command: command,
+					arguments: [
+						"--session",
+						"--print-reply",
+						"--reply-timeout=" + this.PREVIEW_REPLY_TIMEOUT_MS,
+						"--dest=org.gnome.NautilusPreviewer",
+						"/org/gnome/NautilusPreviewer",
+						"org.gnome.NautilusPreviewer.Close",
+					],
+					holdsProcess: false,
+				})
+			)
+			.catch((e) => this.log("Could not close the preview: " + e));
+	},
+
 	_dismissPipePreview() {
 		this._pipeShown = false;
 		this._windowsPlan(zotLookUtil.quickLookPipeLine("Close", ""), false)

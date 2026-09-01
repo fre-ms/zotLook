@@ -483,9 +483,12 @@ const ok = (c,l)=>eq(!!c,true,l);
   Q._isActive = false; Q._pipeShown = true;
   eq(press({ key:'Escape' }), true, 'Escape while QuickLook shows something is consumed');
   eq(closed, 1, 'and closes it');
-  Q._pipeShown = false;
+  Q._pipeShown = false; Q._sushiShown = true;
+  eq(press({ key:'Escape' }), true, 'Escape while Sushi shows something is consumed');
+  eq(closed, 2, 'and closes it');
+  Q._sushiShown = false;
   eq(press({ key:'Escape' }), false, 'Escape with nothing up is left to Zotero');
-  eq(closed, 1, 'and closes nothing');
+  eq(closed, 2, 'and closes nothing');
 
   // The window route: its shortcut closes the window it opened
   const key = U.parseShortcut(U.defaultShortcut('key.contactSheetWindow'));
@@ -499,6 +502,18 @@ const ok = (c,l)=>eq(!!c,true,l);
   // The other shortcuts leave the window alone: it stays beside the reader
   let previews = 0; Q._openQuickLook = () => { previews++; };
   press({ code:'Space' }); eq(previews, 1, 'Space still previews while the window is open');
+
+  // The chord itself stays a live toggle on Linux: pressed again in Zotero
+  // it re-sends ShowFile, whose close-if-already-shown does the closing — a
+  // flag the user may have invalidated from inside Sushi never decides, so
+  // the toggle cannot go stale.
+  Q._viewer = null; Q._sushiShown = true;
+  let sheets = 0; Q._openContactSheet = () => { sheets++; };
+  const sheetKey = U.parseShortcut(U.defaultShortcut('key.contactSheet'));
+  press({ code: sheetKey.code, ctrlKey: !!sheetKey.ctrl, shiftKey: !!sheetKey.shift,
+          altKey: !!sheetKey.alt, metaKey: !!sheetKey.meta });
+  eq(sheets, 1, 'the sheet chord re-opens rather than trusting the flag');
+  eq(closed, 2, 'and does not go through the close path');
 }
 
 // ── the sheet's window answers its own shortcut and Escape ────────────
@@ -518,9 +533,11 @@ const ok = (c,l)=>eq(!!c,true,l);
     const shut = (how) => { win.closed = true; win.closedBy = how; if (listeners.unload) listeners.unload(); };
     byId['cmd_close'] = { doCommand: () => shut('command') };
     const docEl = { appendChild(n) { if (n.id) byId[n.id] = n; } };
+    win.browser = { focused: 0, focus() { this.focused++; } };
     win.document = {
       documentElement: docEl,
       getElementById: (id) => byId[id] || null,
+      querySelector: (sel) => (sel === 'browser' ? win.browser : null),
       createXULElement: (tag) => ({
         tag, id: '', attrs: {}, children: [],
         setAttribute(k, v) { this.attrs[k] = v; },
@@ -546,26 +563,53 @@ const ok = (c,l)=>eq(!!c,true,l);
   ok(w.listeners.keydown, 'the window is listened to');
   eq(Q._viewer, w, 'and remembered');
 
+  // Scrolling needs the keyboard, and the keyboard needs a focused content:
+  // arrows and the Page keys did nothing while only the wheel worked.
+  ok(w.browser.focused >= 1, 'the sheet content is given the keyboard');
+  if (w.listeners.load) w.listeners.load();
+  ok(w.browser.focused >= 2, 'and again when the load lands, whichever came first');
+
   // the chrome-level keys, for when the listener above cannot hear the press
   const keyset = w.document.getElementById('zotlook-viewer-keys');
   ok(keyset, 'a keyset is installed in the window');
-  eq(keyset.children.length, 2, 'Escape and the windowed sheet’s own shortcut');
+  eq(keyset.children.length, 4,
+     'Escape, the sheet’s own shortcut, and the system preview’s Space and q');
   eq(keyset.children[0].attrs.keycode, 'VK_ESCAPE', 'the first is Escape');
   eq(keyset.children[0].attrs.command, 'cmd_close', 'firing the window’s own close');
   eq(keyset.children[1].attrs.keycode, 'VK_SPACE', 'the second is the shortcut’s Space');
   eq(keyset.children[1].attrs.modifiers, 'control,alt', 'with its modifiers');
   eq(keyset.children[1].attrs.command, 'cmd_close', 'also closing the window');
+  eq(keyset.children[2].attrs.keycode, 'VK_SPACE', 'the third is a bare Space');
+  eq(keyset.children[2].attrs.modifiers, undefined, 'bare: no modifiers attribute');
+  eq(keyset.children[3].attrs.key, 'q', 'the fourth is a bare q');
+  eq(keyset.children[3].attrs.modifiers, undefined, 'bare as well');
 
+  // Space and q close, the way they close Sushi and QuickLook — but only
+  // bare, and never out of a field that takes typing
+  const shiftSpace = ev({ code:'Space', shiftKey:true }); w.listeners.keydown(shiftSpace);
+  eq(w.closed, false, 'Shift+Space is someone else’s press');
+  const ctrlQ = ev({ key:'q', ctrlKey:true }); w.listeners.keydown(ctrlQ);
+  eq(w.closed, false, 'Ctrl+q likewise');
+  const typedQ = ev({ key:'q', target: { tagName: 'INPUT' } }); w.listeners.keydown(typedQ);
+  eq(w.closed, false, 'a q typed into a field stays a letter');
   const space = ev({ code:'Space' }); w.listeners.keydown(space);
-  eq(w.closed, false, 'Space leaves the window alone: it scrolls the sheet');
-  eq(space.prevented, false, 'and is not consumed');
+  eq(w.closed, true, 'a bare Space closes it, as it closes the system preview');
+  eq(space.prevented, true, 'and is consumed');
 
-  const esc = ev({ key:'Escape' }); w.listeners.keydown(esc);
-  eq(w.closed, true, 'Escape closes it');
   eq(w.closedBy, 'command', 'through the window’s own cmd_close, not the reference’s no-op close()');
-  eq(esc.prevented, true, 'and is consumed');
   eq(Q._viewer, null, 'the window is forgotten as it goes');
   eq(Q._closeViewer(), false, 'and there is nothing left to close');
+
+  const wEsc = makeWin();
+  Q._adoptViewer(wEsc);
+  const esc = ev({ key:'Escape' }); wEsc.listeners.keydown(esc);
+  eq(wEsc.closed, true, 'Escape closes it');
+  eq(esc.prevented, true, 'and is consumed');
+
+  const wQ = makeWin();
+  Q._adoptViewer(wQ);
+  wQ.listeners.keydown(ev({ key:'q' }));
+  eq(wQ.closed, true, 'a bare q closes it too');
 
   const w2 = makeWin();
   Q._adoptViewer(w2);
@@ -598,6 +642,7 @@ const ok = (c,l)=>eq(!!c,true,l);
   eq(w4.closed, false, 'released at shutdown, the window stays');
   eq(w4.listeners.keydown, undefined, 'without the listener');
   eq(w4.document.getElementById('zotlook-viewer-keys'), null, 'and without the keys');
+
 }
 
 // ── closing is caught at the window, not only at the item tree ────────

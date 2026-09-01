@@ -36,6 +36,18 @@ It need not be running: zotLook reaches it over D-Bus, and D-Bus starts it on
 demand. It works outside GNOME as long as the service is installed and a session
 bus is running.
 
+One habit of the desktop carries over: the moment the preview opens, GNOME
+hands it the keyboard, exactly as when Files opens it. From then on the window
+answers its own keys — **Space**, **Escape** or **q** close it — and zotLook's
+shortcuts cannot reach the plugin until Zotero is focused again, where the same
+press that opened a preview still toggles it. That is Sushi behaving as
+designed, not a binding gone missing.
+
+The arrow keys belong to that design too: Sushi reports them to whatever
+opened it as selection movement — that is how Files walks its list with the
+preview open — so they never scroll the document. Scrolling inside a Sushi
+preview is the wheel's job.
+
 KDE has no comparable system-wide preview service — Kiview is a Dolphin
 extension without an external interface — so nothing is driven there.
 

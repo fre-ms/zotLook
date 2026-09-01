@@ -14,12 +14,17 @@ Every action has exactly one shortcut, and every one of them is
 | **Space** | Preview the selected item's attachment. Again, or **Escape**, to dismiss. |
 | **Shift+Space** | Preview the item's notes, rendered as a page. |
 | **Ctrl+Shift+Space** | Contact sheet: every page of a PDF as a thumbnail, or a book’s printed pages. |
-| **Ctrl+Alt+Space** | The same sheet in a Zotero window, which stays open beside the reader. Again, or **Escape** in that window, to close it. |
+| **Ctrl+Alt+Space** | The same sheet in a Zotero window, which stays open beside the reader. Again to close it — or **Escape**, **Space** or **q** in the window, the keys that close the system preview. |
 
 Each shortcut is its own switch: the press that put a preview up takes it down
 again, and **Escape** does the same. A different shortcut while one is showing
 switches to what it shows — a contact sheet gives way to the plain preview of
 the same file on Space, and back on the sheet's shortcut.
+
+On Linux that holds while Zotero has the keyboard. GNOME focuses the preview as
+it opens — the same happens when Files opens one — and from then on the window
+answers its own keys: **Space**, **Escape** or **q** close it. Back in Zotero,
+the shortcuts speak again.
 
 The same actions sit in the right-click menu. The contact sheet entries appear
 only when the selection actually contains a PDF or an EPUB.
