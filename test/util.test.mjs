@@ -80,5 +80,28 @@ eq(U.attachmentOrder('other').slice(0, 1), ['other'], 'a single stored type lead
 eq(new Set(U.attachmentOrder('pdf,pdf,epub')).size, U.ATTACHMENT_TYPES.length,
    'duplicates do not produce duplicate ranks');
 
+// ── which modules are closed, and which must stay open ────────────────
+// Freezing is what lets the type checker see a misspelt method name on one
+// of these modules: in a .js file an object literal is open, and a property
+// it has never seen is assumed to be one somebody adds later, so this.foo()
+// with no foo is not an error until the literal is closed. Measured both
+// ways — with the freeze the checker names the typo and suggests the right
+// spelling, without it there is no error at all.
+//
+// zotLookEpub is the counter-case and belongs here beside them: the host
+// writes the localised labels into it after the translations load, so
+// freezing it would break the German interface and nothing here would say
+// so, since assignment to a frozen object fails silently outside strict
+// mode.
+{
+  const { zotLookCfi: C, zotLookEpub: E } = loadPlugin();
+  ok(Object.isFrozen(U), 'zotLookUtil is frozen, so its members are checkable');
+  ok(Object.isFrozen(C), 'and zotLookCfi');
+  eq(Object.isFrozen(E), false,
+     'zotLookEpub is not: the host writes its labels in when the locale loads');
+  E.TOC_LABEL = 'Inhalt';
+  eq(E.TOC_LABEL, 'Inhalt', 'and that write really does take');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

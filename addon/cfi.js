@@ -29,7 +29,19 @@
  * wrong. The divergence is marked at the two places it shows.
  */
 
-var zotLookCfi = {
+// Frozen, and not only because nothing should write to it.
+//
+// In a .js file TypeScript treats an object literal as open — a property it
+// has never seen is assumed to be one somebody adds later — so a misspelt
+// method name on a module like this one is not an error, which is the single
+// mistake a checker would be most useful against. Freezing the literal closes
+// it: the checker then knows the members are all there are, and this.foo()
+// with no foo is reported.
+//
+// It costs nothing here because nothing assigns to this module at run time.
+// zotLookEpub is deliberately not frozen: the host writes its labels into it
+// when the localisation loads.
+var zotLookCfi = Object.freeze({
 	/**
 	 * @param {string} value  an `epubcfi(...)` string, or its contents
 	 * @returns {object|null} {spine, path, start, end} — each a step list, or
@@ -436,6 +448,6 @@ var zotLookCfi = {
 		}
 		return null;
 	},
-};
+});
 
 void zotLookUtil;

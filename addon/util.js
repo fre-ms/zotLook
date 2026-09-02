@@ -7,7 +7,19 @@
  * Everything here is pure string and DOM work — no Zotero, no filesystem — so
  * the parts that are easy to get subtly wrong stay easy to reason about.
  */
-var zotLookUtil = {
+// Frozen, and not only because nothing should write to it.
+//
+// In a .js file TypeScript treats an object literal as open — a property it
+// has never seen is assumed to be one somebody adds later — so a misspelt
+// method name on a module like this one is not an error, which is the single
+// mistake a checker would be most useful against. Freezing the literal closes
+// it: the checker then knows the members are all there are, and this.foo()
+// with no foo is reported.
+//
+// It costs nothing here because nothing assigns to this module at run time.
+// zotLookEpub is deliberately not frozen: the host writes its labels into it
+// when the localisation loads.
+var zotLookUtil = Object.freeze({
 	/**
 	 * Turns arbitrary text into a filename-safe fragment.
 	 */
@@ -529,4 +541,4 @@ var zotLookUtil = {
 		}
 		return btoa(bytes);
 	},
-};
+});
