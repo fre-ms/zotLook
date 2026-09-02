@@ -37,6 +37,25 @@ abschalten.
 
 ![](asset/screenshot/linux-contact-sheet-logo.png){fig-alt="Der Kontaktbogen unter GNOME Sushi auf Linux, mit einem PDF, dessen sechzehn Seiten das zotLook-Logo ergeben"}
 
+Die beiden Menüs des Bogens, unter macOS: das Inhaltsverzeichnis aus der
+Outline des PDFs, die Annotationen aus Zotero, jeder Eintrag holt seine Seite in
+die Mitte des Bogens, und ein Klick auf die Seite übergibt an den Reader.
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-contact-sheet-menus.png" aria-label="Der Kontaktbogen in Quick Look: Das Inhaltsverzeichnis öffnet sich, ein Eintrag holt seine Seite gerahmt in die Mitte des Bogens; das Annotationsmenü listet drei Hervorhebungen, eine führt zu Seite 9, und ein Klick auf diese Seite öffnet sie in Zoteros Reader">
+  <source src="asset/screenshot/macos-contact-sheet-menus.webm" type="video/webm">
+  <source src="asset/screenshot/macos-contact-sheet-menus.mp4" type="video/mp4">
+</video>
+```
+
+:::
+
+::: {.content-visible unless-format="html"}
+![Der Kontaktbogen in Quick Look: Das Inhaltsverzeichnis öffnet sich, ein Eintrag holt seine Seite gerahmt in die Mitte des Bogens; das Annotationsmenü listet drei Hervorhebungen, eine führt zu Seite 9, und ein Klick auf diese Seite öffnet sie in Zoteros Reader](asset/screenshot/macos-contact-sheet-menus.png)
+
+:::
+
 ## Voraussetzungen
 
 | | |

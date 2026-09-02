@@ -34,6 +34,25 @@ file as it is stored.
 
 ![](asset/screenshot/linux-contact-sheet-logo.png){fig-alt="The contact sheet under GNOME Sushi on Linux, showing a PDF whose sixteen pages reproduce the zotLook logo"}
 
+The sheet's two menus, on macOS: the contents from the PDF's outline, the
+annotations from Zotero, each entry bringing its page to the middle of the
+sheet, and a click on the page handing over to the reader.
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-contact-sheet-menus.png" aria-label="The contact sheet in Quick Look: the contents menu opens, an entry brings its page to the middle of the sheet, framed; the annotations menu lists three highlights, one of them leads to page 9, and a click on that page opens it in Zotero's reader">
+  <source src="asset/screenshot/macos-contact-sheet-menus.webm" type="video/webm">
+  <source src="asset/screenshot/macos-contact-sheet-menus.mp4" type="video/mp4">
+</video>
+```
+
+:::
+
+::: {.content-visible unless-format="html"}
+![The contact sheet in Quick Look: the contents menu opens, an entry brings its page to the middle of the sheet, framed; the annotations menu lists three highlights, one of them leads to page 9, and a click on that page opens it in Zotero's reader](asset/screenshot/macos-contact-sheet-menus.png)
+
+:::
+
 ## What you need
 
 | | |

@@ -37,6 +37,32 @@ for (const platform of PLATFORMS) {
   }
 }
 
+// ── the moving picture, in the sizes the two places can carry ─────────
+// GitHub plays a GIF in a README and nothing else; the site plays a video,
+// which is a fraction of the size at twice the sharpness. Both are kept
+// small enough to load before a reader scrolls past them.
+{
+  const base = ROOT + 'asset/screenshot/macos-contact-sheet-menus';
+  const kb = (ext) => Math.round(fs.statSync(base + ext).size / 1024);
+  for (const ext of ['.gif', '.mp4', '.webm', '.png']) {
+    ok(fs.existsSync(base + ext), `the demo exists as ${ext}`);
+  }
+  ok(kb('.gif') < 4096, `the GIF is under 4 MB (${kb('.gif')} KB)`);
+  ok(kb('.mp4') < 3072 && kb('.webm') < 3072,
+     `the videos are under 3 MB (${kb('.mp4')} and ${kb('.webm')} KB)`);
+  const readme = fs.readFileSync(ROOT + 'README.md', 'utf8');
+  ok(/\]\(asset\/screenshot\/macos-contact-sheet-menus\.gif\)/.test(readme),
+     'the README shows the GIF');
+  for (const lang of ['en', 'de']) {
+    const page = fs.readFileSync(ROOT + `doc/${lang}/index.qmd`, 'utf8');
+    ok(/<video[^>]*poster="asset\/screenshot\/macos-contact-sheet-menus\.png"/.test(page)
+       && /macos-contact-sheet-menus\.mp4/.test(page),
+       `${lang}: the front page plays the video, with the poster before it`);
+    ok(/unless-format="html"/.test(page),
+       `${lang}: and the PDF gets the poster instead`);
+  }
+}
+
 // ── the social preview points at something that is there ──────────────
 // It is named once per language in a place nothing else touches, so a
 // renamed picture leaves a broken og:image and no other symptom.

@@ -5,6 +5,9 @@ project:
   output-dir: ../../site/de
   resources:
     - font/
+    # the video's poster: Quarto copies what a page refers to by src,
+    # and a poster attribute is not that
+    - asset/screenshot/macos-contact-sheet-menus.png
 
 lang: de
 
