@@ -44,7 +44,8 @@ system already has. Click any image for the full-size version.
   passage. No script is involved, which is what lets it work in a preview panel
   that runs none.
 - **Clicking a page of the contact sheet** opens it in Zotero's reader at that
-  page.
+  page. A button in each corner opens the document's contents and its
+  annotations, each entry a jump to its page.
 - **A book gets a page overview too**, where it can have one. A reflowable EPUB
   has no pages of its own, but one published beside a print edition usually
   carries that edition's pagination along with it — and zotLook cuts the book

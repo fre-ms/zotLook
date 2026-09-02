@@ -97,6 +97,8 @@ oder **Escape** schließt die Vorschau wieder.
 als Miniatur in einem scrollbaren Raster. Ein Klick auf eine Seite öffnet sie im
 Zotero-Reader. Bei langen Dokumenten dauert das einige Sekunden, und das Plugin
 sagt es, während es arbeitet.
+In jeder Ecke öffnet ein Knopf das Inhaltsverzeichnis des Dokuments und seine
+Annotationen; ein Eintrag holt seine Seite in die Mitte des Bogens.
 
 Ein EPUB bekommt ebenfalls einen, sofern es geht. Ein umfließendes Buch hat
 keine eigenen Seiten, aber eines, das neben einer gedruckten Ausgabe erscheint,

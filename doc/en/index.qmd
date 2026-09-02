@@ -89,8 +89,9 @@ an EPUB before anything else. You can [change that order](settings.qmd). Press
 
 **Ctrl+Shift+Space** builds a *contact sheet*: every page of a PDF as a
 thumbnail in a scrollable grid. Clicking a page opens it in Zotero's reader at
-that page. On a long document the sheet takes a few seconds and says so while it
-works.
+that page. A button in each corner opens the document's contents and its
+annotations, and an entry brings its page to the middle of the sheet. On a long
+document the sheet takes a few seconds and says so while it works.
 
 An EPUB gets one too, where it can. A reflowable book has no pages of its own,
 but one published beside a print edition usually carries that edition's
