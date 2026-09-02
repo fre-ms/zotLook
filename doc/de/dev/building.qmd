@@ -79,8 +79,11 @@ Start den Arbeitsbaum, auch der über das Programmsymbol; `--restore` legt die
 verpackte Kopie zurück.
 
 `--profile` nimmt ein anderes Profil als das, welches `profiles.ini` nennt;
-`ZOTERO_BIN` ein Zotero an ungewöhnlicher Stelle und `ZOTERO_QUIT` einen
-anderen Weg, es zu schließen, als den der Plattform — Letzteres ist zugleich,
+`ZOTERO_BIN` ein Zotero an ungewöhnlicher Stelle, `ZOTERO_QUIT` einen
+anderen Weg, es zu schließen, als den der Plattform, und `ZOTERO_PROBE` einen
+Befehl, der mit 0 endet, solange es läuft. Der Neustart wartet, bis dieser
+das Ende meldet, bevor er etwas startet: `open -a` auf ein noch schließendes
+Zotero aktiviert es nur und bricht das Beenden ab — Letzteres ist zugleich,
 was `test/dev.test.mjs` erlaubt, die ganze Schleife gegen Attrappen zu treiben,
 statt das Zotero dessen zu schließen, der die Tests laufen lässt.
 

@@ -40,6 +40,18 @@ function makeProfile(name, { disabled = true, packaged = true } = {}) {
   return profile;
 }
 
+/**
+ * A copy of addon/ for the watch runs to write into. The burst test writes a
+ * file to provoke a restart, and done to the real tree that would reach a
+ * developer's running loop — which then restarted their Zotero underneath
+ * them, once, before this existed.
+ */
+function scratchAddon(name) {
+  const dir = path.join(TMP, name + '-addon');
+  fs.cpSync(ROOT + 'addon', dir, { recursive: true });
+  return dir;
+}
+
 /** Stubs that write their arguments where the test can read them. */
 function makeStubs(name) {
   const dir = path.join(TMP, name + '-stubs');
@@ -184,8 +196,10 @@ if (process.platform === 'darwin' && spawnSync('which', ['swiftc']).status === 0
 {
   const profile = makeProfile('watch');
   const stub = makeStubs('watch');
+  const addon = scratchAddon('watch');
   const child = spawn('node', [ROOT + 'tool/dev.mjs', '--profile', profile], {
-    env: { ...process.env, ZOTERO_BIN: stub.bin, ZOTERO_QUIT: stub.quit },
+    env: { ...process.env, ZOTERO_BIN: stub.bin, ZOTERO_QUIT: stub.quit,
+           ZOTERO_PROBE: 'false', ZOTLOOK_ADDON: addon },
     stdio: 'ignore',
   });
 
@@ -211,9 +225,11 @@ if (process.platform === 'darwin' && spawnSync('which', ['swiftc']).status === 0
      'with --purgecaches: bootstrap.js is cached by Zotero, not by the plugin');
   ok((first[1] || '').includes(profile), 'and pointed at this profile');
 
-  // A burst of writes, as an editor and a formatter between them produce
-  const target = ROOT + 'addon/zotlook.js';
+  // A burst of writes, as an editor and a formatter between them produce —
+  // into the scratch copy, never the tree
+  const target = path.join(addon, 'zotlook.js');
   const body = fs.readFileSync(target);
+  const realBefore = fs.statSync(ROOT + 'addon/zotlook.js').mtimeMs;
   try {
     for (let i = 0; i < 5; i++) {
       fs.writeFileSync(target, body);
@@ -222,10 +238,47 @@ if (process.platform === 'darwin' && spawnSync('which', ['swiftc']).status === 0
     await settle(1500);
     const after = stub.calls().length - first.length;
     eq(after, 2, 'a burst of five writes costs one quit and one start, not five');
+    eq(fs.statSync(ROOT + 'addon/zotlook.js').mtimeMs, realBefore,
+       'and the real addon/ was never touched, so a running loop stays quiet');
   } finally {
-    fs.writeFileSync(target, body);
     child.kill();
   }
+}
+
+// ── the start waits for the quit to finish ────────────────────────────
+// Asking Zotero to quit returns at once; Zotero takes its time. Started
+// before it is gone, `open -a` activates the old instance, drops the
+// arguments, and the pending quit is cancelled — the loop then logs a
+// restart that never happened. Found by comparing the process's start time
+// with the loop's own log line, after a fix had been "tested" on the old
+// process for a quarter of an hour.
+{
+  const profile = makeProfile('wait');
+  const stub = makeStubs('wait');
+  const addonWait = scratchAddon('wait');
+  // A probe that says "still running" three times, then "gone"
+  const counter = path.join(TMP, 'wait-count');
+  fs.writeFileSync(counter, '0');
+  const probe = path.join(TMP, 'wait-probe');
+  fs.writeFileSync(probe, `#!/bin/sh
+n=$(cat "${counter}"); n=$((n+1)); echo $n > "${counter}"
+[ $n -le 3 ] && exit 0 || exit 1
+`);
+  fs.chmodSync(probe, 0o755);
+
+  const child = spawn('node', [ROOT + 'tool/dev.mjs', '--profile', profile], {
+    env: { ...process.env, ZOTERO_BIN: stub.bin, ZOTERO_QUIT: stub.quit, ZOTERO_PROBE: probe,
+           ZOTLOOK_ADDON: addonWait },
+    stdio: 'ignore',
+  });
+  await new Promise((r) => setTimeout(r, 4000));
+  child.kill();
+
+  const polls = parseInt(fs.readFileSync(counter, 'utf8'), 10);
+  ok(polls >= 4, `the start waited until the probe said gone (${polls} polls)`);
+  const calls = stub.calls();
+  eq(calls[0], 'quit', 'quit came first');
+  ok(/^start /.test(calls[1] || ''), 'and the start only after the wait');
 }
 
 // ── on macOS the start goes through the launcher ──────────────────────
@@ -238,6 +291,7 @@ if (process.platform === 'darwin' && spawnSync('which', ['swiftc']).status === 0
 if (process.platform === 'darwin') {
   const profile = makeProfile('launcher');
   const stub = makeStubs('launcher');
+  const addonLauncher = scratchAddon('launcher');
   const bin = path.join(TMP, 'launcher-bin');
   fs.mkdirSync(bin, { recursive: true });
   // A stand-in for /usr/bin/open, found first on PATH
@@ -247,7 +301,8 @@ if (process.platform === 'darwin') {
 
   const child = spawn('node', [ROOT + 'tool/dev.mjs', '--profile', profile], {
     // no ZOTERO_BIN: that is what selects the launcher
-    env: { ...process.env, ZOTERO_QUIT: stub.quit, PATH: bin + ':' + process.env.PATH },
+    env: { ...process.env, ZOTERO_QUIT: stub.quit, ZOTERO_PROBE: 'false',
+           ZOTLOOK_ADDON: addonLauncher, PATH: bin + ':' + process.env.PATH },
     stdio: 'ignore',
   });
   await new Promise((r) => setTimeout(r, 1500));

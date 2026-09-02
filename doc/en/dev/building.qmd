@@ -73,8 +73,11 @@ in place, *any* start loads the working tree, including one from the dock or
 the start menu; `--restore` is what puts the packaged copy back.
 
 It takes `--profile` for a profile other than the one `profiles.ini` names,
-and reads `ZOTERO_BIN` for a Zotero somewhere unusual and `ZOTERO_QUIT` for a
-way of closing it other than the platform's own — which is also what lets
+and reads `ZOTERO_BIN` for a Zotero somewhere unusual, `ZOTERO_QUIT` for a
+way of closing it other than the platform's own, and `ZOTERO_PROBE` for a
+command that exits 0 while it runs. The restart waits for that to say gone
+before it starts anything: `open -a` on a Zotero still closing only
+activates it and cancels the quit — which is also what lets
 `test/dev.test.mjs` drive the whole loop against stubs, rather than closing the
 Zotero of whoever runs the suite.
 

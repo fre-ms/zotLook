@@ -24,6 +24,8 @@
 //   --profile <path>   a profile other than the one profiles.ini names
 //   ZOTERO_BIN         a Zotero other than the one in the usual place
 //   ZOTERO_QUIT        a command that closes Zotero, instead of the usual one
+//   ZOTERO_PROBE       a command that exits 0 while Zotero runs, likewise
+//   ZOTLOOK_ADDON      the directory to install and watch, instead of addon/
 
 import fs from "node:fs";
 import path from "node:path";
@@ -32,7 +34,13 @@ import { fileURLToPath } from "node:url";
 import { spawn, spawnSync } from "node:child_process";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const ADDON = path.join(ROOT, "addon");
+// ZOTLOOK_ADDON is for the tests: they exercise the watch by writing into
+// the directory it watches, and that must not be the real addon/ — a running
+// loop would see the writes and restart the developer's Zotero, which is how
+// this was noticed. Everything else takes the tree as it is.
+const ADDON = process.env.ZOTLOOK_ADDON
+	? path.resolve(process.env.ZOTLOOK_ADDON)
+	: path.join(ROOT, "addon");
 const ID = JSON.parse(fs.readFileSync(path.join(ADDON, "manifest.json"), "utf8"))
 	.applications.zotero.id;
 
@@ -122,6 +130,11 @@ function zoteroBinary() {
  * changes nothing.
  */
 function zoteroRunning() {
+	// ZOTERO_PROBE: a command whose exit status 0 means "still running", so
+	// the wait below can be driven in a test without a Zotero to wait for
+	if (process.env.ZOTERO_PROBE) {
+		return spawnSync(process.env.ZOTERO_PROBE, { shell: true }).status === 0;
+	}
 	const probe = process.platform === "win32"
 		? spawnSync("tasklist", ["/fi", "imagename eq zotero.exe"], { encoding: "utf8" })
 		: spawnSync("pgrep", ["-x", "zotero"], { encoding: "utf8" });
@@ -275,6 +288,27 @@ function restart(profile) {
 		spawnSync("taskkill", ["/im", "zotero.exe"]);
 	} else {
 		spawnSync("pkill", ["-x", "zotero"]);
+	}
+
+	// Then wait until it is gone. Asking is asynchronous — Zotero saves its
+	// state and closes its database before it exits — and `open -a` on an
+	// application that is still running does not start a second one: it
+	// activates the first, drops the arguments, and the pending quit is
+	// cancelled by the activation. The loop then reports a restart that never
+	// happened, and Zotero runs on with yesterday's tree. Found by comparing
+	// the process's start time with the loop's own log line.
+	const deadline = Date.now() + 30000;
+	while (zoteroRunning() && Date.now() < deadline) {
+		spawnSync("sleep", ["0.5"]);
+	}
+	if (zoteroRunning()) {
+		console.log("dev: Zotero did not close in 30 s — forcing it");
+		if (process.platform === "win32") {
+			spawnSync("taskkill", ["/f", "/im", "zotero.exe"]);
+		} else {
+			spawnSync("pkill", ["-9", "-x", "zotero"]);
+		}
+		spawnSync("sleep", ["1"]);
 	}
 
 	forceRescan(profile);
