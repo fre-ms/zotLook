@@ -53,6 +53,12 @@ python3 offline/postprocess.py ../site/en ../site/de
 
 # The same pages once more as one linked PDF per language (Typst, Noto Sans
 # embedded), reachable from the navbar's PDF icon.
-"$GEN_PY" print/make_pdf.py en ../site/en/zotlook-documentation.pdf "fre.ms"
-"$GEN_PY" print/make_pdf.py de ../site/de/zotLook-Dokumentation.pdf "fre.ms"
+# The footer of every page names the state the PDF documents: the version
+# the site calls latest, and the day it was built.
+DOC_VERSION="$(cd .. && "$GEN_PY" script/gen_versions.py --current)"
+DOC_DATE="$(date -u +%Y-%m-%d)"
+"$GEN_PY" print/make_pdf.py en ../site/en/zotlook-documentation.pdf "fre.ms" \
+  --version "$DOC_VERSION" --date "$DOC_DATE"
+"$GEN_PY" print/make_pdf.py de ../site/de/zotLook-Dokumentation.pdf "fre.ms" \
+  --version "$DOC_VERSION" --date "$DOC_DATE"
 echo "Done: open ../site/en/index.html"

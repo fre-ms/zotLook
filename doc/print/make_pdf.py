@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render a documentation language project as one PDF.
 
-    python3 make_pdf.py LANG_DIR OUTPUT_PDF [AUTHOR]
+    python3 make_pdf.py LANG_DIR OUTPUT_PDF [AUTHOR] [--version V] [--date D]
 
 Assembles a temporary Quarto *book* from the pages of the website
 project in LANG_DIR — the chapter order is the sidebar order, read from
@@ -28,8 +28,23 @@ If the project keeps page graphics in an asset/ or figures/ directory
 copied into the book so no image breaks. Executable pages run exactly
 as they do for the site; set QUARTO_PYTHON before calling, as the site
 build already does. Needs PyYAML.
+
+Every page but the cover carries a footer under a rule: the version and
+the date on the left, the page number on the right, so a printed or saved
+copy says which state of the documentation it is. The version comes from
+--version (or DOC_VERSION), the date from --date (or DOC_DATE, else today
+in UTC); with no version only the date is printed.
+
+Two things about the book format are put right on the way. Its part page
+laid the part's contents over the part's title — orange-book sets both
+with place() and the outline, two levels deep, grew up into the heading —
+so the outline is cut to chapters. And the format never closes a part:
+top-level chapters after it were counted as its members, in the part's
+own outline and in the running header, so the part state is reset at the
+end of each part.
 """
 
+import os
 import re
 import shutil
 import subprocess
@@ -107,7 +122,138 @@ def book_structure(cfg):
     return book, flat
 
 
-def main(lang_dir, output_pdf, author=None):
+# Quarto's Typst book format is the orange-book extension, applied through
+# two template partials, page.typ and typst-show.typ. A book may ship its own
+# copies of those under the same names, which is how the footer and the
+# shallower part outline get in without touching the extension: the text
+# below is Quarto 1.10's own with those two changes, and nothing else.
+PAGE_TYP = """#set page(
+  paper: $if(papersize)$"$papersize$"$else$"us-letter"$endif$,
+$if(margin-geometry)$
+  // Margins handled by marginalia.setup in typst-show.typ AFTER book.with()
+$elseif(margin)$
+  margin: ($for(margin/pairs)$$margin.key$: $margin.value$,$endfor$),
+$else$
+  margin: (x: 1.25in, y: 1.25in),
+$endif$
+  numbering: none,
+  columns: $if(columns)$$columns$$else$1$endif$,
+  // The state of the documentation, on every page but the cover: what a
+  // printed or saved copy has to say for itself. The cover is page 1 and
+  // orange-book draws it with margin 0, so a footer there would sit on
+  // the paper's edge.
+  footer: context if counter(page).get().first() > 1 [
+    #set text(size: 8pt, fill: luma(40%))
+    #line(length: 100%, stroke: 0.5pt + luma(60%))
+    #v(-0.5em)
+    $doc-footer-left$
+    #h(1fr)
+    #counter(page).display("1")
+  ],
+)
+// Logo is handled by orange-book's cover page, not as a page background
+// NOTE: marginalia.setup is called in typst-show.typ AFTER book.with()
+// to ensure marginalia's margins override the book format's default margins
+"""
+
+TYPST_SHOW_TYP = """#import "@preview/orange-book:0.7.1": book, part, chapter, appendices
+
+#show: book.with(
+$if(title)$
+  title: [$title$],
+$endif$
+$if(subtitle)$
+  subtitle: [$subtitle$],
+$endif$
+$if(by-author)$
+  author: "$for(by-author)$$it.name.literal$$sep$, $endfor$",
+$endif$
+$if(date)$
+  date: "$date$",
+$endif$
+$if(lang)$
+  lang: "$lang$",
+$endif$
+  main-color: brand-color.at("primary", default: blue),
+  logo: {
+    let logo-info = brand-logo.at("medium", default: none)
+    if logo-info != none { image(logo-info.path, alt: logo-info.at("alt", default: none)) }
+  },
+$if(toc-depth)$
+  outline-depth: $toc-depth$,
+$endif$
+  // Chapters only on the part page. Two levels deep, the outline of a part
+  // with a handful of chapters ran to forty rows and, placed from the
+  // bottom, grew up into the part's title placed from the top.
+  outline-small-depth: 1,
+$if(lof)$
+$if(crossref.lof-title)$
+  list-of-figure-title: "$crossref.lof-title$",
+$else$
+$if(quarto.language.crossref-lof-title)$
+  list-of-figure-title: "$quarto.language.crossref-lof-title$",
+$endif$
+$endif$
+$endif$
+$if(lot)$
+$if(crossref.lot-title)$
+  list-of-table-title: "$crossref.lot-title$",
+$else$
+$if(quarto.language.crossref-lot-title)$
+  list-of-table-title: "$quarto.language.crossref-lot-title$",
+$endif$
+$endif$
+$endif$
+$if(quarto.language.crossref-ch-prefix)$
+  supplement-chapter: "$quarto.language.crossref-ch-prefix$",
+$endif$
+$if(margin-geometry)$
+  padded-heading-number: false,
+$endif$
+)
+
+$if(margin-geometry)$
+#import "@preview/marginalia:0.3.1" as marginalia
+
+#show: marginalia.setup.with(
+  inner: (
+    far: $margin-geometry.inner.far$,
+    width: $margin-geometry.inner.width$,
+    sep: $margin-geometry.inner.separation$,
+  ),
+  outer: (
+    far: $margin-geometry.outer.far$,
+    width: $margin-geometry.outer.width$,
+    sep: $margin-geometry.outer.separation$,
+  ),
+  top: $if(margin.top)$$margin.top$$else$1.25in$endif$,
+  bottom: $if(margin.bottom)$$margin.bottom$$else$1.25in$endif$,
+  book: true,
+  clearance: $margin-geometry.clearance$,
+)
+$endif$
+"""
+
+# orange-book never closes a part: every top-level chapter after one is
+# counted as its member, in the part's own outline and in the running
+# header. Appended to the last chapter of a part, so that it runs before
+# the next chapter's heading — Quarto sets that heading from the chapter's
+# front matter, ahead of anything the chapter's body could say.
+CLOSE_PART = (
+    "```{=typst}\n"
+    "#import \"@preview/orange-book:0.7.1\": part-state\n"
+    "#part-state.update(none)\n"
+    "```\n\n"
+)
+
+
+def last_pages_of_parts(book_chapters):
+    """The page that closes each part."""
+    return [item["chapters"][-1] for item in book_chapters
+            if isinstance(item, dict) and "part" in item and item["chapters"]]
+
+
+def main(lang_dir, output_pdf, author=None, version=None, date=None):
     lang_dir = Path(lang_dir).resolve()
     output_pdf = Path(output_pdf).resolve()
     cfg = yaml.safe_load((lang_dir / "_quarto.yml").read_text("utf-8"))
@@ -140,12 +286,15 @@ def main(lang_dir, output_pdf, author=None):
         tmp = Path(tmp)
         # index.qmd must lead a Quarto book; the sidebar starts with it.
         assert pages[0] == "index.qmd", "the sidebar must start with index.qmd"
+        closers = set(last_pages_of_parts(book_chapters))
         for page in pages:
             src = lang_dir / page
             dst = tmp / page
             dst.parent.mkdir(parents=True, exist_ok=True)
-            dst.write_text(REFS_BLOCK.sub("\n", src.read_text("utf-8")),
-                           encoding="utf-8")
+            text = REFS_BLOCK.sub("\n", src.read_text("utf-8"))
+            if page in closers:
+                text = text.rstrip("\n") + "\n\n" + CLOSE_PART
+            dst.write_text(text, encoding="utf-8")
 
         # Pages may reference graphics under asset/ or figures/ (mirrored
         # into the language project by the site build); without the copy
@@ -155,11 +304,21 @@ def main(lang_dir, output_pdf, author=None):
             if src.exists():
                 shutil.copytree(src, tmp / graphics)
 
+        import datetime
+        version = version or os.environ.get("DOC_VERSION") or ""
+        date = date or os.environ.get("DOC_DATE") or \
+            datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+        footer_left = f"{title} {version} · {date}" if version else date
+        (tmp / "page.typ").write_text(PAGE_TYP, encoding="utf-8")
+        (tmp / "typst-show.typ").write_text(TYPST_SHOW_TYP, encoding="utf-8")
+
         book = {
             "project": {"type": "book"},
             "lang": lang,
             "book": {"title": title, "subtitle": subtitle,
                      "author": author, "chapters": book_chapters},
+            # read by page.typ; Typst markup, so keep it plain text
+            "doc-footer-left": footer_left,
             "format": {"typst": {
                 "toc": True,
                 "toc-depth": 2,
@@ -168,6 +327,7 @@ def main(lang_dir, output_pdf, author=None):
                 "font-paths": [str(fonts_dir())],
                 "link-citations": True,
                 "keep-typ": False,
+                "template-partials": ["page.typ", "typst-show.typ"],
             }},
         }
         if region:
@@ -193,6 +353,13 @@ def main(lang_dir, output_pdf, author=None):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) not in (3, 4):
+    args = sys.argv[1:]
+    opts = {}
+    for flag in ("--version", "--date"):
+        if flag in args:
+            at = args.index(flag)
+            opts[flag[2:]] = args[at + 1]
+            del args[at:at + 2]
+    if len(args) not in (2, 3):
         raise SystemExit(__doc__)
-    main(*sys.argv[1:])
+    main(*args, **opts)
