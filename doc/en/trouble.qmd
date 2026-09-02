@@ -85,7 +85,7 @@ the book.
 
 ## An EPUB annotation is listed but not marked in the text
 
-The list above the book shows every annotation; one that could not be placed in
+The annotation list behind the button in the corner shows every annotation; one that could not be placed in
 the page is shown as such rather than left out. That happens when the position
 Zotero stored no longer resolves — most often because the book itself has
 changed since the annotation was made, so the chapter or the element it names

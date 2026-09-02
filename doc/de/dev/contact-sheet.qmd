@@ -146,7 +146,7 @@ sie neu geschrieben: Ihre Änderungszeit bedeutet dadurch „zuletzt benutzt" un
 nicht „erstellt" — genau die Unterscheidung, von der das Verwerfen nach Alter
 lebt.
 
-Behaltene Einträge liegen in `zotLook-cache` im lokalen Profilverzeichnis.
+Zwischengespeicherte Einträge liegen in `zotLook-cache` im lokalen Profilverzeichnis.
 Zuerst lagen sie neben dem Arbeitsverzeichnis — und damit in Zoteros eigenem
 Temp-Verzeichnis, das Zotero über einen Shutdown-Blocker bei jedem Beenden
 vollständig löscht: kein behaltener Eintrag hat je einen Neustart überlebt,

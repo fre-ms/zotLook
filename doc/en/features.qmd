@@ -79,7 +79,9 @@ figure you remember, or for seeing at a glance which pages you marked up.
 
 - **Annotations are drawn in**, so the marked-up pages stand out.
 - **Clicking a page opens it in Zotero's reader** at that page. This works from
-  the preview panel on all three systems, and from the window variant.
+  the preview panel on macOS and Windows, and from the window variant
+  everywhere — Sushi's view cannot follow a `zotero:` link, which is what the
+  window variant is for on Linux.
 - **The layout adapts.** A document with few pages gets fewer columns and
   correspondingly sharper thumbnails, so it fills the width instead of leaving
   space. The column count is configurable.

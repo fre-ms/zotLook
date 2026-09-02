@@ -13,9 +13,10 @@ weiterentwickelt wird sie von [fre-ms](https://github.com/fre-ms).
 
 Ein guter Teil von Chaprons Arbeit steht weiterhin. Gemessen am letzten
 Upstream-Commit und gezählt nur Zeilen, die weder leer noch Kommentar noch
-Klammer sind: **49 %** des JavaScript und **52 %** von `bootstrap.js` haben
+Klammer sind: **45 %** des JavaScript und **52 %** von `bootstrap.js` haben
 wörtlich überlebt, und 20 der ursprünglich 28 Methoden gibt es weiterhin unter
-ihren eigenen Namen.
+ihren eigenen Namen. Das Plugin ist um sie herum gewachsen — diese überlebenden
+Zeilen sind heute etwa ein Vierzehntel des Bestands.
 
 Die Architektur ist durchgehend seine:
 
@@ -32,8 +33,9 @@ die beiden installieren sich damit nebeneinander statt übereinander.
 
 ## Warum eine Abspaltung
 
-Rund die Hälfte von Chaprons Code steht noch, und die Architektur ist seine.
-Warum dann nicht Beiträge zu seinem Projekt statt einer eigenen Linie?
+Fast die Hälfte von Chaprons Zeilen steht noch, und die Architektur ist
+durchgehend seine. Warum dann nicht Beiträge zu seinem Projekt statt einer
+eigenen Linie?
 
 **Der Umfang.** Was hier hinzugekommen ist, lässt sich nicht als Pull Request
 stellen: zwei weitere Plattformwege, ein eigener Seiten-Renderer, die

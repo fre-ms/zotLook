@@ -188,7 +188,8 @@ from an [EPUB CFI](https://idpf.org/epub/linking/cfi/), and the engine that
 resolves a CFI lives inside the reader's own bundle, reachable only from the
 reader.
 
-So the CFI is read here — only read: zotLook never writes one. `cfi.js` parses
+So the CFI is read here, and written for one thing only — the link each tile
+of a page overview carries back into the reader. `cfi.js` parses
 it and resolves it against the spine document, which is exactly the tree the
 CFI was written against and exactly what `getSectionDocuments()` hands over.
 That is why the marking happens per section, **before** the page is assembled:

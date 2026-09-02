@@ -12,9 +12,10 @@ maintained and developed further by [fre-ms](https://github.com/fre-ms).
 
 A good deal of Chapron's work is still in place. Measured against the last
 upstream commit, counting only lines that are neither blank, a comment nor a
-brace: **49 %** of the JavaScript and **52 %** of `bootstrap.js` survive
+brace: **45 %** of the JavaScript and **52 %** of `bootstrap.js` survive
 verbatim, and 20 of the original 28 methods are still present under their own
-names.
+names. The plugin has grown around them — those surviving lines are about a
+fourteenth of what is here today.
 
 The architecture is his throughout:
 
@@ -31,8 +32,9 @@ side by side rather than over one another.
 
 ## Why a fork
 
-About half of Chapron's code is still here and the architecture is his. Why not
-contribute to his project rather than start a line of one's own?
+Nearly half of Chapron's lines are still here, and the architecture is his
+throughout. Why not contribute to his project rather than start a line of one's
+own?
 
 **The size of it.** What has been added cannot be offered as a pull request: two
 further platform routes, a page renderer, the annotation pipeline, the EPUB

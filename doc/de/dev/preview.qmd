@@ -197,7 +197,8 @@ Reader zeichnet sie zur Laufzeit aus einer [EPUB-CFI](https://idpf.org/epub/link
 und die Maschinerie dafür steckt im Bündel des Readers und ist nur von dort
 erreichbar.
 
-Deshalb wird die CFI hier gelesen — nur gelesen: zotLook schreibt nie eine.
+Deshalb wird die CFI hier gelesen — und geschrieben nur für eines: den Link,
+den jede Kachel einer Seitenübersicht zurück in den Reader trägt.
 `cfi.js` zerlegt sie und löst sie gegen das Spine-Dokument auf, also genau
 gegen den Baum, gegen den sie geschrieben wurde und den
 `getSectionDocuments()` liefert. Darum wird je Abschnitt markiert, **bevor**

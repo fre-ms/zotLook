@@ -6,17 +6,22 @@ description: >-
 
 ## The scripts
 
-Four scripts are loaded in order into one plugin scope:
+Six scripts are loaded in order into one plugin scope:
 
 | | |
 |---|---|
 | `util.js` | parsing, sanitising, URL and shortcut helpers |
+| `cfi.js` | EPUB CFIs: read for annotations, written for the page overview's links |
 | `sheet.js` | the contact sheet's markup and sizing |
-| `epub.js` | the EPUB-to-HTML pipeline |
+| `epub.js` | the EPUB-to-HTML pipeline and the page overview |
+| `winpreview.js` | QuickLook's named pipe on Windows, through js-ctypes |
 | `zotlook.js` | windows, shortcuts, subprocesses, notes, contact sheets |
 
-The page renderer runs apart from all of them, in `render.worker.js`. Strings
-live in `locale/<locale>/zotlook.ftl`.
+Each is a sealed or frozen object, which is what lets the type checker in
+`npm test` see a misspelt member. Two more run elsewhere: the page renderer in
+`render.worker.js`, in a worker of its own, and `prefs-pane.js` in the
+sandbox Zotero gives a preference pane. Strings live in
+`locale/<locale>/zotlook.ftl`.
 
 ## The context menu
 
@@ -34,8 +39,8 @@ Strings destined for a XUL `<button>` or `<menuitem>` must be written in
 Fluent's attribute form:
 
 ```fluent
-zotlook-menu-preview =
-    .label = Quick Look
+zotlook-prefs-keep-purge =
+    .label = Delete kept previews
 ```
 
 Those elements render their `label` **attribute** and ignore text content, which
@@ -92,7 +97,8 @@ the first that works. Resolving them all would download every synced attachment
 of every selected item only to discard all but one.
 
 Attachments are classified by content type through Zotero's own predicates,
-never by filename. The type setting is a ranking rather than a filter: every
+with the filename as the fallback for one stored without a content type. The
+type setting is a ranking rather than a filter: every
 type stays eligible, so one near the bottom is still used when nothing above it
 is present.
 

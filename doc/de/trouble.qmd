@@ -88,7 +88,7 @@ Vorschau (**Leertaste**).
 
 ## Eine EPUB-Annotation steht in der Liste, ist aber nicht im Text markiert
 
-Die Liste über dem Buch führt jede Annotation; eine, die sich nicht verorten
+Die Annotationsliste hinter dem Knopf in der Ecke führt jede Annotation; eine, die sich nicht verorten
 ließ, wird als solche gekennzeichnet, statt zu fehlen. Das geschieht, wenn die
 von Zotero gespeicherte Position sich nicht mehr auflösen lässt — meist, weil
 sich das Buch seit dem Anlegen der Annotation geändert hat und das benannte

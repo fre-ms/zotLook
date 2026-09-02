@@ -27,7 +27,7 @@ keine. Ein sauberes Ergebnis heißt deshalb *kein Konflikt mit Zotero*, nicht
 *frei*.
 :::
 
-**Standardwerte wiederherstellen** schreibt die ausgelieferten Kombinationen
+**Vorgaben wiederherstellen** schreibt die ausgelieferten Kombinationen
 zurück:
 
 | Funktion | Vorgabe |
@@ -85,7 +85,8 @@ Zwei Betriebsarten:
 größere Miniaturen, und der Renderer erhöht die Auflösung entsprechend, damit
 sie scharf bleiben, statt hochskaliert zu werden.
 
-**Seitenlimit** (Vorgabe 0, also kein Limit) begrenzt, wie viele Seiten
+**Höchstens … Seiten** (Vorgabe 0, also ohne Begrenzung) begrenzt, wie viele
+Seiten
 gezeichnet werden. Es ist für ungewöhnlich große Scans gedacht, um zu binden,
 wie lange die Erzeugung dauern und wie viel temporären Speicherplatz sie
 belegen darf. Greift es, sagt der Bogen es unten an.
@@ -176,7 +177,7 @@ bearbeitet haben.
 
 ## EPUB
 
-**EPUBs zu einer Vorschauseite rendern** ist voreingestellt an, weil keine
+**EPUB mit zotLook darstellen** ist voreingestellt an, weil keine
 Systemvorschau ein EPUB von sich aus darstellt.
 
 Wenn Sie statt der in zotLook integrierten Vorschau lieber eine

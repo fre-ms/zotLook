@@ -86,7 +86,9 @@ zu sehen, welche Seiten man bearbeitet hat.
 
 - **Annotationen sind eingezeichnet**, die bearbeiteten Seiten stechen hervor.
 - **Ein Klick auf eine Seite öffnet sie im Zotero-Reader.** Das funktioniert aus
-  der Systemvorschau aller drei Systeme und aus der Fenster-Variante.
+  der Systemvorschau unter macOS und Windows und überall aus der
+  Fenster-Variante — Sushis Ansicht kann einem `zotero:`-Link nicht folgen,
+  wofür es unter Linux die Fenster-Variante gibt.
 - **Das Raster passt sich an.** Ein Dokument mit wenigen Seiten bekommt weniger
   Spalten und entsprechend schärfere Miniaturen, füllt also die Breite, statt
   Platz zu lassen. Die Spaltenzahl ist einstellbar.

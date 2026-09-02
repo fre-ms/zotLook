@@ -81,7 +81,8 @@ Two modes:
 larger thumbnails, and the renderer raises the resolution to match, so they stay
 sharp rather than being blown up.
 
-**Page limit** (default 0, meaning no limit) caps how many pages are rendered.
+**Limit to at most … pages** (default 0, meaning no limit) caps how many pages
+are rendered.
 It exists for unusually large scans, to bound how long generation may take and
 how much temporary disk space it may use. When it bites, the sheet says so at
 the bottom.
@@ -162,7 +163,7 @@ only matter for documents you have actually marked up.
 
 ## EPUB
 
-**Render EPUBs into a preview page** is on by default, because no system
+**Render EPUB with zotLook** is on by default, because no system
 preview shows an EPUB on its own.
 
 If you would rather use a preview extension of the operating system than the

@@ -6,18 +6,23 @@ description: >-
 
 ## Die Skripte
 
-Vier Skripte werden in dieser Reihenfolge in einen gemeinsamen Plugin-Bereich
+Sechs Skripte werden in dieser Reihenfolge in einen gemeinsamen Plugin-Bereich
 geladen:
 
 | | |
 |---|---|
 | `util.js` | Parsen, Bereinigen, URL- und Kürzel-Helfer |
+| `cfi.js` | EPUB-CFIs: gelesen für Annotationen, geschrieben für die Links der Seitenübersicht |
 | `sheet.js` | Markup und Größenberechnung des Kontaktbogens |
-| `epub.js` | die EPUB-zu-HTML-Kette |
+| `epub.js` | die EPUB-zu-HTML-Kette und die Seitenübersicht |
+| `winpreview.js` | QuickLooks Named Pipe unter Windows, über js-ctypes |
 | `zotlook.js` | Fenster, Kürzel, Unterprozesse, Notizen, Kontaktbögen |
 
-Der Seiten-Renderer läuft von allen getrennt, in `render.worker.js`. Die Texte
-liegen in `locale/<locale>/zotlook.ftl`.
+Jedes ist ein versiegeltes oder eingefrorenes Objekt — das lässt den Typprüfer
+in `npm test` einen verschriebenen Namen sehen. Zwei weitere laufen anderswo:
+der Seiten-Renderer in `render.worker.js` in einem eigenen Worker und
+`prefs-pane.js` im Sandkasten, den Zotero einer Einstellungsseite gibt. Die
+Texte liegen in `locale/<locale>/zotlook.ftl`.
 
 ## Das Kontextmenü
 
@@ -36,8 +41,8 @@ Texte, die für ein XUL-`<button>` oder ein `<menuitem>` bestimmt sind, müssen 
 Fluents Attributform geschrieben werden:
 
 ```fluent
-zotlook-menu-preview =
-    .label = Quick Look
+zotlook-prefs-keep-purge =
+    .label = Zwischengespeicherte Vorschauen löschen
 ```
 
 Diese Elemente stellen ihr `label`-**Attribut** dar und ignorieren den
@@ -93,8 +98,9 @@ Die Kandidaten werden **zuerst geordnet und dann einzeln aufgelöst**, bis der
 erste gelingt. Alle aufzulösen hieße, jeden synchronisierten Anhang jedes
 gewählten Eintrags herunterzuladen, um alle bis auf einen zu verwerfen.
 
-Anhänge werden über Zoteros eigene Prädikate nach Inhaltstyp eingeordnet,
-niemals nach Dateinamen. Die Typ-Einstellung ist eine Rangfolge und kein Filter:
+Anhänge werden über Zoteros eigene Prädikate nach Inhaltstyp eingeordnet, mit
+dem Dateinamen als Rückfall für einen Anhang, der ohne Inhaltstyp gespeichert
+wurde. Die Typ-Einstellung ist eine Rangfolge und kein Filter:
 Jeder Typ bleibt zulässig, einer weit unten kommt also zum Zug, wenn nichts
 darüber vorhanden ist.
 
