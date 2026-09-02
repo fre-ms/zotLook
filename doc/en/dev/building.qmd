@@ -46,7 +46,11 @@ node tool/dev.mjs --restore  # put the packaged copy back
 ```
 
 Nothing is packaged and nothing is copied: a restart picks up whatever is in
-`addon/` at that moment. The watch restarts Zotero when a file there changes,
+`addon/` at that moment. On macOS the install first builds the Quick Look
+helper into `addon/` (`build.sh --helper`), because `build.sh` removes it once
+the XPI holds it and a tree without it falls back to `qlmanage` — whose panel
+neither hands the contact sheet's links to the system nor closes on the
+handoff. The preview then looks right and the links do nothing. The watch restarts Zotero when a file there changes,
 with `--purgecaches`, which matters — Zotero caches compiled scripts across
 starts, and `bootstrap.js` is cached by Zotero rather than by the plugin, so
 without it a restart can run yesterday's loader against today's modules.

@@ -40,6 +40,24 @@ build_binary() {
   codesign -s - -f "addon/${name}"
 }
 
+# --helper: build the helper into addon/ and stop there, leaving it in place.
+#
+# The packaging below removes it again once the XPI holds it, so a working
+# tree never carries one — which is right for a checkout and wrong for the
+# development install, which runs the plugin straight out of addon/. Without
+# the helper there, the plugin falls back to qlmanage, whose panel neither
+# hands the contact sheet's links to the system nor closes on the handoff:
+# the preview looks fine and the links do nothing. tool/dev.mjs calls this
+# before it installs.
+if [ "${1:-}" = "--helper" ]; then
+  if [ "$(uname -s)" != "Darwin" ] || ! command -v swiftc >/dev/null; then
+    echo "build.sh --helper: needs macOS and a Swift toolchain" >&2
+    exit 1
+  fi
+  build_binary qlpreview
+  exit 0
+fi
+
 # The Quick Look helper is macOS-only, and so is the toolchain that produces
 # it. Everywhere else the XPI is still worth building — the plugin runs on
 # Linux through Sushi, and its code is what a Linux user needs to test — but

@@ -130,12 +130,45 @@ function zoteroRunning() {
 		: probe.status === 0;
 }
 
+/**
+ * The Quick Look helper has to be in addon/ for a tree install to preview
+ * the way a package does.
+ *
+ * build.sh compiles it into addon/ and removes it again once the XPI holds
+ * it, so a checkout never carries one. Run from the tree without it, the
+ * plugin falls back to qlmanage — and qlmanage's panel neither hands the
+ * contact sheet's links to the system nor closes on the handoff. The preview
+ * looks right and the links do nothing, which is how this was found.
+ *
+ * Rebuilt when the Swift source is newer than the binary, so an edit to the
+ * helper reaches the loop like an edit to anything else.
+ */
+function ensureHelper() {
+	if (process.platform !== "darwin") return;
+	const binary = path.join(ADDON, "qlpreview");
+	const source = path.join(ROOT, "native", "qlpreview.swift");
+	const stale = !fs.existsSync(binary)
+		|| fs.statSync(binary).mtimeMs < fs.statSync(source).mtimeMs;
+	if (!stale) return;
+
+	console.log("dev: building the Quick Look helper…");
+	const built = spawnSync("sh", [path.join(ROOT, "build.sh"), "--helper"],
+		{ cwd: ROOT, stdio: ["ignore", "ignore", "inherit"] });
+	if (built.status !== 0 || !fs.existsSync(binary)) {
+		console.log("dev: WARNING — no Quick Look helper. Previews will fall back "
+			+ "to qlmanage, where the contact sheet's links do nothing and the "
+			+ "panel does not close on the handoff. Install the Xcode Command "
+			+ "Line Tools and run again.");
+	}
+}
+
 /** Where the packaged copy waits: the profile root, which Zotero leaves be. */
 function kept(profile) {
 	return path.join(profile, ID + ".xpi.packaged");
 }
 
 function install(profile) {
+	ensureHelper();
 	const extensions = path.join(profile, "extensions");
 	fs.mkdirSync(extensions, { recursive: true });
 

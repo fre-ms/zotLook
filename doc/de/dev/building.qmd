@@ -48,7 +48,12 @@ node tool/dev.mjs --restore  # die verpackte Kopie zurücklegen
 ```
 
 Es wird nichts gepackt und nichts kopiert: Ein Neustart nimmt, was gerade in
-`addon/` steht. Der Beobachter startet Zotero neu, sobald sich dort etwas
+`addon/` steht. Unter macOS baut die Installation zuerst den Quick-Look-Helfer
+nach `addon/` (`build.sh --helper`), denn `build.sh` entfernt ihn, sobald die
+XPI ihn enthält — und ein Baum ohne ihn fällt auf `qlmanage` zurück, dessen
+Panel die Links des Kontaktbogens weder ans System weiterreicht noch sich beim
+Übergeben schließt. Die Vorschau sieht dann richtig aus, und die Links tun
+nichts. Der Beobachter startet Zotero neu, sobald sich dort etwas
 ändert, und zwar mit `--purgecaches`. Das ist wesentlich: Zotero hält
 übersetzte Skripte über Neustarts hinweg vor, und `bootstrap.js` wird von
 Zotero selbst zwischengespeichert, nicht vom Plugin — ohne das läuft nach einem

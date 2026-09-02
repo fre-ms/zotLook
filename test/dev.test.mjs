@@ -101,6 +101,30 @@ const run = (args, env = {}) => spawnSync('node', [ROOT + 'tool/dev.mjs', ...arg
      'while another plugin in the same file is left alone');
 }
 
+// ── on macOS the Quick Look helper comes with the install ─────────────
+// build.sh compiles it and removes it again once the XPI holds it, so a
+// checkout never carries one, and a tree install without it falls back to
+// qlmanage: the preview looks right and the contact sheet's links do nothing.
+// Found on a real profile, after everything else about the link had been
+// ruled out.
+if (process.platform === 'darwin' && spawnSync('which', ['swiftc']).status === 0) {
+  const binary = ROOT + 'addon/qlpreview';
+  const profile = makeProfile('helper');
+  const out = run(['--install', '--profile', profile]);
+  eq(out.status, 0, 'install succeeds');
+  ok(fs.existsSync(binary), 'and leaves addon/qlpreview behind for the tree install');
+  const archs = spawnSync('lipo', ['-archs', binary], { encoding: 'utf8' }).stdout.trim();
+  ok(/arm64/.test(archs) && /x86_64/.test(archs),
+     'built universal, as the release is: ' + archs);
+  eq(spawnSync('codesign', ['-v', binary]).status, 0, 'and signed, so macOS will run it');
+
+  // Not rebuilt when nothing changed — the loop restarts on every save and
+  // must not pay two compilers each time
+  const before = fs.statSync(binary).mtimeMs;
+  run(['--install', '--profile', makeProfile('helper-again')]);
+  eq(fs.statSync(binary).mtimeMs, before, 'a second install leaves a current helper alone');
+}
+
 // ── restore puts the profile back exactly as it was ───────────────────
 {
   const profile = makeProfile('restore');
