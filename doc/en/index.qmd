@@ -174,7 +174,7 @@ and *let me actually look at it* — and sit well side by side.
   "applicationCategory": "ResearchApplication",
   "operatingSystem": "macOS, Windows, Linux",
   "programmingLanguage": "JavaScript",
-  "softwareVersion": "1.3.3",
+  "softwareVersion": "1.3.4",
   "license": "https://opensource.org/license/mit",
   "author": [
     {
