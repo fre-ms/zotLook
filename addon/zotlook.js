@@ -4,11 +4,34 @@
 /* global ChromeWorker, Components, OffscreenCanvas */
 /* global zotLookUtil, zotLookEpub, zotLookSheet, zotLookWinPreview */
 
-var zotLook = {
+// Sealed rather than frozen, and the difference is the point.
+//
+// In a .js file TypeScript treats an object literal as open — a property it
+// has never seen is assumed to be one somebody adds later — so a misspelt
+// method name here was not an error, in a module with a hundred and sixty of
+// them. Sealing closes it for the checker exactly as freezing does.
+//
+// Freezing would not do: this object is state as well as behaviour. Startup
+// writes id, version and rootURI into it, the caches above fill in as they
+// are worked out, and the tests stand methods aside to drive one path at a
+// time. Sealing allows all of that and forbids only what nothing here does,
+// which is to invent a property that was never declared.
+var zotLook = Object.seal({
 	id: null,
 	version: null,
 	rootURI: null,
 	initialized: false,
+
+	// Worked out once and kept. These were created on first use and never
+	// declared, which reads as if they did not exist until they do; sealing
+	// the object below makes that unworkable anyway, because a property a
+	// sealed object has never had cannot be added and the attempt says
+	// nothing about itself outside strict mode.
+	_buildTag: null,
+	_keptRoot: null,
+	// undefined rather than null on purpose: _resourceAlias uses "!== undefined"
+	// to tell "not worked out yet" from "worked out, and there is none"
+	_resourcePrefix: undefined,
 
 	// Process state
 	_proc: null,
@@ -3635,4 +3658,4 @@ var zotLook = {
 			this.log("Could not clean the temp directory: " + e);
 		}
 	},
-};
+});

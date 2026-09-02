@@ -94,9 +94,29 @@ eq(new Set(U.attachmentOrder('pdf,pdf,epub')).size, U.ATTACHMENT_TYPES.length,
 // so, since assignment to a frozen object fails silently outside strict
 // mode.
 {
-  const { zotLookCfi: C, zotLookEpub: E } = loadPlugin();
+  const { zotLookCfi: C, zotLookEpub: E, zotLook: Q } = loadPlugin();
   ok(Object.isFrozen(U), 'zotLookUtil is frozen, so its members are checkable');
   ok(Object.isFrozen(C), 'and zotLookCfi');
+
+  // zotLook is state as well as behaviour — startup writes id, version and
+  // rootURI into it — so it is sealed rather than frozen: closed to new
+  // properties, open to writing the ones it declares.
+  ok(Object.isSealed(Q), 'zotLook is sealed, which closes it for the checker');
+  eq(Object.isFrozen(Q), false, 'but not frozen: it has to be writable');
+  Q.version = '9.9.9';
+  eq(Q.version, '9.9.9', 'and a declared property really does take a write');
+
+  // The three fields that used to be created on first use had to be declared
+  // for sealing to work. One of them carries a sentinel: _resourceAlias tells
+  // "not worked out yet" from "worked out, and there is none" by comparing
+  // against undefined, so declaring it as null — the obvious tidy-up — would
+  // make the alias never register, and the worker never start, in silence.
+  ok('_resourcePrefix' in Q, '_resourcePrefix is declared rather than added');
+  eq(Q._resourcePrefix, undefined,
+     'and starts as undefined, which is what _resourceAlias tests against');
+  for (const name of ['_buildTag', '_keptRoot']) {
+    ok(name in Q, `${name} is declared, so a sealed object can still fill it`);
+  }
   eq(Object.isFrozen(E), false,
      'zotLookEpub is not: the host writes its labels in when the locale loads');
   E.TOC_LABEL = 'Inhalt';
