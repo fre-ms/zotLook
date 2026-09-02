@@ -101,14 +101,20 @@ book carrying none says so rather than showing arbitrary slices.
 If the file is stored in the cloud and not on this machine, zotLook downloads it
 first rather than reporting that it is missing.
 
-## How the annotations get there
+## How the annotations get into the preview
 
 zotLook exports a copy of the PDF with your highlights, notes, areas and ink
-drawn in, and previews that copy rather than the stored file.
+drawn in, and previews that copy rather than the stored file. An EPUB needs no
+export: zotLook reads the position Zotero stores for each annotation and marks
+the passage in the page it builds from the book anyway. Highlights appear in
+their colour, underlines as underlines.
 
 Attachments that carry no annotations are recognised before any work starts,
-and an export is reused until you add or change one, so the usual case costs
-nothing at all. The setting is under [Settings](settings.qmd).
+and an export is reused until you add or change an annotation. Once made, it
+costs nothing more as long as nothing changes.
+
+If you would rather see the file as it is stored, the annotations can be kept
+out of the preview under [Settings](settings.qmd).
 
 ## But Zotero already has a preview
 

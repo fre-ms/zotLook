@@ -108,16 +108,21 @@ willkürliche Abschnitte zu zeigen.
 Liegt die Datei nur in der Cloud und nicht auf diesem Rechner, lädt zotLook sie
 zuerst herunter, statt zu melden, sie fehle.
 
-## Wie die Annotationen dorthin kommen
+## Wie die Annotationen in die Vorschau kommen
 
 zotLook exportiert eine Kopie des PDFs mit Ihren Hervorhebungen, Notizen,
 Flächen und Freihandzeichnungen und zeigt diese Kopie statt der gespeicherten
-Datei.
+Datei. Bei einem EPUB entfällt der Export: zotLook liest die Position, die
+Zotero zu jeder Annotation speichert, und markiert die Stelle in der Seite, die
+es ohnehin aus dem Buch baut. Hervorhebungen erscheinen in ihrer Farbe,
+Unterstreichungen als Unterstreichungen.
 
 Anhänge ohne Annotationen werden erkannt, bevor irgendeine Arbeit beginnt, und
-ein Export wird wiederverwendet, bis Sie eine hinzufügen oder ändern. Der
-Normalfall kostet also gar nichts. Die Einstellung finden Sie unter
-[Einstellungen](settings.qmd).
+ein Export wird wiederverwendet, bis Sie eine Annotation hinzufügen oder ändern.
+Nach erstmaliger Generierung entsteht ohne Änderungen also kein zusätzlicher Aufwand.
+
+Auf Wunsch können Sie die Integration der Annotationen in die Vorschau in den
+[Einstellungen](settings.qmd) abschalten.
 
 ## Zotero hat doch schon eine Vorschau
 
