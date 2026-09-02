@@ -29,11 +29,12 @@ copied into the book so no image breaks. Executable pages run exactly
 as they do for the site; set QUARTO_PYTHON before calling, as the site
 build already does. Needs PyYAML.
 
-Every page but the cover carries a footer under a rule: the version and
-the date on the left, the page number on the right, so a printed or saved
-copy says which state of the documentation it is. The version comes from
+Every page but the cover carries a footer, set like the running header
+and ruled off the same way: the version on the left, the date on the
+right, so a printed or saved copy says which state of the documentation
+it is. The page number stays in the header. The version comes from
 --version (or DOC_VERSION), the date from --date (or DOC_DATE, else today
-in UTC); with no version only the date is printed.
+in UTC); with no version the left side names only the site.
 
 Two things about the book format are put right on the way. Its part page
 laid the part's contents over the part's title — orange-book sets both
@@ -127,7 +128,8 @@ def book_structure(cfg):
 # copies of those under the same names, which is how the footer and the
 # shallower part outline get in without touching the extension: the text
 # below is Quarto 1.10's own with those two changes, and nothing else.
-PAGE_TYP = """#set page(
+PAGE_TYP = """#import "@preview/orange-book:0.7.1": title5
+#set page(
   paper: $if(papersize)$"$papersize$"$else$"us-letter"$endif$,
 $if(margin-geometry)$
   // Margins handled by marginalia.setup in typst-show.typ AFTER book.with()
@@ -137,19 +139,21 @@ $else$
   margin: (x: 1.25in, y: 1.25in),
 $endif$
   numbering: none,
-  columns: $if(columns)$$columns$$else$1$endif$,
   // The state of the documentation, on every page but the cover: what a
-  // printed or saved copy has to say for itself. The cover is page 1 and
+  // printed or saved copy has to say for itself. Set like orange-book's
+  // running header — its size, its rule, its distance from the rule —
+  // mirrored: the header rules below its text, the footer above. The
+  // page number stays with the header. The cover is page 1 and
   // orange-book draws it with margin 0, so a footer there would sit on
   // the paper's edge.
-  footer: context if counter(page).get().first() > 1 [
-    #set text(size: 8pt, fill: luma(40%))
-    #line(length: 100%, stroke: 0.5pt + luma(60%))
-    #v(-0.5em)
-    $doc-footer-left$
-    #h(1fr)
-    #counter(page).display("1")
-  ],
+  footer: context if counter(page).get().first() > 1 {
+    set text(size: title5)
+    box(width: 100%, inset: (top: 5pt), stroke: (top: 0.5pt))[
+      $doc-footer-left$
+      #h(1fr)
+      $doc-footer-right$
+    ]
+  },
 )
 // Logo is handled by orange-book's cover page, not as a page background
 // NOTE: marginalia.setup is called in typst-show.typ AFTER book.with()
@@ -308,7 +312,7 @@ def main(lang_dir, output_pdf, author=None, version=None, date=None):
         version = version or os.environ.get("DOC_VERSION") or ""
         date = date or os.environ.get("DOC_DATE") or \
             datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
-        footer_left = f"{title} {version} · {date}" if version else date
+        footer_left = f"{title} {version}" if version else title
         (tmp / "page.typ").write_text(PAGE_TYP, encoding="utf-8")
         (tmp / "typst-show.typ").write_text(TYPST_SHOW_TYP, encoding="utf-8")
 
@@ -317,8 +321,9 @@ def main(lang_dir, output_pdf, author=None, version=None, date=None):
             "lang": lang,
             "book": {"title": title, "subtitle": subtitle,
                      "author": author, "chapters": book_chapters},
-            # read by page.typ; Typst markup, so keep it plain text
+            # read by page.typ; Typst markup, so keep them plain text
             "doc-footer-left": footer_left,
+            "doc-footer-right": date,
             "format": {"typst": {
                 "toc": True,
                 "toc-depth": 2,
