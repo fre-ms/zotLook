@@ -147,9 +147,9 @@ const PAGED = [
   ok(landed, 'the CFI resolves in the book as the reader will open it');
   eq(landed.startNode.data, ' mitten drin umbricht.',
      'onto the first text the page contains');
-  eq([landed.startOffset, landed.endOffset], [1, 2],
-     'one character in, past the boundary the reader reads the page from, so '
-     + 'it shows this page rather than the one the mark ends');
+  eq([landed.startOffset, landed.endOffset], [0, 1],
+     'over its first character — the position the reader keeps for this page — '
+     + 'so the range has something to scroll to');
 
   const third = C.parse(decodeURIComponent(linkOf(found[3]).split('?cfi=')[1]));
   eq(C.spineIndex(third), 1, 'page three begins in the second');

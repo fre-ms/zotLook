@@ -113,7 +113,11 @@ ihnen und zeigt es Seite für Seite.
   und nirgends im EPUB —, aber es genügt, um zu sehen, wo eine Tabelle steht
   oder ein Kapitel beginnt.
 - **Ein Klick öffnet das Buch an dieser Seite**, in Zoteros Reader, genau wie
-  die Miniaturen des PDF-Bogens.
+  die Miniaturen des PDF-Bogens — an genau der Position, die der Reader für
+  diese Seite führt. Im Seitenmodus zeigt der Reader ganze Spalten und benennt
+  die Seite am Spaltenkopf; eine Seite, deren Marke mitten in einer Spalte
+  liegt, erscheint daher innerhalb der Spalte darüber. Im Scroll-Modus landet
+  er exakt. Zoteros eigene Seitennavigation verhält sich genauso.
 - **Annotationen sind eingezeichnet**, wie auf dem PDF-Bogen und in der
   EPUB-Vorschau.
 - **Ein Buch ohne gedruckte Seitenzahlen sagt das.** Belletristik führt meist

@@ -105,7 +105,11 @@ cuts the book at them and shows a page at a time.
   It is not a facsimile — the printed layout is in the PDF and nowhere in the
   EPUB — but it is enough to see where a table sits or a chapter begins.
 - **Clicking a page opens the book at it**, in Zotero's reader, exactly as the
-  PDF sheet's thumbnails do.
+  PDF sheet's thumbnails do — at the very position the reader keeps for that
+  page. In paginated flow the reader shows whole columns and names the page at
+  a column's top, so a page whose mark falls partway down a column is shown
+  within the column above it; scrolled flow lands on it exactly. Zotero's own
+  page navigation behaves the same way.
 - **Annotations are drawn in**, as they are on the PDF sheet and in the EPUB
   preview.
 - **A book without printed page numbers says so.** Most trade fiction carries
