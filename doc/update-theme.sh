@@ -1,7 +1,8 @@
 #!/bin/sh
 # Pull the current easyQDA-quarto-theme into this repository. The theme is
 # vendored — the single copy of _extensions/ and font/ lives in
-# doc/_theme/, offline/ and print/ beside it, and gen_langmap.py in doc/ —
+# doc/_theme/, offline/ and print/ beside it, and gen_langmap.py plus
+# shared/versions.js in doc/ —
 # so the documentation builds without a sibling checkout (CI). build.sh
 # mirrors _theme/ into the language projects. Run this after changing the
 # theme, then rebuild and commit.
@@ -72,7 +73,12 @@ for pair in "_extensions:_theme/_extensions" "font:_theme/font" \
 done
 
 cp "$THEME/script/gen_langmap.py" gen_langmap.py
+# The version banner, inlined into theme/scripts.html by gen_langmap.py's
+# --extra-js. It belongs to the theme rather than to this site, so it is
+# vendored beside the generator that embeds it.
+mkdir -p shared
+cp "$THEME/script/versions.js" shared/versions.js
 
 rev=$(git -C "$THEME" rev-parse --short HEAD 2>/dev/null || echo unknown)
 echo "theme vendored from $THEME @ $rev" \
-     "(extensions, font, offline, print, gen_langmap)"
+     "(extensions, font, offline, print, gen_langmap, versions.js)"

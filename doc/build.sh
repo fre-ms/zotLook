@@ -46,7 +46,7 @@ for lang in en de; do
   cp ../addon/icon/zotlook-32.svg "$lang/asset/favicon.svg"
 done
 
-"$GEN_PY" gen_langmap.py en de
+"$GEN_PY" gen_langmap.py --extra-js shared/versions.js en de
 quarto render en
 quarto render de
 python3 offline/postprocess.py ../site/en ../site/de
