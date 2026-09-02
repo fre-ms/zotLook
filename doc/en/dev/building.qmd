@@ -51,8 +51,13 @@ with `--purgecaches`, which matters — Zotero caches compiled scripts across
 starts, and `bootstrap.js` is cached by Zotero rather than by the plugin, so
 without it a restart can run yesterday's loader against today's modules.
 
-The packaged copy is set aside rather than deleted, and `--restore` puts it
-back, so the profile ends up exactly as it was. The script also re-enables the
+The packaged copy is set aside rather than deleted — in the profile root, not
+in `extensions/`, which Zotero owns and sweeps clear of anything it does not
+recognise — and `--restore` puts it back, so the profile ends up exactly as it
+was. It also clears `extensions.lastAppBuildId`, without which none of this
+works at all: Zotero rescans `extensions/` only when the build it recorded no
+longer matches, so a proxy file beside an entry that still names the package is
+never looked at. The script also re-enables the
 plugin in `extensions.json`: one that was disabled once stays disabled however
 it is installed, which makes a correct install look like a broken one.
 

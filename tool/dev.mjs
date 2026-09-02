@@ -115,14 +115,24 @@ function zoteroBinary() {
  * was disabled once stays disabled in extensions.json however it is
  * installed, so an install that looks right shows no plugin at all.
  */
+/** Where the packaged copy waits: the profile root, which Zotero leaves be. */
+function kept(profile) {
+	return path.join(profile, ID + ".xpi.packaged");
+}
+
 function install(profile) {
 	const extensions = path.join(profile, "extensions");
 	fs.mkdirSync(extensions, { recursive: true });
 
+	// Set aside one level up, in the profile root. Not in extensions/: Zotero
+	// owns that directory and sweeps out what it does not recognise, so a
+	// package parked there is gone by the next start — which is exactly what
+	// happened the first time this was tried, and --restore then had nothing
+	// to put back.
 	const xpi = path.join(extensions, ID + ".xpi");
 	if (fs.existsSync(xpi)) {
-		fs.renameSync(xpi, xpi + ".packaged");
-		console.log("dev: packaged copy set aside as " + path.basename(xpi) + ".packaged");
+		fs.renameSync(xpi, kept(profile));
+		console.log("dev: packaged copy set aside in the profile root");
 	}
 
 	fs.writeFileSync(path.join(extensions, ID), ADDON, "utf8");
@@ -155,13 +165,15 @@ function restore(profile) {
 		fs.rmSync(proxy);
 		console.log("dev: proxy file removed");
 	}
-	const kept = path.join(extensions, ID + ".xpi.packaged");
-	if (fs.existsSync(kept)) {
-		fs.renameSync(kept, path.join(extensions, ID + ".xpi"));
+	const aside = kept(profile);
+	if (fs.existsSync(aside)) {
+		fs.renameSync(aside, path.join(extensions, ID + ".xpi"));
 		console.log("dev: packaged copy put back");
 	} else {
 		console.log("dev: no packaged copy was set aside — run build.sh to make one");
 	}
+	// So the next start notices that extensions/ has changed back
+	forceRescan(profile);
 }
 
 /**
@@ -169,6 +181,39 @@ function restore(profile) {
  * bootstrap.js is cached by Zotero itself rather than by the plugin, so
  * without it a restart can run yesterday's loader against today's modules.
  */
+/**
+ * Make the next start look at extensions/ again.
+ *
+ * Without this the whole thing quietly does nothing, which is how it was
+ * first shipped: Zotero records what it found last time in extensions.json
+ * and only rescans the directory when the application it belongs to has
+ * changed, which it tells by extensions.lastAppBuildId. A proxy file put
+ * beside an entry that still names the packaged copy is simply not seen —
+ * measured, with a Zotero that started twice and loaded nothing, and then
+ * loaded the plugin from the tree the moment this pref was cleared.
+ *
+ * The value heals itself: Zotero writes the real build id back on the start
+ * that follows. autoDisableScopes goes with it because a plugin found in the
+ * profile directory is treated as side-loaded, and side-loaded plugins are
+ * disabled on sight unless it is off.
+ *
+ * Only while Zotero is closed — it rewrites prefs.js as it exits, over
+ * anything written here.
+ */
+function forceRescan(profile) {
+	const file = path.join(profile, "prefs.js");
+	if (!fs.existsSync(file)) return;
+	let text = fs.readFileSync(file, "utf8");
+
+	text = text.replace(/user_pref\("extensions\.lastAppBuildId", "[^"]*"\);/,
+		'user_pref("extensions.lastAppBuildId", "0");');
+	if (!/user_pref\("extensions\.autoDisableScopes"/.test(text)) {
+		text = text.replace(/\n*$/, "\n")
+			+ 'user_pref("extensions.autoDisableScopes", 0);\n';
+	}
+	fs.writeFileSync(file, text, "utf8");
+}
+
 function restart(profile) {
 	// ZOTERO_QUIT is how this is testable at all: a test that let the real
 	// quit run would close the Zotero of whoever ran the suite. It is also
@@ -183,6 +228,8 @@ function restart(profile) {
 	} else {
 		spawnSync("pkill", ["-x", "zotero"]);
 	}
+
+	forceRescan(profile);
 
 	const child = spawn(zoteroBinary(),
 		["--purgecaches", "-profile", profile],

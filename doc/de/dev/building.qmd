@@ -54,8 +54,13 @@ Es wird nichts gepackt und nichts kopiert: Ein Neustart nimmt, was gerade in
 Zotero selbst zwischengespeichert, nicht vom Plugin — ohne das läuft nach einem
 Neustart womöglich der Lader von gestern gegen die Module von heute.
 
-Die verpackte Kopie wird beiseitegelegt statt gelöscht; `--restore` legt sie
-zurück, und das Profil steht wieder genau wie zuvor. Das Skript aktiviert das
+Die verpackte Kopie wird beiseitegelegt statt gelöscht — in der Profilwurzel,
+nicht in `extensions/`, denn dieses Verzeichnis gehört Zotero, das dort alles
+Wegräumt, was es nicht kennt. `--restore` legt sie zurück, und das Profil steht
+wieder genau wie zuvor. Außerdem wird `extensions.lastAppBuildId` geleert, ohne
+das nichts davon funktioniert: Zotero liest `extensions/` nur dann neu ein,
+wenn der vermerkte Build nicht mehr passt — eine Proxy-Datei neben einem
+Eintrag, der noch das Paket nennt, wird schlicht nicht angesehen. Das Skript aktiviert das
 Plugin außerdem in `extensions.json` wieder: Ein einmal deaktiviertes bleibt
 deaktiviert, wie auch immer es installiert wird — eine richtige Installation
 sieht dann aus wie eine kaputte.

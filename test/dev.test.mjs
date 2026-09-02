@@ -28,6 +28,8 @@ function makeProfile(name, { disabled = true, packaged = true } = {}) {
   if (packaged) {
     fs.writeFileSync(path.join(profile, 'extensions', ID + '.xpi'), 'packaged');
   }
+  fs.writeFileSync(path.join(profile, 'prefs.js'),
+    'user_pref("extensions.lastAppBuildId", "20260824144704");\n');
   fs.writeFileSync(path.join(profile, 'extensions.json'), JSON.stringify({
     schemaVersion: 35,
     addons: [
@@ -70,8 +72,14 @@ const run = (args, env = {}) => spawnSync('node', [ROOT + 'tool/dev.mjs', ...arg
 
   eq(fs.existsSync(path.join(profile, 'extensions', ID + '.xpi')), false,
      'the packaged copy is out of the way');
-  ok(fs.existsSync(path.join(profile, 'extensions', ID + '.xpi.packaged')),
-     'set aside rather than deleted, so it can come back');
+  // In the profile root, not in extensions/. Zotero owns that directory and
+  // sweeps out what it does not recognise: parked there, the package was gone
+  // by the next start, and --restore had nothing to put back. Found the hard
+  // way, on a real profile.
+  eq(fs.existsSync(path.join(profile, 'extensions', ID + '.xpi.packaged')), false,
+     'nothing is parked inside extensions/, which Zotero sweeps');
+  ok(fs.existsSync(path.join(profile, ID + '.xpi.packaged')),
+     'the package waits in the profile root instead, where it survives');
 
   // A plugin disabled once stays disabled however it is installed, and the
   // symptom is a profile with no plugin in it and nothing saying why
@@ -96,7 +104,8 @@ const run = (args, env = {}) => spawnSync('node', [ROOT + 'tool/dev.mjs', ...arg
   const xpi = path.join(profile, 'extensions', ID + '.xpi');
   ok(fs.existsSync(xpi), 'and the package is back where Zotero looks for it');
   eq(fs.readFileSync(xpi).equals(before), true, 'byte for byte');
-  eq(fs.existsSync(xpi + '.packaged'), false, 'with nothing left lying about');
+  eq(fs.existsSync(path.join(profile, ID + '.xpi.packaged')), false,
+     'with nothing left lying about in the profile root either');
 }
 {
   // Restoring a profile that never had a package must not invent one
@@ -133,6 +142,17 @@ const run = (args, env = {}) => spawnSync('node', [ROOT + 'tool/dev.mjs', ...arg
 
   const first = stub.calls();
   eq(first[0], 'quit', 'the running Zotero is asked to close first');
+
+  // The step without which none of this works, and the one it shipped
+  // without: Zotero rescans extensions/ only when the build id it recorded
+  // no longer matches, so a proxy file beside an entry that still names the
+  // packaged copy is never looked at. Cleared between the quit and the
+  // start, because Zotero writes prefs.js as it exits.
+  const prefs = fs.readFileSync(path.join(profile, 'prefs.js'), 'utf8');
+  ok(/lastAppBuildId", "0"/.test(prefs),
+     'the recorded build id is cleared, so the directory is read again');
+  ok(/autoDisableScopes", 0/.test(prefs),
+     'and side-loading is allowed, or what is found is disabled on sight');
   ok(/^start /.test(first[1] || ''), 'then one is started');
   ok(/--purgecaches/.test(first[1] || ''),
      'with --purgecaches: bootstrap.js is cached by Zotero, not by the plugin');
