@@ -182,6 +182,7 @@ const run = (args, env = {}) => spawnSync('node', [ROOT + 'tool/dev.mjs', ...arg
   ok(/autoDisableScopes", 0/.test(prefs),
      'and side-loading is allowed, or what is found is disabled on sight');
   ok(/^start /.test(first[1] || ''), 'then one is started');
+
   ok(/--purgecaches/.test(first[1] || ''),
      'with --purgecaches: bootstrap.js is cached by Zotero, not by the plugin');
   ok((first[1] || '').includes(profile), 'and pointed at this profile');
@@ -201,6 +202,39 @@ const run = (args, env = {}) => spawnSync('node', [ROOT + 'tool/dev.mjs', ...arg
     fs.writeFileSync(target, body);
     child.kill();
   }
+}
+
+// ── on macOS the start goes through the launcher ──────────────────────
+// A Zotero run straight from its binary hands the terminal's context to
+// everything it spawns, and the Quick Look helper needs the launcher's world
+// to get a zotero: URL opened when a page of the contact sheet is clicked.
+// Checked by behaviour rather than by reading the source: the first version
+// of this matched the literal `open -a Zotero`, which survives switching the
+// condition off, and the sabotage went unnoticed.
+if (process.platform === 'darwin') {
+  const profile = makeProfile('launcher');
+  const stub = makeStubs('launcher');
+  const bin = path.join(TMP, 'launcher-bin');
+  fs.mkdirSync(bin, { recursive: true });
+  // A stand-in for /usr/bin/open, found first on PATH
+  fs.writeFileSync(path.join(bin, 'open'),
+    `#!/bin/sh\necho "open $@" >> "${stub.log}"\n`);
+  fs.chmodSync(path.join(bin, 'open'), 0o755);
+
+  const child = spawn('node', [ROOT + 'tool/dev.mjs', '--profile', profile], {
+    // no ZOTERO_BIN: that is what selects the launcher
+    env: { ...process.env, ZOTERO_QUIT: stub.quit, PATH: bin + ':' + process.env.PATH },
+    stdio: 'ignore',
+  });
+  await new Promise((r) => setTimeout(r, 1500));
+  child.kill();
+
+  const call = stub.calls().find((c) => c.startsWith('open '));
+  ok(call, 'Zotero is started through the launcher: ' + (call || 'not at all'));
+  ok(/-a Zotero --args/.test(call || ''),
+     'as the application, with the flags passed through --args');
+  ok(/--purgecaches/.test(call || ''), 'and the cache flag survives that');
+  ok((call || '').includes(profile), 'and the profile with it');
 }
 
 fs.rmSync(TMP, { recursive: true, force: true });

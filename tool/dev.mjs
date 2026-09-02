@@ -246,9 +246,23 @@ function restart(profile) {
 
 	forceRescan(profile);
 
-	const child = spawn(zoteroBinary(),
-		["--purgecaches", "-profile", profile],
-		{ detached: true, stdio: "ignore" });
+	// Through the launcher on macOS, not by running the executable.
+	//
+	// A process started straight from the binary inherits the terminal's
+	// context, and so does everything it spawns — including the Quick Look
+	// helper. What that helper does when a page of the contact sheet is
+	// clicked is ask the system to open a zotero: URL, and asking the system
+	// for anything is what a process outside the launcher's world is worst
+	// at. Zotero itself does not care; the handoff does.
+	//
+	// So the loop starts Zotero the way a person starts it, and the flags go
+	// through --args. ZOTERO_BIN still runs what it names directly: someone
+	// who points it at a build somewhere unusual means that build.
+	const args = ["--purgecaches", "-profile", profile];
+	const child = process.platform === "darwin" && !process.env.ZOTERO_BIN
+		? spawn("open", ["-a", "Zotero", "--args", ...args],
+			{ detached: true, stdio: "ignore" })
+		: spawn(zoteroBinary(), args, { detached: true, stdio: "ignore" });
 	child.unref();
 	console.log("dev: Zotero restarted " + new Date().toLocaleTimeString());
 }

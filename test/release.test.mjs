@@ -153,14 +153,10 @@ ok(/Guillaume Chapron/.test(man.author), 'the manifest names the original author
      'and takes the plugin id from it');
   eq(dev.includes(z.id), false,
      `rather than carrying a copy of ${z.id}`);
-  // Against the spawn arguments, not against the file: the first version of
-  // this check matched the word anywhere, and the comment above restart()
-  // explains why the flag is needed — so deleting the flag left the comment
-  // and the check went on passing.
-  const args = (dev.match(/spawn\(zoteroBinary\(\),\s*(\[[^\]]*\])/) || [])[1];
-  ok(args, 'dev.mjs starts Zotero');
-  ok(/--purgecaches/.test(args || ''),
-     'with --purgecaches, or bootstrap.js is served from yesterday\'s cache');
+  // How it starts Zotero, and with which flags, is checked where it can be
+  // checked properly — test/dev.test.mjs runs the thing against stubs and
+  // reads what they were asked to do. Two attempts to assert it from the
+  // source here were each satisfied by text that a sabotage left behind.
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
