@@ -58,14 +58,16 @@ website:
     contents:
       - text: Getting started
         href: index.qmd
-      - text: What it does
-        href: features.qmd
-      - text: Settings
-        href: settings.qmd
-      - text: Platforms
-        href: platforms.qmd
-      - text: When something goes wrong
-        href: trouble.qmd
+      - section: User guide
+        contents:
+          - text: What it does
+            href: features.qmd
+          - text: Settings
+            href: settings.qmd
+          - text: Platforms
+            href: platforms.qmd
+          - text: When something goes wrong
+            href: trouble.qmd
       - section: Developer guide
         contents:
           - text: Architecture
@@ -78,16 +80,18 @@ website:
             href: dev/building.qmd
           - text: Releasing
             href: dev/releasing.qmd
-      - text: Origins
-        href: origins.qmd
-      - text: Name and mark
-        href: name.qmd
-      - text: Licence
-        href: licence.qmd
-      - text: Legal notice
-        href: impressum.qmd
-      - text: Privacy
-        href: privacy.qmd
+      - section: About
+        contents:
+          - text: Origins
+            href: origins.qmd
+          - text: Name and mark
+            href: name.qmd
+          - text: Licence
+            href: licence.qmd
+          - text: Legal notice
+            href: impressum.qmd
+          - text: Privacy
+            href: privacy.qmd
   page-footer:
     center: >-
       © fre.ms — MIT —

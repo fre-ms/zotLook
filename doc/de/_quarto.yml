@@ -54,14 +54,16 @@ website:
     contents:
       - text: Erste Schritte
         href: index.qmd
-      - text: Was es kann
-        href: features.qmd
-      - text: Einstellungen
-        href: settings.qmd
-      - text: Plattformen
-        href: platforms.qmd
-      - text: Wenn etwas schiefgeht
-        href: trouble.qmd
+      - section: Benutzung
+        contents:
+          - text: Was es kann
+            href: features.qmd
+          - text: Einstellungen
+            href: settings.qmd
+          - text: Plattformen
+            href: platforms.qmd
+          - text: Wenn etwas schiefgeht
+            href: trouble.qmd
       - section: Entwicklung
         contents:
           - text: Architektur
@@ -74,16 +76,18 @@ website:
             href: dev/building.qmd
           - text: Freigeben
             href: dev/releasing.qmd
-      - text: Herkunft
-        href: origins.qmd
-      - text: Name und Zeichen
-        href: name.qmd
-      - text: Lizenz
-        href: licence.qmd
-      - text: Impressum
-        href: impressum.qmd
-      - text: Datenschutz
-        href: privacy.qmd
+      - section: Über zotLook
+        contents:
+          - text: Herkunft
+            href: origins.qmd
+          - text: Name und Zeichen
+            href: name.qmd
+          - text: Lizenz
+            href: licence.qmd
+          - text: Impressum
+            href: impressum.qmd
+          - text: Datenschutz
+            href: privacy.qmd
   page-footer:
     center: >-
       © fre.ms — MIT —
