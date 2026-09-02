@@ -43,6 +43,12 @@ so the outline is cut to chapters. And the format never closes a part:
 top-level chapters after it were counted as its members, in the part's
 own outline and in the running header, so the part state is reset at the
 end of each part.
+
+The book also had a blank page after the cover — orange-book's copyright
+page, with no copyright to print on it — and one before many chapters,
+since the format opens every part and chapter on a right-hand page, the
+convention of double-sided print. This is a PDF read on screen, so the
+copyright page is dropped and a part or chapter starts on the next page.
 """
 
 import os
@@ -160,7 +166,15 @@ $endif$
 // to ensure marginalia's margins override the book format's default margins
 """
 
-TYPST_SHOW_TYP = """#import "@preview/orange-book:0.7.1": book, part, chapter, appendices
+TYPST_SHOW_TYP = """#import "@preview/orange-book:0.7.1": book, part as orange-part, chapter, appendices, part-change
+
+// orange-book opens every part and chapter on a right-hand page, the
+// convention of double-sided print, and pads with blank pages to get
+// there. This is a PDF read on screen: a part or chapter starts on the
+// next page, whichever it is. The rule stands before the book's own so
+// that it reaches the contents page, which the book sets itself, ahead
+// of the body; behind it, the contents would still follow a blank page.
+#show pagebreak.where(to: "odd"): pagebreak(weak: true)
 
 #show: book.with(
 $if(title)$
@@ -190,6 +204,9 @@ $endif$
   // with a handful of chapters ran to forty rows and, placed from the
   // bottom, grew up into the part's title placed from the top.
   outline-small-depth: 1,
+  // orange-book sets a copyright page after the cover, and with nothing
+  // to say on it — Quarto passes no copyright — it set an empty page.
+  copyright: none,
 $if(lof)$
 $if(crossref.lof-title)$
   list-of-figure-title: "$crossref.lof-title$",
@@ -215,6 +232,14 @@ $if(margin-geometry)$
   padded-heading-number: false,
 $endif$
 )
+
+// The part page carried the running header of the chapter before it:
+// orange-book raises its part flag after the page break, and the header
+// reads the flag at the page's start. Raise it first.
+#let part(title) = {
+  part-change.update(x => true)
+  orange-part(title)
+}
 
 $if(margin-geometry)$
 #import "@preview/marginalia:0.3.1" as marginalia
