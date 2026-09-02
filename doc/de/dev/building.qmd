@@ -65,6 +65,14 @@ Plugin außerdem in `extensions.json` wieder: Ein einmal deaktiviertes bleibt
 deaktiviert, wie auch immer es installiert wird — eine richtige Installation
 sieht dann aus wie eine kaputte.
 
+`--install` und `--restore` wirken auf Dateien, die Zotero beim Start liest,
+und auf eine Einstellung, die es beim Beenden neu schreibt — **schließen Sie
+Zotero vor beidem**. Unter einem laufenden sehen sie aus, als hätten sie
+gewirkt, und ändern nichts. Der Beobachter hat das Problem nicht, er schließt
+Zotero selbst. Und solange die Entwicklungs-Installation steht, lädt **jeder**
+Start den Arbeitsbaum, auch der über das Programmsymbol; `--restore` legt die
+verpackte Kopie zurück.
+
 `--profile` nimmt ein anderes Profil als das, welches `profiles.ini` nennt;
 `ZOTERO_BIN` ein Zotero an ungewöhnlicher Stelle und `ZOTERO_QUIT` einen
 anderen Weg, es zu schließen, als den der Plattform — Letzteres ist zugleich,

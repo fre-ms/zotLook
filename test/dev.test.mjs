@@ -56,6 +56,16 @@ function makeStubs(name) {
       ? fs.readFileSync(log, 'utf8').trim().split('\n').filter(Boolean) : []) };
 }
 
+/** A pgrep that always says yes, so the warning can be provoked. */
+function fakePgrep() {
+  const dir = path.join(TMP, 'fake-bin');
+  fs.mkdirSync(dir, { recursive: true });
+  const bin = path.join(dir, 'pgrep');
+  fs.writeFileSync(bin, '#!/bin/sh\nexit 0\n');
+  fs.chmodSync(bin, 0o755);
+  return dir;
+}
+
 const run = (args, env = {}) => spawnSync('node', [ROOT + 'tool/dev.mjs', ...args],
   { encoding: 'utf8', env: { ...process.env, ...env } });
 
@@ -116,6 +126,24 @@ const run = (args, env = {}) => spawnSync('node', [ROOT + 'tool/dev.mjs', ...arg
   ok(/no packaged copy/.test(out.stdout), 'and says so rather than pretending');
   eq(fs.existsSync(path.join(profile, 'extensions', ID + '.xpi')), false,
      'no package is conjured up');
+}
+
+// ── the one-shot commands say when they will not take ─────────────────
+// --install and --restore act on files Zotero reads at startup and on a
+// preference it rewrites as it exits. Run under a running Zotero they look
+// like they worked and change nothing, which is the confusion this warning
+// exists to prevent.
+{
+  const profile = makeProfile('running');
+  // pgrep -x node matches the process running this very suite, which is a
+  // dependable stand-in for "something is running" without a Zotero
+  const out = spawnSync('node',
+    [ROOT + 'tool/dev.mjs', '--install', '--profile', profile],
+    { encoding: 'utf8', env: { ...process.env, PATH: fakePgrep() + ':' + process.env.PATH } });
+  ok(/Zotero is running/.test(out.stdout),
+     'a running Zotero is called out before the install');
+  ok(fs.existsSync(path.join(profile, 'extensions', ID)),
+     'and the install still happens, so it takes on the next start');
 }
 
 // ── the restart, against stubs rather than a real Zotero ──────────────

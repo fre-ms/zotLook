@@ -61,6 +61,13 @@ never looked at. The script also re-enables the
 plugin in `extensions.json`: one that was disabled once stays disabled however
 it is installed, which makes a correct install look like a broken one.
 
+`--install` and `--restore` both act on files Zotero reads at startup, and on
+a preference it rewrites as it exits, so **close Zotero before either** — under
+a running one they look like they worked and change nothing. The watch does not
+have this problem: it closes Zotero itself. And while a development install is
+in place, *any* start loads the working tree, including one from the dock or
+the start menu; `--restore` is what puts the packaged copy back.
+
 It takes `--profile` for a profile other than the one `profiles.ini` names,
 and reads `ZOTERO_BIN` for a Zotero somewhere unusual and `ZOTERO_QUIT` for a
 way of closing it other than the platform's own — which is also what lets

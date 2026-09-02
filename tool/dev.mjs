@@ -115,6 +115,21 @@ function zoteroBinary() {
  * was disabled once stays disabled in extensions.json however it is
  * installed, so an install that looks right shows no plugin at all.
  */
+/**
+ * Whether a Zotero is up. Worth knowing before install or restore: both act
+ * on files Zotero reads at startup and on a preference it rewrites as it
+ * exits, so doing either underneath a running one looks like it worked and
+ * changes nothing.
+ */
+function zoteroRunning() {
+	const probe = process.platform === "win32"
+		? spawnSync("tasklist", ["/fi", "imagename eq zotero.exe"], { encoding: "utf8" })
+		: spawnSync("pgrep", ["-x", "zotero"], { encoding: "utf8" });
+	return process.platform === "win32"
+		? /zotero\.exe/i.test(probe.stdout || "")
+		: probe.status === 0;
+}
+
 /** Where the packaged copy waits: the profile root, which Zotero leaves be. */
 function kept(profile) {
 	return path.join(profile, ID + ".xpi.packaged");
@@ -253,6 +268,15 @@ function watch(profile) {
 const profile = findProfile();
 if (!fs.existsSync(profile)) die("no such profile: " + profile);
 console.log("dev: profile " + profile);
+
+// The watch quits Zotero itself; the two one-shot commands do not, and under
+// a running one they are quietly ineffective — the profile is read at
+// startup, and prefs.js is rewritten as Zotero exits, over the flag that
+// makes the next start look again.
+if ((flag("--restore") || flag("--install")) && zoteroRunning()) {
+	console.log("dev: Zotero is running — close it, or this takes effect on "
+		+ "the start after next and the rescan flag is overwritten meanwhile");
+}
 
 if (flag("--restore")) {
 	restore(profile);
