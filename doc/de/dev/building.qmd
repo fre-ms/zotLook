@@ -30,6 +30,50 @@ Installieren und Prüfen in Ordnung, seine Prüfsumme zu veröffentlichen würde
 aber macOS-Installationen auf einen Stand aktualisieren, dem ihre
 Quick-Look-Ansicht fehlt.
 
+## Die Entwicklungsschleife
+
+Für eine einzeilige Änderung eine XPI zu bauen, ist langsamer als nötig — und
+es steckt eine Falle darin: Ändert sich die Versionsnummer nicht, behält Zotero
+die Kopie, die es schon hat. Der erste Neustart zeigt dann das alte Plugin und
+erst der zweite das neue. Das hat mehr Zeit gekostet als jeder Fehler.
+
+Zotero kann ein Plugin auch aus einem **Verzeichnis** laden — über eine Datei
+im `extensions/` des Profils, die nach der Plugin-Kennung heißt und den Pfad
+enthält:
+
+``` bash
+node tool/dev.mjs            # aus dem Arbeitsbaum installieren, neu starten, beobachten
+node tool/dev.mjs --install  # nur installieren
+node tool/dev.mjs --restore  # die verpackte Kopie zurücklegen
+```
+
+Es wird nichts gepackt und nichts kopiert: Ein Neustart nimmt, was gerade in
+`addon/` steht. Der Beobachter startet Zotero neu, sobald sich dort etwas
+ändert, und zwar mit `--purgecaches`. Das ist wesentlich: Zotero hält
+übersetzte Skripte über Neustarts hinweg vor, und `bootstrap.js` wird von
+Zotero selbst zwischengespeichert, nicht vom Plugin — ohne das läuft nach einem
+Neustart womöglich der Lader von gestern gegen die Module von heute.
+
+Die verpackte Kopie wird beiseitegelegt statt gelöscht; `--restore` legt sie
+zurück, und das Profil steht wieder genau wie zuvor. Das Skript aktiviert das
+Plugin außerdem in `extensions.json` wieder: Ein einmal deaktiviertes bleibt
+deaktiviert, wie auch immer es installiert wird — eine richtige Installation
+sieht dann aus wie eine kaputte.
+
+`--profile` nimmt ein anderes Profil als das, welches `profiles.ini` nennt;
+`ZOTERO_BIN` ein Zotero an ungewöhnlicher Stelle.
+
+**Es ist kein Hot Reload**, und das ist eine Entscheidung, kein Versäumnis. Ein
+Plugin im laufenden Zotero neu zu laden, verlangt Geckos
+Remote-Debugging-Protokoll oder ein Plugin, das einen Endpunkt dafür
+registriert — Letzteres nutzt `zotero-plugin-scaffold` über einen
+`zotero://ztoolkit-debug`-Handler, der aus `zotero-plugin-toolkit` stammt und
+nicht aus Zotero. Zoteros eigene `zotero://`-Endpunkte sind `attachment`,
+`data`, `report`, `select`, `debug`, `pdf.js` und `open-pdf`; eine Brücke ist
+nicht darunter. Das Scaffold allein für den Neustart hereinzuholen, hieße
+sechzehn weitere Abhängigkeiten gegen einen Packvorgang von sechs Sekunden, von
+denen der Swift-Übersetzer keine zwei ausmacht.
+
 ## Aufbau des Repositorys
 
 ```

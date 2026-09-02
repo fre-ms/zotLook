@@ -4,9 +4,10 @@
   "description": "Development tooling for the zotLook Zotero plugin. The plugin itself ships no dependencies; linkedom stands in for Gecko's DOM so the parsing and sanitising code can be tested outside Zotero.",
   "type": "module",
   "scripts": {
+    "dev": "node tool/dev.mjs",
     "lint": "eslint addon test",
-    "test": "npm run lint && npm run typecheck && node test/run.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.worker.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.worker.json",
+    "test": "npm run lint && npm run typecheck && node test/run.mjs"
   },
   "devDependencies": {
     "eslint": "^10.8.1",

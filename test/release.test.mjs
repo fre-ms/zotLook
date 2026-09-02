@@ -141,5 +141,27 @@ ok(/Guillaume Chapron/.test(man.author), 'the manifest names the original author
      'while the manifest does not list that author, who contributed no code');
 }
 
+// ── the development install must address the same plugin ──────────────
+// tool/dev.mjs writes a proxy file named after the plugin id. Reading that id
+// from the manifest is what keeps the two in step: a hard-coded copy would go
+// on installing under the old name after a rename, and the symptom is a
+// profile with no plugin in it and nothing anywhere saying why.
+{
+  const dev = fs.readFileSync(ROOT + 'tool/dev.mjs', 'utf8');
+  ok(/manifest\.json/.test(dev), 'dev.mjs reads the manifest');
+  ok(/applications\.zotero\.id/.test(dev),
+     'and takes the plugin id from it');
+  eq(dev.includes(z.id), false,
+     `rather than carrying a copy of ${z.id}`);
+  // Against the spawn arguments, not against the file: the first version of
+  // this check matched the word anywhere, and the comment above restart()
+  // explains why the flag is needed — so deleting the flag left the comment
+  // and the check went on passing.
+  const args = (dev.match(/spawn\(zoteroBinary\(\),\s*(\[[^\]]*\])/) || [])[1];
+  ok(args, 'dev.mjs starts Zotero');
+  ok(/--purgecaches/.test(args || ''),
+     'with --purgecaches, or bootstrap.js is served from yesterday\'s cache');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

@@ -29,6 +29,47 @@ packages everything else, which is all the Linux route needs, and leaves
 locally, but publishing its checksum would auto-update macOS copies to a build
 that has lost their Quick Look panel.
 
+## The development loop
+
+Building an XPI to look at a one-line change is slower than it needs to be,
+and it hides a trap: when the version number has not changed, Zotero keeps the
+copy it already has, so the first restart shows the old plugin and only the
+second shows the new one. That has cost more time than any bug.
+
+Zotero can install a plugin from a **directory** instead — a file in the
+profile's `extensions/` named after the plugin id, holding the path to it:
+
+``` bash
+node tool/dev.mjs            # install from the tree, restart, then watch
+node tool/dev.mjs --install  # only install
+node tool/dev.mjs --restore  # put the packaged copy back
+```
+
+Nothing is packaged and nothing is copied: a restart picks up whatever is in
+`addon/` at that moment. The watch restarts Zotero when a file there changes,
+with `--purgecaches`, which matters — Zotero caches compiled scripts across
+starts, and `bootstrap.js` is cached by Zotero rather than by the plugin, so
+without it a restart can run yesterday's loader against today's modules.
+
+The packaged copy is set aside rather than deleted, and `--restore` puts it
+back, so the profile ends up exactly as it was. The script also re-enables the
+plugin in `extensions.json`: one that was disabled once stays disabled however
+it is installed, which makes a correct install look like a broken one.
+
+It takes `--profile` for a profile other than the one `profiles.ini` names,
+and reads `ZOTERO_BIN` for a Zotero somewhere unusual.
+
+**It is not hot reloading**, and that was a decision rather than an omission.
+Reloading a plugin inside a running Zotero needs Gecko's remote debugging
+protocol, or a plugin that registers an endpoint for it — which is what
+`zotero-plugin-scaffold` uses, through a `zotero://ztoolkit-debug` handler that
+comes from `zotero-plugin-toolkit` and not from Zotero. Zotero's own
+`zotero://` endpoints are `attachment`, `data`, `report`, `select`, `debug`,
+`pdf.js` and `open-pdf`; there is no bridge among them. Adopting the scaffold
+for the sake of the restart would mean sixteen further dependencies against a
+packaging step that takes six seconds, of which the Swift compiler is under
+two.
+
 ## Repository layout
 
 ```
