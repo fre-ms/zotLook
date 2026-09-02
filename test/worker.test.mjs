@@ -45,6 +45,12 @@ ok(/globalCompositeOperation/.test(src) && /multiply/.test(src),
 ok(/getAnnotations\(/.test(src),
    'from the annotation data, which does still come through');
 
+// ── or the contents menu is empty ─────────────────────────────────────
+ok(/getOutline\(/.test(src),
+   "the document's outline is read, since only this side has the document");
+ok(/getPageIndex\(/.test(src) && /getDestination\(/.test(src),
+   'and its destinations are resolved to pages, named ones included');
+
 // ── the plugin has to be able to reach it ─────────────────────────────
 const plugin = fs.readFileSync(ADDON + 'zotlook.js', 'utf8');
 ok(/render\.worker\.js/.test(plugin), 'the plugin names the worker file');

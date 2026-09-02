@@ -78,6 +78,12 @@ Every page of a PDF as a thumbnail in a scrollable grid — useful for finding t
 figure you remember, or for seeing at a glance which pages you marked up.
 
 - **Annotations are drawn in**, so the marked-up pages stand out.
+- **A button in each corner** opens the document's own contents and its
+  annotations over the grid, as the EPUB preview has them: the contents from
+  the PDF's outline, the annotations in reading order with the quotation, the
+  comment and the page. Clicking an entry brings that page to the middle of
+  the window, framed. A PDF without an outline gets no contents button, and
+  both buttons can be switched off.
 - **Clicking a page opens it in Zotero's reader** at that page. This works from
   the preview panel on macOS and Windows, and from the window variant
   everywhere — Sushi's view cannot follow a `zotero:` link, which is what the
@@ -114,6 +120,8 @@ cuts the book at them and shows a page at a time.
   page navigation behaves the same way.
 - **Annotations are drawn in**, as they are on the PDF sheet and in the EPUB
   preview.
+- **The same two buttons** as on the PDF sheet: the book's navigation and its
+  annotations, each entry a jump to the page's tile.
 - **A book without printed page numbers says so.** Most trade fiction carries
   none, and nothing can invent one; a sheet of arbitrary slices would be worse
   than none. Academic publishers — Springer, O'Reilly, most textbooks — usually

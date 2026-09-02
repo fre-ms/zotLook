@@ -35,6 +35,11 @@ zotlook-prefs-contactsheet-columns = Spalten
 zotlook-prefs-contactsheet-columns-hint = weniger Spalten bedeutet größere Miniaturen
 zotlook-prefs-contactsheet-maxpages = Höchstens
 zotlook-prefs-contactsheet-unit = Seiten (0 = ohne Begrenzung)
+zotlook-prefs-contactsheet-menus-help = In den Ecken der Übersicht öffnen zwei Knöpfe das Inhaltsverzeichnis des Dokuments und seine Annotationen; ein Klick auf einen Eintrag holt die Seite in die Mitte des Fensters. Dieselben Knöpfe hat die Seitenübersicht eines EPUB.
+zotlook-prefs-contactsheet-contents =
+    .label = Knopf für das Inhaltsverzeichnis anzeigen
+zotlook-prefs-contactsheet-annotations =
+    .label = Knopf für die Annotationen anzeigen
 
 # Pfeiltasten in der Systemvorschau (nur Linux; sonst verborgen)
 zotlook-prefs-arrows-title = Pfeiltasten in der Vorschau
@@ -82,6 +87,14 @@ zotlook-epub-nopages = Dieses Buch führt keine gedruckten Seitenzahlen.
 zotlook-epub-nopages-hint = Ein EPUB fließt um und hat keine eigenen Seiten. Eine Seitenübersicht kann nur die Paginierung einer gedruckten Ausgabe zeigen, sofern die Datei sie mitführt — diese tut es nicht. Zum Lesen dient die gewöhnliche Vorschau.
 
 zotlook-epub-frontmatter = Vor Seite eins
+
+# Das Annotationsmenü einer Seitenübersicht: der Verweis eines Eintrags
+# („Seite 12") und die Bezeichnung einer Annotation ohne Zitat und Kommentar
+zotlook-sheet-page = Seite
+zotlook-sheet-note = Notiz
+zotlook-sheet-image = Bild
+zotlook-sheet-ink = Freihand
+zotlook-sheet-text = Text
 
 zotlook-prefs-keep-title = Zwischengespeicherte Vorschauen
 

@@ -231,6 +231,54 @@ async function renderPage(doc, number, width, quality) {
 	return { height: height, buffer: await blob.arrayBuffer() };
 }
 
+/**
+ * The document's outline as a flat list — title, level and the page it
+ * points at — resolved here because only this side has the document. Asked
+ * of one worker only: every worker opens the file, but the outline is the
+ * same in each. Whatever fails leaves an empty list; a sheet without a
+ * contents menu is still the sheet.
+ *
+ * Three levels, which is what the menu can show, and a thousand entries,
+ * which is more than any menu should.
+ */
+async function outlineOf(doc) {
+	let out = [];
+	try {
+		let walk = async (items, level) => {
+			for (let item of items || []) {
+				if (out.length >= 1000) return;
+				let page = await pageOf(doc, item.dest);
+				let title = String(item.title || "").trim();
+				if (page && title) out.push({ title: title, page: page, level: level });
+				if (level < 2) await walk(item.items, level + 1);
+			}
+		};
+		await walk(await doc.getOutline(), 0);
+	} catch {
+		// no outline, then
+	}
+	return out;
+}
+
+/**
+ * The 1-based page a destination points at, or 0 when it points nowhere
+ * usable — a link to a URL, a name the document never defines. A named
+ * destination is looked up first; an explicit one starts with the page's
+ * reference, or with its index outright in a few producers' files.
+ */
+async function pageOf(doc, dest) {
+	try {
+		let target = dest;
+		if (typeof target === "string") target = await doc.getDestination(target);
+		if (!Array.isArray(target) || !target.length) return 0;
+		let ref = target[0];
+		if (typeof ref === "number") return ref + 1;
+		return (await doc.getPageIndex(ref)) + 1;
+	} catch {
+		return 0;
+	}
+}
+
 // Two steps, because the page count decides the column count, which decides
 // the width to render at — and only this side knows the page count.
 let document = null;
@@ -241,7 +289,9 @@ self.addEventListener("message", async (/** @type {MessageEvent} */ event) => {
 	try {
 		if (message.type === "open") {
 			document = await open(message.data);
-			self.postMessage({ type: "opened", pageCount: document.numPages });
+			let reply = { type: "opened", pageCount: document.numPages };
+			if (message.outline) reply.outline = await outlineOf(document);
+			self.postMessage(reply);
 			return;
 		}
 

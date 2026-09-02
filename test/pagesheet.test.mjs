@@ -372,6 +372,69 @@ const PAGED = [
      'and the whole book in one flow, as before');
 }
 
+// ── the two corner menus ──────────────────────────────────────────────
+// The buttons the EPUB preview has, on the sheet: the book's contents and
+// its annotations, each entry a jump to a tile — the tile, not the heading
+// inside it, so the page arrives framed and in the middle of the window.
+const NAV = '<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" '
+  + 'xmlns:epub="http://www.idpf.org/2007/ops"><body><nav epub:type="toc">'
+  + '<ol><li><a href="ch1.xhtml">Erstes Kapitel</a>'
+  + '<ol><li><a href="ch1.xhtml#rest">Der Rest</a></li></ol></li>'
+  + '<li><a href="ch2.xhtml">Zweites Kapitel</a></li>'
+  + '<li><a href="ch9.xhtml">Nirgends</a></li></ol></nav></body></html>';
+const WITH_ID = [
+  PAGED[0].replace('<p>Rest von Seite zwei.</p>', '<p id="rest">Rest von Seite zwei.</p>'),
+  PAGED[1],
+];
+const REST = {
+  type: 'highlight', color: '#ffd400', text: 'Rest', comment: 'merken',
+  position: JSON.stringify({ value: 'epubcfi(/6/2!/4/10,/1:0,/1:4)' }),
+};
+{
+  const { doc } = await sheetOf({ chapters: WITH_ID, nav: NAV },
+                                sheetEnv({ annotations: [REST] }));
+  const found = tiles(doc);
+  eq(found.map(t => t.getAttribute('id')),
+     ['epub-page-0', 'epub-page-1', 'epub-page-2', 'epub-page-3'],
+     'every tile carries an id');
+
+  const toc = doc.querySelector('details.zl-toc');
+  ok(toc, 'the contents menu is there');
+  eq([...toc.querySelectorAll('a')].map(a => [a.textContent, a.getAttribute('href')]),
+     [['Erstes Kapitel', '#epub-page-0'], ['Der Rest', '#epub-page-2'],
+      ['Zweites Kapitel', '#epub-page-2']],
+     'a chapter jumps to the tile its content begins on, an id inside a '
+     + 'chapter to the tile that holds it, and an entry pointing nowhere is left out');
+  ok(toc.querySelector('li.zl-toc-level1'), 'at the nesting the book gives');
+
+  const list = doc.querySelector('details.zl-annotations');
+  ok(list, 'the annotations menu is there');
+  eq(list.querySelector('a.zl-annotation-goto').getAttribute('href'), '#epub-page-2',
+     'and its entry jumps to the tile the passage falls on');
+  ok(/merken/.test(list.textContent), 'with the comment');
+
+  const css = doc.querySelector('style').textContent;
+  ok(/div\.epub-page:target div\.epub-paper \{[^}]*outline: 3px solid/s.test(css),
+     'the tile jumped to is framed');
+  ok(/div\.epub-page \{ scroll-margin-top: max\(0px, calc\(50vh - 160px\)\); \}/.test(css),
+     'and lands in the middle of the window');
+  ok(/details\.zl-toc > summary, details\.zl-annotations > summary \{[^}]*position: fixed/s.test(css),
+     "styled by the sheet module's one stylesheet for all three");
+}
+{
+  const { doc } = await sheetOf({ chapters: WITH_ID, nav: NAV },
+    sheetEnv({ annotations: [REST], showToc: false, showAnnotations: false }));
+  ok(!doc.querySelector('details.zl-toc') && !doc.querySelector('details.zl-annotations'),
+     'both menus can be switched off');
+  ok(doc.querySelector('span.zotlook-annotation'),
+     'the annotation is still drawn on its page: the switch is for the list');
+}
+{
+  const { doc } = await sheetOf({ chapters: PAGED });
+  ok(!doc.querySelector('details'),
+     'a book with no navigation and no annotations shows neither button');
+}
+
 fs.rmSync(TMP, { recursive: true, force: true });
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

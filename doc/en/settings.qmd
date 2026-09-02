@@ -87,9 +87,15 @@ It exists for unusually large scans, to bound how long generation may take and
 how much temporary disk space it may use. When it bites, the sheet says so at
 the bottom.
 
-Both apply to PDFs. A book's page overview is laid out by the window it is shown
-in — as many tiles per row as fit — and nothing is rendered, so neither setting
-has anything to act on.
+Columns and the page limit apply to PDFs. A book's page overview is laid out
+by the window it is shown in — as many tiles per row as fit — and nothing is
+rendered, so neither setting has anything to act on.
+
+**Show the contents button** and **Show the annotations button** (both on by
+default) put a button in each corner of the sheet: the document's contents,
+read from the PDF's outline, and its annotations, each entry a jump to its
+page. Off, the sheet is the grid alone. Unlike the two settings above, these
+apply to the page overview of a book as well.
 
 ## Kept previews
 

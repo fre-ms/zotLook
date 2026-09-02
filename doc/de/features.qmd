@@ -85,6 +85,12 @@ die Abbildung wiederzufinden, an die man sich erinnert, oder um auf einen Blick
 zu sehen, welche Seiten man bearbeitet hat.
 
 - **Annotationen sind eingezeichnet**, die bearbeiteten Seiten stechen hervor.
+- **In jeder Ecke ein Knopf** blendet das Inhaltsverzeichnis des Dokuments und
+  seine Annotationen über das Raster, wie in der EPUB-Vorschau: das
+  Inhaltsverzeichnis aus der Outline des PDFs, die Annotationen in
+  Lesereihenfolge mit Zitat, Kommentar und Seite. Ein Klick auf einen Eintrag
+  holt die Seite gerahmt in die Mitte des Fensters. Ein PDF ohne Outline
+  bekommt keinen Inhaltsknopf, und beide Knöpfe lassen sich abschalten.
 - **Ein Klick auf eine Seite öffnet sie im Zotero-Reader.** Das funktioniert aus
   der Systemvorschau unter macOS und Windows und überall aus der
   Fenster-Variante — Sushis Ansicht kann einem `zotero:`-Link nicht folgen,
@@ -122,6 +128,8 @@ ihnen und zeigt es Seite für Seite.
   er exakt. Zoteros eigene Seitennavigation verhält sich genauso.
 - **Annotationen sind eingezeichnet**, wie auf dem PDF-Bogen und in der
   EPUB-Vorschau.
+- **Dieselben zwei Knöpfe** wie auf dem PDF-Bogen: die Navigation des Buches
+  und seine Annotationen, jeder Eintrag ein Sprung zur Kachel der Seite.
 - **Ein Buch ohne gedruckte Seitenzahlen sagt das.** Belletristik führt meist
   keine, und erfinden lässt sich keine; ein Bogen aus willkürlichen Abschnitten
   wäre schlechter als keiner. Wissenschaftliche Verlage — Springer, O'Reilly,

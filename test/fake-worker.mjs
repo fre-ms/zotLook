@@ -7,7 +7,8 @@
  * real worker is what broke the sheet twice.
  */
 export function fakeWorkerFactory({ pageCount = 8, failOn = null,
-                                    errorOn = null, silentOn = null } = {}) {
+                                    errorOn = null, silentOn = null,
+                                    outline = null } = {}) {
   const made = [];
   function FakeWorker(url, options) {
     const self = this;
@@ -33,7 +34,11 @@ export function fakeWorkerFactory({ pageCount = 8, failOn = null,
       if (message.type === 'open') {
         if (errorOn === self.index) return self._emit('error', { message: 'boom' });
         if (silentOn === self.index) return;
-        return self._emit('message', { type: 'opened', pageCount });
+        // The outline travels with the answer of the one worker asked for it,
+        // exactly as the real worker does it
+        const reply = { type: 'opened', pageCount };
+        if (message.outline && outline) reply.outline = outline;
+        return self._emit('message', reply);
       }
       if (message.type === 'render') {
         if (failOn === self.index) {

@@ -117,6 +117,18 @@ instead of being blown up.
 That sizing rule lives in `sheet.js`, apart from the rendering, so the grid, the
 labels and the links can be changed and tested without a PDF anywhere in sight.
 
+Two corner menus sit over the grid: the contents and the annotations. The
+outline comes out of the PDF in the render worker, the only place that has the
+document open — pdf.js reads it and resolves each destination to a page, named
+destinations included — and travels back with the first worker's *opened*
+message. The annotations are read from Zotero's database, where the stored
+position of each carries its page index. Both menus are `<details>` and CSS,
+shared with the EPUB preview through `zotLookSheet.MENU_CSS`, because a
+preview panel runs no scripts. An entry is a fragment link to the page's tile;
+a `:target` rule frames the tile, and a `scroll-margin-top` written as an
+expression of the window's width puts it in the middle of the window, since
+the tile's height on screen is not known when the sheet is written.
+
 ## What is kept, and how it goes away again
 
 The sheet is not the only thing here that is made from an attachment and costs

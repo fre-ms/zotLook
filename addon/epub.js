@@ -1,4 +1,4 @@
-/* global Zotero, PathUtils, IOUtils, zotLookUtil, zotLookCfi */
+/* global Zotero, PathUtils, IOUtils, zotLookUtil, zotLookCfi, zotLookSheet */
 
 /**
  * Renders an epub into a single HTML page that QuickLook can display.
@@ -54,163 +54,12 @@ var zotLookEpub = Object.seal({
 		// The anchor is a landing point, not a box: it must take no space,
 		// and scroll-margin keeps the heading clear of the window's top edge
 		"div.epub-anchor { height: 0; scroll-margin-top: 1.5em; }",
-		// ── The two floating menus ────────────────────────────────────
-		//
-		// A book wants the page to itself; a reader wants its contents
-		// within reach. Both are had by letting the summary float as a
-		// button and the list appear over the text when it is opened.
-		//
-		// All of it is <details> and CSS, and that is not a stylistic
-		// preference: a preview panel runs no scripts, so a menu that needed
-		// one would simply never open. The element carries the state itself.
-		//
-		// The two sit in opposite corners rather than side by side, so that
-		// neither label's width can ever push the other out of place.
-		"details.epub-toc, details.epub-annotations {",
-		"  margin: 0;",
-		"  font-family: -apple-system, BlinkMacSystemFont, sans-serif;",
-		"}",
-		"details.epub-toc > summary, details.epub-annotations > summary {",
-		"  position: fixed;",
-		"  bottom: 24px;",
-		"  z-index: 20;",
-		"  cursor: default;",
-		"  font-size: 14px;",
-		"  font-weight: 600;",
-		"  padding: 0.6em 1.1em;",
-		"  border-radius: 999px;",
-		"  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);",
-		// The disclosure triangle goes two ways, because the three viewers
-		// are not one engine
-		"  list-style: none;",
-		"}",
-		"details.epub-toc > summary::-webkit-details-marker,",
-		"details.epub-annotations > summary::-webkit-details-marker {",
-		"  display: none;",
-		"}",
-		"details.epub-toc > summary {",
-		"  right: 24px;",
-		"  background: #2e8b84;",
-		"  color: #ffffff;",
-		"}",
-		"details.epub-toc[open] > summary { background: #1f2a33; }",
-		"details.epub-annotations > summary {",
-		"  left: 24px;",
-		"  background: #f5b841;",
-		"  color: #1f2a33;",
-		"}",
-		"details.epub-annotations[open] > summary { background: #1f2a33; color: #ffffff; }",
-		"ol.epub-toc-list, ol.epub-annotation-list {",
-		"  position: fixed;",
-		"  bottom: 80px;",
-		"  z-index: 15;",
-		"  width: min(360px, 70vw);",
-		"  max-height: 62vh;",
-		"  overflow: auto;",
-		"  margin: 0;",
-		"  padding: 0.7em 0;",
-		"  list-style: none;",
-		"  background: #ffffff;",
-		"  border-radius: 12px;",
-		"  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28);",
-		"  font-size: 14px;",
-		"  line-height: 1.45;",
-		"}",
-		"ol.epub-toc-list { right: 24px; }",
-		"ol.epub-annotation-list { left: 24px; }",
-		"ol.epub-toc-list li { margin: 0; }",
-		"ol.epub-toc-list a {",
-		"  display: block;",
-		"  padding: 0.42em 1.2em;",
-		"  color: #1a1a1a;",
-		"  text-decoration: none;",
-		"}",
-		"ol.epub-toc-list a:hover { background: #f0f4f3; }",
-		"li.epub-toc-level1 a { padding-left: 2.4em; font-size: 0.95em; }",
-		"li.epub-toc-level2 a { padding-left: 3.6em; font-size: 0.92em; color: #4a4a4a; }",
-		"ol.epub-annotation-list li { margin: 0; padding: 0.5em 1.2em; line-height: 1.5; }",
-		// A row rather than a block, so the swatch and the first line of the
-		// quotation sit together. The native disclosure marker goes away
-		// under flex, so one is drawn here — which is steadier anyway across
-		// three engines that draw their own differently.
-		"details.epub-annotation-entry > summary {",
-		"  cursor: default;",
-		"  display: flex;",
-		"  align-items: baseline;",
-		"  gap: 0.3em;",
-		"  list-style: none;",
-		"}",
-		"details.epub-annotation-entry > summary::-webkit-details-marker {",
-		"  display: none;",
-		"}",
-		"details.epub-annotation-entry > summary::before {",
-		"  content: \"\\25b8\";",
-		"  color: #8a8a8a;",
-		"  font-size: 0.9em;",
-		"}",
-		"details.epub-annotation-entry[open] > summary::before { content: \"\\25be\"; }",
-		// Two lines closed, all of it open. Measured in Quick Look, which
-		// renders the clamp: the text is cut with an ellipsis rather than
-		// running on. max-height carries the rest, where the property is not
-		// understood — a little more than two lines, but never the whole
-		// passage.
-		"details.epub-annotation-entry:not([open]) q {",
-		"  display: -webkit-box;",
-		"  -webkit-line-clamp: 2;",
-		"  line-clamp: 2;",
-		"  -webkit-box-orient: vertical;",
-		"  overflow: hidden;",
-		"  max-height: 3.1em;",
-		"}",
-		"details.epub-annotation-entry[open] > summary { margin-bottom: 0.35em; }",
-		".epub-annotation-detail { margin-left: 1.2em; }",
-		"a.epub-annotation-goto {",
-		"  display: inline-block;",
-		"  margin-top: 0.3em;",
-		"  font-size: 0.92em;",
-		"  color: #2e8b84;",
-		"  text-decoration: none;",
-		"}",
-		"a.epub-annotation-goto:hover { text-decoration: underline; }",
-		".epub-annotation-swatch {",
-		"  display: inline-block;",
-		"  width: 0.7em;",
-		"  height: 0.7em;",
-		"  border-radius: 2px;",
-		"  margin-right: 0.5em;",
-		"}",
-		"ol.epub-annotation-list q { quotes: none; }",
-		"ol.epub-annotation-list a {",
-		"  color: #1a1a1a;",
-		"  text-decoration: none;",
-		"  border-bottom: 1px solid transparent;",
-		"}",
-		"ol.epub-annotation-list a:hover { border-bottom-color: #999; }",
 		// The passage jumped to should be findable once the eye arrives
 		"span.zotlook-annotation:target { outline: 2px solid #1f2a33; }",
-		".epub-annotation-unplaced { opacity: 0.75; font-style: italic; }",
-		".epub-annotation-comment {",
-		"  display: block;",
-		"  margin-left: 1.2em;",
-		"  color: #4a4a4a;",
-		"}",
 		"span.zotlook-annotation { border-radius: 2px; }",
-		// Narrow enough and a floating menu covers more than it offers, so
-		// it goes back into the flow it came from
-		"@media (max-width: 420px) {",
-		"  details.epub-toc > summary, details.epub-annotations > summary,",
-		"  ol.epub-toc-list, ol.epub-annotation-list {",
-		"    position: static;",
-		"    width: auto;",
-		"    max-height: none;",
-		"    box-shadow: none;",
-		"  }",
-		"  details.epub-toc, details.epub-annotations { margin: 0 0 1.6em 0; }",
-		"}",
-		"@media print {",
-		"  details.epub-toc, details.epub-annotations { display: none; }",
-		"}",
-	].join("\n"),
+		// The two corner menus — contents and annotations — are the sheet
+		// module's, shared with both page sheets; see zotLookSheet.MENU_CSS
+	].join("\n") + "\n" + zotLookSheet.MENU_CSS,
 
 	// ── The page sheet ────────────────────────────────────────────────
 	//
@@ -242,6 +91,14 @@ var zotLookEpub = Object.seal({
 		"}",
 		"div.epub-page { width: 210px; }",
 		"div.epub-page a { text-decoration: none; color: inherit; }",
+		// Where a menu entry lands: the tile in the middle of the window,
+		// framed. 297px of paper and a label under it, halved.
+		"div.epub-page { scroll-margin-top: max(0px, calc(50vh - 160px)); }",
+		"div.epub-page:target div.epub-paper {",
+		"  outline: 3px solid #f5b841;",
+		"  outline-offset: 3px;",
+		"}",
+		"div.epub-page:target div.epub-page-label { color: #1f2a33; font-weight: 600; }",
 		// The margin belongs to the paper, not to the text inside it. Put it
 		// on the scaled box and it scales with the text, so a page whose
 		// content runs long is clipped flush against the edge — text sliced
@@ -365,7 +222,7 @@ var zotLookEpub = Object.seal({
 
 			let sheet = env.mode === "sheet";
 			let html = sheet
-				? await this._buildSheet(zip, sections, title, env, pkg)
+				? await this._buildSheet(zip, sections, title, env, pkg, nav)
 				: await this._buildHtml(zip, sections, title, nav, env);
 			if (!html) return null;
 
@@ -848,11 +705,11 @@ var zotLookEpub = Object.seal({
 	 * box: a preview of a document with no chapters should look like the
 	 * document, not like a feature that failed.
 	 */
-	_buildToc(out, nav, anchorFor) {
+	_buildToc(out, nav, anchorFor, tileOf) {
 		if (!nav || !nav.length) return null;
 
 		let list = out.createElement("ol");
-		list.className = "epub-toc-list";
+		list.className = "zl-toc-list";
 		let used = 0;
 
 		for (let entry of nav) {
@@ -864,11 +721,12 @@ var zotLookEpub = Object.seal({
 			let target = anchor;
 			if (entry.fragment) {
 				let el = out.getElementById(entry.fragment);
-				if (el) target = entry.fragment;
+				// On a sheet the landing is the tile that holds the element
+				if (el) target = tileOf ? tileOf(el) || anchor : entry.fragment;
 			}
 
 			let li = out.createElement("li");
-			li.className = "epub-toc-level" + entry.level;
+			li.className = "zl-toc-level" + entry.level;
 			let link = out.createElement("a");
 			link.setAttribute("href", "#" + target);
 			link.textContent = entry.title;
@@ -880,7 +738,7 @@ var zotLookEpub = Object.seal({
 		if (!used) return null;
 
 		let box = out.createElement("details");
-		box.className = "epub-toc";
+		box.className = "zl-toc";
 		// Closed on arrival. It was open when it stood above the book and
 		// there was nothing to be in the way of; as a menu over the page it
 		// would cover the first thing a reader looks at.
@@ -1092,8 +950,9 @@ var zotLookEpub = Object.seal({
 	 * the piece that follows. That keeps every piece well formed — a half
 	 * paragraph in a page of its own, with its own <p> around it.
 	 *
-	 * @returns {Array<{label: string|null, node: Element, section: number,
-	 *                  mark: Element|null}>}
+	 * @returns {Array<{label: string|null, cfi: string|null, node: Element,
+	 *                  chain: Map<Element, Element>, sections: string[]}>}
+	 *   sections names the spine items whose content begins on the page
 	 */
 	_buildPages(out, sections) {
 		let pages = [];
@@ -1105,6 +964,9 @@ var zotLookEpub = Object.seal({
 				cfi: cfi || null,
 				node: out.createElement("div"),
 				chain: new Map(),
+				// the sections whose content begins on this page, for the
+				// contents menu
+				sections: [],
 			});
 			current = pages.length - 1;
 		};
@@ -1173,7 +1035,15 @@ var zotLookEpub = Object.seal({
 					ancestors.add(at);
 				}
 			}
+			let startAt = current;
 			walk(body, [], marks, ancestors);
+			// The first page from here that took anything is where this
+			// section begins — a section may open with a page mark, and
+			// then the page that was current stays empty and is dropped
+			let first = pages
+				.slice(startAt)
+				.find((page) => page.node.childNodes.length);
+			if (first) first.sections.push(section.href);
 			// The mirrored chain belongs to one section's elements; the next
 			// section brings different ones, and a page carrying on across
 			// the boundary starts a fresh chain for them
@@ -1191,7 +1061,7 @@ var zotLookEpub = Object.seal({
 	 * lives in the PDF and nowhere in the EPUB — but it is that page's
 	 * content, and enough to see where a table sits or a chapter begins.
 	 */
-	async _buildSheet(zip, sections, title, env, pkg) {
+	async _buildSheet(zip, sections, title, env, pkg, nav) {
 		let out = zotLookUtil.newHtmlDocument();
 		if (!out) return null;
 		out.title = title;
@@ -1211,6 +1081,7 @@ var zotLookEpub = Object.seal({
 		let seenInlineCss = new Set();
 		let written = new Map();
 
+		let placed = new Set();
 		let sectionIndex = -1;
 		for (let section of sections) {
 			sectionIndex++;
@@ -1221,7 +1092,8 @@ var zotLookEpub = Object.seal({
 			// The marked-up pages are the ones worth picking out of a sheet,
 			// which is the same reason the PDF sheet renders the annotated
 			// copy rather than the stored file.
-			this._markSection(doc, sectionIndex, env.annotations);
+			let marked = this._markSection(doc, sectionIndex, env.annotations);
+			if (marked) for (let annotation of marked) placed.add(annotation);
 
 			let cut = section.href.lastIndexOf("/");
 			let fileDir = cut === -1 ? "" : section.href.substring(0, cut);
@@ -1244,15 +1116,52 @@ var zotLookEpub = Object.seal({
 		out.body.className = "epub-sheet-body";
 		let grid = out.createElement("div");
 		grid.className = "epub-sheet";
-		for (let page of pages) {
-			grid.appendChild(this._pageTile(out, page, env));
-		}
+		pages.forEach((page, index) => {
+			grid.appendChild(this._pageTile(out, page, env, index));
+		});
 		out.body.appendChild(grid);
+
+		// The two corner menus, each entry a jump to a tile — the tile, not
+		// the heading or the passage inside it, so that the page arrives
+		// framed and in the middle of the window. Both can be switched off.
+		let tileOf = (el) => {
+			for (let at = el; at; at = at.parentNode) {
+				if (at.nodeType === 1 && at.getAttribute("class") === "epub-page") {
+					return at.getAttribute("id");
+				}
+			}
+			return null;
+		};
+		if (env.showToc !== false) {
+			let anchorFor = new Map();
+			pages.forEach((page, index) => {
+				for (let href of page.sections) {
+					if (!anchorFor.has(href)) anchorFor.set(href, this._tileId(index));
+				}
+			});
+			let toc = this._buildToc(out, nav, anchorFor, tileOf);
+			if (toc) out.body.insertBefore(toc, grid);
+		}
+		if (env.showAnnotations !== false) {
+			let list = this._buildAnnotationList(
+				out, env.annotations, placed,
+				(annotation, index) => {
+					let span = out.getElementById(this._annotationAnchor(index));
+					return (span && tileOf(span)) || null;
+				}
+			);
+			if (list) out.body.insertBefore(list, grid);
+		}
 
 		let base = out.createElement("style");
 		base.textContent = this.BASE_CSS + "\n" + this.SHEET_CSS;
 		out.head.appendChild(base);
 		return zotLookUtil.serializeHtmlDocument(out);
+	},
+
+	/** The id a tile carries, the same on both sides of a link. */
+	_tileId(index) {
+		return "epub-page-" + index;
 	},
 
 	/**
@@ -1295,9 +1204,10 @@ var zotLookEpub = Object.seal({
 		+ "to read the book.",
 
 	/** One tile: the page, its number, and a way into the reader. */
-	_pageTile(out, page, env) {
+	_pageTile(out, page, env, index) {
 		let tile = out.createElement("div");
 		tile.className = "epub-page";
+		tile.setAttribute("id", this._tileId(index));
 
 		let paper = out.createElement("div");
 		paper.className = "epub-paper";
@@ -1724,45 +1634,14 @@ var zotLookEpub = Object.seal({
 		return "background-color: " + this._halfOpaque(colour) + ";";
 	},
 
-	/**
-	 * The colour to paint with.
-	 *
-	 * Zotero's own palette is eight colours, but the field holds a string and
-	 * plugins put their own in it — zotQDA's palettes among them. Every one
-	 * seen in practice is a six-digit hex, which is what Zotero's reader also
-	 * requires: it appends the alpha as two more digits, exactly as here.
-	 *
-	 * A three-digit form is written out first, or the alpha would land inside
-	 * the colour and change it. Anything else is passed on untouched and
-	 * without an alpha: an unexpected notation should show the wrong opacity
-	 * at worst, never the wrong colour.
-	 */
+	/** The colour to paint with; see zotLookSheet.annotationColour. */
 	_annotationColour(value) {
-		let colour = String(value || "").trim();
-		if (!colour) return { value: "#ffd400", hex: true };
-		if (/^#[0-9a-f]{3}$/i.test(colour)) {
-			return {
-				value:
-					"#" +
-					colour
-						.slice(1)
-						.split("")
-						.map((c) => c + c)
-						.join(""),
-				hex: true,
-			};
-		}
-		if (/^#[0-9a-f]{6}$/i.test(colour)) return { value: colour, hex: true };
-		// Eight digits already carry their own alpha
-		if (/^#[0-9a-f]{8}$/i.test(colour)) return { value: colour, hex: false };
-		this.log("Unfamiliar annotation colour, used as given: " + colour);
-		return { value: colour, hex: false };
+		return zotLookSheet.annotationColour(value);
 	},
 
-	/** The colour at half opacity, by the same means Zotero uses: the alpha
-	 *  as two more hex digits, where the notation allows it. */
+	/** The colour at half opacity; see zotLookSheet.halfOpaque. */
 	_halfOpaque(colour) {
-		return colour.hex ? colour.value + "80" : colour.value;
+		return zotLookSheet.halfOpaque(colour);
 	},
 
 	/** Whitespace as a reader sees it, for the list above the book. */
@@ -1778,7 +1657,7 @@ var zotLookEpub = Object.seal({
 	 * — all three would simply be missing otherwise. Folded away like the
 	 * table of contents, so it costs nothing to a reader who wants the book.
 	 */
-	_buildAnnotationList(out, annotations, placed) {
+	_buildAnnotationList(out, annotations, placed, targetFor) {
 		if (!annotations || !annotations.length) return null;
 
 		let ordered = [...annotations].sort((a, b) =>
@@ -1786,14 +1665,14 @@ var zotLookEpub = Object.seal({
 		);
 
 		let details = out.createElement("details");
-		details.className = "epub-annotations";
+		details.className = "zl-annotations";
 		let summary = out.createElement("summary");
 		summary.textContent =
 			this.ANNOTATIONS_LABEL + " (" + ordered.length + ")";
 		details.appendChild(summary);
 
 		let list = out.createElement("ol");
-		list.className = "epub-annotation-list";
+		list.className = "zl-annotation-list";
 		for (let annotation of ordered) {
 			let text = this._collapse(annotation.text || "");
 			let comment = this._collapse(annotation.comment || "");
@@ -1801,7 +1680,7 @@ var zotLookEpub = Object.seal({
 
 			let entry = out.createElement("li");
 			let swatch = out.createElement("span");
-			swatch.className = "epub-annotation-swatch";
+			swatch.className = "zl-annotation-swatch";
 			swatch.setAttribute(
 				"style",
 				// Solid here: the reader shows the swatch in the full colour
@@ -1817,7 +1696,7 @@ var zotLookEpub = Object.seal({
 			if (!text) {
 				entry.appendChild(swatch);
 				let note = out.createElement("span");
-				note.className = "epub-annotation-comment";
+				note.className = "zl-annotation-comment";
 				note.textContent = comment;
 				entry.appendChild(note);
 				list.appendChild(entry);
@@ -1825,7 +1704,7 @@ var zotLookEpub = Object.seal({
 			}
 
 			let fold = out.createElement("details");
-			fold.className = "epub-annotation-entry";
+			fold.className = "zl-annotation-entry";
 			let summary = out.createElement("summary");
 			summary.appendChild(swatch);
 
@@ -1840,26 +1719,28 @@ var zotLookEpub = Object.seal({
 			// text either way, cut by the stylesheet rather than here, so
 			// nothing is lost and nothing is duplicated.
 			if (!placed.has(annotation)) {
-				quote.className = "epub-annotation-unplaced";
+				quote.className = "zl-annotation-unplaced";
 			}
 			summary.appendChild(quote);
 			fold.appendChild(summary);
 
 			let detail = out.createElement("div");
-			detail.className = "epub-annotation-detail";
+			detail.className = "zl-annotation-detail";
 			if (comment) {
 				let note = out.createElement("span");
-				note.className = "epub-annotation-comment";
+				note.className = "zl-annotation-comment";
 				note.textContent = comment;
 				detail.appendChild(note);
 			}
 			if (placed.has(annotation)) {
 				let link = out.createElement("a");
+				let index = annotations.indexOf(annotation);
 				link.setAttribute(
 					"href",
-					"#" + this._annotationAnchor(annotations.indexOf(annotation))
+					"#" + ((targetFor && targetFor(annotation, index)) ||
+						this._annotationAnchor(index))
 				);
-				link.className = "epub-annotation-goto";
+				link.className = "zl-annotation-goto";
 				link.textContent = this.GOTO_LABEL;
 				detail.appendChild(link);
 			}

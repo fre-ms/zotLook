@@ -110,6 +110,9 @@ ok(/#zotlook-keep-purge/.test(js) && /addEventListener\(\s*["']command["']/.test
    'and the button is wired, not merely declared');
 ok(/_purgeKept\(/.test(js), 'to the clearing the plugin implements');
 ok(/_keptSize\(/.test(js), 'and the figure to the size it reports');
+ok(/preference="extensions\.zotlook\.contactSheetContents"/.test(xhtml)
+   && /preference="extensions\.zotlook\.contactSheetAnnotations"/.test(xhtml),
+   'the two corner menus of a sheet can be switched off in the pane');
 ok(/preference="extensions\.zotlook\.previewKeepDays"/.test(xhtml),
    'the keep-days field binds through the preference attribute');
 ok(/pref\("extensions\.zotlook\.previewKeepDays"/.test(

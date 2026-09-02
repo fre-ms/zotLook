@@ -103,6 +103,11 @@ var zotLook = Object.seal({
 		"zotlook-epub-nopages",
 		"zotlook-epub-nopages-hint",
 		"zotlook-epub-frontmatter",
+		"zotlook-sheet-page",
+		"zotlook-sheet-note",
+		"zotlook-sheet-image",
+		"zotlook-sheet-ink",
+		"zotlook-sheet-text",
 	],
 
 	L10N_FILE: "zotlook.ftl",
@@ -1255,6 +1260,8 @@ var zotLook = Object.seal({
 
 		let maxColumns = this._contactSheetColumns();
 		let maxPages = this._maxContactSheetPages();
+		let showToc = this._pref("contactSheetContents", true);
+		let showAnnotations = this._pref("contactSheetAnnotations", true);
 
 		// Named after the source rather than after what is rendered, so the
 		// sheet keeps one name whether or not annotations were drawn in, and
@@ -1273,6 +1280,8 @@ var zotLook = Object.seal({
 		// annotations — the sheet renders the exported copy, not the stored
 		// file — and the settings that shape the output, since a sheet drawn
 		// in five columns is not the sheet the reader asked for in three.
+		// The annotations menu lists them whether or not they are drawn, so
+		// it counts them on its own account.
 		let key = keep
 			? [
 				this._tag(),
@@ -1281,6 +1290,10 @@ var zotLook = Object.seal({
 				this._annotationKeyPart(chosen.item),
 				maxColumns,
 				maxPages,
+				showToc ? "contents" : "no-contents",
+				showAnnotations
+					? "list:" + (this._annotationSignature(chosen.item) || "none")
+					: "no-list",
 			].join("|")
 			: null;
 
@@ -1352,6 +1365,10 @@ var zotLook = Object.seal({
 					pageCount: manifest.pageCount,
 					linkBase: this._readerLink(chosen.item),
 					notice: notice,
+					toc: showToc ? manifest.outline || [] : [],
+					annotations: showAnnotations
+						? this._pdfAnnotations(chosen.item)
+						: [],
 				})
 			);
 
@@ -1954,7 +1971,13 @@ var zotLook = Object.seal({
 							columns: zotLookSheet.columnsFor(count, maxColumns),
 							width: zotLookSheet.widthFor(count, maxColumns),
 							pages: [],
+							outline: [],
 						};
+					}
+					// Only the worker that was asked carries one, and it
+					// need not be the first to answer
+					if (Array.isArray(message.outline)) {
+						manifest.outline = message.outline;
 					}
 					if (++opened === workers.length) handOutPages();
 					return;
@@ -2036,10 +2059,15 @@ var zotLook = Object.seal({
 			this.log("Started " + workers.length + " pdf.js renderers");
 
 			// Structured cloning rather than a transfer: every worker parses
-			// the document for itself, so every worker needs its own copy
-			for (let worker of workers) {
-				worker.postMessage({ type: "open", data: bytes.buffer });
-			}
+			// the document for itself, so every worker needs its own copy.
+			// The outline is the same in each, so one of them resolves it.
+			workers.forEach((worker, index) => {
+				worker.postMessage({
+					type: "open",
+					data: bytes.buffer,
+					outline: index === 0,
+				});
+			});
 		});
 	},
 
@@ -2276,6 +2304,27 @@ var zotLook = Object.seal({
 				"zotlook-epub-frontmatter",
 				zotLookEpub.FRONT_LABEL
 			);
+			// The sheet module likewise: its two menus, the page link in
+			// the annotation list, and the names of the kinds it lists
+			zotLookSheet.TOC_LABEL = this._string(
+				"zotlook-epub-contents",
+				zotLookSheet.TOC_LABEL
+			);
+			zotLookSheet.ANNOTATIONS_LABEL = this._string(
+				"zotlook-epub-annotations",
+				zotLookSheet.ANNOTATIONS_LABEL
+			);
+			zotLookSheet.PAGE_LABEL = this._string(
+				"zotlook-sheet-page",
+				zotLookSheet.PAGE_LABEL
+			);
+			// One call each rather than a loop, so that the ids can be read
+			// off the source — which is how they are checked
+			let kinds = zotLookSheet.TYPE_LABELS;
+			kinds.note = this._string("zotlook-sheet-note", kinds.note);
+			kinds.image = this._string("zotlook-sheet-image", kinds.image);
+			kinds.ink = this._string("zotlook-sheet-ink", kinds.ink);
+			kinds.text = this._string("zotlook-sheet-text", kinds.text);
 		} catch (e) {
 			this.log("Could not load localization: " + e);
 		}
@@ -3211,12 +3260,16 @@ var zotLook = Object.seal({
 		let entry = await this._derivedEntry(name, keep);
 
 		let annotations = this._epubAnnotations(attachment);
+		let showToc = this._pref("contactSheetContents", true);
+		let showAnnotations = this._pref("contactSheetAnnotations", true);
 		let key = keep
 			? [
 				this._tag(),
 				path,
 				await this._fileIdentity(path),
 				this._annotationKeyPart(attachment, "epubAnnotations"),
+				showToc ? "contents" : "no-contents",
+				showAnnotations ? "list" : "no-list",
 			].join("|")
 			: null;
 
@@ -3250,6 +3303,8 @@ var zotLook = Object.seal({
 					annotations,
 					mode: "sheet",
 					readerLink: this._readerLink(attachment),
+					showToc,
+					showAnnotations,
 				})
 			);
 		} finally {
@@ -3258,6 +3313,51 @@ var zotLook = Object.seal({
 		if (!html) return null;
 		await this._derivedCommit(entry, key);
 		return html;
+	},
+
+	/**
+	 * The item's annotations, each with the page it sits on, for the sheet's
+	 * list. The page comes out of the position Zotero stores — JSON with a
+	 * pageIndex counted from zero — and the label beside it is the printed
+	 * number where the PDF names its pages, so the list says "Page xii" for
+	 * a preface rather than "Page 4". External annotations are left out:
+	 * they are in the file already, drawn where they belong.
+	 */
+	_pdfAnnotations(attachment) {
+		if (!attachment) return [];
+		let items;
+		try {
+			items = attachment
+				.getAnnotations()
+				.filter((a) => !a.annotationIsExternal);
+		} catch (e) {
+			this.log("Could not read annotations: " + e);
+			return [];
+		}
+		let out = [];
+		for (let item of items) {
+			try {
+				let position = item.annotationPosition;
+				if (typeof position === "string") position = JSON.parse(position);
+				let index = position ? Number(position.pageIndex) : NaN;
+				if (!Number.isInteger(index) || index < 0) continue;
+				out.push({
+					page: index + 1,
+					label: String(item.annotationPageLabel || "").trim() || undefined,
+					type: item.annotationType || "highlight",
+					text: item.annotationText || "",
+					comment: item.annotationComment || "",
+					color: item.annotationColor || "",
+					sortIndex: item.annotationSortIndex || "",
+				});
+			} catch (e) {
+				// One unreadable annotation must not cost the list
+			}
+		}
+		// Reading order, which is what the sort index encodes
+		out.sort((a, b) =>
+			String(a.sortIndex).localeCompare(String(b.sortIndex)));
+		return out;
 	},
 
 	/**

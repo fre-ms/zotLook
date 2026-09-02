@@ -125,6 +125,19 @@ Diese Größenregel liegt in `sheet.js`, getrennt vom Zeichnen — Raster,
 Beschriftungen und Verweise lassen sich damit ändern und prüfen, ohne dass ein
 PDF im Spiel wäre.
 
+Über dem Raster liegen zwei Eckmenüs: das Inhaltsverzeichnis und die
+Annotationen. Die Outline kommt im Render-Worker aus dem PDF, dem einzigen Ort,
+an dem das Dokument offen ist — pdf.js liest sie und löst jedes Ziel zu einer
+Seite auf, benannte Ziele eingeschlossen —, und reist mit der
+*opened*-Meldung des ersten Workers zurück. Die Annotationen kommen aus Zoteros
+Datenbank, wo die gespeicherte Position jeder Annotation ihren Seitenindex
+trägt. Beide Menüs sind `<details>` und CSS, mit der EPUB-Vorschau über
+`zotLookSheet.MENU_CSS` geteilt, weil eine Vorschau keine Skripte ausführt. Ein
+Eintrag ist ein Fragment-Link auf die Kachel der Seite; eine `:target`-Regel
+rahmt die Kachel, und ein `scroll-margin-top`, geschrieben als Ausdruck der
+Fensterbreite, setzt sie in die Mitte des Fensters, denn die Höhe der Kachel
+auf dem Bildschirm ist beim Schreiben des Bogens nicht bekannt.
+
 ## Was behalten wird, und wie es wieder verschwindet
 
 Der Bogen ist nicht das Einzige hier, das aus einem Anhang entsteht und

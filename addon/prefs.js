@@ -27,6 +27,13 @@ pref("extensions.zotlook.key.contactSheetWindow", "Ctrl+Alt+Space");
 // and the renderer raises the rendered resolution to match.
 pref("extensions.zotlook.contactSheetColumns", 5);
 
+// The two corner menus of a sheet: the document's own contents, and the
+// annotations on it, every entry a jump to its page. Off, the sheet is the
+// grid alone. Both apply to the PDF contact sheet and to the page overview
+// of an EPUB alike.
+pref("extensions.zotlook.contactSheetContents", true);
+pref("extensions.zotlook.contactSheetAnnotations", true);
+
 // Keep what zotLook derives from an attachment and show it again unchanged,
 // rather than making it a second time: the contact sheet and the EPUB
 // preview, both of which cost seconds. Kept beside the working directory, in

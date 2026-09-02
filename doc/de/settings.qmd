@@ -91,10 +91,17 @@ gezeichnet werden. Es ist für ungewöhnlich große Scans gedacht, um zu binden,
 wie lange die Erzeugung dauern und wie viel temporären Speicherplatz sie
 belegen darf. Greift es, sagt der Bogen es unten an.
 
-Beides gilt für PDFs. Die Seitenübersicht eines Buches richtet sich nach dem
-Fenster, in dem sie steht — so viele Kacheln je Reihe, wie hineinpassen —, und
-gezeichnet wird dabei nichts; keine der beiden Einstellungen hat also etwas,
-woran sie greifen könnte.
+Spalten und Seitenlimit gelten für PDFs. Die Seitenübersicht eines Buches
+richtet sich nach dem Fenster, in dem sie steht — so viele Kacheln je Reihe,
+wie hineinpassen —, und gezeichnet wird dabei nichts; keine der beiden
+Einstellungen hat also etwas, woran sie greifen könnte.
+
+**Knopf für das Inhaltsverzeichnis anzeigen** und **Knopf für die Annotationen
+anzeigen** (Vorgabe beide an) setzen in jede Ecke des Bogens einen Knopf: das
+Inhaltsverzeichnis des Dokuments, aus der Outline des PDFs gelesen, und seine
+Annotationen, jeder Eintrag ein Sprung zu seiner Seite. Aus, ist der Bogen das
+Raster allein. Anders als die beiden Einstellungen darüber gelten diese auch
+für die Seitenübersicht eines Buches.
 
 ## Zwischengespeicherte Vorschauen
 

@@ -39,12 +39,12 @@ const tocEnv = { outDir: TOC_TMP, openZip, openBook };
   ok(out, 'a book with a navigation document converts');
   const html = fs.readFileSync(out, 'utf8');
 
-  ok(html.includes('<details') && html.includes('epub-toc'),
+  ok(html.includes('<details') && html.includes('zl-toc'),
      'the contents are a details block, which folds without JavaScript');
   ok(/<summary[^>]*>Contents</.test(html), 'under a heading');
   ok(html.includes('First chapter') && html.includes('Second chapter'),
      'carrying the titles the book gives, not ones derived from headings');
-  ok(html.includes('epub-toc-level1'), 'and the nesting the book gives');
+  ok(html.includes('zl-toc-level1'), 'and the nesting the book gives');
 
   ok(html.includes('href="#zotlook-ch0"') && html.includes('href="#zotlook-ch1"'),
      'each chapter is linked by an anchor placed for it');
@@ -257,16 +257,16 @@ ok(!('_cache' in E), 'the module keeps no cache of its own any more');
     ok(mark && !/background-color/.test(mark[0]),
        'and nothing is filled in behind the words');
   }
-  ok(/<details class="epub-annotations">/.test(html), 'and both are listed');
+  ok(/<details class="zl-annotations">/.test(html), 'and both are listed');
   ok(/wichtig/.test(html), 'with the comment');
-  ok(!/epub-annotation-unplaced/.test(html), 'nothing reported as unplaceable');
+  ok(!/zl-annotation-unplaced/.test(html), 'nothing reported as unplaceable');
 
   // The list takes the reader to the passage: the marked place carries an
   // anchor, the entry points at it. Same mechanism as the contents, which is
   // measured to work in a panel that runs no scripts.
   ok(/<span [^>]*id="zotlook-annot0"[^>]*>Erster Absatz\.<\/span>/.test(html),
      'the first marked passage carries an anchor');
-  ok(/<a [^>]*class="epub-annotation-goto"[^>]*>/.test(html)
+  ok(/<a [^>]*class="zl-annotation-goto"[^>]*>/.test(html)
      && /<a [^>]*href="#zotlook-annot0"[^>]*>/.test(html),
      'and its entry in the list offers a way there');
   ok(/id="zotlook-annot1"/.test(html) && /href="#zotlook-annot1"/.test(html),
@@ -275,7 +275,7 @@ ok(!('_cache' in E), 'the module keeps no cache of its own any more');
   // Each entry folds: two lines of the passage on arrival, the rest and the
   // link to it on demand. A list of long passages that showed all of them
   // would be the book again rather than an index to it.
-  ok(/<details class="epub-annotation-entry"><summary>/.test(html),
+  ok(/<details class="zl-annotation-entry"><summary>/.test(html),
      'the entries fold');
 
   // The quotation in the list is marked as the passage is marked — which is
@@ -290,20 +290,20 @@ ok(!('_cache' in E), 'the module keeps no cache of its own any more');
     ok(quoted.some(v => v.includes('text-decoration-color: #a28ae5')),
        'and the underlined one underlined, in its own colour');
   }
-  ok(/epub-annotation-entry:not\(\[open\]\) q \{[^}]*line-clamp: 2/s.test(lastPage),
+  ok(/zl-annotation-entry:not\(\[open\]\) q \{[^}]*line-clamp: 2/s.test(lastPage),
      'closed, the quotation is cut to two lines');
   ok(/max-height: 3\.1em/.test(lastPage),
      'with a height to fall back on where the clamp is not understood');
-  ok(!/<details class="epub-annotation-entry" open/.test(html),
+  ok(!/<details class="zl-annotation-entry" open/.test(html),
      'and none of them starts open');
 
   // A flex summary drops the native disclosure marker, so one is drawn.
   // Without it the fold gives no sign that there is anything to unfold.
-  ok(/details\.epub-annotation-entry > summary \{[^}]*display: flex/s.test(lastPage),
+  ok(/details\.zl-annotation-entry > summary \{[^}]*display: flex/s.test(lastPage),
      'the summary is a row, so swatch and first line sit together');
-  ok(/details\.epub-annotation-entry > summary::before \{[^}]*content:/s.test(lastPage),
+  ok(/details\.zl-annotation-entry > summary::before \{[^}]*content:/s.test(lastPage),
      'and a marker is drawn, since flex takes the native one away');
-  ok(/details\.epub-annotation-entry\[open\] > summary::before \{ content:/.test(lastPage),
+  ok(/details\.zl-annotation-entry\[open\] > summary::before \{ content:/.test(lastPage),
      'which turns when it opens');
 
   {
@@ -363,7 +363,7 @@ ok(!('_cache' in E), 'the module keeps no cache of its own any more');
                                   html2.indexOf('Ein Gedanke'));
     ok(!/<details/.test(noteEntry),
        'and is not folded: it quotes nothing, so there is nothing to unfold');
-    ok(/epub-annotation-unplaced/.test(html2),
+    ok(/zl-annotation-unplaced/.test(html2),
        'and a CFI that no longer resolves is marked as such rather than dropped');
     ok(!/<a href="#zotlook-annot/.test(html2),
        'what is nowhere in the page is not offered as a link to it');
@@ -371,7 +371,7 @@ ok(!('_cache' in E), 'the module keeps no cache of its own any more');
   }
   {
     const bare = await withNotes(undefined, 'noannot');
-    ok(!/epub-annotations|zotlook-annotation/.test(bare),
+    ok(!/zl-annotations|zotlook-annotation/.test(bare),
        'without annotations the page carries no trace of them');
   }
 }
@@ -426,9 +426,9 @@ ok(!('_cache' in E), 'the module keeps no cache of its own any more');
   fs.mkdirSync(out, { recursive: true });
   const page = fs.readFileSync(await E.convert(withNav, { ...env, outDir: out }), 'utf8');
   const body = page.slice(page.indexOf('<body'));
-  ok(/<details class="epub-toc">/.test(body), 'the contents are there');
-  ok(!/<details[^>]*\bopen\b[^>]*class="epub-toc"/.test(body)
-     && !/<details class="epub-toc"[^>]*\bopen\b/.test(body),
+  ok(/<details class="zl-toc">/.test(body), 'the contents are there');
+  ok(!/<details[^>]*\bopen\b[^>]*class="zl-toc"/.test(body)
+     && !/<details class="zl-toc"[^>]*\bopen\b/.test(body),
      'and closed, so the book is what one sees first');
 }
 
@@ -443,12 +443,12 @@ ok(!('_cache' in E), 'the module keeps no cache of its own any more');
   const page = fs.readFileSync(await E.convert(BOOK, { ...env, outDir: out }), 'utf8');
 
   ok(!/<script/i.test(page), 'the page carries no script at all');
-  ok(/details\.epub-toc > summary[^}]*position: fixed/s.test(page)
-     || /details\.epub-toc > summary, details\.epub-annotations > summary \{[^}]*position: fixed/s.test(page),
+  ok(/details\.zl-toc > summary[^}]*position: fixed/s.test(page)
+     || /details\.zl-toc > summary, details\.zl-annotations > summary \{[^}]*position: fixed/s.test(page),
      'the summaries are floated out of the flow');
-  ok(/ol\.epub-toc-list, ol\.epub-annotation-list \{[^}]*position: fixed/s.test(page),
+  ok(/ol\.zl-toc-list, ol\.zl-annotation-list \{[^}]*position: fixed/s.test(page),
      'and the lists appear over the text rather than pushing it down');
-  ok(/ol\.epub-toc-list \{ right/.test(page) && /ol\.epub-annotation-list \{ left/.test(page),
+  ok(/ol\.zl-toc-list \{ right/.test(page) && /ol\.zl-annotation-list \{ left/.test(page),
      'the two sit in opposite corners, so neither label\'s width crowds the other');
 
   // The triangle is hidden two ways: the three viewers are not one engine

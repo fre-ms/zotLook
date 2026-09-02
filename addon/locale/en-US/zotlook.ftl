@@ -33,6 +33,11 @@ zotlook-prefs-contactsheet-columns = Columns
 zotlook-prefs-contactsheet-columns-hint = fewer columns means larger thumbnails
 zotlook-prefs-contactsheet-maxpages = Limit to at most
 zotlook-prefs-contactsheet-unit = pages (0 = no limit)
+zotlook-prefs-contactsheet-menus-help = A button in each corner of the sheet opens the document's contents and its annotations; a click on an entry brings that page to the middle of the window. The same two buttons are on the page overview of an EPUB.
+zotlook-prefs-contactsheet-contents =
+    .label = Show the contents button
+zotlook-prefs-contactsheet-annotations =
+    .label = Show the annotations button
 
 # Arrow keys in the system preview (Linux only; hidden elsewhere)
 zotlook-prefs-arrows-title = Arrow keys in the preview
@@ -80,6 +85,14 @@ zotlook-epub-nopages = This book carries no printed page numbers.
 zotlook-epub-nopages-hint = An EPUB reflows and has no pages of its own. A page overview can only show the pagination of a printed edition where the file carries it — this one does not. Use the ordinary preview to read the book.
 
 zotlook-epub-frontmatter = Before page one
+
+# The annotations menu of a sheet: the link an entry carries ("Page 12"),
+# and what an annotation with nothing to quote and nothing said is called
+zotlook-sheet-page = Page
+zotlook-sheet-note = Note
+zotlook-sheet-image = Image
+zotlook-sheet-ink = Ink
+zotlook-sheet-text = Text
 
 zotlook-prefs-keep-title = Kept previews
 

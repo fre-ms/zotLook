@@ -14,11 +14,12 @@ const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++
 const ok=(c,l)=>eq(!!c,true,l);
 
 function harness({ prefValues = {}, pdf = true, exitCode = 0,
-                   mtime = 1000, size = 4096 } = {}) {
+                   mtime = 1000, size = 4096, outline = null,
+                   annotations = [] } = {}) {
   const viewed = [];
   const written = new Map();
   const textWrites = [];
-  const { FakeWorker, made } = fakeWorkerFactory({ pageCount: 3 });
+  const { FakeWorker, made } = fakeWorkerFactory({ pageCount: 3, outline });
   const files = new Set(['/plugin/qlpreview']);
   const IOUtils = {
     exists: async (p) => files.has(p),
@@ -39,6 +40,7 @@ function harness({ prefValues = {}, pdf = true, exitCode = 0,
     isNote: () => false, isAttachment: () => true,
     isPDFAttachment: () => pdf,
     attachmentFilename: pdf ? 'paper.pdf' : 'paper.epub',
+    getAnnotations: () => annotations,
   };
   const { zotLook: Q } = loadPlugin({
     IOUtils, prefValues,
@@ -528,6 +530,111 @@ function cacheHarness({ entries = [], now = 100 * DAY, prefValues = {} } = {}) {
   eq(made.length, drawn, 'the second call is served from the kept sheet');
   ok(textWrites.includes(key), 'and still rewrites the key, so its date says '
      + '"last used" rather than "first built"');
+}
+
+// ── the two corner menus ──────────────────────────────────────────────
+// What the EPUB preview had, the sheet now has: the document's contents and
+// its annotations, each entry a jump to a tile. No script anywhere — a
+// preview panel runs none — so the jump is a fragment link, the landing a
+// :target rule, and the centring a scroll margin.
+const OUTLINE = [
+  { title: 'Introduction', page: 1, level: 0 },
+  { title: 'Method', page: 2, level: 1 },
+  { title: 'Beyond the limit', page: 9, level: 0 },
+];
+const ANNOTATIONS = [
+  { annotationType: 'highlight', annotationText: 'A quoted passage',
+    annotationComment: 'why it matters', annotationColor: '#ff6666',
+    annotationPosition: JSON.stringify({ pageIndex: 1, rects: [] }),
+    annotationSortIndex: '00001|000100|00010', annotationPageLabel: '2' },
+  { annotationType: 'note', annotationComment: 'a note on the first page',
+    annotationPosition: '{"pageIndex":0}',
+    annotationSortIndex: '00000|000010|00000' },
+  { annotationType: 'highlight', annotationIsExternal: true,
+    annotationText: 'already in the file', annotationPosition: '{"pageIndex":0}',
+    annotationSortIndex: '00000|000000|00000' },
+  { annotationType: 'image', annotationPosition: '{"pageIndex":2}',
+    annotationSortIndex: '00002|000000|00000' },
+];
+{
+  const { Q, made, attachment, written } = harness({
+    outline: OUTLINE, annotations: ANNOTATIONS });
+  const out = await Q._buildContactSheet([attachment]);
+  const html = written.get(out);
+
+  eq(made.map(w => w.posted[0].outline), [true, false, false, false],
+     'one renderer is asked for the outline, and only one');
+  ok(html.includes('<div class="page" id="p1">'), 'every tile carries an id');
+  ok(/<details class="zl-toc"><summary>Contents<\/summary>/.test(html),
+     'the contents menu is there');
+  ok(/<li class="zl-toc-level0"><a href="#p1">Introduction<\/a>/.test(html)
+     && /<li class="zl-toc-level1"><a href="#p2">Method<\/a>/.test(html),
+     'its entries jump to the tiles, at the nesting the outline gives');
+  ok(!html.includes('Beyond the limit'),
+     'an entry whose page was not drawn is left out rather than left dangling');
+
+  ok(/<details class="zl-annotations"><summary>Annotations \(3\)<\/summary>/.test(html),
+     'the annotations menu counts the ones that are Zotero’s own');
+  ok(!html.includes('already in the file'),
+     'an external annotation is not among them: it is drawn in the file already');
+  ok(html.indexOf('a note on the first page') < html.indexOf('A quoted passage'),
+     'listed in reading order, by the sort index rather than by arrival');
+  ok(/<q style="background-color: #ff666680;">A quoted passage<\/q>/.test(html),
+     'a quotation is marked as it is marked on the page, at half opacity');
+  ok(/<span class="zl-annotation-comment">why it matters<\/span>/.test(html),
+     'with its comment');
+  ok(/<a class="zl-annotation-goto" href="#p2">Page 2<\/a>/.test(html),
+     'and a link to its page, named by the printed label');
+  ok(/href="#p1">Page 1<\/a>/.test(html), 'a note has no passage, only its page');
+  ok(/<span class="zl-annotation-comment">Image<\/span>[^<]*<a class="zl-annotation-goto" href="#p3">Page 3<\/a>/.test(html),
+     'an area with nothing said is named by its kind');
+
+  ok(/\.page:target \{[^}]*outline: 3px solid/s.test(html),
+     'the tile jumped to is framed');
+  ok(/\.page \{[^}]*scroll-margin-top: max\(0px, calc\(50vh - \(\(100vw - 48px\) \/ 3 \* 1\.33\d* \+ 21px\) \/ 2\)\)/s.test(html),
+     'and lands in the middle of the window: half the height less half a tile, '
+     + 'written as an expression of the window width the grid is divided into');
+}
+{
+  // Both menus can be switched off, and a sheet built with one is not the
+  // sheet built without it
+  const { Q, made, attachment, written } = harness({
+    outline: OUTLINE, annotations: ANNOTATIONS, prefValues: {
+      'extensions.zotlook.contactSheetContents': false,
+      'extensions.zotlook.contactSheetAnnotations': false,
+    }});
+  const out = await Q._buildContactSheet([attachment]);
+  const html = written.get(out);
+  ok(!html.includes('<details class="zl-toc"')
+     && !html.includes('<details class="zl-annotations"'),
+     'with both off the sheet is the grid alone');
+  ok(html.includes('id="p1"'), 'the ids stay, since they cost nothing');
+
+  const afterFirst = made.length;
+  const orig = Q._pref.bind(Q);
+  Q._pref = (name, dflt) => name === 'contactSheetContents' ? true : orig(name, dflt);
+  await Q._buildContactSheet([attachment]);
+  ok(made.length > afterFirst, 'switching a menu on draws the sheet again');
+}
+{
+  // The list names the annotations whether or not they are drawn in, so a
+  // new annotation must reach it even with the drawing switched off
+  const notes = [ANNOTATIONS[1]];
+  const { Q, made, attachment } = harness({
+    annotations: notes, prefValues: {
+      'extensions.zotlook.previewAnnotations': false }});
+  await Q._buildContactSheet([attachment]);
+  const afterFirst = made.length;
+  notes.push({ ...ANNOTATIONS[0], dateModified: '2026-09-02 10:00:00' });
+  await Q._buildContactSheet([attachment]);
+  ok(made.length > afterFirst,
+     'an added annotation invalidates a kept sheet even when none is drawn in');
+}
+{
+  // No outline, no annotations: nothing pretends to be a menu
+  const { Q, attachment, written } = harness();
+  const html = written.get(await Q._buildContactSheet([attachment]));
+  ok(!html.includes('<details'), 'a document with neither shows neither button');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
