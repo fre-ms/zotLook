@@ -88,11 +88,13 @@ eq(new Set(U.attachmentOrder('pdf,pdf,epub')).size, U.ATTACHMENT_TYPES.length,
 // ways — with the freeze the checker names the typo and suggests the right
 // spelling, without it there is no error at all.
 //
-// zotLookEpub is the counter-case and belongs here beside them: the host
-// writes the localised labels into it after the translations load, so
-// freezing it would break the German interface and nothing here would say
-// so, since assignment to a frozen object fails silently outside strict
-// mode.
+// All four are closed now, by one of the two means: frozen where nothing is
+// ever written, sealed where something is. zotLookEpub took the second route
+// once it was clear that sealing allows exactly the writes it needs — the
+// host puts the localised labels in after the translations load, and every
+// one of them is a declared member. Freezing it would break the German
+// interface and say nothing about it, since assignment to a frozen object
+// fails silently outside strict mode.
 {
   const { zotLookCfi: C, zotLookEpub: E, zotLook: Q } = loadPlugin();
   ok(Object.isFrozen(U), 'zotLookUtil is frozen, so its members are checkable');
@@ -117,10 +119,22 @@ eq(new Set(U.attachmentOrder('pdf,pdf,epub')).size, U.ATTACHMENT_TYPES.length,
   for (const name of ['_buildTag', '_keptRoot']) {
     ok(name in Q, `${name} is declared, so a sealed object can still fill it`);
   }
+  ok(Object.isSealed(E), 'zotLookEpub is sealed, so its members are checkable');
   eq(Object.isFrozen(E), false,
-     'zotLookEpub is not: the host writes its labels in when the locale loads');
+     'but not frozen: the host writes its labels in when the locale loads');
+  for (const label of ['TOC_LABEL', 'ANNOTATIONS_LABEL', 'GOTO_LABEL',
+                       'NO_PAGES_LABEL', 'NO_PAGES_HINT', 'FRONT_LABEL']) {
+    ok(label in E, `${label} is declared, so the seal still lets it be set`);
+  }
   E.TOC_LABEL = 'Inhalt';
   eq(E.TOC_LABEL, 'Inhalt', 'and that write really does take');
+
+  // Nothing is left open. A fifth module added later and left as a bare
+  // literal would be unchecked, and nothing but this would notice.
+  for (const [name, mod] of [['zotLookUtil', U], ['zotLookCfi', C],
+                             ['zotLookEpub', E], ['zotLook', Q]]) {
+    ok(Object.isSealed(mod), `${name} is closed to new properties`);
+  }
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');

@@ -14,7 +14,16 @@
  * finished page and the two readers the platform already provides; see
  * convert().
  */
-var zotLookEpub = {
+// Sealed, like zotLook and for the same reason: in a .js file TypeScript
+// treats an object literal as open, so a misspelt name here would not be an
+// error until the literal is closed.
+//
+// Sealed rather than frozen because the host writes the localised labels in
+// once the translations have loaded — TOC_LABEL and the five beside it — and
+// the tests stand convert() aside to drive a conversion without one. All of
+// those are declared below, and a seal forbids only what nothing here does:
+// inventing a property that was never declared.
+var zotLookEpub = Object.seal({
 
 	// Applied on top of the book's own stylesheets, so it has to come last in
 	// the head and win the specificity fight
@@ -1871,4 +1880,4 @@ var zotLookEpub = {
 		if (!target) return null;
 		return this._asset(zip, target.path, env, written);
 	},
-};
+});
