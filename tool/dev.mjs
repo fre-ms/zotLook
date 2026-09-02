@@ -23,6 +23,7 @@
 //
 //   --profile <path>   a profile other than the one profiles.ini names
 //   ZOTERO_BIN         a Zotero other than the one in the usual place
+//   ZOTERO_QUIT        a command that closes Zotero, instead of the usual one
 
 import fs from "node:fs";
 import path from "node:path";
@@ -169,7 +170,13 @@ function restore(profile) {
  * without it a restart can run yesterday's loader against today's modules.
  */
 function restart(profile) {
-	if (process.platform === "darwin") {
+	// ZOTERO_QUIT is how this is testable at all: a test that let the real
+	// quit run would close the Zotero of whoever ran the suite. It is also
+	// the escape hatch for a desktop where the ordinary way does not work.
+	if (process.env.ZOTERO_QUIT) {
+		spawnSync(process.env.ZOTERO_QUIT, { shell: true });
+	} else if (process.platform === "darwin") {
+		// Asks rather than kills, so Zotero closes its database properly
 		spawnSync("osascript", ["-e", 'quit app "Zotero"']);
 	} else if (process.platform === "win32") {
 		spawnSync("taskkill", ["/im", "zotero.exe"]);

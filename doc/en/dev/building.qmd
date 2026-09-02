@@ -57,7 +57,10 @@ plugin in `extensions.json`: one that was disabled once stays disabled however
 it is installed, which makes a correct install look like a broken one.
 
 It takes `--profile` for a profile other than the one `profiles.ini` names,
-and reads `ZOTERO_BIN` for a Zotero somewhere unusual.
+and reads `ZOTERO_BIN` for a Zotero somewhere unusual and `ZOTERO_QUIT` for a
+way of closing it other than the platform's own — which is also what lets
+`test/dev.test.mjs` drive the whole loop against stubs, rather than closing the
+Zotero of whoever runs the suite.
 
 **It is not hot reloading**, and that was a decision rather than an omission.
 Reloading a plugin inside a running Zotero needs Gecko's remote debugging

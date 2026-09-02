@@ -61,7 +61,10 @@ deaktiviert, wie auch immer es installiert wird — eine richtige Installation
 sieht dann aus wie eine kaputte.
 
 `--profile` nimmt ein anderes Profil als das, welches `profiles.ini` nennt;
-`ZOTERO_BIN` ein Zotero an ungewöhnlicher Stelle.
+`ZOTERO_BIN` ein Zotero an ungewöhnlicher Stelle und `ZOTERO_QUIT` einen
+anderen Weg, es zu schließen, als den der Plattform — Letzteres ist zugleich,
+was `test/dev.test.mjs` erlaubt, die ganze Schleife gegen Attrappen zu treiben,
+statt das Zotero dessen zu schließen, der die Tests laufen lässt.
 
 **Es ist kein Hot Reload**, und das ist eine Entscheidung, kein Versäumnis. Ein
 Plugin im laufenden Zotero neu zu laden, verlangt Geckos
