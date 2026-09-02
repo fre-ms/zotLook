@@ -69,7 +69,8 @@ for pair in "_extensions:_theme/_extensions" "font:_theme/font" \
     exit 1
   fi
   mkdir -p "$dst"
-  rsync -a --delete --exclude '*.gitFinderDeleted' "$THEME/$src/" "$dst/"
+  rsync -a --delete --exclude '*.gitFinderDeleted' --exclude '__pycache__' \
+    "$THEME/$src/" "$dst/"
 done
 
 cp "$THEME/script/gen_langmap.py" gen_langmap.py

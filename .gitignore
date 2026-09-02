@@ -27,3 +27,4 @@ site/
 # tombstone beside it that its owner may not remove. It is not ours and it
 # must never be committed.
 *.gitFinderDeleted
+__pycache__/
