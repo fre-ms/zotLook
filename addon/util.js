@@ -354,8 +354,10 @@ var zotLookUtil = {
 	 * not "free".
 	 *
 	 * @param {object} binding - as returned by parseShortcut
-	 * @param {object[]} registry - [{shortcut, label}] to test against
-	 * @returns {object[]} the entries that collide
+	 * @param {{shortcut: object, label: string}[]} registry - what to test
+	 *   against: each entry's shortcut as parseShortcut returns one
+	 * @returns {{shortcut: object, label: string}[]} the registry entries
+	 *          that collide, so a caller can name what else answers to the key
 	 */
 	findShortcutConflicts(binding, registry) {
 		if (!binding) return [];

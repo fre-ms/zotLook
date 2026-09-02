@@ -1,0 +1,41 @@
+{
+  // Type checking only — nothing is compiled and nothing is emitted. The
+  // plugin ships the JavaScript in addon/ exactly as it is written; this
+  // file exists so `tsc --noEmit` can read that JavaScript against Zotero's
+  // published types and the JSDoc already in the source.
+  //
+  // The addon files are plain scripts, loaded one after another by
+  // Services.scriptloader into a shared scope, not modules. TypeScript reads
+  // them the same way: a file with no import or export is a script, and the
+  // globals one file defines (zotLookUtil, zotLookCfi, …) are visible to the
+  // next. That is why there is no "module" setting worth having here.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["zotero-types"],
+    // Deliberately not strict. The point is to find the mistakes that a
+    // running Zotero would find — a misspelt method, a call with the wrong
+    // number of arguments — not to relitigate every place the code is
+    // loosely typed on purpose.
+    "strict": false,
+    "noImplicitAny": false,
+    "noImplicitThis": true,
+    "skipLibCheck": true
+  },
+  "include": ["addon/**/*.js", "types/**/*.d.ts"],
+  "exclude": [
+    // The loader declares the slots its scripts fill — var zotLook,
+    // var zotLookUtil, … — and each script then declares the same name with
+    // an object literal. They are the same binding: loadSubScript puts the
+    // scripts in the loader's own scope. TypeScript has no way to say that,
+    // and reports every one of them as a conflicting redeclaration. Eighty
+    // lines of lifecycle is a poor price for five errors that train the eye
+    // to skip the output.
+    "addon/bootstrap.js",
+    // A worker is a different global: see tsconfig.worker.json.
+    "addon/render.worker.js"
+  ]
+}

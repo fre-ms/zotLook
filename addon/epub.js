@@ -310,6 +310,13 @@ var zotLookEpub = {
 	 *   getSectionDocuments() yields the spine in reading order. That join of
 	 *   manifest and spine is the one piece of epub arithmetic Zotero already
 	 *   does, and it does it on every book it indexes.
+	 * @param {function} [env.extractEntry] - (zip, entry, destPath) => void,
+	 *   for the assets a chapter refers to
+	 * @param {string} [env.mode] - "sheet" for the page overview; anything
+	 *   else, or nothing, for the book as one page
+	 * @param {string} [env.readerLink] - zotero://open-pdf base, without which
+	 *   the sheet's pages are shown but not linked
+	 * @param {Array} [env.annotations] - what to draw into the text
 	 * @returns {Promise<string|null>} path to the generated HTML, or null
 	 */
 	async convert(epubPath, env) {
@@ -461,7 +468,10 @@ var zotLookEpub = {
 	 * to itself, and the table of contents is read from there — so this
 	 * stays, now against the archive rather than a directory.
 	 *
-	 * @returns {Promise<{doc: Document, dir: string}|null>}
+	 * @returns {Promise<{doc: Document, dir: string, spineStep: number,
+	 *          spineFor: Map<string, number>}|null>} the package document,
+	 *          the directory it sits in, and the two numbers every CFI
+	 *          into this book is built from
 	 */
 	async _readPackage(zip) {
 		let containerDoc = await this._readPackageDoc(

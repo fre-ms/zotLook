@@ -1,0 +1,18 @@
+{
+  // The renderer runs in a ChromeWorker, where self is a worker scope and
+  // postMessage takes a transfer list — an overload the DOM's Window does
+  // not have. Checking it against the same lib as the rest would report
+  // correct code as wrong, so it gets its own environment here.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "lib": ["ES2022", "WebWorker"],
+    "types": [],
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true
+  },
+  "include": ["addon/render.worker.js", "types/**/*.d.ts"]
+}

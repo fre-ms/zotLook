@@ -118,10 +118,14 @@ var zotLookWinPreview = {
 					WaitNamedPipeW(pipePath, 2000);
 					continue;
 				}
-				let error = new Error(
-					"Could not open " + pipePath +
-						" (Win32 error " + code + ")"
-				);
+				// The flag rides on the error so the caller can tell "QuickLook
+				// is not running" from "the write failed" without matching on
+				// the message text
+				let error = /** @type {Error & {quickLookAbsent?: boolean}} */ (
+					new Error(
+						"Could not open " + pipePath +
+							" (Win32 error " + code + ")"
+					));
 				if (code === ERROR_FILE_NOT_FOUND) {
 					error.quickLookAbsent = true;
 				}

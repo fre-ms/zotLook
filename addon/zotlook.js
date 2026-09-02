@@ -2026,7 +2026,8 @@ var zotLook = {
 	 * Returns the items rather than only the paths so the contact sheet can
 	 * build a link back into Zotero's reader for each page.
 	 *
-	 * @returns {Promise<Array<{item: Zotero.Item, path: string}>>}
+	 * @returns {Promise<{item: Zotero.Item, path: string}|null>} the one
+	 *          chosen, or null when the selection holds none that can be read
 	 */
 	async _pickPdfAttachment(items) {
 		return this._pickAttachment(items, (a) => this._isPDFAttachment(a), "PDF");
@@ -2088,7 +2089,11 @@ var zotLook = {
 	_readerLink(item) {
 		if (!item || !item.key) return "";
 		try {
-			let library = Zotero.Libraries.get(item.libraryID);
+			// A group library carries groupID; the published type describes
+			// only what every library has, so the check above is what makes
+			// this safe rather than the declaration.
+			let library = /** @type {any} */ (
+				Zotero.Libraries.get(item.libraryID));
 			if (library && library.isGroup) {
 				return (
 					"zotero://open-pdf/groups/" +
@@ -2503,9 +2508,13 @@ var zotLook = {
 	 * the way while ctypes exists; the day Gecko drops it, the PowerShell
 	 * fallback does the same write from a shell that can read the user's SID.
 	 *
-	 * @returns {Promise<{command: string, arguments: string[],
-	 *          holdsProcess: boolean} | {pipePath: string, pipeLine: string,
-	 *          holdsProcess: boolean} | null>}
+	 * @returns {Promise<{command?: string, arguments?: string[],
+	 *          pipePath?: string, pipeLine?: string, holdsProcess: boolean,
+	 *          sushiShows?: boolean}|null>} one plan, not two shapes: a
+	 *          subprocess plan fills command and arguments, a pipe plan fills
+	 *          pipePath and pipeLine, and holdsProcess says which of the two
+	 *          the caller is holding. sushiShows marks the plan that puts a
+	 *          window up which only Sushi can take down again.
 	 */
 	async _previewCommand(filePaths) {
 		if (Zotero.isMac) {
@@ -3014,7 +3023,10 @@ var zotLook = {
 	 * Picks the attachment worth previewing for a regular item: a PDF if there
 	 * is one, otherwise an EPUB, otherwise whatever came first.
 	 *
-	 * @returns {Promise<string|null>} file path
+	 * @returns {Promise<{item: Zotero.Item, path: string}|null>} the
+	 *          attachment and its path — the item as well as the path,
+	 *          because a caller that previews it may also need to ask it
+	 *          for its annotations
 	 */
 	async _pickBestAttachment(item) {
 		let attachments = this._attachmentsOf(item);

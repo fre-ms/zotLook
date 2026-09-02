@@ -5,10 +5,13 @@
   "type": "module",
   "scripts": {
     "lint": "eslint addon test",
-    "test": "npm run lint && node test/run.mjs"
+    "test": "npm run lint && npm run typecheck && node test/run.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.worker.json"
   },
   "devDependencies": {
     "eslint": "^10.8.1",
-    "linkedom": "^0.18.13"
+    "linkedom": "^0.18.13",
+    "typescript": "^7.0.2",
+    "zotero-types": "^4.1.3"
   }
 }

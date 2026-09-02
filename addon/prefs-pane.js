@@ -441,7 +441,7 @@
 		let out = [];
 		try {
 			let branch = "extensions.zotero.keys.";
-			for (let name of Zotero.Prefs.rootBranch.getChildList(branch, {}, {})) {
+			for (let name of Zotero.Prefs.rootBranch.getChildList(branch)) {
 				let key = Zotero.Prefs.get(name, true);
 				if (typeof key === "string" && key.length === 1) {
 					out.push({ command: name.substring(branch.length), key: key.toLowerCase() });

@@ -84,7 +84,9 @@ var zotLookCfi = {
 	 *
 	 * @param {Document} doc  the spine item's document, as Zotero's EPUB
 	 *   module hands it over — the very tree the CFI was written against
-	 * @returns {object|null} {startNode, startOffset, endNode, endOffset}
+	 * @returns {{startNode: Node, startOffset: number, endNode: Node,
+	 *          endOffset: number}|null} the two ends, as a DOM range would
+	 *          carry them — a point CFI resolves to both ends in one place
 	 */
 	resolve(doc, parsed) {
 		let root = doc && doc.documentElement;
@@ -237,7 +239,8 @@ var zotLookCfi = {
 	/**
 	 * Follows a step list from a starting node.
 	 *
-	 * @returns {object|null} {node} — the node the last step lands on
+	 * @returns {{node: Node}|null} the node the last step lands on, wrapped
+	 *          so that a step landing on nothing is null rather than a node
 	 */
 	_walk(from, steps, doc) {
 		let node = from;

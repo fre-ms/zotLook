@@ -235,7 +235,7 @@ async function renderPage(doc, number, width, quality) {
 // the width to render at — and only this side knows the page count.
 let document = null;
 
-self.addEventListener("message", async (event) => {
+self.addEventListener("message", async (/** @type {MessageEvent} */ event) => {
 	let message = event.data;
 
 	try {
