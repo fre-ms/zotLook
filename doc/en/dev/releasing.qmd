@@ -4,12 +4,20 @@ description: >-
   How a release is made: the version, update.json, why commit and release belong together, and how the documentation is versioned.
 ---
 
-1. Bump `version` in `addon/manifest.json`, and `softwareVersion` in both
+1. Write the release's section at the top of `doc/en/history.qmd` and
+   `doc/de/history.qmd`: the version, the date, and what changed. Everything
+   else reads from there — `CHANGELOG.md` in the repository and the notes the
+   release is published with are generated from the English page by
+   `tool/changelog.mjs`, which `build.sh` runs
+2. Bump `version` in `addon/manifest.json`, and `softwareVersion` in both
    `doc/en/index.qmd` and `doc/de/index.qmd`
-2. `python3 script/gen_versions.py`, then `./build.sh`
-3. Commit the regenerated `update.json` and `versions.json` with them —
-   `test/release.test.mjs` holds all of these to the manifest
-4. Create the release with the built `.xpi` attached
+3. `python3 script/gen_versions.py`, then `./build.sh` — which also writes
+   `build/notes-<version>.md`
+4. Commit the regenerated `update.json`, `versions.json` and `CHANGELOG.md`
+   with them — `test/release.test.mjs` and `test/changelog.test.mjs` hold all
+   of these to the manifest
+5. Create the release with the built `.xpi` attached and the notes file as
+   its text
 
 `update.json` must be committed to `main`, because that is the URL installed
 copies poll.

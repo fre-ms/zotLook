@@ -88,6 +88,8 @@ website:
             href: impressum.qmd
           - text: Datenschutz
             href: privacy.qmd
+          - text: Historie
+            href: history.qmd
   page-footer:
     center: >-
       © fre.ms — MIT —

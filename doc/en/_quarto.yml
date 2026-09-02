@@ -92,6 +92,8 @@ website:
             href: impressum.qmd
           - text: Privacy
             href: privacy.qmd
+          - text: History
+            href: history.qmd
   page-footer:
     center: >-
       © fre.ms — MIT —

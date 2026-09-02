@@ -4,12 +4,19 @@ description: >-
   Wie eine Freigabe entsteht: Version, update.json, warum Commit und Freigabe zusammengehören, und wie die Dokumentation versioniert wird.
 ---
 
-1. `version` in `addon/manifest.json` erhöhen, ebenso `softwareVersion` in
+1. Den Abschnitt der Freigabe oben in `doc/en/history.qmd` und
+   `doc/de/history.qmd` schreiben: Version, Datum und was sich geändert hat.
+   Alles Weitere liest von dort — `CHANGELOG.md` im Repository und die
+   Notizen, mit denen die Freigabe veröffentlicht wird, erzeugt
+   `tool/changelog.mjs` aus der englischen Seite, und `build.sh` ruft es auf
+2. `version` in `addon/manifest.json` erhöhen, ebenso `softwareVersion` in
    `doc/en/index.qmd` und `doc/de/index.qmd`
-2. `python3 script/gen_versions.py`, dann `./build.sh`
-3. Das neu geschriebene `update.json` und `versions.json` mit committen —
-   `test/release.test.mjs` hält sie alle gegen das Manifest
-4. Die Freigabe mit dem gebauten `.xpi` anlegen
+3. `python3 script/gen_versions.py`, dann `./build.sh` — das auch
+   `build/notes-<version>.md` schreibt
+4. Das neu geschriebene `update.json`, `versions.json` und `CHANGELOG.md` mit
+   committen — `test/release.test.mjs` und `test/changelog.test.mjs` halten
+   sie alle gegen das Manifest
+5. Die Freigabe mit dem gebauten `.xpi` anlegen, die Notizdatei als ihren Text
 
 `update.json` muss auf `main` liegen, denn diese Adresse fragen installierte
 Kopien ab.

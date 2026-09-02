@@ -136,7 +136,14 @@ cat > update.json <<JSON
 }
 JSON
 
+# The history is the one source of release notes: CHANGELOG.md for GitHub
+# and the notes file for the release both come out of doc/en/history.qmd,
+# which must carry a section for this version.
+node tool/changelog.mjs sync
+node tool/changelog.mjs notes "${VERSION}" > "build/notes-${VERSION}.md"
+
 echo
 echo "Built  ${XPI}  (sha256:${SHA})"
-echo "Next:  git add update.json && git commit"
-echo "       gh release create v${VERSION} ${XPI}"
+echo "Notes  build/notes-${VERSION}.md  (from doc/en/history.qmd)"
+echo "Next:  git add update.json CHANGELOG.md && git commit"
+echo "       gh release create v${VERSION} ${XPI} --notes-file build/notes-${VERSION}.md"
