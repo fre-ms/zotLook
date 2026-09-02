@@ -44,6 +44,10 @@ top-level chapters after it were counted as its members, in the part's
 own outline and in the running header, so the part state is reset at the
 end of each part.
 
+A list of figures also trailed the contents, untitled and in a smaller
+type: orange-book sets one whether or not a title for it was given. Figures
+are kept out of every outline.
+
 The book also had a blank page after the cover — orange-book's copyright
 page, with no copyright to print on it — and one before many chapters,
 since the format opens every part and chapter on a right-hand page, the
@@ -175,6 +179,13 @@ TYPST_SHOW_TYP = """#import "@preview/orange-book:0.7.1": book, part as orange-p
 // that it reaches the contents page, which the book sets itself, ahead
 // of the body; behind it, the contents would still follow a blank page.
 #show pagebreak.where(to: "odd"): pagebreak(weak: true)
+
+// orange-book sets a list of figures after the contents whether or not it
+// was given a title for one, so a book with captioned figures and no list
+// asked for ended its contents with a stray run of captions in a smaller
+// type. Figures are kept out of every outline; their captions and numbers
+// are untouched.
+#show figure: set figure(outlined: false)
 
 #show: book.with(
 $if(title)$
