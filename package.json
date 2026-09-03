@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node tool/dev.mjs",
-    "lint": "eslint addon test",
+    "lint": "eslint addon test tool",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.worker.json",
     "test": "npm run lint && npm run typecheck && node test/run.mjs"
   },

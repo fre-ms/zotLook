@@ -271,7 +271,14 @@ n=$(cat "${counter}"); n=$((n+1)); echo $n > "${counter}"
            ZOTLOOK_ADDON: addonWait },
     stdio: 'ignore',
   });
-  await new Promise((r) => setTimeout(r, 4000));
+  // Until the start has happened, not for a fixed while: the loop installs,
+  // asks for the quit and polls the probe at half-second steps before it
+  // starts anything, and on a busy machine that took longer than the four
+  // seconds this used to wait — the one flaky assertion in the suite.
+  const until = Date.now() + 20000;
+  while (Date.now() < until && !stub.calls().some((c) => /^start /.test(c))) {
+    await new Promise((r) => setTimeout(r, 200));
+  }
   child.kill();
 
   const polls = parseInt(fs.readFileSync(counter, 'utf8'), 10);

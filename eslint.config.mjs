@@ -2,6 +2,8 @@
 // no-undef: a lost function parameter leaves an identifier that still parses
 // but throws at runtime, which `node --check` cannot see.
 export default [
+  // The upstream sources kept for the provenance measurement are not ours to lint
+  { ignores: ['test/fixtures/**'] },
   {
     files: ['addon/**/*.js'],
     languageOptions: {
@@ -36,7 +38,7 @@ export default [
     },
   },
   {
-    files: ['test/**/*.mjs', 'eslint.config.mjs'],
+    files: ['test/**/*.mjs', 'tool/**/*.mjs', 'eslint.config.mjs'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

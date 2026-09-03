@@ -15,7 +15,8 @@ upstream commit, counting only lines that are neither blank, a comment nor a
 brace: **45 %** of the JavaScript and **52 %** of `bootstrap.js` survive
 verbatim, and 20 of the original 28 methods are still present under their own
 names. The plugin has grown around them — those surviving lines are about a
-fourteenth of what is here today.
+fifteenth of what is here today. The figures come from `tool/provenance.mjs`,
+and the test suite fails when they drift from what this page says.
 
 The architecture is his throughout:
 
@@ -87,11 +88,10 @@ Windows `Bridge.exe`, an AppleScript and a Perl script — an architecture Zoter
 abolished outright, so Chapron wrote a new plugin rather than porting the old
 one.
 
-Comparing the two directly bears that out: of 206 substantive lines in the
-original, exactly **one** also appears here, and it is the Zotero API call
-`Zotero.Sync.Runner.downloadFile(item)`, which any plugin fetching a synced
-attachment must write. Everything else the two share is Zotero and DOM API
-names.
+Comparing the two directly bears that out: of 250 substantive lines in the
+original, 28 also occur here, and every one of them is a line any plugin
+writes — `return;`, `} else {`, `let path = item.getFilePath();`. Everything
+else the two share is Zotero and DOM API names.
 :::
 
 Rönkkö is therefore credited as the originator of the idea, and is deliberately

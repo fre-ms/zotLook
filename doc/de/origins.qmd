@@ -16,7 +16,9 @@ Upstream-Commit und gezählt nur Zeilen, die weder leer noch Kommentar noch
 Klammer sind: **45 %** des JavaScript und **52 %** von `bootstrap.js` haben
 wörtlich überlebt, und 20 der ursprünglich 28 Methoden gibt es weiterhin unter
 ihren eigenen Namen. Das Plugin ist um sie herum gewachsen — diese überlebenden
-Zeilen sind heute etwa ein Vierzehntel des Bestands.
+Zeilen sind heute etwa ein Fünfzehntel des Bestands. Die Zahlen stammen aus
+`tool/provenance.mjs`, und die Prüfsuite schlägt an, wenn sie von dieser Seite
+abweichen.
 
 Die Architektur ist durchgehend seine:
 
@@ -90,11 +92,11 @@ eine Windows-`Bridge.exe`, ein AppleScript und ein Perl-Skript — eine
 Architektur, die Zotero 7 schlicht abgeschafft hat. Chapron schrieb deshalb ein
 neues Plugin, statt das alte zu portieren.
 
-Der direkte Vergleich bestätigt das: Von 206 substanziellen Zeilen des Originals
-findet sich genau **eine** auch hier, und das ist der Zotero-Aufruf
-`Zotero.Sync.Runner.downloadFile(item)`, den jedes Plugin schreiben muss, das
-einen synchronisierten Anhang holt. Alles Weitere, das die beiden teilen, sind
-Namen aus den Zotero- und DOM-Schnittstellen.
+Der direkte Vergleich bestätigt das: Von 250 substanziellen Zeilen des Originals
+finden sich 28 auch hier, und jede davon ist eine Zeile, die jedes Plugin
+schreibt — `return;`, `} else {`, `let path = item.getFilePath();`. Alles
+Weitere, das die beiden teilen, sind Namen aus den Zotero- und
+DOM-Schnittstellen.
 :::
 
 Rönkkö ist deshalb als Urheber der Idee genannt und bewusst **nicht** als Autor
