@@ -12,6 +12,46 @@ var zotLookSheet = {
 
 	/** Heading of the contents menu; the host writes the locale's in. */
 	TOC_LABEL: "Contents",
+	/**
+	 * Jumping to a page without navigating there.
+	 *
+	 * The menus jump by fragment — `#p22` — which is a navigation, and in
+	 * Zotero's own window that is one navigation too many: the sheet is a
+	 * file: document loaded in a browser that may switch process for it, and
+	 * the fragment click comes back out through the window's browser shim as
+	 * a file load for something to open. What the reader sees is a dialog
+	 * asking which application should handle file links. The system previews
+	 * do not ask, so it took the window to show it.
+	 *
+	 * So the jump is done rather than navigated to: the click is answered,
+	 * the tile scrolled to, and the outline that :target would have drawn is
+	 * put on as a class instead. Nothing here is required — with scripts off,
+	 * as in macOS Quick Look, the anchors are ordinary anchors and jump the
+	 * way they always did. This only takes the navigation out of the way
+	 * where a script can run.
+	 *
+	 * Only same-page fragments: a page tile's link goes to the reader and
+	 * must stay a real navigation.
+	 */
+	JUMP_SCRIPT: [
+		'<script>',
+		"document.addEventListener('click', function (event) {",
+		"  var link = event.target.closest && event.target.closest('a[href^=\"#\"]');",
+		"  if (!link || event.defaultPrevented) return;",
+		"  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;",
+		"  var id = decodeURIComponent(link.getAttribute('href').slice(1));",
+		"  var target = id && document.getElementById(id);",
+		"  if (!target) return;",
+		"  event.preventDefault();",
+		"  var marked = document.querySelector('.zl-current');",
+		"  if (marked) marked.classList.remove('zl-current');",
+		"  target.classList.add('zl-current');",
+		"  target.scrollIntoView({ block: 'start' });",
+		"});",
+		"</script>",
+		"",
+	].join("\n"),
+
 	/** Heading of the annotations menu, likewise. */
 	ANNOTATIONS_LABEL: "Annotations",
 	/** "Page 12", the link an annotation entry carries. */
@@ -554,12 +594,16 @@ var zotLookSheet = {
 			"    overflow: hidden;\n" +
 			"    scroll-margin-top: " + this.scrollMargin(common, columns) + ";\n" +
 			"}\n" +
-			// The page jumped to should be findable once the eye arrives
-			".page:target {\n" +
+			// The page jumped to should be findable once the eye arrives.
+			// Two selectors for one look: :target when the jump was a real
+			// navigation, the class when the script below did it instead.
+			".page:target, .page.zl-current {\n" +
 			"    outline: 3px solid #f5b841;\n" +
 			"    outline-offset: 3px;\n" +
 			"}\n" +
-			".page:target .label { color: #1f2a33; font-weight: 600; }\n" +
+			".page:target .label, .page.zl-current .label {\n" +
+			"    color: #1f2a33; font-weight: 600;\n" +
+			"}\n" +
 			".page img {\n" +
 			"    width: 100%;\n" +
 			"    height: auto;\n" +
@@ -590,6 +634,7 @@ var zotLookSheet = {
 			body +
 			"</div>\n" +
 			notice +
+			this.JUMP_SCRIPT +
 			"</body>\n</html>"
 		);
 	},

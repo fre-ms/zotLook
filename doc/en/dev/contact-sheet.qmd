@@ -129,6 +129,18 @@ a `:target` rule frames the tile, and a `scroll-margin-top` written as an
 expression of the window's width puts it in the middle of the window, since
 the tile's height on screen is not known when the sheet is written.
 
+A fragment link is a navigation, though, and in Zotero's own window that is one
+navigation too many. The sheet is a `file:` document in a browser that may
+switch process for it, and the click comes back out through the window's
+browser shim as a file for something to open: what appears is a dialog asking
+which application handles file links. The system previews do not ask, so it
+took the window to show it. The sheet therefore carries one small script that
+answers such a click itself — scroll to the tile, and put on as a class the
+outline `:target` would have drawn. It is an addition and not a requirement:
+where scripts do not run the anchors are ordinary anchors and jump as they
+always did, and only same-page fragments are taken. A page tile's link leads to
+the reader and stays a real navigation.
+
 ## What is kept, and how it goes away again
 
 The sheet is not the only thing here that is made from an attachment and costs

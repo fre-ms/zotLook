@@ -138,6 +138,19 @@ rahmt die Kachel, und ein `scroll-margin-top`, geschrieben als Ausdruck der
 Fensterbreite, setzt sie in die Mitte des Fensters, denn die Höhe der Kachel
 auf dem Bildschirm ist beim Schreiben des Bogens nicht bekannt.
 
+Ein Fragment-Link ist allerdings eine Navigation, und in Zoteros eigenem
+Fenster ist das eine zu viel. Der Bogen ist ein `file:`-Dokument in einem
+Browser, der dafür den Prozess wechseln darf, und der Klick kommt über den
+Browser-Shim des Fensters als Datei wieder heraus, für die eine Anwendung
+gesucht wird: Es erscheint ein Dialog, welche Anwendung file-Links behandeln
+soll. Die Systemvorschauen fragen nicht, deshalb zeigte sich das erst im
+Fenster. Der Bogen bringt darum ein kleines Skript mit, das einen solchen
+Klick selbst beantwortet — zur Kachel scrollen und den Rahmen, den `:target`
+gezeichnet hätte, als Klasse setzen. Es ist eine Zugabe und keine Bedingung:
+Wo keine Skripte laufen, sind es gewöhnliche Anker und springen wie eh und je,
+und genommen werden nur Fragmente derselben Seite. Der Link einer Seitenkachel
+führt zum Reader und bleibt eine echte Navigation.
+
 ## Was behalten wird, und wie es wieder verschwindet
 
 Der Bogen ist nicht das Einzige hier, das aus einem Anhang entsteht und

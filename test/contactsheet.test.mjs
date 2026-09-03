@@ -589,8 +589,8 @@ const ANNOTATIONS = [
   ok(/<span class="zl-annotation-comment">Image<\/span>[^<]*<a class="zl-annotation-goto" href="#p3">Page 3<\/a>/.test(html),
      'an area with nothing said is named by its kind');
 
-  ok(/\.page:target \{[^}]*outline: 3px solid/s.test(html),
-     'the tile jumped to is framed');
+  ok(/\.page:target, \.page\.zl-current \{[^}]*outline: 3px solid/s.test(html),
+     'the tile jumped to is framed, whichever route jumped to it');
   ok(/\.page \{[^}]*scroll-margin-top: max\(0px, calc\(50vh - \(\(100vw - 48px\) \/ 3 \* 1\.33\d* \+ 21px\) \/ 2\)\)/s.test(html),
      'and lands in the middle of the window: half the height less half a tile, '
      + 'written as an expression of the window width the grid is divided into');
@@ -635,6 +635,34 @@ const ANNOTATIONS = [
   const { Q, attachment, written } = harness();
   const html = written.get(await Q._buildContactSheet([attachment]));
   ok(!html.includes('<details'), 'a document with neither shows neither button');
+}
+
+// ── a menu jump is answered, not navigated to ─────────────────────────
+// The menus jump by fragment, and in Zotero's own window that navigation
+// comes back out through the browser shim as a file load for something to
+// open — a dialog asking which application handles file links. The script
+// answers the click instead. Where scripts do not run, as in macOS Quick
+// Look, the anchors stay ordinary anchors.
+{
+  const { zotLookSheet: S } = loadPlugin();
+  const html = S.html({
+    pages: [{ page: 1, height: 10 }, { page: 22, height: 10 }],
+    columns: 2, width: 100, imageDir: 'pages', pageCount: 2,
+    linkBase: 'zotero://open-pdf/library/items/ABCD1234',
+    toc: [{ title: 'Chapter', target: 'p22', page: 22, level: 0 }],
+  });
+  ok(/href="#p22"/.test(html), 'the menu still carries a plain anchor');
+  ok(/id="p22"/.test(html), 'and the tile it names is there to be found');
+  ok(/addEventListener\('click'/.test(html), 'a click handler comes with the sheet');
+  ok(/preventDefault\(\)/.test(html), 'which takes the navigation out of the way');
+  ok(/zl-current/.test(html), 'and marks the tile as :target would have');
+  ok(/\.page:target, \.page\.zl-current/.test(html),
+     'both routes to the same outline');
+  // The page tiles must keep navigating: that is what opens the reader
+  ok(/<a target="_blank" href="zotero:\/\/open-pdf/.test(html),
+     'a page link is left a real navigation');
+  ok(/a\[href\^="#"\]/.test(html),
+     'only same-page fragments are intercepted');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
