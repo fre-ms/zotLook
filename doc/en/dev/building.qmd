@@ -108,8 +108,9 @@ the XPI, which is why `addon/` is packaged from its inside rather than as a
 folder.
 
 `update.json` stays at the repository root rather than moving into `build/`: it
-is not a build artefact but a published file, and its URL on `main` is what
-installed copies poll.
+is not a build artefact but a published file: the documentation deploy puts
+it on zotlook.org, where copies from 1.4.2 on poll it, and older copies poll
+it on `main`.
 
 ## Tests
 

@@ -7,6 +7,7 @@ on:
       - "doc/**"
       - "doc-root/**"
       - "versions.json"
+      - "update.json"
       - "script/gen_versions.py"
       - "addon/manifest.json"
       - "asset/**"
@@ -214,6 +215,10 @@ jobs:
                 "$BASE/latest"
             fi
             printf 'put -O %s versions.json;\n' "$BASE"
+            # The update manifest installed copies poll once a day, from
+            # 1.4.2 on; its requests per day are the one figure of use we
+            # have. The file itself is the same one GitHub serves.
+            printf 'put -O %s update.json;\n' "$BASE"
             # put's syntax is `put [-O base] lfile [-o rfile]` — the remote
             # name comes AFTER the local file; an older lftp (as on the runner)
             # rejects `-o` placed before it ("put: invalid option -- 'o'").

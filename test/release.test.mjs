@@ -29,7 +29,8 @@ ok(/^sha(256|512):[0-9a-f]{64,128}$/.test(e.update_hash), 'update_hash uses an a
 // ── the link has to point at the tag build.sh actually tells you to create
 const expected = `https://github.com/fre-ms/zotLook/releases/download/v${man.version}/zotlook-${man.version}.xpi`;
 eq(e.update_link, expected, 'update_link matches the release asset build.sh produces');
-ok(z.update_url.includes('fre-ms/zotLook'), 'update_url points at the fork');
+ok(z.update_url === 'https://zotlook.org/update.json',
+   'update_url points at the copy the documentation deploy publishes on the site');
 ok(z.update_url.endsWith('/update.json'), 'update_url points at update.json');
 ok(man.homepage_url.includes('fre-ms/zotLook'), 'homepage_url points at the fork');
 

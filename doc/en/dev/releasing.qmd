@@ -19,8 +19,9 @@ description: >-
 5. Create the release with the built `.xpi` attached and the notes file as
    its text
 
-`update.json` must be committed to `main`, because that is the URL installed
-copies poll.
+`update.json` must be committed to `main`: the documentation deploy publishes
+it at `zotlook.org/update.json`, which copies installed from 1.4.2 on poll,
+and older copies poll the same file on GitHub.
 
 ::: {.callout-important title="Commit and release belong together"}
 `update.json` carries the version, the download URL and the checksum. Pushing it

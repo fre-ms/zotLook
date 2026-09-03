@@ -129,24 +129,26 @@ software. Those links become active **only when you click them**. Until then
 the provider concerned learns nothing about your visit. After that its own
 privacy policy applies, over which we have no influence.
 
-## The software itself processes nothing for us
+## What the plugin itself sends
 
-zotLook is a Zotero plugin and runs on your own machine. It sends no data to
-us or to anyone else: no usage statistics, no error reports, no request to any
-service we operate. Your documents, codings, memos and analyses stay in your
-Zotero database.
+zotLook runs on your own machine and sends no usage data, no error reports
+and nothing about your library or your documents to us or to anyone else.
+Your attachments and annotations stay where Zotero keeps them.
 
-The optional AI features talk exclusively to a **local** language model
-through Ollama on your own machine. No cloud service is contacted, and the
-features stay switched off until you switch them on.
+**It asks for updates.** Like every Zotero plugin, zotLook checks once a day
+whether a newer version exists. Copies installed from version 1.4.2 onwards
+ask `zotlook.org/update.json`; that request reaches our web server and is
+logged as described above, with the address truncated before it is written.
+We count the number of such requests per day, which tells us roughly how many
+copies are in use, and nothing else; the count cannot be traced to anyone.
+Earlier copies ask GitHub for the same file instead. The update itself, when
+there is one, is downloaded from GitHub, where
+[GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)
+applies. Zotero's own settings decide whether plugins are updated
+automatically.
 
-If you run Zotero with Zotero's own sync service, that is your decision and
-your own contractual relationship; we are not party to it.
-
-**The help inside the plugin is a copy of these pages.** It lives in the
-extension itself and is displayed without a network connection. Reading the
-help produces no log data whatsoever; the sections above describe access over
-the internet only.
+If you run Zotero with Zotero's sync service, that is your decision and your
+own contractual relationship; we are not party to it.
 
 ## Your rights
 

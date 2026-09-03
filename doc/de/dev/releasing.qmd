@@ -18,8 +18,9 @@ description: >-
    sie alle gegen das Manifest
 5. Die Freigabe mit dem gebauten `.xpi` anlegen, die Notizdatei als ihren Text
 
-`update.json` muss auf `main` liegen, denn diese Adresse fragen installierte
-Kopien ab.
+`update.json` muss auf `main` liegen: Der Doku-Deploy veröffentlicht es unter
+`zotlook.org/update.json`, das ab 1.4.2 installierte Kopien abfragen, und
+ältere Kopien fragen dieselbe Datei auf GitHub ab.
 
 ::: {.callout-important title="Commit und Freigabe gehören zusammen"}
 `update.json` trägt Version, Download-Adresse und Prüfsumme. Es für eine

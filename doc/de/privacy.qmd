@@ -132,26 +132,28 @@ Software. Diese Verweise werden **erst durch Ihren Klick** aktiv. Vorher
 erfährt der jeweilige Anbieter nichts von Ihrem Besuch. Danach gilt dessen
 Datenschutzerklärung, auf die wir keinen Einfluss haben.
 
-## Die Software selbst verarbeitet nichts für uns
+## Was das Plugin selbst sendet
 
-zotLook ist ein Zotero-Plugin und läuft auf Ihrem Rechner. Es sendet keine
-Daten an uns oder an Dritte: keine Nutzungsstatistik, keine Fehlerberichte,
-keine Abfrage bei einem von uns betriebenen Dienst. Ihre Dokumente,
-Kodierungen, Memos und Auswertungen bleiben in Ihrer Zotero-Datenbank.
+zotLook läuft auf Ihrem Rechner und sendet keine Nutzungsdaten, keine
+Fehlerberichte und nichts über Ihre Bibliothek oder Ihre Dokumente an uns oder
+an Dritte. Ihre Anhänge und Annotationen bleiben, wo Zotero sie führt.
 
-Die wahlweise zuschaltbaren KI-Funktionen sprechen ausschließlich mit einem
-**örtlichen** Sprachmodell über Ollama auf Ihrem eigenen Rechner. Es wird kein
-Cloud-Dienst angesprochen, und die Funktionen bleiben abgeschaltet, solange
-Sie sie nicht einschalten.
+**Es fragt nach Updates.** Wie jedes Zotero-Plugin prüft zotLook einmal am
+Tag, ob eine neuere Version vorliegt. Kopien, die ab Version 1.4.2 installiert
+wurden, fragen dafür `zotlook.org/update.json`; diese Anfrage erreicht unseren
+Webserver und wird wie oben beschrieben protokolliert, mit vor dem Schreiben
+gekürzter Adresse. Wir zählen die Zahl solcher Anfragen je Tag, was uns
+ungefähr sagt, wie viele Kopien in Gebrauch sind, und sonst nichts; die Zahl
+lässt sich auf niemanden zurückführen. Ältere Kopien fragen stattdessen GitHub
+nach derselben Datei. Das Update selbst, wenn es eines gibt, wird von GitHub
+geladen, wo die
+[Datenschutzerklärung von GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)
+gilt. Ob Plugins automatisch aktualisiert werden, entscheiden Zoteros eigene
+Einstellungen.
 
 Wenn Sie Zotero mit dem Synchronisierungsdienst von Zotero betreiben, ist das
 Ihre Entscheidung und Ihr eigenes Vertragsverhältnis; wir sind daran nicht
 beteiligt.
-
-**Die Hilfe im Plugin ist eine Kopie dieser Seiten.** Sie liegt in der
-Erweiterung selbst und wird ohne Netzverbindung angezeigt. Beim Lesen der
-Hilfe entstehen keinerlei Protokolldaten; die Abschnitte oben beschreiben
-insoweit allein den Abruf über das Internet.
 
 ## Ihre Rechte
 
