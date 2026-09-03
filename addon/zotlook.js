@@ -53,6 +53,11 @@ var zotLook = Object.seal({
 	// Zotero.Reader.open, unwrapped — held only while the window lives
 	_readerOpenOriginal: null,
 	_readerOpenPatched: null,
+	// The attachment the sheet in the window was drawn from, so a reader
+	// opening for it can be recognised as that sheet's own handoff
+	_viewerItemID: null,
+	// What the sheet just built was drawn from, for the line above to take
+	_lastSheetItemID: null,
 	_launching: false,
 	_tempDir: null,
 	// binary name -> deployed path
@@ -861,6 +866,7 @@ var zotLook = Object.seal({
 				this.log("Could not open the contact sheet in a window: " + e);
 				return false;
 			}
+			this._viewerItemID = this._lastSheetItemID;
 			this._adoptViewer(win);
 			return true;
 		});
@@ -911,6 +917,7 @@ var zotLook = Object.seal({
 					if (closed && this._viewer === win) {
 						this._viewer = null;
 						this._viewerKeyHandler = null;
+						this._viewerItemID = null;
 						this._syncReaderHook();
 					}
 				},
@@ -965,15 +972,32 @@ var zotLook = Object.seal({
 		let original = Zotero.Reader.open;
 		this._readerOpenOriginal = original;
 		this._readerOpenPatched = async function (...args) {
+			// Two ways to know the window is the one handing over, because
+			// the first alone was not enough. Asking who has the keyboard
+			// reads the click that caused this — but the sheet's page links
+			// carry target="_blank", and the window Gecko makes for that
+			// takes the focus before the reader is asked for, so the answer
+			// came back false exactly when it mattered. The item decides
+			// instead: the sheet knows which attachment it was drawn from,
+			// and its links lead to that one and nothing else.
 			let fromViewer = false;
-			try {
-				fromViewer = !!(
-					plugin._viewer &&
-					plugin._viewer.document &&
-					plugin._viewer.document.hasFocus()
-				);
-			} catch (e) {
-				// A window that cannot answer is not this window
+			if (plugin._viewer) {
+				let opened = args.length ? args[0] : null;
+				if (
+					plugin._viewerItemID !== null &&
+					opened === plugin._viewerItemID
+				) {
+					fromViewer = true;
+				} else {
+					try {
+						fromViewer = !!(
+							plugin._viewer.document &&
+							plugin._viewer.document.hasFocus()
+						);
+					} catch (e) {
+						// A window that cannot answer is not this window
+					}
+				}
 			}
 			// The system preview cannot be asked who has the keyboard — it
 			// is another application, and a click in it never focuses a
@@ -1227,6 +1251,7 @@ var zotLook = Object.seal({
 		}
 		this._viewer = null;
 		this._viewerKeyHandler = null;
+		this._viewerItemID = null;
 		this._syncReaderHook();
 	},
 
@@ -1244,7 +1269,10 @@ var zotLook = Object.seal({
 			// gets a sheet saying so, which is why this returns rather than
 			// falling through.
 			let book = await this._pickEpubAttachment(items);
-			if (book) return this._epubSheet(book.path, book.item);
+			if (book) {
+				this._lastSheetItemID = book.item ? book.item.id : null;
+				return this._epubSheet(book.path, book.item);
+			}
 			this.log("No PDF or EPUB files for contact sheet");
 			return null;
 		}
@@ -1296,6 +1324,8 @@ var zotLook = Object.seal({
 					: "no-list",
 			].join("|")
 			: null;
+
+		this._lastSheetItemID = chosen.item ? chosen.item.id : null;
 
 		let kept = await this._derivedHit(entry, key, sheetName + ".html");
 		if (kept) {

@@ -656,10 +656,31 @@ const ok = (c,l)=>eq(!!c,true,l);
   Q._adoptViewer(w5);
   ok(Reader.open !== readerOpen, 'an adopted window watches Reader.open');
 
-  // A reader opened from elsewhere leaves the sheet alone
+  // The item decides first: a reader opening for the attachment the sheet
+  // was drawn from is that sheet's handoff, whoever holds the keyboard.
+  // Focus alone was not enough — the window Gecko makes for a target=_blank
+  // link takes it before the reader is asked for.
   w5.active = false;
+  Q._viewerItemID = 4242;
+  eq(await Reader.open(4242, { page: 7 }), 'reader', 'the handoff answers');
+  eq(w5.closed, true, 'the sheet closes for its own attachment, unfocused');
+
+  const w5b = makeWin();
+  Q._adoptViewer(w5b);
+  Q._viewerItemID = 4242;
+  w5b.active = false;
+  await Reader.open(99, { page: 1 });
+  eq(w5b.closed, false, 'another attachment leaves it standing');
+  Q._viewerItemID = null;
+
+  // A reader opened from elsewhere leaves the sheet alone
+  Q._releaseViewer();
+  Q._adoptViewer(w5);
+  w5.closed = false; w5.closedBy = null;
+  w5.active = false;
+  const before = readerOpens.length;
   eq(await Reader.open(1, { page: 3 }), 'reader', 'the wrapped open still answers');
-  eq(readerOpens.length, 1, 'and still opens the reader');
+  eq(readerOpens.length, before + 1, 'and still opens the reader');
   eq(w5.closed, false, 'a reader opened elsewhere leaves the window standing');
 
   // One opened by a click in the window closes it behind the handoff
