@@ -64,6 +64,8 @@ website:
             href: platforms.qmd
           - text: Wenn etwas schiefgeht
             href: trouble.qmd
+          - text: Wünsche und Vorschläge
+            href: requests.qmd
       - section: Entwicklung
         contents:
           - text: Architektur

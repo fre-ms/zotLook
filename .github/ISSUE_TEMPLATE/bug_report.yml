@@ -1,0 +1,33 @@
+name: Bug report
+description: Something zotLook does wrong, or does not do
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. [When something goes wrong](https://zotlook.org/latest/en/trouble.html) says where zotLook writes down why a preview failed, and what to check first.
+  - type: input
+    id: system
+    attributes:
+      label: System
+      description: Operating system and version, and your Zotero version
+      placeholder: macOS 15.5, Zotero 10.0.2
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What you pressed, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: last-failure.log
+      description: If the contact sheet or an EPUB was involved, paste the file's content here. Its location is on the page linked above.
+      render: text
+  - type: textarea
+    id: file
+    attributes:
+      label: The file
+      description: For an EPUB, whether the book is one you can share — the awkward ones are usually awkward in a way no description conveys.

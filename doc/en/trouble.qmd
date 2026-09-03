@@ -93,7 +93,7 @@ is no longer where it was.
 
 ## Reporting it
 
-Please open an issue: **<https://github.com/fre-ms/zotLook/issues>**
+Please open an issue: **<https://github.com/fre-ms/zotLook/issues/new?template=bug_report.yml>**
 
 What helps most:
 
@@ -106,3 +106,6 @@ What helps most:
 zotLook is tested on macOS, Windows and Linux, but on a narrow set of versions.
 Other combinations will turn up things. I cannot promise to fix everything, but
 a report with the file above in it is usually enough to see what happened.
+
+An idea for what zotLook should do is welcome too — see
+[Feature requests](requests.qmd).

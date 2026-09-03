@@ -96,7 +96,7 @@ Kapitel oder Element nicht mehr dort steht.
 
 ## Melden
 
-Bitte als Issue: **<https://github.com/fre-ms/zotLook/issues>**
+Bitte als Issue: **<https://github.com/fre-ms/zotLook/issues/new?template=bug_report.yml>**
 
 Am meisten hilft:
 
@@ -110,3 +110,6 @@ zotLook wird auf macOS, Windows und Linux geprüft, aber auf einer schmalen
 Auswahl von Versionen. Andere Kombinationen werden Dinge zutage fördern. Ich
 kann nicht versprechen, alles zu beheben — aber eine Meldung mit der obigen
 Datei genügt meist, um zu sehen, was geschehen ist.
+
+Auch eine Idee, was zotLook können sollte, ist willkommen — siehe
+[Wünsche und Vorschläge](requests.qmd).

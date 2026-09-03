@@ -68,6 +68,8 @@ website:
             href: platforms.qmd
           - text: When something goes wrong
             href: trouble.qmd
+          - text: Feature requests
+            href: requests.qmd
       - section: Developer guide
         contents:
           - text: Architecture

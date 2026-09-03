@@ -1,0 +1,48 @@
+---
+title: "Feature requests"
+description: >-
+  Ideas for what zotLook should do, and changes to what it does: where to put them, and what helps.
+---
+
+Have an idea for what zotLook should be able to do, or a change to suggest
+to a feature or a setting it already has? Please open an issue on GitHub, as
+you would for a bug:
+
+**<https://github.com/fre-ms/zotLook/issues/new?template=feature_request.yml>**
+
+I cannot promise it will be built, but I am glad of every idea: zotLook is a
+plugin from the community for the community.
+
+## What helps
+
+- **What you want to achieve**, rather than the way to get there. The best
+  way is often not the first one that comes to mind, and it is easier to
+  find from the goal.
+- **Which system** you are on. Much of what zotLook does is done differently
+  on macOS, Linux and Windows, and a wish that is easy on one can be
+  impossible on another.
+- **Whether something already does it** — Zotero's own preview, or an
+  [extension of the system's preview](platforms.qmd#extending-the-preview).
+  zotLook builds on both deliberately, and a wish that one of them fulfils
+  may be a matter of pointing at it.
+
+## What zotLook is, and is not
+
+A few things follow from how zotLook is built, and a request that runs with
+them has a better chance than one that runs against them.
+
+- **It drives the preview the system already has** and builds no viewer of
+  its own. What the preview shows and how it behaves is the system's; what
+  zotLook can change is what it hands over, and how.
+- **A preview runs no scripts.** The contents and annotation menus, the page
+  overview's links: all of it is markup and stylesheet, because a preview
+  panel would ignore anything else. A wish that needs a script in the preview
+  needs a different route.
+- **One attachment at a time.** Selecting an item previews one of its
+  attachments, chosen by a ranking you set; resolving them all would download
+  every synced attachment of every selected item.
+- **Annotations are read, not written.** zotLook shows the annotations Zotero
+  keeps; editing them is the reader's job.
+
+None of this is a closed door. It is where the plugin stands, so that a wish
+can be placed in relation to it.

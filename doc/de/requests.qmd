@@ -1,0 +1,48 @@
+---
+title: "Wünsche und Vorschläge"
+description: >-
+  Ideen, was zotLook können sollte, und Änderungen an dem, was es tut: wohin damit, und was dabei hilft.
+---
+
+Haben Sie eine Idee, was zotLook können sollte, oder möchten Sie eine
+Änderung an einer bestehenden Funktion oder einer Einstellung vorschlagen?
+Dann öffnen Sie bitte, wie für einen Fehlerbericht, ein Issue auf GitHub:
+
+**<https://github.com/fre-ms/zotLook/issues/new?template=feature_request.yml>**
+
+Versprechen kann ich die Umsetzung nicht, aber ich freue mich über jede Idee:
+zotLook ist ein Plugin aus der Community für die Community.
+
+## Was hilft
+
+- **Was Sie erreichen möchten**, nicht schon der Weg dorthin. Der beste Weg
+  ist oft nicht der, der zuerst einfällt, und vom Ziel her ist er leichter zu
+  finden.
+- **Auf welchem System** Sie arbeiten. Vieles von dem, was zotLook tut,
+  geschieht unter macOS, Linux und Windows auf verschiedene Weise, und ein
+  Wunsch, der auf dem einen leicht ist, kann auf dem anderen unmöglich sein.
+- **Ob es etwas schon kann** — Zoteros eigene Vorschau oder eine
+  [Erweiterung der Systemvorschau](platforms.qmd#die-vorschau-erweitern). zotLook baut
+  auf beiden bewusst auf, und ein Wunsch, den eine von ihnen erfüllt, ist
+  vielleicht nur ein Hinweis darauf.
+
+## Was zotLook ist, und was nicht
+
+Einiges folgt aus der Bauweise von zotLook, und ein Wunsch, der mit ihr geht,
+hat bessere Aussichten als einer, der gegen sie läuft.
+
+- **Es steuert die Vorschau, die das System schon hat**, und baut keinen
+  eigenen Betrachter. Was die Vorschau zeigt und wie sie sich verhält, gehört
+  dem System; ändern kann zotLook, was es übergibt und wie.
+- **In einer Vorschau laufen keine Skripte.** Die Menüs für Inhalt und
+  Annotationen, die Links der Seitenübersicht: alles ist Markup und
+  Stylesheet, weil eine Vorschau alles andere ignorieren würde. Ein Wunsch,
+  der ein Skript in der Vorschau braucht, braucht einen anderen Weg.
+- **Ein Anhang zur Zeit.** Die Auswahl eines Eintrags zeigt einen seiner
+  Anhänge, nach einer Rangfolge, die Sie festlegen; sie alle aufzulösen hieße,
+  jeden synchronisierten Anhang jedes ausgewählten Eintrags herunterzuladen.
+- **Annotationen werden gelesen, nicht geschrieben.** zotLook zeigt die
+  Annotationen, die Zotero führt; sie zu bearbeiten ist Sache des Readers.
+
+Nichts davon ist eine verschlossene Tür. Es ist der Standort des Plugins,
+damit sich ein Wunsch dazu ins Verhältnis setzen lässt.

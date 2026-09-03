@@ -1,0 +1,25 @@
+name: Feature request
+description: An idea for what zotLook should do, or a change to what it does
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. I cannot promise it will be built, but I am glad of every one: zotLook is a plugin from the community for the community. [Feature requests](https://zotlook.org/latest/en/requests.html) says what helps, and where the plugin stands.
+  - type: textarea
+    id: goal
+    attributes:
+      label: What you want to achieve
+      description: Rather than the way to get there — the best way is often easier to find from the goal.
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: System
+      description: Which of macOS, Linux and Windows you are on
+  - type: textarea
+    id: existing
+    attributes:
+      label: Does something already do it?
+      description: Zotero's own preview, or an extension of the system's preview — zotLook builds on both.
