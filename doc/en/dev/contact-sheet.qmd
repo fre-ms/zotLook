@@ -137,7 +137,10 @@ block, with `</` escaped so a page that says `</script>` cannot close it; the
 EPUB sheet needs no block, its tiles are the text. The runtime is a plain
 function in `sheet.js`, handed the document — which is how the tests run it
 against linkedom — and it marks a book's hits by replacing a text node with
-its pieces, since `splitText` is not everywhere.
+its pieces, since `splitText` is not everywhere. The same function carries
+the keyboard: the frame is its cursor, opening a page is a click on the
+page's link so the handoff is the mouse's, and the menus are opened by
+setting the `open` attribute the disclosure would set.
 
 A fragment link is a navigation, though, and in Zotero's own window that is one
 navigation too many. The sheet is a `file:` document in a browser that may

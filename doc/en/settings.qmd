@@ -65,6 +65,10 @@ Scrolling inside the preview is the wheel's job; the Page keys join in after a
 click into the preview window, which is what hands its content the keyboard
 focus.
 
+This concerns the system's preview. In the sheet's own Zotero window the
+arrow keys move the frame from page to page, and scrolling is what Page Up
+and Page Down do; see [What it does](features.qmd#the-contact-sheet).
+
 ## Which attachment is previewed
 
 Two modes:

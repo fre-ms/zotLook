@@ -62,7 +62,7 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
 {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   ok(!doc.documentElement.classList.contains('zl-scripted'), 'nothing is revealed before the script runs');
-  S.searchRuntime(doc, LABELS);
+  S.sheetRuntime(doc, LABELS);
   ok(doc.documentElement.classList.contains('zl-scripted'), 'the runtime reveals the field');
 
   type(doc, 'reading');
@@ -75,11 +75,13 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
   eq(doc.querySelector('.zl-search-status').textContent, '1 / 2', 'and the status says where we are');
 
   const input = doc.querySelector('.zl-search input');
-  input.dispatchEvent(Object.assign(new Event('keydown'), { key: 'Enter' }));
+  const press = (target, key, extra = {}) =>
+    target.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key, ...extra }));
+  press(input, 'Enter');
   ok(tiles[1].classList.contains('zl-current') && !tiles[0].classList.contains('zl-current'),
      'Enter walks to the next match');
   eq(doc.querySelector('.zl-search-status').textContent, '2 / 2', 'the status follows');
-  input.dispatchEvent(Object.assign(new Event('keydown'), { key: 'Enter' }));
+  press(input, 'Enter');
   ok(tiles[0].classList.contains('zl-current'), 'and wraps around');
 
   type(doc, 'METHODS:  reading');
@@ -93,6 +95,83 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
   type(doc, '');
   eq(tiles.filter((t) => t.classList.contains('zl-miss')).length, 0, 'an empty field shows every page again');
   eq(doc.querySelector('.zl-search-status').textContent, '', 'with nothing beside it');
+}
+
+// ── the keyboard: the frame is a cursor, with or without a search ─────
+{
+  const html2 = S.html({
+    pages: [1, 2, 3, 4, 5, 6].map((n) => ({ page: n, height: 700, text: 'page ' + n })),
+    columns: 3, width: 500, imageDir: 'pages', pageCount: 6,
+    linkBase: 'zotero://open-pdf/library/items/ABCD1234',
+    toc: [{ title: 'One', page: 1, level: 0 }, { title: 'Four', page: 4, level: 0 }],
+    annotations: [{ page: 5, type: 'highlight', text: 'quoted words', comment: 'why' }],
+  });
+  ok(/<div class="grid" data-zl-columns="3">/.test(html2), 'the grid says how many columns it has');
+  const doc = new DOMParser().parseFromString(html2, 'text/html');
+  S.sheetRuntime(doc, LABELS);
+  const press = (key, extra = {}) =>
+    doc.body.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key, ...extra }));
+  const framed = () => [...doc.querySelectorAll('.page')].findIndex((t) => t.classList.contains('zl-current')) + 1;
+
+  eq(framed(), 0, 'nothing is framed to begin with');
+  press('Enter');           eq(framed(), 1, 'Enter frames the first page');
+  press('Enter');           eq(framed(), 2, 'and then the next');
+  press('Enter', { shiftKey: true }); eq(framed(), 1, 'Shift+Enter goes back');
+  press('ArrowRight');      eq(framed(), 2, 'the right arrow moves on');
+  press('ArrowDown');       eq(framed(), 5, 'the down arrow moves a row, three columns here');
+  press('ArrowLeft');       eq(framed(), 4, 'the left arrow moves back');
+  press('ArrowUp');         eq(framed(), 1, 'the up arrow moves a row up');
+  press('ArrowUp');         eq(framed(), 4, 'and wraps around the end');
+  eq(doc.querySelector('.zl-search-status').textContent, '', 'no count is shown without a search');
+
+  let opened = [];
+  doc.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('a[href]'); if (a) opened.push(a.getAttribute('href')); });
+  press('o');
+  eq(opened, ['zotero://open-pdf/library/items/ABCD1234?page=4'], 'o clicks the framed page\'s link, which is the way to the reader');
+  press('Enter', { ctrlKey: true });
+  eq(opened.length, 2, 'so does Ctrl+Enter');
+
+  // The jump script frames a tile on its own when a menu entry is followed;
+  // the keys must take the frame from the page, not from what they last did
+  for (const t of doc.querySelectorAll('.page')) t.classList.remove('zl-current');
+  doc.querySelectorAll('.page')[5].classList.add('zl-current');
+  opened = [];
+  press('o');
+  eq(opened, ['zotero://open-pdf/library/items/ABCD1234?page=6'],
+     'o opens the page that is framed, wherever the frame came from');
+  press('Enter');
+  eq(framed(), 1, 'and Enter walks on from there, wrapping round');
+
+  press('c');
+  const toc = doc.querySelector('details.zl-toc');
+  ok(toc.hasAttribute('open'), 'c opens the contents');
+  eq(toc.querySelector('a.zl-menu-current').textContent, 'One', 'with the first entry highlighted');
+  press('ArrowDown');
+  eq(toc.querySelector('a.zl-menu-current').textContent, 'Four', 'the arrows walk the entries');
+  eq(framed(), 1, 'and leave the frame where it was');
+  opened = [];
+  press('Enter');
+  eq(opened, ['#p4'], 'Enter follows the highlighted entry');
+  ok(!toc.hasAttribute('open'), 'and the menu closes behind it');
+
+  press('a');
+  const ann = doc.querySelector('details.zl-annotations');
+  ok(ann.hasAttribute('open'), 'a opens the annotations');
+  ok(ann.querySelector('details.zl-annotation-entry').hasAttribute('open'),
+     'the highlighted entry\'s fold opens so its link can be seen');
+  press('c');
+  ok(!ann.hasAttribute('open') && toc.hasAttribute('open'), 'c swaps to the contents, closing the other');
+  press('c');
+  ok(!toc.hasAttribute('open'), 'and c again closes it');
+
+  // the field: letters are typing, Enter and the arrows still walk
+  const input = doc.querySelector('.zl-search input');
+  const inField = (key, extra = {}) =>
+    input.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key, ...extra }));
+  opened = [];
+  inField('o'); eq(opened, [], 'o in the field opens nothing');
+  inField('c'); ok(!toc.hasAttribute('open'), 'nor does c open a menu there');
+  inField('ArrowDown'); eq(framed(), 4, 'the down arrow in the field still moves the frame, a row down');
 }
 
 // ── the EPUB sheet: the tiles are the text, and the hits are marked ───
@@ -113,7 +192,7 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
   ok(!/id="zl-texts"/.test(page), 'but no JSON block: its tiles are the text');
 
   const doc = U.parseStrict(page, 'text/html');
-  S.searchRuntime(doc, LABELS);
+  S.sheetRuntime(doc, LABELS);
   type(doc, 'reading');
   const tiles = [...doc.querySelectorAll('div.epub-page')];
   eq(tiles.map((t) => t.classList.contains('zl-miss')), [true, false, true, false],

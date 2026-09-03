@@ -115,6 +115,20 @@ Seiten gelesen; ein Scan ohne Textebene hat also nichts zu durchsuchen. Die
 Systemvorschauen haben kein Feld, weil sie keine Skripte ausführen; der Bogen
 dort ist derselbe, nur ohne die Suche.
 
+**Das Fenster gehorcht der Tastatur.** Der Rahmen ist ein Cursor:
+
+| Taste | Wirkung |
+|---|---|
+| **Enter** | rahmt die nächste Seite, beim ersten Druck die erste, oder mit einer Suche den nächsten Treffer; **Umschalt+Enter** geht zurück |
+| **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche zwischen den Treffern |
+| **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
+| **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** oder **o** folgt einem, derselbe Buchstabe schließt das Menü |
+| **Bild auf** / **Bild ab** | blättern, wie bisher |
+| **Leertaste**, **q**, **Escape** | schließen das Fenster |
+
+Im Suchfeld ist ein Buchstabe Tippen, und die Pfeile links und rechts bewegen
+die Schreibmarke; Enter und die Pfeile auf und ab wirken dort wie außerhalb.
+
 ### Die Seitenübersicht eines Buches
 
 Dasselbe Kürzel liefert auch für ein EPUB einen Bogen — was unmöglich klingt,
@@ -139,7 +153,8 @@ ihnen und zeigt es Seite für Seite.
 - **Dieselben zwei Knöpfe** wie auf dem PDF-Bogen: die Navigation des Buches
   und seine Annotationen, jeder Eintrag ein Sprung zur Kachel der Seite.
 - **Dieselbe Suche** in der Fenster-Variante, und hier werden die Treffer in
-  den Kacheln selbst markiert, denn eine Kachel ist der Text der Seite.
+  den Kacheln selbst markiert, denn eine Kachel ist der Text der Seite. Die
+  Tasten sind dieselben.
 - **Ein Buch ohne gedruckte Seitenzahlen sagt das.** Belletristik führt meist
   keine, und erfinden lässt sich keine; ein Bogen aus willkürlichen Abschnitten
   wäre schlechter als keiner. Wissenschaftliche Verlage — Springer, O'Reilly,

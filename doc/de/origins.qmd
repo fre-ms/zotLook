@@ -16,7 +16,7 @@ Upstream-Commit und gezählt nur Zeilen, die weder leer noch Kommentar noch
 Klammer sind: **45 %** des JavaScript und **52 %** von `bootstrap.js` haben
 wörtlich überlebt, und 20 der ursprünglich 28 Methoden gibt es weiterhin unter
 ihren eigenen Namen. Das Plugin ist um sie herum gewachsen — diese überlebenden
-Zeilen sind heute etwa ein Fünfzehntel des Bestands. Die Zahlen stammen aus
+Zeilen sind heute etwa ein Siebzehntel des Bestands. Die Zahlen stammen aus
 `tool/provenance.mjs`, und die Prüfsuite schlägt an, wenn sie von dieser Seite
 abweichen.
 

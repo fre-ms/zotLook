@@ -148,7 +148,10 @@ EPUB-Übersicht braucht keinen Block, ihre Kacheln sind der Text. Die Laufzeit
 ist eine gewöhnliche Funktion in `sheet.js`, der das Dokument übergeben wird
 — so laufen die Tests sie gegen linkedom —, und sie markiert die Treffer eines
 Buches, indem sie einen Textknoten durch seine Stücke ersetzt, denn
-`splitText` gibt es nicht überall.
+`splitText` gibt es nicht überall. Dieselbe Funktion trägt die Tastatur: Der
+Rahmen ist ihr Cursor, das Öffnen einer Seite ist ein Klick auf deren Link,
+sodass die Übergabe die der Maus ist, und die Menüs öffnet sie über das
+`open`-Attribut, das auch der Aufklappknopf setzt.
 
 Ein Fragment-Link ist allerdings eine Navigation, und in Zoteros eigenem
 Fenster ist das eine zu viel. Der Bogen ist ein `file:`-Dokument in einem

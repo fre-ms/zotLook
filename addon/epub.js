@@ -1160,7 +1160,7 @@ var zotLookEpub = Object.seal({
 			"<div>" + zotLookSheet.searchBoxHtml() + "</div>", "text/html");
 		let field = search && search.querySelector(".zl-search");
 		if (field) out.body.insertBefore(out.importNode(field, true), grid);
-		for (let source of [zotLookSheet.JUMP_SCRIPT, zotLookSheet.searchScript()]) {
+		for (let source of [zotLookSheet.JUMP_SCRIPT, zotLookSheet.runtimeScript()]) {
 			let script = out.createElement("script");
 			script.textContent = source.replace(/^<script>\n?|<\/script>\n?$/g, "");
 			out.body.appendChild(script);

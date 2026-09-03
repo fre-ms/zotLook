@@ -105,6 +105,8 @@ var zotLookSheet = {
 		"  font-weight: 600;",
 		"}",
 		"mark.zl-hit { background: #f5b841; color: inherit; }",
+		// The entry the keyboard stands on in an open menu
+		"a.zl-menu-current { background: #e6f0ef; box-shadow: inset 3px 0 0 #2e8b84; }",
 	].join("\n"),
 
 	/** The field, as a string; the EPUB sheet builds the same as DOM. */
@@ -136,22 +138,35 @@ var zotLookSheet = {
 	},
 
 	/**
-	 * What runs in the page. Written as a function so that the tests can
-	 * run it against a document of their own; the page gets its source.
-	 * Nothing here is required: without it the field stays hidden and the
-	 * sheet is what it was.
+	 * What runs in the page: the search, and the keyboard.
+	 *
+	 * Written as a function so that the tests can run it against a document
+	 * of their own; the page gets its source. Nothing here is required:
+	 * without it the field stays hidden and the sheet is what it was.
+	 *
+	 * The frame is a cursor. Enter moves it to the next page — the first, on
+	 * the first press — or, with a search in the field, to the next hit;
+	 * Shift+Enter back; the arrows move it across the grid, a row at a time
+	 * up and down. o, or Ctrl/⌘+Enter, opens the framed page in the reader,
+	 * which is a click on its link, so the window closes on the handoff as
+	 * it does for the mouse. c and a open the contents and the annotations,
+	 * where the arrows walk the entries and Enter or o follows one. Page Up
+	 * and Page Down are left to the browser: they scroll. In the field, a
+	 * letter is typing and the arrows left and right move the caret.
 	 *
 	 * @param {Document} document
 	 * @param {{pages: string, none: string}} labels
 	 */
-	searchRuntime(document, labels) {
+	sheetRuntime(document, labels) {
 		document.documentElement.classList.add("zl-scripted");
-		let box = document.querySelector(".zl-search");
-		if (!box) return;
-		let input = box.querySelector("input");
-		let status = box.querySelector(".zl-search-status");
 		let tiles = Array.prototype.slice.call(
 			document.querySelectorAll("[data-zl-tile]"));
+		let box = document.querySelector(".zl-search");
+		let input = box && box.querySelector("input");
+		let status = box && box.querySelector(".zl-search-status");
+		let say = (text) => {
+			if (status) status.textContent = text;
+		};
 
 		let texts = {};
 		let json = document.getElementById("zl-texts");
@@ -183,7 +198,6 @@ var zotLookSheet = {
 		let unmark = () => {
 			for (let tile of tiles) {
 				tile.classList.remove("zl-miss");
-				tile.classList.remove("zl-current");
 				let badge = tile.querySelector(".zl-hit-count");
 				if (badge) badge.parentNode.removeChild(badge);
 				let marks = Array.prototype.slice.call(tile.querySelectorAll("mark.zl-hit"));
@@ -238,25 +252,76 @@ var zotLookSheet = {
 			}
 		};
 
-		let hits = [];
-		let at = -1;
-		let go = (index) => {
-			if (!hits.length) return;
-			at = (index + hits.length) % hits.length;
+		// ── the frame: a cursor over the pages, or over the hits ──────
+		let hits = null;           // null: no search, every page is in play
+		let at = -1;               // the framed one, -1 for none yet
+		let current = () => hits || tiles;
+		let frame = (index) => {
+			let items = current();
+			if (!items.length) return;
+			at = ((index % items.length) + items.length) % items.length;
 			for (let tile of tiles) tile.classList.remove("zl-current");
-			hits[at].classList.add("zl-current");
-			if (hits[at].scrollIntoView) hits[at].scrollIntoView({ block: "center" });
-			status.textContent = at + 1 + " / " + hits.length;
+			items[at].classList.add("zl-current");
+			if (items[at].scrollIntoView) items[at].scrollIntoView({ block: "center" });
+			say(hits ? at + 1 + " / " + hits.length : "");
 		};
+		// The frame can be put on a tile by the jump script as well — a menu
+		// entry followed by mouse or by Enter — and the cursor takes it from
+		// there: what is framed on the page is what the keys work on.
+		let sync = () => {
+			let items = current();
+			for (let i = 0; i < items.length; i++) {
+				if (items[i].classList.contains("zl-current")) return (at = i);
+			}
+			return (at = -1);
+		};
+		let step = (delta) => {
+			sync();
+			if (at < 0) frame(delta > 0 ? 0 : -1);
+			else frame(at + delta);
+		};
+		// The PDF sheet says how many columns it has; a book's overview
+		// fills what fits, so it is measured off the first row
+		let columns = () => {
+			let grid = document.querySelector("[data-zl-columns]");
+			let stated = grid && Number(grid.getAttribute("data-zl-columns"));
+			if (stated > 0) return stated;
+			let n = 0;
+			for (let tile of tiles) {
+				if (tile.offsetTop === tiles[0].offsetTop) n++;
+				else break;
+			}
+			return n || 1;
+		};
+		let click = (el) => {
+			if (typeof el.click === "function") {
+				el.click();
+			} else {
+				let event = document.createEvent("Event");
+				event.initEvent("click", true, true);
+				el.dispatchEvent(event);
+			}
+		};
+		// Opening is the click the mouse would make on the page's link
+		let open = () => {
+			let items = current();
+			sync();
+			if (at < 0 || !items[at]) return;
+			let link = items[at].querySelector("a[href]");
+			if (link) click(link);
+		};
+
 		let run = () => {
-			let query = norm(input.value).trim();
+			let query = input ? norm(input.value).trim() : "";
 			unmark();
-			hits = [];
+			for (let tile of tiles) tile.classList.remove("zl-current");
 			at = -1;
 			if (!query) {
-				status.textContent = "";
+				hits = null;
+				say("");
 				return;
 			}
+			hits = [];
 			for (let tile of tiles) {
 				let n = count(norm(textOf(tile)), query);
 				if (!n) {
@@ -274,21 +339,104 @@ var zotLookSheet = {
 				let inner = tile.querySelector(".epub-paper-inner");
 				if (inner) markIn(inner, query);
 			}
-			if (hits.length) go(0);
-			else status.textContent = labels.none;
+			if (hits.length) frame(0);
+			else say(labels.none);
 		};
-		input.addEventListener("input", run);
-		input.addEventListener("keydown", (event) => {
-			if (event.key === "Enter") {
-				event.preventDefault();
-				go(event.shiftKey ? at - 1 : at + 1);
+		if (input) input.addEventListener("input", run);
+
+		// ── the two menus, from the keyboard ──────────────────────────
+		let MENUS = { c: "details.zl-toc", a: "details.zl-annotations" };
+		let menuAt = -1;
+		let openMenu = () =>
+			document.querySelector("details.zl-toc[open], details.zl-annotations[open]");
+		let entries = (menu) =>
+			Array.prototype.slice.call(menu.querySelectorAll("a[href^='#']"));
+		let highlight = (menu, index) => {
+			let links = entries(menu);
+			if (!links.length) return;
+			menuAt = ((index % links.length) + links.length) % links.length;
+			for (let link of links) link.classList.remove("zl-menu-current");
+			let link = links[menuAt];
+			link.classList.add("zl-menu-current");
+			// an annotation's link sits in a fold; the fold opens with it
+			let fold = link.closest && link.closest("details.zl-annotation-entry");
+			if (fold) fold.setAttribute("open", "");
+			if (link.scrollIntoView) link.scrollIntoView({ block: "nearest" });
+		};
+		let closeMenu = (menu) => {
+			for (let link of entries(menu)) link.classList.remove("zl-menu-current");
+			menu.removeAttribute("open");
+			menuAt = -1;
+		};
+		let toggle = (selector) => {
+			let menu = document.querySelector(selector);
+			if (!menu) return;
+			let other = openMenu();
+			if (other && other !== menu) closeMenu(other);
+			if (menu.hasAttribute("open")) {
+				closeMenu(menu);
+			} else {
+				menu.setAttribute("open", "");
+				highlight(menu, 0);
 			}
-		});
+		};
+		// Following an entry is the click, which the jump script answers;
+		// the menu closes so that the page it went to can be seen
+		let follow = () => {
+			let menu = openMenu();
+			if (!menu) return false;
+			let link = entries(menu)[menuAt];
+			if (!link) return false;
+			click(link);
+			closeMenu(menu);
+			return true;
+		};
+
 		document.addEventListener("keydown", (event) => {
-			if ((event.ctrlKey || event.metaKey) && String(event.key).toLowerCase() === "f") {
+			let key = String(event.key || "");
+			let chord = event.ctrlKey || event.metaKey;
+			let inField = !!input && event.target === input;
+			if (chord && key === "Enter") {
+				event.preventDefault();
+				if (!follow()) open();
+				return;
+			}
+			if (chord && key.toLowerCase() === "f" && input) {
 				event.preventDefault();
 				input.focus();
 				if (input.select) input.select();
+				return;
+			}
+			if (chord || event.altKey) return;
+			let menu = openMenu();
+			if (key === "Enter") {
+				event.preventDefault();
+				if (menu) follow();
+				else step(event.shiftKey ? -1 : 1);
+				return;
+			}
+			let vertical = key === "ArrowDown" || key === "ArrowUp";
+			let horizontal = key === "ArrowRight" || key === "ArrowLeft";
+			if (vertical || horizontal) {
+				if (inField && horizontal) return;   // the caret's business
+				event.preventDefault();
+				let forward = key === "ArrowDown" || key === "ArrowRight";
+				if (menu) {
+					highlight(menu, menuAt + (forward ? 1 : -1));
+					return;
+				}
+				let stride = horizontal || hits ? 1 : columns();
+				step(forward ? stride : -stride);
+				return;
+			}
+			if (inField) return;                     // letters are typing
+			let letter = key.toLowerCase();
+			if (letter === "o") {
+				event.preventDefault();
+				if (!follow()) open();
+			} else if (letter === "c" || letter === "a") {
+				event.preventDefault();
+				toggle(MENUS[letter]);
 			}
 		});
 	},
@@ -301,11 +449,11 @@ var zotLookSheet = {
 	 * error — which no test that calls the method directly can see. Hence the
 	 * word is put in front, and the test parses the script the page gets.
 	 */
-	searchScript() {
+	runtimeScript() {
 		let labels = JSON.stringify({ pages: this.PAGES_LABEL, none: this.SEARCH_NONE })
 			.replace(/<\//g, "<\\/");
 		return (
-			"<script>\n(function " + this.searchRuntime.toString() + ")(document, " +
+			"<script>\n(function " + this.sheetRuntime.toString() + ")(document, " +
 			labels + ");\n</script>\n"
 		);
 	},
@@ -890,13 +1038,13 @@ var zotLookSheet = {
 			toc +
 			annotations +
 			this.searchBoxHtml() +
-			'<div class="grid">\n\n' +
+			'<div class="grid" data-zl-columns="' + columns + '">\n\n' +
 			body +
 			"</div>\n" +
 			notice +
 			this.textsHtml(pages) +
 			this.JUMP_SCRIPT +
-			this.searchScript() +
+			this.runtimeScript() +
 			"</body>\n</html>"
 		);
 	},

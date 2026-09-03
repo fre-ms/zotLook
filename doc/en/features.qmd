@@ -107,6 +107,20 @@ next. The text comes off the pages as the sheet is drawn, so a scan without a
 text layer has nothing to search. The system previews have no field, since
 they run no scripts; the sheet there is the same, minus the search.
 
+**The window answers the keyboard.** The frame is a cursor:
+
+| Key | Does |
+|---|---|
+| **Enter** | frames the next page — the first, on the first press — or, with a search, the next hit; **Shift+Enter** goes back |
+| **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, between the hits |
+| **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it |
+| **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** or **o** follows one, the same letter closes the menu |
+| **Page Up** / **Page Down** | scroll, as before |
+| **Space**, **q**, **Escape** | close the window |
+
+In the search field a letter is typing, and the left and right arrows move
+the caret; Enter and the up and down arrows work there as they do outside it.
+
 ### A page overview of a book
 
 The same shortcut on an EPUB gives a sheet too — which sounds impossible,
@@ -130,7 +144,8 @@ cuts the book at them and shows a page at a time.
 - **The same two buttons** as on the PDF sheet: the book's navigation and its
   annotations, each entry a jump to the page's tile.
 - **The same search** in the window variant, and here the hits are marked
-  in the tiles themselves, since a tile is the page's own text.
+  in the tiles themselves, since a tile is the page's own text. The keys are
+  the same as well.
 - **A book without printed page numbers says so.** Most trade fiction carries
   none, and nothing can invent one; a sheet of arbitrary slices would be worse
   than none. Academic publishers — Springer, O'Reilly, most textbooks — usually

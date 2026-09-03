@@ -68,6 +68,10 @@ Geblättert wird in der Vorschau mit dem Mausrad; die Bild-Tasten kommen dazu,
 sobald einmal in das Vorschaufenster geklickt wurde — der Klick gibt dem
 Inhalt den Tastaturfokus.
 
+Das betrifft die Systemvorschau. Im eigenen Zotero-Fenster des Bogens bewegen
+die Pfeiltasten den Rahmen von Seite zu Seite, und geblättert wird mit Bild
+auf und Bild ab; siehe [Was es kann](features.qmd#der-kontaktbogen).
+
 ## Welcher Anhang gezeigt wird
 
 Zwei Betriebsarten:
