@@ -6,6 +6,8 @@
 [![Zotero 10](https://img.shields.io/badge/Zotero-10-CC2936?logo=zotero&logoColor=white)](https://www.zotero.org)
 ![macOS | Linux | Windows](https://img.shields.io/badge/macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 [![Latest release](https://img.shields.io/github/v/release/fre-ms/zotLook)](https://github.com/fre-ms/zotLook/releases)
+[![Downloads](https://img.shields.io/github/downloads/fre-ms/zotLook/total?label=downloads)](https://github.com/fre-ms/zotLook/releases)
+[![Downloads of the latest release](https://img.shields.io/github/downloads/fre-ms/zotLook/latest/total?label=latest%20release)](https://github.com/fre-ms/zotLook/releases/latest)
 [![License: MIT](https://img.shields.io/github/license/fre-ms/zotLook)](LICENSE)
 
 A plugin for Zotero 10 — the version it is developed and tested against — that
