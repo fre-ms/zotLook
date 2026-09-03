@@ -93,6 +93,11 @@ zotlook-sheet-note = Note
 zotlook-sheet-image = Image
 zotlook-sheet-ink = Ink
 zotlook-sheet-text = Text
+# The search field of a sheet in its own window: placeholder, the answer
+# with no match, and the unit beside the count of matching pages
+zotlook-sheet-search = Search pages
+zotlook-sheet-search-none = No matches
+zotlook-sheet-pages = pages
 
 zotlook-prefs-keep-title = Kept previews
 

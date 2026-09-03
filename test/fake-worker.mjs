@@ -49,6 +49,9 @@ export function fakeWorkerFactory({ pageCount = 8, failOn = null,
             type: 'page', page,
             height: Math.round(message.width * 1.33),
             buffer: new ArrayBuffer(8),
+            // the text a real worker reads off the page; page 2 carries
+            // the one sequence that could close the block it is stored in
+            text: page === 2 ? 'Page two says </script> and goes on' : 'Text of page ' + page,
           });
         }
         self._emit('message', { type: 'done' });

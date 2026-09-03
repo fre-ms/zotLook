@@ -52,6 +52,264 @@ var zotLookSheet = {
 		"",
 	].join("\n"),
 
+	/** Placeholder of the search field, and what it says with no match. */
+	SEARCH_LABEL: "Search pages",
+	SEARCH_NONE: "No matches",
+	/** "12 pages", the count beside the field. */
+	PAGES_LABEL: "pages",
+
+	// ── Search ────────────────────────────────────────────────────────
+	//
+	// A search field needs a script, and a preview panel runs none. So the
+	// field is in the markup and hidden, and the script that wires it up
+	// also reveals it: where scripts run — the sheet in its own Zotero
+	// window — there is a search; where they do not, nothing suggests one.
+	//
+	// The PDF sheet stores each page's text in a JSON block; the EPUB sheet
+	// needs none, its tiles are the text. Typing dims the pages without a
+	// match, counts the hits on the ones with, marks them in a book's
+	// tiles, and brings the first to the middle; Enter walks on.
+	SEARCH_CSS: [
+		".zl-search {",
+		"  display: none;",
+		"  position: fixed;",
+		"  top: 16px;",
+		"  right: 24px;",
+		"  z-index: 20;",
+		"  align-items: center;",
+		"  gap: 0.6em;",
+		"  padding: 0.35em 0.6em;",
+		"  background: #ffffff;",
+		"  border-radius: 999px;",
+		"  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);",
+		"  font-family: -apple-system, BlinkMacSystemFont, sans-serif;",
+		"  font-size: 14px;",
+		"}",
+		"html.zl-scripted .zl-search { display: flex; }",
+		".zl-search input {",
+		"  width: 14em;",
+		"  border: none;",
+		"  outline: none;",
+		"  font: inherit;",
+		"  background: transparent;",
+		"}",
+		".zl-search-status { color: #4a4a4a; white-space: nowrap; }",
+		".zl-miss { opacity: 0.3; }",
+		".zl-hit-count {",
+		"  display: inline-block;",
+		"  margin-left: 0.5em;",
+		"  padding: 0 0.5em;",
+		"  border-radius: 999px;",
+		"  background: #f5b841;",
+		"  color: #1f2a33;",
+		"  font-weight: 600;",
+		"}",
+		"mark.zl-hit { background: #f5b841; color: inherit; }",
+	].join("\n"),
+
+	/** The field, as a string; the EPUB sheet builds the same as DOM. */
+	searchBoxHtml() {
+		return (
+			'<div class="zl-search"><input type="search" class="zl-search-input"' +
+			' autocomplete="off" spellcheck="false" placeholder="' +
+			this.escape(this.SEARCH_LABEL) + '" aria-label="' +
+			this.escape(this.SEARCH_LABEL) +
+			'"><span class="zl-search-status"></span></div>\n'
+		);
+	},
+
+	/**
+	 * The pages' text, one JSON block. "</" is written as "<\/" so that a
+	 * page which happens to say </script> cannot close the block early.
+	 */
+	textsHtml(pages) {
+		let texts = {};
+		for (let entry of pages || []) {
+			if (entry.text) texts[String(entry.page)] = entry.text;
+		}
+		if (!Object.keys(texts).length) return "";
+		return (
+			'<script type="application/json" id="zl-texts">' +
+			JSON.stringify(texts).replace(/<\//g, "<\\/") +
+			"</script>\n"
+		);
+	},
+
+	/**
+	 * What runs in the page. Written as a function so that the tests can
+	 * run it against a document of their own; the page gets its source.
+	 * Nothing here is required: without it the field stays hidden and the
+	 * sheet is what it was.
+	 *
+	 * @param {Document} document
+	 * @param {{pages: string, none: string}} labels
+	 */
+	searchRuntime(document, labels) {
+		document.documentElement.classList.add("zl-scripted");
+		let box = document.querySelector(".zl-search");
+		if (!box) return;
+		let input = box.querySelector("input");
+		let status = box.querySelector(".zl-search-status");
+		let tiles = Array.prototype.slice.call(
+			document.querySelectorAll("[data-zl-tile]"));
+
+		let texts = {};
+		let json = document.getElementById("zl-texts");
+		if (json) {
+			try {
+				texts = JSON.parse(json.textContent);
+			} catch {
+				texts = {};
+			}
+		}
+		let norm = (value) => String(value).toLowerCase().replace(/\s+/g, " ");
+		let textOf = (tile) => {
+			let id = tile.getAttribute("data-zl-tile");
+			if (Object.prototype.hasOwnProperty.call(texts, id)) return texts[id];
+			let inner = tile.querySelector(".epub-paper-inner");
+			return inner ? inner.textContent : "";
+		};
+		let count = (text, query) => {
+			let n = 0;
+			for (let i = text.indexOf(query); i !== -1; i = text.indexOf(query, i + query.length)) n++;
+			return n;
+		};
+
+		// The marks a book's tiles carry are undone before the next query:
+		// each mark becomes text again, and neighbouring text nodes are
+		// joined, so that a phrase a mark had cut in two is whole for the
+		// next search. Done by hand rather than with splitText and
+		// normalize, so that the same function runs in the tests' DOM.
+		let unmark = () => {
+			for (let tile of tiles) {
+				tile.classList.remove("zl-miss");
+				tile.classList.remove("zl-current");
+				let badge = tile.querySelector(".zl-hit-count");
+				if (badge) badge.parentNode.removeChild(badge);
+				let marks = Array.prototype.slice.call(tile.querySelectorAll("mark.zl-hit"));
+				for (let mark of marks) {
+					let parent = mark.parentNode;
+					let text = document.createTextNode(mark.textContent);
+					parent.replaceChild(text, mark);
+					let prev = text.previousSibling;
+					let next = text.nextSibling;
+					let joined = (prev && prev.nodeType === 3 ? prev.nodeValue : "") +
+						text.nodeValue +
+						(next && next.nodeType === 3 ? next.nodeValue : "");
+					if (prev && prev.nodeType === 3) parent.removeChild(prev);
+					if (next && next.nodeType === 3) parent.removeChild(next);
+					parent.replaceChild(document.createTextNode(joined), text);
+				}
+			}
+		};
+		// Marks within one text node only, which is where a phrase lives:
+		// the node is replaced by its pieces, text and mark by turns
+		let markIn = (root, query) => {
+			let nodes = [];
+			let walk = (node) => {
+				for (let child of Array.prototype.slice.call(node.childNodes)) {
+					if (child.nodeType === 3) nodes.push(child);
+					else if (child.nodeType === 1) walk(child);
+				}
+			};
+			walk(root);
+			for (let node of nodes) {
+				let data = node.nodeValue;
+				let lower = data.toLowerCase();
+				let at = lower.indexOf(query);
+				if (at === -1) continue;
+				let parent = node.parentNode;
+				let from = 0;
+				while (at !== -1) {
+					if (at > from) {
+						parent.insertBefore(document.createTextNode(data.slice(from, at)), node);
+					}
+					let mark = document.createElement("mark");
+					mark.className = "zl-hit";
+					mark.textContent = data.slice(at, at + query.length);
+					parent.insertBefore(mark, node);
+					from = at + query.length;
+					at = lower.indexOf(query, from);
+				}
+				if (from < data.length) {
+					parent.insertBefore(document.createTextNode(data.slice(from)), node);
+				}
+				parent.removeChild(node);
+			}
+		};
+
+		let hits = [];
+		let at = -1;
+		let go = (index) => {
+			if (!hits.length) return;
+			at = (index + hits.length) % hits.length;
+			for (let tile of tiles) tile.classList.remove("zl-current");
+			hits[at].classList.add("zl-current");
+			if (hits[at].scrollIntoView) hits[at].scrollIntoView({ block: "center" });
+			status.textContent = at + 1 + " / " + hits.length;
+		};
+		let run = () => {
+			let query = norm(input.value).trim();
+			unmark();
+			hits = [];
+			at = -1;
+			if (!query) {
+				status.textContent = "";
+				return;
+			}
+			for (let tile of tiles) {
+				let n = count(norm(textOf(tile)), query);
+				if (!n) {
+					tile.classList.add("zl-miss");
+					continue;
+				}
+				hits.push(tile);
+				let label = tile.querySelector(".label, .epub-page-label");
+				if (label) {
+					let badge = document.createElement("span");
+					badge.className = "zl-hit-count";
+					badge.textContent = String(n);
+					label.appendChild(badge);
+				}
+				let inner = tile.querySelector(".epub-paper-inner");
+				if (inner) markIn(inner, query);
+			}
+			if (hits.length) go(0);
+			else status.textContent = labels.none;
+		};
+		input.addEventListener("input", run);
+		input.addEventListener("keydown", (event) => {
+			if (event.key === "Enter") {
+				event.preventDefault();
+				go(event.shiftKey ? at - 1 : at + 1);
+			}
+		});
+		document.addEventListener("keydown", (event) => {
+			if ((event.ctrlKey || event.metaKey) && String(event.key).toLowerCase() === "f") {
+				event.preventDefault();
+				input.focus();
+				if (input.select) input.select();
+			}
+		});
+	},
+
+	/**
+	 * The runtime, as the script the page carries.
+	 *
+	 * The source of a method written in shorthand begins with its name, not
+	 * with `function`, and wrapped in parentheses as it stands it is a syntax
+	 * error — which no test that calls the method directly can see. Hence the
+	 * word is put in front, and the test parses the script the page gets.
+	 */
+	searchScript() {
+		let labels = JSON.stringify({ pages: this.PAGES_LABEL, none: this.SEARCH_NONE })
+			.replace(/<\//g, "<\\/");
+		return (
+			"<script>\n(function " + this.searchRuntime.toString() + ")(document, " +
+			labels + ");\n</script>\n"
+		);
+	},
+
 	/** Heading of the annotations menu, likewise. */
 	ANNOTATIONS_LABEL: "Annotations",
 	/** "Page 12", the link an annotation entry carries. */
@@ -535,8 +793,8 @@ var zotLookSheet = {
 					this.scrollMargin(ratio, columns) + ';"'
 				: "";
 			body +=
-				'<div class="page" id="' + this.tileId(entry.page) + '"' + own +
-				">\n" + inner + "</div>\n\n";
+				'<div class="page" id="' + this.tileId(entry.page) + '" data-zl-tile="' +
+				entry.page + '"' + own + ">\n" + inner + "</div>\n\n";
 		}
 
 		let notice = spec.notice
@@ -626,15 +884,19 @@ var zotLookSheet = {
 			"    padding: 12px 0 0 0;\n" +
 			"}\n" +
 			this.MENU_CSS + "\n" +
+			this.SEARCH_CSS + "\n" +
 			"</style>\n" +
 			"</head>\n<body>\n" +
 			toc +
 			annotations +
+			this.searchBoxHtml() +
 			'<div class="grid">\n\n' +
 			body +
 			"</div>\n" +
 			notice +
+			this.textsHtml(pages) +
 			this.JUMP_SCRIPT +
+			this.searchScript() +
 			"</body>\n</html>"
 		);
 	},

@@ -100,6 +100,13 @@ where it scrolls under the keyboard and needs no system preview. A click hands
 over the same way everywhere: the reader opens at that page, and sheet and
 panel alike close behind the handoff.
 
+**The window can search.** A field in its top corner, also reached with
+Ctrl+F, takes a word or a phrase: pages without it are dimmed, pages with it
+show how often, the first is brought to the middle, and Enter walks on to the
+next. The text comes off the pages as the sheet is drawn, so a scan without a
+text layer has nothing to search. The system previews have no field, since
+they run no scripts; the sheet there is the same, minus the search.
+
 ### A page overview of a book
 
 The same shortcut on an EPUB gives a sheet too — which sounds impossible,
@@ -122,6 +129,8 @@ cuts the book at them and shows a page at a time.
   preview.
 - **The same two buttons** as on the PDF sheet: the book's navigation and its
   annotations, each entry a jump to the page's tile.
+- **The same search** in the window variant, and here the hits are marked
+  in the tiles themselves, since a tile is the page's own text.
 - **A book without printed page numbers says so.** Most trade fiction carries
   none, and nothing can invent one; a sheet of arbitrary slices would be worse
   than none. Academic publishers — Springer, O'Reilly, most textbooks — usually

@@ -129,6 +129,16 @@ a `:target` rule frames the tile, and a `scroll-margin-top` written as an
 expression of the window's width puts it in the middle of the window, since
 the tile's height on screen is not known when the sheet is written.
 
+The search field is the one thing that needs a script, so it is hidden until
+one has run: the sheet's own window runs scripts, the system previews do not,
+and there the field never appears. The render worker reads each page's text
+with pdf.js while it has the page in hand and the sheet carries it in a JSON
+block, with `</` escaped so a page that says `</script>` cannot close it; the
+EPUB sheet needs no block, its tiles are the text. The runtime is a plain
+function in `sheet.js`, handed the document — which is how the tests run it
+against linkedom — and it marks a book's hits by replacing a text node with
+its pieces, since `splitText` is not everywhere.
+
 A fragment link is a navigation, though, and in Zotero's own window that is one
 navigation too many. The sheet is a `file:` document in a browser that may
 switch process for it, and the click comes back out through the window's

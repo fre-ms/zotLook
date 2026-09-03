@@ -226,9 +226,24 @@ async function renderPage(doc, number, width, quality) {
 		type: "image/jpeg",
 		quality: quality,
 	});
+
+	// The page's text, for the search field of the windowed sheet: a few
+	// milliseconds on top of a render that took twenty, and nothing to
+	// search in a scan without a text layer, which comes back empty.
+	let text = "";
+	try {
+		let content = await page.getTextContent();
+		text = content.items
+			.map((item) => item.str || "")
+			.join(" ")
+			.replace(/\s+/g, " ")
+			.trim();
+	} catch {
+		// a page whose text cannot be read is still a page
+	}
 	page.cleanup();
 
-	return { height: height, buffer: await blob.arrayBuffer() };
+	return { height: height, buffer: await blob.arrayBuffer(), text: text };
 }
 
 /**
@@ -311,6 +326,7 @@ self.addEventListener("message", async (/** @type {MessageEvent} */ event) => {
 							page: number,
 							height: out.height,
 							buffer: out.buffer,
+							text: out.text,
 						},
 						[out.buffer]
 					);

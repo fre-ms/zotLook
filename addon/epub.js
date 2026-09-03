@@ -1153,8 +1153,22 @@ var zotLookEpub = Object.seal({
 			if (list) out.body.insertBefore(list, grid);
 		}
 
+		// The search field and the two scripts the sheet module writes for
+		// the PDF sheet: hidden and inert in a preview panel, alive in the
+		// sheet's own window. The tiles are the text, so no JSON is needed.
+		let search = zotLookUtil.parseStrict(
+			"<div>" + zotLookSheet.searchBoxHtml() + "</div>", "text/html");
+		let field = search && search.querySelector(".zl-search");
+		if (field) out.body.insertBefore(out.importNode(field, true), grid);
+		for (let source of [zotLookSheet.JUMP_SCRIPT, zotLookSheet.searchScript()]) {
+			let script = out.createElement("script");
+			script.textContent = source.replace(/^<script>\n?|<\/script>\n?$/g, "");
+			out.body.appendChild(script);
+		}
+
 		let base = out.createElement("style");
-		base.textContent = this.BASE_CSS + "\n" + this.SHEET_CSS;
+		base.textContent = this.BASE_CSS + "\n" + this.SHEET_CSS + "\n" +
+			zotLookSheet.SEARCH_CSS;
 		out.head.appendChild(base);
 		return zotLookUtil.serializeHtmlDocument(out);
 	},
@@ -1208,6 +1222,7 @@ var zotLookEpub = Object.seal({
 		let tile = out.createElement("div");
 		tile.className = "epub-page";
 		tile.setAttribute("id", this._tileId(index));
+		tile.setAttribute("data-zl-tile", String(index));
 
 		let paper = out.createElement("div");
 		paper.className = "epub-paper";

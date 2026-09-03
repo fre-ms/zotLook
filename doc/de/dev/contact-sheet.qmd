@@ -138,6 +138,18 @@ rahmt die Kachel, und ein `scroll-margin-top`, geschrieben als Ausdruck der
 Fensterbreite, setzt sie in die Mitte des Fensters, denn die Höhe der Kachel
 auf dem Bildschirm ist beim Schreiben des Bogens nicht bekannt.
 
+Das Suchfeld ist das eine, das ein Skript braucht, deshalb bleibt es
+verborgen, bis eines gelaufen ist: Das eigene Fenster des Bogens führt Skripte
+aus, die Systemvorschauen nicht, und dort erscheint das Feld nie. Der
+Render-Worker liest den Text jeder Seite mit pdf.js, solange er die Seite in
+der Hand hat, und der Bogen trägt ihn in einem JSON-Block, mit maskiertem
+`</`, damit eine Seite, die `</script>` sagt, ihn nicht schließen kann; die
+EPUB-Übersicht braucht keinen Block, ihre Kacheln sind der Text. Die Laufzeit
+ist eine gewöhnliche Funktion in `sheet.js`, der das Dokument übergeben wird
+— so laufen die Tests sie gegen linkedom —, und sie markiert die Treffer eines
+Buches, indem sie einen Textknoten durch seine Stücke ersetzt, denn
+`splitText` gibt es nicht überall.
+
 Ein Fragment-Link ist allerdings eine Navigation, und in Zoteros eigenem
 Fenster ist das eine zu viel. Der Bogen ist ein `file:`-Dokument in einem
 Browser, der dafür den Prozess wechseln darf, und der Klick kommt über den

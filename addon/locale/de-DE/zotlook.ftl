@@ -95,6 +95,11 @@ zotlook-sheet-note = Notiz
 zotlook-sheet-image = Bild
 zotlook-sheet-ink = Freihand
 zotlook-sheet-text = Text
+# Das Suchfeld einer Übersicht im eigenen Fenster: Platzhalter, die Antwort
+# ohne Treffer und die Einheit neben der Zahl der Seiten mit Treffern
+zotlook-sheet-search = Seiten durchsuchen
+zotlook-sheet-search-none = Keine Treffer
+zotlook-sheet-pages = Seiten
 
 zotlook-prefs-keep-title = Zwischengespeicherte Vorschauen
 

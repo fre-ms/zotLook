@@ -564,7 +564,8 @@ const ANNOTATIONS = [
 
   eq(made.map(w => w.posted[0].outline), [true, false, false, false],
      'one renderer is asked for the outline, and only one');
-  ok(html.includes('<div class="page" id="p1">'), 'every tile carries an id');
+  ok(html.includes('<div class="page" id="p1" data-zl-tile="1">'),
+     'every tile carries an id, and says which page it is');
   ok(/<details class="zl-toc"><summary>Contents<\/summary>/.test(html),
      'the contents menu is there');
   ok(/<li class="zl-toc-level0"><a href="#p1">Introduction<\/a>/.test(html)

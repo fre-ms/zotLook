@@ -107,6 +107,14 @@ Zotero-Fenster — dort blättert er unter der Tastatur und braucht keine
 Systemvorschau. Ein Klick übergibt überall gleich: Der Reader öffnet auf der
 Seite, und Bogen wie Vorschau schließen sich hinter der Übergabe.
 
+**Das Fenster kann suchen.** Ein Feld in seiner oberen Ecke, auch mit Strg+F
+zu erreichen, nimmt ein Wort oder eine Wendung: Seiten ohne sie werden
+abgeblendet, Seiten mit ihr zeigen, wie oft, die erste wird in die Mitte
+geholt, und Enter geht zur nächsten. Der Text wird beim Zeichnen von den
+Seiten gelesen; ein Scan ohne Textebene hat also nichts zu durchsuchen. Die
+Systemvorschauen haben kein Feld, weil sie keine Skripte ausführen; der Bogen
+dort ist derselbe, nur ohne die Suche.
+
 ### Die Seitenübersicht eines Buches
 
 Dasselbe Kürzel liefert auch für ein EPUB einen Bogen — was unmöglich klingt,
@@ -130,6 +138,8 @@ ihnen und zeigt es Seite für Seite.
   EPUB-Vorschau.
 - **Dieselben zwei Knöpfe** wie auf dem PDF-Bogen: die Navigation des Buches
   und seine Annotationen, jeder Eintrag ein Sprung zur Kachel der Seite.
+- **Dieselbe Suche** in der Fenster-Variante, und hier werden die Treffer in
+  den Kacheln selbst markiert, denn eine Kachel ist der Text der Seite.
 - **Ein Buch ohne gedruckte Seitenzahlen sagt das.** Belletristik führt meist
   keine, und erfinden lässt sich keine; ein Bogen aus willkürlichen Abschnitten
   wäre schlechter als keiner. Wissenschaftliche Verlage — Springer, O'Reilly,

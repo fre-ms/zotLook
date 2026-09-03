@@ -113,6 +113,9 @@ var zotLook = Object.seal({
 		"zotlook-sheet-image",
 		"zotlook-sheet-ink",
 		"zotlook-sheet-text",
+		"zotlook-sheet-search",
+		"zotlook-sheet-search-none",
+		"zotlook-sheet-pages",
 	],
 
 	L10N_FILE: "zotlook.ftl",
@@ -2026,6 +2029,7 @@ var zotLook = Object.seal({
 							manifest.pages.push({
 								page: message.page,
 								height: message.height,
+								text: message.text || "",
 							});
 						} catch (e) {
 							this.log(
@@ -2347,6 +2351,18 @@ var zotLook = Object.seal({
 			zotLookSheet.PAGE_LABEL = this._string(
 				"zotlook-sheet-page",
 				zotLookSheet.PAGE_LABEL
+			);
+			zotLookSheet.SEARCH_LABEL = this._string(
+				"zotlook-sheet-search",
+				zotLookSheet.SEARCH_LABEL
+			);
+			zotLookSheet.SEARCH_NONE = this._string(
+				"zotlook-sheet-search-none",
+				zotLookSheet.SEARCH_NONE
+			);
+			zotLookSheet.PAGES_LABEL = this._string(
+				"zotlook-sheet-pages",
+				zotLookSheet.PAGES_LABEL
 			);
 			// One call each rather than a loop, so that the ids can be read
 			// off the source — which is how they are checked
