@@ -9,6 +9,28 @@ with. This text is the source of the release notes on GitHub and of
 `CHANGELOG.md` in the repository. Versions are the plugin's own; a date is
 the day the release was published.
 
+## 1.5.0 — 2026-09-03 {#v1-5-0 .unnumbered}
+
+The sheet in its own Zotero window can search and answers the keyboard.
+
+- **Search.** A field in the top corner; Ctrl+F reaches it. Pages without
+  the word are dimmed, pages with it show how often, the first is framed in
+  the middle, and Enter walks on. For a PDF the text is read off the pages as
+  the sheet is drawn; in a book's overview the hits are marked in the tiles.
+- **Keyboard.** Enter frames the next page and Shift+Enter the previous, the
+  arrows move the frame across the grid, o or Ctrl+Enter opens the framed
+  page in the reader, and c and a open the contents and the annotations,
+  where the arrows walk the entries and Enter follows one. Page Up and Page
+  Down scroll, as before.
+- The system previews are as they were: they run no scripts, so they show no
+  field and answer no keys.
+- Update checks go to zotlook.org from this version on; the update itself
+  still comes from GitHub. The privacy page says what that means.
+
+**Requires** Zotero 10. macOS 12+, or Linux with GNOME Sushi, or Windows with
+QuickLook running.
+
+
 ## 1.4.1 — 2026-09-03 {#v1-4-1 .unnumbered}
 
 Two fixes for the sheet in its own Zotero window, both found on GNOME.

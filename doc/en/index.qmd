@@ -200,7 +200,7 @@ and *let me actually look at it* — and sit well side by side.
   "applicationCategory": "ResearchApplication",
   "operatingSystem": "macOS, Windows, Linux",
   "programmingLanguage": "JavaScript",
-  "softwareVersion": "1.4.1",
+  "softwareVersion": "1.5.0",
   "license": "https://opensource.org/license/mit",
   "author": [
     {
