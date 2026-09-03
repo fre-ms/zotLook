@@ -147,12 +147,18 @@ var zotLookSheet = {
 	 * The frame is a cursor. Enter moves it to the next page — the first, on
 	 * the first press — or, with a search in the field, to the next hit;
 	 * Shift+Enter back; the arrows move it across the grid, a row at a time
-	 * up and down. o, or Ctrl/⌘+Enter, opens the framed page in the reader,
+	 * up and down. With a search the arrows keep their directions: left and
+	 * right go hit by hit, up and down to the nearest row above or below that
+	 * has a hit, closest column first — walking the hits in reading order on
+	 * every arrow made up and down feel like sideways, which is what was
+	 * reported. o, or Ctrl/⌘+Enter, opens the framed page in the reader,
 	 * which is a click on its link, so the window closes on the handoff as
 	 * it does for the mouse. c and a open the contents and the annotations,
 	 * where the arrows walk the entries and Enter or o follows one. Page Up
 	 * and Page Down are left to the browser: they scroll. In the field, a
-	 * letter is typing and the arrows left and right move the caret.
+	 * letter is typing and the arrows left and right move the caret; Enter
+	 * there walks on and hands the keyboard back to the page, so that the
+	 * next o opens rather than types, and Ctrl+F is the way back in.
 	 *
 	 * @param {Document} document
 	 * @param {{pages: string, none: string}} labels
@@ -293,6 +299,48 @@ var zotLookSheet = {
 			}
 			return n || 1;
 		};
+		// Up and down under a search: the nearest row in that direction that
+		// holds a hit, and in it the hit nearest the column the frame is in;
+		// round the end, the first or the last such row. The hits are in
+		// reading order, so a row's hits sit together in the list.
+		let stepRow = (dir) => {
+			sync();
+			let items = current();
+			if (!items.length) return;
+			if (at < 0) {
+				frame(dir > 0 ? 0 : -1);
+				return;
+			}
+			let n = columns();
+			let rowOf = (tile) => Math.floor(tiles.indexOf(tile) / n);
+			let colOf = (tile) => tiles.indexOf(tile) % n;
+			let row = rowOf(items[at]);
+			let col = colOf(items[at]);
+			let nearer = (a, b) => (dir > 0 ? a < b : a > b);
+			let target = null;
+			for (let i = 0; i < items.length; i++) {
+				let r = rowOf(items[i]);
+				if (dir > 0 ? r <= row : r >= row) continue;
+				if (target === null || nearer(r, target)) target = r;
+			}
+			if (target === null) {
+				for (let i = 0; i < items.length; i++) {
+					let r = rowOf(items[i]);
+					if (target === null || nearer(r, target)) target = r;
+				}
+			}
+			let best = -1;
+			let distance = Infinity;
+			for (let i = 0; i < items.length; i++) {
+				if (rowOf(items[i]) !== target) continue;
+				let d = Math.abs(colOf(items[i]) - col);
+				if (d < distance) {
+					distance = d;
+					best = i;
+				}
+			}
+			if (best >= 0) frame(best);
+		};
 		let click = (el) => {
 			if (typeof el.click === "function") {
 				el.click();
@@ -413,6 +461,10 @@ var zotLookSheet = {
 				event.preventDefault();
 				if (menu) follow();
 				else step(event.shiftKey ? -1 : 1);
+				// Enter in the field hands the keyboard back to the page:
+				// what follows is navigation, not typing — o opens, the
+				// arrows move — and Ctrl+F is the way back into the field
+				if (inField && typeof input.blur === "function") input.blur();
 				return;
 			}
 			let vertical = key === "ArrowDown" || key === "ArrowUp";
@@ -425,8 +477,12 @@ var zotLookSheet = {
 					highlight(menu, menuAt + (forward ? 1 : -1));
 					return;
 				}
-				let stride = horizontal || hits ? 1 : columns();
-				step(forward ? stride : -stride);
+				if (horizontal || !hits) {
+					let stride = horizontal ? 1 : columns();
+					step(forward ? stride : -stride);
+					return;
+				}
+				stepRow(forward ? 1 : -1);
 				return;
 			}
 			if (inField) return;                     // letters are typing

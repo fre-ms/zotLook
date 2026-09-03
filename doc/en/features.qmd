@@ -112,14 +112,16 @@ they run no scripts; the sheet there is the same, minus the search.
 | Key | Does |
 |---|---|
 | **Enter** | frames the next page — the first, on the first press — or, with a search, the next hit; **Shift+Enter** goes back |
-| **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, between the hits |
+| **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, left and right go hit by hit, and up and down to the nearest row above or below that has a hit |
 | **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it |
 | **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** or **o** follows one, the same letter closes the menu |
 | **Page Up** / **Page Down** | scroll, as before |
 | **Space**, **q**, **Escape** | close the window |
 
 In the search field a letter is typing, and the left and right arrows move
-the caret; Enter and the up and down arrows work there as they do outside it.
+the caret; the up and down arrows work there as they do outside it. Enter
+walks on to the next hit and hands the keyboard back to the page, so the next
+**o** opens rather than types; **Ctrl+F** is the way back into the field.
 
 ### A page overview of a book
 

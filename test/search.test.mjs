@@ -174,6 +174,48 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
   inField('ArrowDown'); eq(framed(), 4, 'the down arrow in the field still moves the frame, a row down');
 }
 
+// ── under a search the arrows keep their directions ───────────────────
+// Walking the hits in reading order on every arrow made up and down feel
+// like sideways, which is what was reported from Windows. Left and right go
+// hit by hit; up and down go to the nearest row in that direction that has
+// a hit, closest column first, and round the end.
+{
+  const texts = ['alpha', 'alpha', 'beta', 'beta', 'alpha', 'beta'];
+  const html3 = S.html({
+    pages: texts.map((text, i) => ({ page: i + 1, height: 700, text })),
+    columns: 3, width: 500, imageDir: 'pages', pageCount: 6,
+    linkBase: 'zotero://open-pdf/library/items/ABCD1234',
+  });
+  const doc = new DOMParser().parseFromString(html3, 'text/html');
+  S.sheetRuntime(doc, LABELS);
+  const framed = () => [...doc.querySelectorAll('.page')].findIndex((t) => t.classList.contains('zl-current')) + 1;
+  const input = doc.querySelector('.zl-search input');
+  let blurred = 0;
+  input.blur = () => { blurred++; };
+  const press = (target, key, extra = {}) =>
+    target.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key, ...extra }));
+
+  type(doc, 'alpha');
+  eq(framed(), 1, 'the search frames the first hit: pages 1, 2 and 5 match');
+
+  press(doc.body, 'ArrowDown');  eq(framed(), 5, 'down goes to the row below, to the hit nearest the column');
+  press(doc.body, 'ArrowUp');    eq(framed(), 2, 'up goes back to the row above, nearest column first');
+  press(doc.body, 'ArrowRight'); eq(framed(), 5, 'right goes hit by hit');
+  press(doc.body, 'ArrowLeft');  eq(framed(), 2, 'and left back');
+  press(doc.body, 'ArrowDown');  eq(framed(), 5, 'down again');
+  press(doc.body, 'ArrowDown');  eq(framed(), 2, 'and round the end to the first row with a hit');
+  press(doc.body, 'ArrowUp');    eq(framed(), 5, 'up round the end to the last');
+
+  // Enter in the field walks on and hands the keyboard back to the page
+  press(input, 'Enter');
+  eq(framed(), 1, 'Enter in the field walks to the next hit');
+  eq(blurred, 1, 'and leaves the field, so the next key is navigation');
+  let opened = [];
+  doc.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('a[href]'); if (a) opened.push(a.getAttribute('href')); });
+  press(doc.body, 'o');
+  eq(opened, ['zotero://open-pdf/library/items/ABCD1234?page=1'], 'so that o opens the framed page');
+}
+
 // ── the EPUB sheet: the tiles are the text, and the hits are marked ───
 {
   const { zotLookEpub: E, zotLookUtil: U } = bookPlugin;

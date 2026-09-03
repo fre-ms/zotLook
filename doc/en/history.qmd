@@ -18,10 +18,12 @@ The sheet in its own Zotero window can search and answers the keyboard.
   the middle, and Enter walks on. For a PDF the text is read off the pages as
   the sheet is drawn; in a book's overview the hits are marked in the tiles.
 - **Keyboard.** Enter frames the next page and Shift+Enter the previous, the
-  arrows move the frame across the grid, o or Ctrl+Enter opens the framed
-  page in the reader, and c and a open the contents and the annotations,
-  where the arrows walk the entries and Enter follows one. Page Up and Page
-  Down scroll, as before.
+  arrows move the frame across the grid — under a search, left and right go
+  hit by hit and up and down to the nearest row with a hit — o or Ctrl+Enter
+  opens the framed page in the reader, and c and a open the contents and the
+  annotations, where the arrows walk the entries and Enter follows one. Enter
+  in the search field walks on and hands the keyboard back to the page. Page
+  Up and Page Down scroll, as before.
 - The system previews are as they were: they run no scripts, so they show no
   field and answer no keys.
 - Update checks go to zotlook.org from this version on; the update itself

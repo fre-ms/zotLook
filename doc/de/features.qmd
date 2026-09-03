@@ -120,14 +120,16 @@ dort ist derselbe, nur ohne die Suche.
 | Taste | Wirkung |
 |---|---|
 | **Enter** | rahmt die nächste Seite, beim ersten Druck die erste, oder mit einer Suche den nächsten Treffer; **Umschalt+Enter** geht zurück |
-| **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche zwischen den Treffern |
+| **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche gehen links und rechts trefferweise, auf und ab zur nächsten Zeile darüber oder darunter, die einen Treffer hat |
 | **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
 | **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** oder **o** folgt einem, derselbe Buchstabe schließt das Menü |
 | **Bild auf** / **Bild ab** | blättern, wie bisher |
 | **Leertaste**, **q**, **Escape** | schließen das Fenster |
 
 Im Suchfeld ist ein Buchstabe Tippen, und die Pfeile links und rechts bewegen
-die Schreibmarke; Enter und die Pfeile auf und ab wirken dort wie außerhalb.
+die Schreibmarke; die Pfeile auf und ab wirken dort wie außerhalb. Enter geht
+zum nächsten Treffer und gibt die Tastatur an die Seite zurück, sodass das
+nächste **o** öffnet statt zu tippen; **Strg+F** führt zurück ins Feld.
 
 ### Die Seitenübersicht eines Buches
 

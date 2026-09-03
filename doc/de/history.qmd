@@ -20,10 +20,12 @@ Tastatur.
   Text beim Zeichnen von den Seiten gelesen; in der Übersicht eines Buches
   werden die Treffer in den Kacheln markiert.
 - **Tastatur.** Enter rahmt die nächste Seite, Umschalt+Enter die vorige, die
-  Pfeile bewegen den Rahmen im Raster, o oder Strg+Enter öffnet die gerahmte
-  Seite im Reader, und c und a öffnen Inhalt und Annotationen, wo die Pfeile
-  durch die Einträge wandern und Enter einem folgt. Bild auf und Bild ab
-  blättern wie bisher.
+  Pfeile bewegen den Rahmen im Raster — bei einer Suche gehen links und rechts
+  trefferweise, auf und ab zur nächsten Zeile mit Treffer —, o oder Strg+Enter
+  öffnet die gerahmte Seite im Reader, und c und a öffnen Inhalt und
+  Annotationen, wo die Pfeile durch die Einträge wandern und Enter einem
+  folgt. Enter im Suchfeld geht weiter und gibt die Tastatur an die Seite
+  zurück. Bild auf und Bild ab blättern wie bisher.
 - Die Systemvorschauen bleiben, wie sie waren: Sie führen keine Skripte aus,
   zeigen also kein Feld und antworten auf keine Taste.
 - Update-Anfragen gehen ab dieser Version an zotlook.org; das Update selbst
