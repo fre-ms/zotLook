@@ -6,6 +6,32 @@ with. This text is the source of the release notes on GitHub and of
 `CHANGELOG.md` in the repository. Versions are the plugin's own; a date is
 the day the release was published.
 
+## 1.4.1 — 2026-09-03
+
+Two repairs to the sheet in its own Zotero window, both found on GNOME.
+
+**A menu entry jumps without a dialog.** Following an entry of the contents
+or the annotations menu in the windowed sheet raised a dialog asking which
+application should handle file links: a menu entry is a fragment link, a
+fragment link is a navigation, and the window's browser shim turned that
+navigation into a file for something to open. The click is now answered
+instead — the sheet scrolls to the tile and marks it as the jump would have
+— and the address never changes. Where scripts do not run, as in the system
+previews, the entries are the plain anchors they were and jump as before. A
+page tile's link still leads to the reader, since that navigation is the
+point of it.
+
+**The window closes again when it hands over.** A click on a page opens the
+reader, and the sheet's window is meant to close behind it; it had stopped
+doing so, because it decided whether the reader was its own doing by who
+held the keyboard — and the window Gecko opens for a page link takes the
+keyboard first. The sheet now knows which attachment it was drawn from, and
+a reader opening for that attachment is its own handoff, whoever holds the
+keyboard. A reader opening for anything else leaves the window standing.
+
+**Requires** Zotero 10 — the version zotLook is developed and tested against.
+macOS 12+, or Linux with GNOME Sushi, or Windows with QuickLook running.
+
 ## 1.4.0 — 2026-09-02
 
 The contact sheet gets the two buttons the EPUB preview has: the document's

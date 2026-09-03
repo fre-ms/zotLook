@@ -9,6 +9,36 @@ veröffentlicht wurde. Die englische Fassung dieser Seite ist die Quelle der
 Freigabe-Notizen auf GitHub und der `CHANGELOG.md` im Repository. Versionen
 sind die des Plugins; ein Datum ist der Tag der Veröffentlichung.
 
+## 1.4.1 — 2026-09-03 {#v1-4-1 .unnumbered}
+
+Zwei Reparaturen am Bogen in seinem eigenen Zotero-Fenster, beide unter GNOME
+gefunden.
+
+**Ein Menüeintrag springt ohne Dialog.** Einem Eintrag des Inhalts- oder des
+Annotationsmenüs im Bogen im Fenster zu folgen, öffnete einen Dialog mit der
+Frage, welche Anwendung Dateilinks behandeln soll: Ein Menüeintrag ist ein
+Fragment-Link, ein Fragment-Link ist eine Navigation, und die Browser-Hülle
+des Fensters machte aus dieser Navigation eine Datei, die etwas öffnen sollte.
+Der Klick wird jetzt beantwortet statt navigiert — der Bogen rollt zur Kachel
+und markiert sie, wie es der Sprung getan hätte —, und die Adresse ändert sich
+nie. Wo keine Skripte laufen, wie in den Systemvorschauen, sind die Einträge
+die schlichten Anker, die sie waren, und springen wie zuvor. Der Link einer
+Seitenkachel führt weiterhin zum Reader, denn diese Navigation ist sein Zweck.
+
+**Das Fenster schließt sich wieder bei der Übergabe.** Ein Klick auf eine
+Seite öffnet den Reader, und das Fenster des Bogens soll sich dahinter
+schließen; das tat es nicht mehr, weil es daran, wer die Tastatur hielt,
+entschied, ob der Reader sein eigenes Werk war — und das Fenster, das Gecko
+für einen Seitenlink öffnet, nimmt die Tastatur zuerst. Der Bogen weiß jetzt,
+aus welchem Anhang er gezeichnet wurde, und ein Reader, der sich für diesen
+Anhang öffnet, ist seine eigene Übergabe, wer auch immer die Tastatur hält.
+Ein Reader, der sich für etwas anderes öffnet, lässt das Fenster stehen.
+
+**Voraussetzung:** Zotero 10 — die Version, für die zotLook entwickelt und
+getestet wird. macOS 12 oder neuer, oder Linux mit GNOME Sushi, oder Windows
+mit laufendem QuickLook.
+
+
 ## 1.4.0 — 2026-09-02 {#v1-4-0 .unnumbered}
 
 Der Kontaktbogen bekommt die beiden Knöpfe der EPUB-Vorschau: in einer Ecke
