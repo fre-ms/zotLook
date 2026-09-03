@@ -9,7 +9,7 @@ veröffentlicht wurde. Die englische Fassung dieser Seite ist die Quelle der
 Freigabe-Notizen auf GitHub und der `CHANGELOG.md` im Repository. Versionen
 sind die des Plugins; ein Datum ist der Tag der Veröffentlichung.
 
-## 1.5.0 — 2026-09-03 {#v1-5-0 .unnumbered}
+## 1.5.1 — 2026-09-04 {#v1-5-1 .unnumbered}
 
 Der Bogen in seinem eigenen Zotero-Fenster kann suchen und gehorcht der
 Tastatur.
