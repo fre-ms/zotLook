@@ -48,621 +48,229 @@ Sushi, oder Windows mit laufendem QuickLook.
 
 ## 1.3.4 — 2026-09-02 {#v1-3-4 .unnumbered}
 
-Innere Härtung. Für Leserinnen und Leser ändert sich nichts; dies ist die
-Freigabe, hinter der die eigenen Prüfungen des Plugins nun stehen.
+Innere Härtung; für Nutzerinnen und Nutzer ändert sich nichts.
 
-**Die Module sind geschlossen.** Jedes der vier Module des Plugins ist
-versiegelt oder eingefroren, und drei Felder, die früher erst bei der ersten
-Verwendung entstanden, sind deklariert. Das lässt den Typprüfer — der jetzt in
-`npm test` läuft — einen falsch geschriebenen Methodennamen überall im Plugin
-sehen, den Fehler, den er vorher nicht sehen konnte.
+- Die vier Module sind versiegelt oder eingefroren, und der Typprüfer läuft
+  jetzt in `npm test`. Ein falsch geschriebener Methodenname fällt auf, bevor
+  er ausgeliefert wird.
+- Ein Einstellungsaufruf verliert zwei Argumente, die Zotero 7 nicht mehr
+  liest. Zwei falsche Kommentare berichtigt.
 
-**Ein Aufruf der Einstellungen verliert zwei Argumente**, die er seit
-XPCOM-Zeiten mitführte und die seit Zotero 7 ignoriert werden. Kommentare,
-die zwei Funktionen das Gegenteil dessen zuschrieben, was sie zurückgeben,
-sind berichtigt.
-
-**Voraussetzung:** Zotero 10 — die Version, für die zotLook entwickelt und
-getestet wird. macOS 12 oder neuer, oder Linux mit GNOME Sushi, oder Windows
-mit laufendem QuickLook.
+**Voraussetzung:** Zotero 10. macOS 12 oder neuer, oder Linux mit GNOME
+Sushi, oder Windows mit laufendem QuickLook.
 
 ## 1.3.3 — 2026-09-02 {#v1-3-3 .unnumbered}
 
-Nacharbeiten an der Windows-Vorschau.
+Nacharbeiten für Windows.
 
-- Die Vorschauen von QuickLook und GNOME Sushi schließen sich jetzt, wenn Sie
-  eine Seite des Kontaktbogens anklicken, und öffnen dahinter den Reader — wie
-  es der Bogen im Fenster schon tat.
-- EPUB-Seitenlinks zielen auf genau die Position, die der Reader für jede
-  Seite führt. Fällt die Marke einer Seite mitten in eine Spalte, nennt
-  Zoteros Seitenmodus die umgebende Seite (seine eigene Seitennavigation tut
-  dasselbe); der Scroll-Modus landet exakt.
+- Die Vorschauen von QuickLook und GNOME Sushi schließen sich beim Klick auf
+  eine Seite des Kontaktbogens, und der Reader öffnet dahinter, wie beim
+  Bogen im Fenster schon.
+- EPUB-Seitenlinks landen auf der Position, die der Reader für die Seite
+  führt. Im Seitenmodus zeigt eine Marke mitten in der Spalte die Seite der
+  Spalte; der Scroll-Modus landet genau.
 
-Der macOS-Build trägt den signierten qlpreview-Helfer. Windows und Linux
-brauchen kein mitgeliefertes Binärprogramm.
+Der macOS-Build enthält den signierten qlpreview-Helfer; Windows und Linux
+brauchen kein Binärprogramm.
 
 ## 1.3.2 — 2026-09-01 {#v1-3-2 .unnumbered}
 
-Vor allem Linux — und eine Änderung am Kontaktbogen im Fenster.
+Vor allem Linux, und eine Änderung am Bogen im Fenster.
 
-**Escape schließt eine Sushi-Vorschau aus Zotero heraus.** In dem Moment, in
-dem eine Vorschau aufgeht, übergibt GNOME ihr die Tastatur, und Sushi antwortet
-nur auf seine eigenen Tasten: Leertaste, Escape und q schließen es, die Pfeile
-sind seine Kürzel, und eine Kombination, die es nicht kennt, fällt unter den
-Tisch. Kein Plugin kann eine Taste hören, die der Compositor jemand anderem
-gegeben hat, also antwortet zotLook dort gut, wo es hört: Escape in Zotero
-schickt Sushi jetzt sein eigenes Close über den Bus, und die Dokumentation sagt
-klar, welche Tasten nie ankommen.
+- **Escape schließt eine Sushi-Vorschau aus Zotero.** GNOME gibt der Vorschau
+  die Tastatur, Zoteros Tasten erreichen sie nicht; Escape in Zotero schickt
+  Sushi jetzt seinen eigenen Schließen-Befehl. Die Doku sagt, welche Tasten
+  nie ankommen.
+- **Pfeiltasten in der Vorschau wandern durch die Trefferliste,** wie in
+  GNOMEs Dateien, und die Vorschau zieht nach, sobald die Tasten ruhen. Eine
+  Einstellung.
+- **Der Bogen im Fenster schließt sich bei der Übergabe** an den Reader, wie
+  die Systemvorschauen.
+- **Leertaste oder q schließt den Bogen im Fenster,** wie beides Sushi und
+  QuickLook schließt.
 
-**Pfeiltasten wandern aus der Vorschau heraus durch die Trefferliste,** so wie
-GNOMEs Dateien durch einen Ordner wandert. Sushi legt jeden Pfeildruck auf den
-Bus, und zotLook hört zu: Die Auswahl bewegt sich sofort, und die Vorschau zieht
-nach, sobald die Tasten zur Ruhe kommen — eine gehaltene Pfeiltaste ist so eine
-Vorschau statt eines Sturms davon, und auf einer Bibliothek mit Laden bei Bedarf
-gibt es keinen Download je Zeile. Es ist eine Einstellung, denn ob Pfeile das
-überhaupt tun sollen, ist Geschmackssache.
-
-**Der Kontaktbogen im Fenster schließt sich bei der Übergabe.** Ein Klick auf
-eine Seite öffnete den Reader hinter dem Fenster, das davor stehen blieb. Neben
-dem Reader zu stehen war der erklärte Daseinszweck des Fensters gewesen, und
-das Gegenteil erwies sich als das richtige Verhalten — die Systemvorschau
-schloss sich bei der Übergabe ohnehin schon. Jetzt tut es das Fenster auch, auf
-jedem Weg.
-
-**Sein eigenes Fenster antwortet auf die Tasten der Vorschau.** Eine bloße
-Leertaste oder ein q schließt den Bogen im Fenster, wie beides Sushi und
-QuickLook schließt — außerhalb von Kombinationen mit Modifikatoren und von
-Eingabefeldern.
-
-**Voraussetzung:** Zotero 10 — die Version, für die zotLook entwickelt und
-getestet wird. macOS 12 oder neuer, oder Linux mit GNOME Sushi, oder Windows
-mit laufendem QuickLook.
+**Voraussetzung:** Zotero 10. macOS 12 oder neuer, oder Linux mit GNOME
+Sushi, oder Windows mit laufendem QuickLook.
 
 ## 1.3.1 — 2026-09-01 {#v1-3-1 .unnumbered}
 
-Korrekturen an der Windows-Vorschau, und die Kürzel schließen jetzt, was sie
-öffnen.
+Korrekturen für Windows, und die Kürzel schließen, was sie öffnen.
 
-**Zwischengespeicherte Vorschauen überleben unter Windows einen Neustart.**
-Sie waren in Zoteros eigenes Temp-Verzeichnis geschrieben worden, das Zotero
-bei jedem Beenden leert — Kontaktbogen und EPUB-Vorschau wurden also jedes Mal
-von vorn gebaut, und die Einstellungen meldeten stets 0 B.
+- Zwischengespeicherte Vorschauen überleben unter Windows einen Neustart. Sie
+  lagen in Zoteros Temp-Verzeichnis, das Zotero beim Beenden leert.
+- Ein Eintrag mit schreibgeschützten EPUB-Dateien lässt sich unter Windows
+  löschen.
+- Escape oder das Kürzel ein zweites Mal schließt die QuickLook-Vorschau und
+  den Bogen im Fenster. Eine aus dem Kontextmenü geöffnete Vorschau nimmt
+  Zotero nicht mehr die Tastatur.
 
-**Ein Eintrag, dessen EPUB-Dateien schreibgeschützt waren, lässt sich
-entfernen.** Unter Windows blieb ein solcher Eintrag für immer liegen; das
-Schreibrecht wird zurückgesetzt, bevor der Eintrag gelöscht wird.
+Keine neuen Funktionen, keine Einstellungen zu prüfen.
 
-**Escape und das Kürzel schließen die Vorschau.** Das Kürzel ein zweites Mal,
-oder Escape, schließt jetzt die QuickLook-Vorschau und den Kontaktbogen im
-Fenster, von jedem Weg aus, der eine öffnen kann — und eine aus dem Kontextmenü
-geöffnete Vorschau nimmt Zotero nicht mehr die Tastatur. Der Bogen im Fenster
-schließt sich über seinen eigenen Befehl statt über die Referenz, die das
-Plugin hält, und übersteht so auch das verirrte Entladen, das das Fenster beim
-Laden auslöst.
-
-Sonst ändert sich nichts. Es gibt keine neuen Funktionen und keine
-Einstellungen, die neu zu bedenken wären.
-
-**Voraussetzung:** Zotero 10 — die Version, für die zotLook entwickelt und
-getestet wird. macOS 12 oder neuer, oder Linux mit GNOME Sushi, oder Windows
-mit laufendem QuickLook.
+**Voraussetzung:** Zotero 10. macOS 12 oder neuer, oder Linux mit GNOME
+Sushi, oder Windows mit laufendem QuickLook.
 
 ## 1.3.0 — 2026-08-30 {#v1-3-0 .unnumbered}
 
-### Eine Seitenübersicht für Bücher {.unnumbered}
+**Eine Seitenübersicht für Bücher.** Strg+Umschalt+Leertaste auf einem EPUB
+liefert jetzt einen Kontaktbogen. Ein umfließendes Buch hat keine eigenen
+Seiten, aber ein Buch, das neben einer Druckausgabe erscheint, führt meist
+deren Seitenmarken mit, und der Bogen schneidet das Buch an ihnen.
 
-`Strg+Umschalt+Leertaste` auf einem EPUB liefert jetzt einen Kontaktbogen, was
-unmöglich klingt: Ein umfließendes Buch hat keine Seiten. Eigene hat es keine.
-Aber ein Buch, das neben einer gedruckten Ausgabe erscheint, führt deren
-Paginierung meist mit — im Text markiert, in der Navigation gelistet —, damit
-ein Zitat auf Seite 212 weiterhin etwas bedeutet. Wo diese Marken stehen,
-schneidet zotLook das Buch an ihnen und zeigt es Seite für Seite.
+- Jede Kachel ist der Text der Seite in der Typografie des Buches,
+  verkleinert.
+- Ein Klick öffnet das Buch an dieser Seite in Zoteros Reader.
+- Annotationen sind eingezeichnet.
+- Ein Buch ohne gedruckte Seitenzahlen sagt das.
 
-- Jede Kachel ist der Text genau dieser Seite in der Typografie des Buches,
-  verkleinert statt neu gesetzt, sodass Zeilenumbrüche und Proportionen die
-  des Buches sind.
-- Ein Klick auf eine Seite öffnet das Buch an ihr in Zoteros Reader, wie es
-  die Miniaturen des PDF-Bogens tun.
-- Annotationen sind eingezeichnet, wie auf dem PDF-Bogen und in der
-  EPUB-Vorschau.
-- Ein Buch ohne gedruckte Seitenzahlen sagt das, statt willkürliche Abschnitte
-  zu zeigen. Belletristik führt meist keine; Springer, O'Reilly und die
-  meisten Lehrbücher schon.
-
-Der Bogen läuft durch denselben Speicher wie die EPUB-Vorschau, überlebt also
-Neustarts und wird mit allem anderen geleert und nach Alter verworfen. Sonst
-ändert sich am Plugin nichts.
+Der Bogen wird wie die EPUB-Vorschau zwischengespeichert und überlebt
+Neustarts.
 
 **Voraussetzung:** Zotero 7 oder neuer. macOS 12 oder neuer, oder Linux mit
 GNOME Sushi, oder Windows mit laufendem QuickLook.
 
 ## 1.2.3 — 2026-08-30 {#v1-2-3 .unnumbered}
 
-### Der Kontaktbogen im Fenster zieht auf Strg+Alt+Leertaste um {.unnumbered}
-
-**Strg+Umschalt+Leertaste** zeigt den Kontaktbogen in der Systemvorschau;
-**Strg+Alt+Leertaste** zeigt ihn jetzt in einem Zotero-Fenster. Dieselbe Arbeit
-in anderem Rahmen, einen Modifikator entfernt — wo die bisherige Vorgabe,
-Strg+Umschalt+Tab, nichts darüber sagte, was sie tut.
-
-Auf allen drei Systemen geprüft statt vermutet. Microsofts eigene Liste der
-Windows-Kürzel beansprucht Alt+Leertaste (Fenstermenü), Strg+Leertaste
-(chinesische Eingabemethode) sowie Win+Leertaste und Win+Umschalt+Leertaste
-(Eingabesprachen) — und nicht Strg+Alt+Leertaste. Diese Liste ist auch der
-Grund, warum die Windows-Taste kein Kandidat ist: Win+Leertaste ist vergeben,
-und Win-Kombinationen erreichen eine Anwendung selten überhaupt. GNOME nimmt
-Alt+Leertaste und meist Super+Leertaste, nicht diese. Zotero belegt die
-Leertaste mit nichts und hält seine eigenen konfigurierbaren Kürzel auf
-einzelnen Buchstaben.
-
-::: {.callout-note title="Ein Vorbehalt, ausgesprochen statt der Entdeckung überlassen"}
-macOS führt Strg+Wahl+Leertaste als **vorherige Eingabequelle** — abgeschaltet,
-wo ein Rechner eine Eingabequelle hat, und eingeschaltet, wo er mehrere hat.
-Auf einem solchen Mac wird die Vorgabe geschluckt, und nichts passiert;
-**Einstellungen → zotLook → Tastenkürzel** ist der Ort, das zu richten.
-:::
-
-Ihre eigene Wahl bleibt unberührt: Dies ist die Vorgabe, und **Vorgaben
-wiederherstellen** ist es, was sie schreibt.
+**Der Bogen im Fenster zieht auf Strg+Alt+Leertaste um.**
+Strg+Umschalt+Leertaste zeigt den Kontaktbogen in der Systemvorschau,
+Strg+Alt+Leertaste in einem Zotero-Fenster. Die Kombination ist auf allen
+drei Systemen frei, geprüft gegen deren Kürzellisten. Ein Vorbehalt: Auf
+einem Mac mit mehreren Eingabequellen belegt macOS Strg+Wahl+Leertaste für
+den Wechsel; dann unter Einstellungen → zotLook → Tastenkürzel eine andere
+wählen. Eigene Kürzel bleiben unberührt; nur die Vorgabe zieht um.
 
 ## 1.2.2 — 2026-08-30 {#v1-2-2 .unnumbered}
 
-### Der Kontaktbogen im Fenster zieht auf Strg+Umschalt+Tab um {.unnumbered}
-
-Umschalt+Alt+Leertaste war schwer zu greifen. Das bloße **Umschalt+Tab**
-konnte es nicht bekommen: Zotero bewegt mit dieser Taste den Fokus rückwärts
-über zweiundzwanzig Ziele — Sammlungsleiste, Trefferliste, Eintragsleiste,
-Werkzeugleisten, Tableiste —, und da zotLook einen passenden Tastendruck
-verbraucht, hätte es niemanden mehr aus der Trefferliste heraustabben lassen.
-
-Mit gehaltener Steuerung kehrt Zoteros Fokusbehandlung sofort zurück: Sie
-lässt jedes Tab fallen, das einen anderen Modifikator als Umschalt trägt. Ihr
-eigenes Tabwechseln liegt auf Strg+Bild auf und Strg+Bild ab, unter macOS auch
-auf Cmd+Umschalt+[ / ]; ihre Tableiste ist keine XUL-Tabbox, das Toolkit
-beansprucht Strg+Tab also nicht wie ein Browser; und macOS führt auf der
-Tabulatortaste überhaupt kein Systemkürzel.
-
-Ihre eigene Wahl bleibt unberührt — dies ist die Vorgabe, und **Vorgaben
-wiederherstellen** ist es, was sie schreibt.
-
-### Die Konfliktprüfung sieht mehr {.unnumbered}
-
-Sie war aus den `<key>`-Elementen des Hauptfensters gebaut, also aus allem,
-wonach sich das DOM fragen lässt. Zotero belegt einiges stattdessen in seinen
-eigenen keydown-Listenern, und so meldete die Einstellungsseite für
-Umschalt+Tab **keinen Konflikt** — schlimmer als gar nichts zu melden, weil es
-wie eine Antwort klingt.
-
-Diese Tasten stehen jetzt im Register und sind benannt, sodass eine Warnung
-sagt, was die Kombination hält.
+- **Der Bogen im Fenster zieht auf Strg+Umschalt+Tab um.**
+  Umschalt+Alt+Leertaste war schwer zu greifen, und das bloße Umschalt+Tab
+  bewegt in Zotero den Fokus rückwärts. Eigene Kürzel bleiben unberührt.
+- **Die Konfliktprüfung sieht mehr.** Sie kannte nur die `<key>`-Elemente
+  des Hauptfensters; viele Kürzel belegt Zotero im Code, Umschalt+Tab galt
+  deshalb als frei. Diese Tasten stehen jetzt mit Namen im Register.
 
 ## 1.2.1 — 2026-08-30 {#v1-2-1 .unnumbered}
 
-### Zwischengespeicherte Vorschauen überleben einen Neustart {.unnumbered}
-
-Das taten sie nie. Der Speicher lag in Zoteros eigenem Temp-Verzeichnis, und
-Zotero registriert einen Shutdown-Blocker, der dieses Verzeichnis bei jedem
-Beenden vollständig entfernt — ein Kontaktbogen oder eine EPUB-Vorschau war
-also beim nächsten Start weg, auf jeder Plattform, und die Einstellungen
-meldeten wahrheitsgemäß 0 B neben **Zwischengespeicherte Vorschauen löschen**.
-
-Sie liegen jetzt im Cache-Verzeichnis des Profils — `AppData\Local` unter
-Windows, `~/Library/Caches` unter macOS, `~/.cache` unter Linux. Je Profil,
-von niemand anderem geleert, und weiterhin nicht mit Ihrer Bibliothek
-gesichert. Die Einstellungen nennen den Ordner, sodass Sie ihn bei
-geschlossenem Zotero von Hand löschen können.
-
-Aus Windows gemeldet, dort behoben und unter Linux und macOS bestätigt: Ein
-zwischengespeicherter Eintrag überlebt jetzt wiederholte Neustarts, während
-Einträge eines früheren Builds oder einer früheren Ablage beim Start weiterhin
-geleert werden.
-
-### Wortwahl {.unnumbered}
-
-Die deutschen Einstellungen sprachen von *behaltenen Vorschauen*, was nach
-etwas Liegengelassenem klingt; jetzt heißt es *zwischengespeicherte*.
-
-Die EPUB-Hilfe behauptete, eine Vorschau-Erweiterung „stellt das Buch in der
-Regel besser dar". Das war fair, als die Umwandlung ein paar
-aneinandergehängte Kapitel war — es ist keine Behauptung, die man
-aufrechterhalten sollte, nun da die Seite die Typografie des Buches, sein
-Inhaltsverzeichnis und seine Annotationen trägt, und es steht zotLook auch
-nicht zu, die Erweiterung anderer so oder so einzuordnen. Die Einstellung wird
-stattdessen als Wahl angeboten.
+- **Zwischengespeicherte Vorschauen überleben einen Neustart.** Das taten
+  sie nie: Der Speicher lag in Zoteros Temp-Verzeichnis, das Zotero beim
+  Beenden entfernt. Jetzt liegt er im Cache-Verzeichnis des Profils, je
+  Profil und nicht mit der Bibliothek gesichert; die Einstellungen nennen den
+  Ordner.
+- **Wortwahl.** Die deutschen Einstellungen sagen *zwischengespeicherte*
+  statt *behaltene* Vorschauen, und die EPUB-Hilfe behauptet nicht mehr, eine
+  Vorschau-Erweiterung stelle das Buch besser dar; die Einstellung ist eine
+  Wahl.
 
 ## 1.2.0 — 2026-08-30 {#v1-2-0 .unnumbered}
 
-### EPUB-Vorschauen werden erwachsen {.unnumbered}
-
-Eine EPUB-Vorschau zeigt jetzt Ihre **Annotationen**, in ihren eigenen Farben
-und mit dem Unterschied zwischen Hervorhebung und Unterstreichung — so, wie
-Zotero sie zeichnet, denn die Gestaltung ist seinem Reader entnommen statt
-geraten.
-
-Zotero speichert die Position einer EPUB-Annotation als
-[EPUB CFI](https://idpf.org/epub/linking/cfi/): Spine-Eintrag, Elementpfad,
-Textknoten, Zeichenversätze. Diese Kennung wird jetzt gelesen und gegen das
-Kapitel aufgelöst, das sie adressiert, sodass eine Stelle dort markiert ist, wo
-sie tatsächlich markiert wurde — nicht dort, wo eine Suche nach ihrem Wortlaut
-zufällig landete. Paletten jenseits von Zoteros eigenen acht funktionieren
-ebenfalls, die von [zotQDA](https://github.com/fre-ms/zotQDA) darunter.
-
-Das Buch wird jetzt auch **aus seinem Archiv gelesen**, durch Geckos eigenen
-Zip-Leser und das EPUB-Modul, das Zotero für seine Volltextindizierung
-verwendet. Mit ihnen verschwunden: ein externes `unzip` (und `bsdtar` unter
-Windows), ein Unterprozess mit Zeitlimit und ein Verzeichnis loser Dateien, das
-hinterher aufzuräumen war.
-
-### Inhaltsverzeichnis und Annotationen als Menüs {.unnumbered}
-
-Beide sitzen hinter einem Knopf in der Ecke der Vorschau und öffnen sich über
-dem Text, statt das Buch nach unten zu schieben. Jeder Annotationseintrag
-zeigt zwei Zeilen und klappt auf Wunsch auf; ein Klick darauf führt zur Stelle.
-
-Alles davon ist `<details>` und CSS — eine Vorschau führt keine Skripte aus,
-ein Menü, das eines bräuchte, ginge also nie auf.
-
-### Vorschauen, die die Sitzung überleben {.unnumbered}
-
-Kontaktbogen, EPUB-Vorschau und die annotierte Kopie eines PDFs laufen jetzt
-durch **einen Speicher** statt durch drei Vorkehrungen, von denen zwei beim
-Neustart alles vergaßen. Ein einmal umgewandeltes EPUB ist in der nächsten
-Sitzung da.
-
-Zwei Einstellungen sind umbenannt, damit sie sagen, was sie regeln —
-**Erzeugte Vorschauen zwischenspeichern** und **Ungenutzte Vorschauen
-verwerfen nach** —, und Ihre alten Werte werden übernommen. Annotationen
-bekommen **einen Schalter je Format**: Sie in ein PDF einzuzeichnen kostet eine
-Kopie des Dokuments, ein EPUB zu markieren kostet nichts Nennenswertes, die
-beiden sind also getrennt zu entscheiden.
-
-### Außerdem {.unnumbered}
-
-- Die Aufnahme eines Kürzels sagt es, wenn eine Kombination Zotero nie
-  erreicht, statt stumm auf eine Taste zu warten, die das System bereits
-  genommen hat.
-- Eine Kollision mit einem anderen Kürzel wird unter der betroffenen Zeile
-  gezeigt und bleibt stehen.
-- Neun Screenshots des Plugins bei der Arbeit unter macOS, Linux und Windows,
-  in der README und der Dokumentation.
-- Die englische Dokumentation ist als en-GB deklariert.
+- **EPUB-Vorschauen zeigen Ihre Annotationen,** in ihren Farben,
+  Hervorhebungen und Unterstreichungen, wie Zotero sie zeichnet. Der
+  gespeicherte EPUB-CFI wird aufgelöst, eine Stelle ist also dort markiert,
+  wo Sie sie markiert haben. Paletten anderer Plugins gehen auch.
+- **Das Buch wird aus seinem Archiv gelesen,** mit Geckos eigenem Zip-Leser;
+  kein externes `unzip` oder `bsdtar` mehr, kein Temp-Verzeichnis.
+- **Inhalt und Annotationen als Menüs,** hinter einem Knopf in jeder Ecke,
+  über dem Text. Alles Markup und CSS, weil eine Vorschau keine Skripte
+  ausführt.
+- **Vorschauen überleben die Sitzung.** Kontaktbogen, EPUB-Vorschau und die
+  annotierte PDF-Kopie teilen einen Speicher. Zwei Einstellungen umbenannt,
+  Werte übernommen; Annotationen bekommen einen Schalter je Format.
+- Außerdem: Die Kürzelaufnahme meldet eine Kombination, die Zotero nie
+  erreicht; eine Kollision steht unter ihrer Zeile und bleibt; neun
+  Screenshots in README und Doku; die englische Doku ist en-GB.
 
 ## 1.1.9 — 2026-08-29 {#v1-1-9 .unnumbered}
 
-### Die Zahl neben dem Löschknopf {.unnumbered}
-
-1.1.8 brachte einen Knopf, der die zwischengespeicherten Kontaktbögen leert,
-und sollte daneben zeigen, wie viel sie belegen. Das tat er nicht — und der
-Knopf selbst tat auch nichts. Er steht im Markup der Seite, war also sichtbar;
-er lief nur ins Leere.
-
-Zotero reicht dem Einstellungsfenster nur die Skripte, die in der
-Registrierung der Seite genannt sind. Das Plugin-Objekt lebt woanders und ist
-nicht darunter, also warf jeder Aufruf aus der Seite einen Fehler, und der
-landete in einem `catch`, das die Beschriftung verbarg. Nichts sagte, warum.
-
-Das Plugin erreicht die Seite jetzt über `Zotero.zotLook`, den einen
-Geltungsbereich, den beide teilen, und die Seite schluckt den Fehler nicht
-mehr stumm. Zwei Tests decken es ab: Einer prüft, dass nur Namen verwendet
-werden, die der Seite tatsächlich gereicht werden, der andere, dass das Objekt
-beim Start veröffentlicht und beim Beenden wieder entfernt wird.
-
-### Der Name {.unnumbered}
-
-Das Plugin heißt zotLook, mit kleinem z, und seine Objekte sagen das jetzt
-auch — `zotLook`, `zotLookUtil`, `zotLookEpub`, `zotLookSheet`,
-`zotLookWinPreview`. Nichts davon ist im Gebrauch sichtbar; es geht darum,
-dass der Code sagt, wie das Ding heißt.
+- **Der Löschknopf funktioniert, und die Zahl daneben erscheint.** Beide
+  liefen ins Leere: Die Einstellungsseite kam nicht an das Plugin-Objekt.
+  Jetzt erreicht sie es über `Zotero.zotLook`, und zwei Tests halten das
+  fest.
+- Die Objekte des Plugins heißen nach ihm, mit kleinem z: `zotLook`,
+  `zotLookUtil` und so weiter.
 
 ## 1.1.8 — 2026-08-29 {#v1-1-8 .unnumbered}
 
-### Zwischengespeicherte Bögen lassen sich loswerden {.unnumbered}
-
-1.1.7 behielt Kontaktbögen, damit ein zweiter Druck sie nicht neu zeichnet.
-Das holte die Wartezeit zurück, gab den Bögen aber keinen Ausweg: ein
-Verzeichnis, in das niemand schaut, mit einem Megabyte je Buch, und nirgends
-eine Zahl, die das sagt.
-
-Jetzt zwei Auswege, beide unter **Einstellungen → zotLook**.
-
-**Zwischengespeicherte Bögen löschen** leert sie sofort, mit dem belegten
-Platz neben dem Knopf — ohne diese Zahl wäre der Druck ein Ratespiel, und die
-Null danach ist die Bestätigung, dass er etwas getan hat.
-
-**Bögen verwerfen, die 30 Tage ungenutzt sind** tut es unbeaufsichtigt. Es
-zählt ab der letzten *Verwendung* statt ab dem Bau des Bogens: Die
-Schlüsseldatei neben jedem Bogen wird bei jedem Treffer neu geschrieben,
-sodass ein Buch, das Sie wöchentlich öffnen, bleibt und eines, das Sie einmal
-im März angesehen haben, geht. Die Prüfung läuft beim Start von Zotero statt
-während der Arbeit — ein Bogen, der mitten in der Sitzung verschwindet, wäre
-verwirrender als der Platz, den er einnahm. Eine `0` schaltet es ab, und Bögen
-bleiben dann, bis das System sein Temp-Verzeichnis leert, was macOS und Linux
-von selbst tun und Windows selten.
-
-### Dokumentation {.unnumbered}
-
-Die englische Dokumentation ist jetzt als en-GB deklariert statt als bloßes
-`en` — auf den Seiten und im PDF, dessen `/Lang` auf Typsts Standardregion
-aufgelöst worden war. Die Prosa musste nicht geändert werden; sie war schon
-britisch.
+- **Zwischengespeicherte Bögen lassen sich löschen.** Unter Einstellungen →
+  zotLook: Ein Knopf leert sie sofort, daneben steht der belegte Platz, und
+  30 Tage ungenutzte Bögen werden beim Start verworfen. Eine `0` schaltet
+  das ab.
+- Die englische Dokumentation ist als en-GB deklariert, Seiten wie PDF.
 
 ## 1.1.7 — 2026-08-29 {#v1-1-7 .unnumbered}
 
-### Ein Kontaktbogen wird behalten und wieder gezeigt {.unnumbered}
-
-Jede Seite eines langen Buches zu zeichnen dauert Sekunden, und bis jetzt
-geschah es bei jedem Druck — der Bogen wurde jedes Mal neu gebaut, in ein
-Verzeichnis, das Zotero beim Start leert, er hätte also nicht einmal überleben
-können, wenn er behalten worden wäre.
-
-Er wird jetzt neben dieses Verzeichnis geschrieben und unverändert wieder
-gezeigt, bis sich etwas geändert hat, das ihn zur falschen Antwort machte: die
-Datei, ihre Annotationen, die Spaltenzahl oder das Seitenlimit.
-
-Die Datei wird an Größe und Änderungszeit erkannt statt an einer Prüfsumme
-ihres Inhalts. Hundert Megabyte zu lesen, um zu entscheiden, ob sieben
-Sekunden Zeichnen entfallen können, kann mehr kosten, als es spart, und Zotero
-schreibt einen Anhang neu, statt ihn an Ort und Stelle zu ändern — die
-Änderungszeit bewegt sich also genau dann, wenn es darauf ankommt.
-
-Behaltene Bögen liegen im Temp-Bereich des Systems, nicht in Ihrer
-Zotero-Bibliothek: Sie werden nicht mit ihr gesichert, und das System räumt sie
-zu seiner Zeit weg.
-
-**Einstellungen → zotLook → Kontaktbögen behalten und wieder anzeigen**,
-voreingestellt an. Abgeschaltet wird ein Bogen bei jedem Aufruf gezeichnet,
-und keiner überlebt die Sitzung.
+**Ein Kontaktbogen wird behalten und wieder gezeigt.** Jede Seite eines
+langen Buches zu zeichnen dauert Sekunden und geschah bei jedem Druck. Der
+Bogen bleibt jetzt, bis sich Datei, Annotationen, Spaltenzahl oder
+Seitenlimit ändern. Er liegt im Temp-Bereich des Systems, nicht in Ihrer
+Bibliothek. Einstellungen → zotLook → Kontaktbögen behalten, voreingestellt
+an.
 
 ## 1.1.6 — 2026-08-25 {#v1-1-6 .unnumbered}
 
-### ⌘C kopiert aus der Vorschau {.unnumbered}
-
-Text in einer Vorschau markieren, ⌘C drücken, und nichts geschah — während
-derselbe Text über das Kontextmenü problemlos kopiert wurde. Jetzt geht es.
-
-Die Ursache lag nicht dort, wo es aussah. macOS macht aus ⌘C eine
-`copy:`-Aktion, indem es den Tastendruck gegen die Tastenkürzel des
-*Hauptmenüs* abgleicht, und schickt sie erst dann die Responder-Kette hinunter.
-zotLooks Vorschau-Helfer hatte gar keine Menüleiste, also gab es kein ⌘C zu
-schicken, so fähig die Ansicht darunter auch war. Das Kontextmenü
-funktionierte die ganze Zeit, weil es `copy:` direkt auslöst und nie eine
-Menüleiste befragt.
-
-Der Helfer trägt jetzt ein minimales Menü — Kopieren, Alles auswählen,
-Schließen, Beenden. Es wird nie angezeigt: Der Helfer läuft als
-Zubehör-Anwendung, hat also weiterhin kein Dock-Symbol und wird nie zur
-aktiven Anwendung. Das Menü existiert, damit die Tastenkürzel aufgelöst
-werden.
-
-Dies war [gegen das ursprüngliche Plugin
-gemeldet](https://github.com/gchapron/Zotero7QuickLook/issues/4) und dort
-`qlmanage` zugeschrieben worden. zotLook verwendet `qlmanage` nicht und hatte
-denselben Fehler, das war also nicht die Ursache.
+**⌘C kopiert aus der Vorschau.** Vorher tat es nichts, während das
+Kontextmenü kopierte: Der Vorschau-Helfer hatte keine Menüleiste, und macOS
+löst ⌘C über das Hauptmenü auf. Der Helfer trägt jetzt ein minimales, nie
+gezeigtes Menü. Beim ursprünglichen Plugin als `qlmanage`-Problem gemeldet;
+das war es nicht.
 
 ## 1.1.5 — 2026-08-24 {#v1-1-5 .unnumbered}
 
-### Ein Inhaltsverzeichnis in der EPUB-Vorschau {.unnumbered}
-
-Leertaste auf einem E-Book, und die Vorschau öffnet sich jetzt mit dem
-Inhaltsverzeichnis des Buches oben. Es klappt weg, und ein Klick auf einen
-Eintrag springt zu diesem Kapitel.
-
-Das war das eine, was ein eigener E-Book-Betrachter bot und zotLooks
-Umwandlung nicht — und es sah unmöglich aus, es hier zu bauen. macOS stellt
-Vorschauen mit abgeschaltetem JavaScript dar und verweigert gewöhnliche
-Navigation, was jeden üblichen Weg ausschließt, eines zu bauen.
-
-Es zeigt sich, dass keins von beidem nötig ist. `<details>` öffnet sich nativ,
-ohne eine Zeile Skript, und einem Anker innerhalb derselben Seite wird
-gefolgt. Beides wurde durch Anklicken in einer echten Vorschau gemessen statt
-angenommen, und deshalb ist das Inhaltsverzeichnis gebaut, wie es gebaut ist.
-
-Die Titel und ihre Verschachtelung kommen aus der Navigation, die das Buch
-selbst mitführt — EPUB 3 hält sie in einem Navigationsdokument, EPUB 2 in
-einer NCX-Datei —, sodass die Formulierungen die des Verlags sind statt aus
-Überschriften geraten. Beide Formate werden gelesen. Ein Buch ohne Navigation
-bekommt keinen Kasten, denn eine Vorschau von etwas ohne Kapitel sollte wie
-das Dokument aussehen statt wie eine gescheiterte Funktion.
+**Ein Inhaltsverzeichnis in der EPUB-Vorschau.** Es steht oben, klappt weg,
+und ein Eintrag springt zum Kapitel. Gebaut aus der Navigation des Buches,
+EPUB 3 wie EPUB 2, ohne Skript: `<details>` und Anker in der Seite
+funktionieren in Quick Look. Ein Buch ohne Navigation bekommt keinen Kasten.
 
 ## 1.1.4 — 2026-08-24 {#v1-1-4 .unnumbered}
 
-### Der Kontaktbogen sagt, wie weit er ist {.unnumbered}
-
-Ein Bogen eines langen Buches dauert Sekunden, und das Fenster sagte nur, dass
-es arbeitet. Jetzt nennt es die Seite, bei der es ist — `147 / 300` —, und die
-Anzeige daneben rückt vor.
-
-Zoteros Fortschrittsfenster bietet eine kreisförmige Anzeige statt eines
-Balkens, also steht die genaue Zahl im Text daneben. Bei einem
-dreihundertseitigen Buch sagt das mehr als die Stellung eines Balkens: nicht
-nur, dass es sich bewegt, sondern wie schnell.
-
-Den letzten Schritt zeigt es nie als abgeschlossen. Die letzte Seite muss noch
-geschrieben und der Bogen um sie herum zusammengesetzt werden, und eine
-Anzeige, die vor dem Schließen des Fensters fertig wäre, wäre eine kleine Lüge.
+**Der Kontaktbogen sagt, wie weit er ist.** Das Fortschrittsfenster nennt die
+Seite, bei der es ist, `147 / 300`, und die Anzeige rückt vor.
 
 ## 1.1.3 — 2026-08-20 {#v1-1-3 .unnumbered}
 
-Windows bekommt eine echte Vorschau, und das Plugin ein Gesicht.
+Windows bekommt eine echte Vorschau, und das Plugin ein Symbol.
 
-### Die Leertaste funktioniert unter Windows {.unnumbered}
-
-zotLook steuert jetzt [QuickLook](https://github.com/QL-Win/QuickLook) über
-dessen Named Pipe, `QuickLook.App.Pipe.<Benutzer-SID>`: Eine UTF-8-Zeile
-zeigt die Vorschau, dieselbe Zeile noch einmal schließt sie, und ein anderer
-Pfad wechselt. Die **Leertaste** behält also den Schalter, den sie überall
-sonst hat — ohne einen Prozess offen zu halten und ohne ein Helferprogramm zu
-kompilieren, auf keiner Plattform.
-
-**Beide Builds antworten auf die Pipe.** Das Paket aus dem Microsoft Store
-deklariert `runFullTrust`, womit der alte Schluss hinfällig ist, es sei davon
-abgeschottet. Die SID kommt aus dem Prozess-Token, und die Zeile geht über
-js-ctypes hinaus: eine Handvoll Win32-Aufrufe, nichts mitgeliefert, nichts
-Neues zu bauen.
-
-Auch der **Kontaktbogen** ist dort eingeschaltet, nach einer Messung statt
-einer Hoffnung: QuickLooks Betrachter stellt den Bogen dar, lädt die
-Miniaturen daneben und nimmt Zotero keinen Fokus, sodass die Trefferliste die
-Tastatur behält. Ein Klick auf eine Seite öffnet Zoteros Reader an ihr, wie
-unter Quick Look und Sushi.
-
-Eine Regel durchzieht die Umsetzung: nie sondieren. QuickLooks Pipe-Server
-nimmt eine Zeile je Verbindung und dereferenziert, was immer er bekam, sodass
-jede Ist-es-da-Prüfung den Zuhörer stumm tötet, bis die App neu gestartet
-wird. Jede hier aufgebaute Verbindung trägt eine vollständige Zeile. Dass
-QuickLook nicht läuft, ergibt sich aus dem Scheitern der Verbindung, und das
-Protokoll sagt, wo es zu bekommen ist.
-
-### EPUBs werden dort entpackt {.unnumbered}
-
-Der Entpacker war `/usr/bin/unzip`, eine Adresse von macOS und Linux — unter
-Windows wäre jede EPUB-Vorschau an ihrem ersten Schritt gescheitert. Windows
-liefert bsdtar seit Windows 10 mit; es liest Zip-Container, das EPUB
-eingeschlossen, und erkennt das Format selbst, sodass das Plugin weiterhin
-nichts mitliefert.
-
-### Das Plugin hat ein Symbol {.unnumbered}
-
-Die Plugin-Liste zeichnete das generische Plugin-Symbol, und die
-Einstellungsseite stand ohne Bild in der Seitenleiste. Beide tragen jetzt ein
-eigenes Zeichen: einen Kontaktbogen, vier mal vier Seitenminiaturen, zehn
-davon in den drei Hervorhebungsfarben markiert, sodass sie zusammen ein Z
-bilden.
-
-Der Buchstabe wird durch markiert gegen unmarkiert getragen statt durch die
-Farbe, sodass er Graustufen, einen dunklen Hintergrund und Farbenblindheit
-gleichermaßen übersteht. Jede Größe ist auf ihrem eigenen Pixelraster
-gezeichnet statt aus einer Datei skaliert — 24 px für die Seitenleiste der
-Einstellungen, 32 für die Plugin-Liste, 96 für diese Liste auf einem
-2x-Bildschirm.
-
-### Außerdem {.unnumbered}
-
-- `build.sh` liest das Manifest in einer Zeile. pyenv-win reicht `python3` über
-  eine cmd-Batchdatei weiter, und cmd kann kein Argument mit eingebetteten
-  Zeilenumbrüchen übergeben: Die Version kam leer heraus, und das Skript packte
-  `zotlook-.xpi`, ohne ein Wort zu sagen. Eine leere Version stoppt den Bau
-  jetzt, statt das Paket danach zu benennen.
-- Die Testsuiten laufen auf einem Windows-Rechner, wo der Pfadname einer URL
-  kein Pfad ist.
-- Es gibt kein 1.1.2. Es wurde gebaut, als die Windows-Unterstützung noch
-  unveröffentlicht war, und nie veröffentlicht.
+- **Die Leertaste funktioniert unter Windows,** über QuickLooks Named Pipe:
+  Dieselbe Zeile zeigt und schließt die Vorschau, die Leertaste schaltet also
+  wie überall. Store- und Website-Build antworten beide. Auch der
+  Kontaktbogen ist dort an; ein Klick auf eine Seite öffnet Zoteros Reader.
+- **EPUBs werden unter Windows entpackt,** mit dem mitgelieferten bsdtar;
+  vorher scheiterte der erste Schritt am fehlenden `unzip`.
+- **Das Plugin hat ein Symbol:** ein Kontaktbogen von vier mal vier Seiten,
+  deren markierte ein Z bilden, je Größe gezeichnet.
+- Außerdem: `build.sh` paketiert keine namenlose XPI mehr, wenn die Version
+  leer bleibt; die Tests laufen unter Windows. Ein 1.1.2 gibt es nicht.
 
 ## 1.1.1 — 2026-08-20 {#v1-1-1 .unnumbered}
 
-Reparaturen für Linux, eine Änderung, die jeder bemerken wird, und etwas, das
-unter macOS doch funktioniert.
-
-### Ein Klick auf eine Seite in der Quick-Look-Vorschau öffnet sie {.unnumbered}
-
-Der Kontaktbogen hat jede Miniatur schon immer in einen Link auf diese Seite
-in Zoteros Reader gehüllt, und diese Links galten unter Quick Look, das
-gewöhnliche Navigation verweigert, als tot. Das sind sie nicht. Eine
-**Anforderung eines neuen Fensters** nimmt einen anderen Weg durch WebKit, und
-Quick Look reicht sie an den System-Handler weiter — ein Klick auf eine
-Miniatur öffnet also den Reader an dieser Seite und schließt dabei die
-Vorschau.
-
-Das war nicht geplant; es fiel aus einer Reparatur für Linux ab und wurde dann
-ordentlich gemessen: Derselbe Link ohne das Attribut tut nichts als piepen.
-
-### Das Kürzel für den Kontaktbogen ist umgezogen {.unnumbered}
-
-**Strg+Umschalt+Leertaste**, wo es früher Alt+Leertaste war.
-
-Alt+Leertaste hätte außerhalb von macOS nie funktioniert: Es ist das
-Fenstermenü unter GNOME und unter Windows, und ein Fenstermanager beansprucht
-seine Kombinationen, bevor die Anwendung gefragt wird, Zotero hat die Taste
-also nie gesehen. Der Eintrag im Kontextmenü funktionierte; das Kürzel konnte
-es nicht.
-
-Strg+Umschalt+Leertaste ist auf allen drei Systemen frei — gegen die
-Systemkürzel jedes einzelnen geprüft —, also ist es jetzt überall die Vorgabe
-statt einer Wahl je Plattform. Das bloße Strg+Leertaste ginge nicht: Es
-schaltet unter Linux die Eingabemethode um und unter macOS die Eingabequelle.
-
-Hatten Sie ein eigenes Kürzel gesetzt, bleibt es unberührt. Nur die Vorgabe
-zieht um.
-
-### Linux {.unnumbered}
-
-- **Die Vorschau kommt an.** zotLook bat GNOME Sushi, eine Datei zu zeigen,
-  und machte weiter, ohne auf die Antwort zu warten, sodass die Vorschau oft
-  nie erschien.
-- **Der Kontaktbogen übersteht einen Klick.** Sushis HTML-Ansicht ist eine
-  echte WebKit-Ansicht und folgt Links tatsächlich, anders als Quick Look.
-  Eine `zotero:`-URL kann sie nicht laden, und ein gescheitertes Laden ist ihre
-  Art zu melden, dass sie die Datei überhaupt nicht zeigen kann — ein Klick auf
-  eine Miniatur ersetzte also den ganzen Bogen durch „Unable to display". Die
-  Links öffnen sich jetzt woanders, was Sushi ignoriert, und der Bogen bleibt
-  stehen. Wo die Links funktionieren — in Zoteros eigenem Fenster oder in
-  einem Browser —, funktionieren sie wie zuvor.
-- **Das Plugin lässt sich dort bauen.** `build.sh` begann unter `set -e` mit
-  `swiftc`, unter Linux brach es also ab, bevor es etwas paketierte. Es baut
-  den macOS-Helfer jetzt nur dort, wo es etwas gibt, ihn damit zu bauen.
-
-### Außerdem {.unnumbered}
-
-Die README beschreibt das Plugin nicht mehr so, als sei macOS die einzige
-Plattform, auf der es läuft.
+- **Ein Klick auf eine Seite in der Quick-Look-Vorschau öffnet sie** in
+  Zoteros Reader an dieser Seite. Quick Look verweigert gewöhnliche
+  Navigation, reicht eine Neues-Fenster-Anforderung aber an das System
+  weiter.
+- **Das Kürzel für den Kontaktbogen zieht auf Strg+Umschalt+Leertaste um.**
+  Alt+Leertaste ist unter GNOME und Windows das Fenstermenü und erreichte
+  Zotero nie. Eigene Kürzel bleiben unberührt.
+- **Linux:** Die Vorschau kommt an, weil zotLook jetzt auf Sushis Antwort
+  wartet; ein Klick auf den Bogen ersetzt ihn nicht mehr durch eine
+  Fehlermeldung; das Plugin baut ohne `swiftc`.
+- Die README liest sich nicht mehr, als sei macOS die einzige Plattform.
 
 ## 1.1.0 — 2026-08-20 {#v1-1-0 .unnumbered}
 
-Erste Freigabe dieses Forks, und eine große. Verträglich mit Zotero 7 und
-Zotero 10.
+Erste Freigabe dieses Forks. Verträglich mit Zotero 7 und 10.
 
-### Annotationen {.unnumbered}
-
-Zotero hält PDF-Annotationen in seiner Datenbank statt in der Datei, sodass
-die Vorschau eines gespeicherten PDFs ein unmarkiertes Dokument zeigte.
-Hervorhebungen, Unterstreichungen, Notizen, Flächen und Freihandzeichnungen
-erscheinen jetzt in Vorschauen **und** auf Kontaktbögen. Anhänge ohne
-Annotationen werden erkannt, bevor irgendeine Arbeit beginnt, und ein Export
-wird wiederverwendet, bis eine Annotation hinzugefügt oder geändert wird,
-sodass der Normalfall nichts kostet. Das Verhalten lässt sich unter
-**Einstellungen → zotLook** abschalten.
-
-### Der Kontaktbogen funktioniert überall {.unnumbered}
-
-Er brauchte früher ein Binärprogramm nur für macOS. Die Seiten werden jetzt
-mit dem pdf.js gezeichnet, das Zotero ohnehin mitbringt, in mehreren Workern
-zugleich, sodass Linux und Windows ihn auch bekommen. Unter Windows gibt es
-keine Systemvorschau, der Bogen öffnet sich also in einem Zotero-Fenster — die
-erste zotLook-Funktion, die dort überhaupt funktioniert.
-
-Der Bogen hat auf jeder Plattform auch ein eigenes Fenster
-(**Umschalt+Wahl+Leertaste**), in dem die Seitenlinks leben: Ein Klick auf
-eine Miniatur öffnet diese Seite in Zoteros Reader.
-
-### Einstellungen {.unnumbered}
-
-Eine Einstellungsseite unter **Einstellungen → zotLook**:
-
-- Jedes Kürzel ist konfigurierbar und wird gegen Zoteros eigene geprüft,
-  sodass eine Kollision bemerkt wird, bevor sie gespeichert ist
-- Spaltenzahl für den Kontaktbogen und ein optionales Seitenlimit
-  (voreingestellt keins)
-- Welcher Anhang gezeigt wird, wenn ein Eintrag mehrere hat, als Rangfolge,
-  die Sie selbst ordnen
-- Ob Annotationen eingezeichnet werden
-- Ob zotLook EPUBs selbst darstellt, für alle, die eine
-  Quick-Look-Erweiterung haben, die das besser kann
-
-### Außerdem {.unnumbered}
-
-- **Videovorschauen** stürzen nicht mehr ab. `qlmanage` kann Apples
-  Film-Generator nicht ansteuern; ein kleiner Helfer steuert `QLPreviewPanel`,
-  wie es der Finder tut.
-- **Vorschau unter Linux** über GNOME Sushi.
-- **Deutsche Übersetzung.**
-- Nur ein Anhang wird je aufgelöst — vorher wurde jeder synchronisierte Anhang
-  jedes ausgewählten Eintrags heruntergeladen und alle bis auf einen
-  verworfen.
-- Automatische Updates, Lint, Tests und ein Release-Build in der CI.
-
-### Dank {.unnumbered}
-
-Das ursprüngliche Quick-Look-Plugin ist Mikko Rönkkös Idee; diese Linie des
-Codes stammt von Guillaume Chaprons
-[Zotero7QuickLook](https://github.com/gchapron/Zotero7QuickLook), von dem etwa
-die Hälfte noch an Ort und Stelle ist.
+- **Annotationen** erscheinen in Vorschauen und auf Kontaktbögen:
+  Hervorhebungen, Unterstreichungen, Notizen, Flächen und Freihand. Anhänge
+  ohne welche kosten nichts; der Export wird wiederverwendet, bis eine
+  Annotation sich ändert. Abschaltbar.
+- **Der Kontaktbogen funktioniert überall,** gezeichnet mit Zoteros eigenem
+  pdf.js statt eines Binärprogramms nur für macOS. Unter Windows öffnet er in
+  einem Zotero-Fenster; dieses Fenster gibt es auf jeder Plattform, mit
+  klickbaren Seitenlinks.
+- **Einstellungen** unter Einstellungen → zotLook: Kürzel, gegen Zoteros
+  geprüft; Spalten und Seitenlimit; welcher Anhang gewinnt; Annotationen; ob
+  zotLook EPUBs selbst darstellt.
+- Außerdem: Videovorschauen stürzen nicht mehr ab; Vorschau unter Linux über
+  GNOME Sushi; deutsche Übersetzung; je Eintrag wird nur ein Anhang
+  aufgelöst; automatische Updates, Lint, Tests und Release-Build in der CI.
+- **Dank:** Das Quick-Look-Plugin ist Mikko Rönkkös Idee; dieser Code stammt
+  von Guillaume Chaprons
+  [Zotero7QuickLook](https://github.com/gchapron/Zotero7QuickLook), von dem
+  etwa die Hälfte noch da ist.
