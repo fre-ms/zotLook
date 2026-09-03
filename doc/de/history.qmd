@@ -11,64 +11,40 @@ sind die des Plugins; ein Datum ist der Tag der Veröffentlichung.
 
 ## 1.4.1 — 2026-09-03 {#v1-4-1 .unnumbered}
 
-Zwei Reparaturen am Bogen in seinem eigenen Zotero-Fenster, beide unter GNOME
+Zwei Korrekturen am Bogen in seinem eigenen Zotero-Fenster, beide unter GNOME
 gefunden.
 
-**Ein Menüeintrag springt ohne Dialog.** Einem Eintrag des Inhalts- oder des
-Annotationsmenüs im Bogen im Fenster zu folgen, öffnete einen Dialog mit der
-Frage, welche Anwendung Dateilinks behandeln soll: Ein Menüeintrag ist ein
-Fragment-Link, ein Fragment-Link ist eine Navigation, und die Browser-Hülle
-des Fensters machte aus dieser Navigation eine Datei, die etwas öffnen sollte.
-Der Klick wird jetzt beantwortet statt navigiert — der Bogen rollt zur Kachel
-und markiert sie, wie es der Sprung getan hätte —, und die Adresse ändert sich
-nie. Wo keine Skripte laufen, wie in den Systemvorschauen, sind die Einträge
-die schlichten Anker, die sie waren, und springen wie zuvor. Der Link einer
-Seitenkachel führt weiterhin zum Reader, denn diese Navigation ist sein Zweck.
+**Menüeinträge öffnen keinen Dialog mehr.** Ein Klick auf einen Eintrag im
+Inhalts- oder Annotationsmenü fragte, welche Anwendung Dateilinks öffnen
+soll. Der Klick rollt jetzt zur Seite, statt dorthin zu navigieren. Die
+Systemvorschauen waren nie betroffen.
 
-**Das Fenster schließt sich wieder bei der Übergabe.** Ein Klick auf eine
-Seite öffnet den Reader, und das Fenster des Bogens soll sich dahinter
-schließen; das tat es nicht mehr, weil es daran, wer die Tastatur hielt,
-entschied, ob der Reader sein eigenes Werk war — und das Fenster, das Gecko
-für einen Seitenlink öffnet, nimmt die Tastatur zuerst. Der Bogen weiß jetzt,
-aus welchem Anhang er gezeichnet wurde, und ein Reader, der sich für diesen
-Anhang öffnet, ist seine eigene Übergabe, wer auch immer die Tastatur hält.
-Ein Reader, der sich für etwas anderes öffnet, lässt das Fenster stehen.
+**Das Fenster schließt sich wieder bei der Übergabe.** Es blieb offen,
+nachdem ein Klick den Reader geöffnet hatte, weil es nach dem Tastaturfokus
+urteilte, und den nimmt der Seitenlink zuerst. Jetzt erkennt es seine
+Übergabe am Anhang.
 
-**Voraussetzung:** Zotero 10 — die Version, für die zotLook entwickelt und
-getestet wird. macOS 12 oder neuer, oder Linux mit GNOME Sushi, oder Windows
-mit laufendem QuickLook.
-
+**Voraussetzung:** Zotero 10. macOS 12 oder neuer, oder Linux mit GNOME
+Sushi, oder Windows mit laufendem QuickLook.
 
 ## 1.4.0 — 2026-09-02 {#v1-4-0 .unnumbered}
 
 Der Kontaktbogen bekommt die beiden Knöpfe der EPUB-Vorschau: in einer Ecke
-das Inhaltsverzeichnis des Dokuments, in der anderen seine Annotationen, und
-jeder Eintrag ist ein Sprung zu seiner Seite — die Kachel gerahmt und in die
-Mitte des Fensters geholt. Ein Klick auf die Kachel übergibt weiterhin an den
-Reader. Die Seitenübersicht eines EPUB hat dieselben zwei Knöpfe.
+das Inhaltsverzeichnis des Dokuments, in der anderen seine Annotationen. Ein
+Eintrag rollt seine Seite in die Mitte des Bogens und rahmt sie; ein Klick auf
+die Seite öffnet weiterhin den Reader. Die Seitenübersicht eines EPUB hat
+dieselben Knöpfe.
 
-**Das Inhaltsverzeichnis** kommt aus der Outline des PDFs, vom Renderer
-gelesen und auf Seiten aufgelöst, benannte Sprungziele eingeschlossen. Ein
-PDF ohne Outline bekommt keinen Knopf.
+Das Inhaltsverzeichnis kommt aus der Outline des PDFs; ein PDF ohne Outline
+bekommt keinen Knopf. Die Annotationen stehen in Lesereihenfolge, mit Zitat,
+Kommentar und Seite.
 
-**Die Annotationen** kommen aus Zoteros Datenbank, in Lesereihenfolge: das
-Zitat so markiert, wie es auf der Seite markiert ist, der Kommentar und
-„Seite 12" — die gedruckte Nummer, wo das PDF seine Seiten benennt. Notizen,
-Flächen und Freihandzeichnungen werden nach ihrer Art aufgeführt.
+Beide Knöpfe lassen sich in den Einstellungen abschalten. Nichts davon braucht
+ein Skript, deshalb funktioniert es in Quick Look, GNOME Sushi und QuickLook
+gleichermaßen.
 
-**Zwei Einstellungen**, beide voreingestellt an, schalten die Knöpfe ab. Sie
-zählen zum Schlüssel einer zwischengespeicherten Übersicht, ebenso der Stand
-der Annotationen für sich, sodass eine neue Hervorhebung die Liste auch dort
-erreicht, wo nichts eingezeichnet wird.
-
-Nichts davon braucht ein Skript — eine Vorschau führt keines aus —, weshalb es
-in Quick Look, GNOME Sushi und QuickLook gleichermaßen funktioniert. Die
-Dokumentation zeigt es in Bewegung, und ihr PDF trägt jetzt Version und Datum
-in der Fußzeile.
-
-**Voraussetzung:** Zotero 10 — die Version, für die zotLook entwickelt und
-getestet wird. macOS 12 oder neuer, oder Linux mit GNOME Sushi, oder Windows
-mit laufendem QuickLook.
+**Voraussetzung:** Zotero 10. macOS 12 oder neuer, oder Linux mit GNOME
+Sushi, oder Windows mit laufendem QuickLook.
 
 ## 1.3.4 — 2026-09-02 {#v1-3-4 .unnumbered}
 

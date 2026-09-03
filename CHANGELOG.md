@@ -8,56 +8,37 @@ the day the release was published.
 
 ## 1.4.1 — 2026-09-03
 
-Two repairs to the sheet in its own Zotero window, both found on GNOME.
+Two fixes for the sheet in its own Zotero window, both found on GNOME.
 
-**A menu entry jumps without a dialog.** Following an entry of the contents
-or the annotations menu in the windowed sheet raised a dialog asking which
-application should handle file links: a menu entry is a fragment link, a
-fragment link is a navigation, and the window's browser shim turned that
-navigation into a file for something to open. The click is now answered
-instead — the sheet scrolls to the tile and marks it as the jump would have
-— and the address never changes. Where scripts do not run, as in the system
-previews, the entries are the plain anchors they were and jump as before. A
-page tile's link still leads to the reader, since that navigation is the
-point of it.
+**Menu entries no longer open a dialog.** Clicking an entry in the contents
+or annotations menu asked which application should handle file links. The
+click now scrolls to the page instead of navigating to it. The system
+previews were never affected.
 
-**The window closes again when it hands over.** A click on a page opens the
-reader, and the sheet's window is meant to close behind it; it had stopped
-doing so, because it decided whether the reader was its own doing by who
-held the keyboard — and the window Gecko opens for a page link takes the
-keyboard first. The sheet now knows which attachment it was drawn from, and
-a reader opening for that attachment is its own handoff, whoever holds the
-keyboard. A reader opening for anything else leaves the window standing.
+**The window closes again when it hands over.** It had stopped closing after
+a click opened the reader, because it judged by keyboard focus, and the page
+link takes the focus first. It now recognises its own handoff by the
+attachment.
 
-**Requires** Zotero 10 — the version zotLook is developed and tested against.
-macOS 12+, or Linux with GNOME Sushi, or Windows with QuickLook running.
+**Requires** Zotero 10. macOS 12+, or Linux with GNOME Sushi, or Windows with
+QuickLook running.
 
 ## 1.4.0 — 2026-09-02
 
 The contact sheet gets the two buttons the EPUB preview has: the document's
-contents in one corner, its annotations in the other, and every entry a jump
-to its page — the tile framed and brought to the middle of the window. A click
-on the tile still hands over to the reader. The page overview of an EPUB has
-the same two buttons.
+contents in one corner, its annotations in the other. An entry scrolls its
+page to the middle of the sheet and frames it; a click on the page still
+opens the reader. The EPUB page overview has the same buttons.
 
-**Contents** come out of the PDF's outline, read by the renderer and resolved
-to pages, named destinations included. A PDF without an outline gets no button.
+The contents come from the PDF's outline, so a PDF without one gets no
+button. The annotations are listed in reading order, with the quotation, the
+comment and the page.
 
-**Annotations** come from Zotero's database, in reading order: the quotation
-marked as it is marked on the page, the comment, and "Page 12" — the printed
-label where the PDF names its pages. Notes, areas and ink are listed by their
-kind.
+Both buttons can be switched off in the settings. Nothing here needs a
+script, so it works in Quick Look, GNOME Sushi and QuickLook alike.
 
-**Two settings**, both on by default, switch the buttons off. They count
-towards a kept sheet, as does the state of the annotations on its own account,
-so a new highlight reaches the list even where nothing is drawn in.
-
-None of it uses a script — a preview panel runs none — which is why it works in
-Quick Look, GNOME Sushi and QuickLook alike. The documentation shows it in
-motion, and its PDF now carries version and date in the footer.
-
-**Requires** Zotero 10 — the version zotLook is developed and tested against.
-macOS 12+, or Linux with GNOME Sushi, or Windows with QuickLook running.
+**Requires** Zotero 10. macOS 12+, or Linux with GNOME Sushi, or Windows with
+QuickLook running.
 
 ## 1.3.4 — 2026-09-02
 
