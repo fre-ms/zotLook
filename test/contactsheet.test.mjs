@@ -586,8 +586,8 @@ const ANNOTATIONS = [
      'with its comment');
   ok(/<a class="zl-annotation-goto" href="#p2">Page 2<\/a>/.test(html),
      'and a link to its page, named by the printed label');
-  ok(/<a class="zl-annotation-open" href="zotero:\/\/open-pdf\/library\/items\/[A-Z0-9]+\?annotation=ANN00001">Open in the reader<\/a>/.test(html),
-     'and a link that opens the reader at the annotation itself');
+  ok(/<a class="zl-annotation-open" target="_blank" href="zotero:\/\/open-pdf\/library\/items\/[A-Z0-9]+\?annotation=ANN00001">Open in the reader<\/a>/.test(html),
+     'and a link that opens the reader at the annotation itself — as a new-window request, like the tiles, or the window asks which application should open it');
   ok(html.includes('@media (prefers-color-scheme: dark)'),
      'the sheet has a dark side, for a system that is dark');
   ok(/href="#p1">Page 1<\/a>/.test(html), 'a note has no passage, only its page');

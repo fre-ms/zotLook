@@ -154,6 +154,17 @@ where scripts do not run the anchors are ordinary anchors and jump as they
 always did, and only same-page fragments are taken. A page tile's link leads to
 the reader and stays a real navigation.
 
+The reader links have one thing done for them as well. Zotero's viewer window
+runs an actor, `ExternalLinkHandler`, that takes every click whose direct
+target is an anchor and hands the address to `Zotero.launchURL` — the browser
+for an http link, and for a `zotero:` link the system, which asks whether
+Zotero may open it. A tile's click lands on its picture, not on the anchor,
+and passes; a text link such as an annotation's "Open in the reader" did not,
+and showed the dialog. The actor sees only trusted events, so the script stops
+a real click on a `zotero:` link and clicks the link again itself: the
+synthetic click passes the actor and takes the road the keyboard's `o`
+always took, Zotero's own protocol handler and the reader.
+
 ## What is kept, and how it goes away again
 
 The sheet is not the only thing here that is made from an attachment and costs

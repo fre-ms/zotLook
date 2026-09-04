@@ -301,5 +301,39 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
   fs.rmSync(TMP, { recursive: true, force: true });
 }
 
+// ── a real click on a reader link is sent again as a synthetic one ────
+// Zotero's viewer window runs an actor that takes a trusted click whose
+// target is an anchor and hands the address to the system — a dialogue,
+// for a zotero: link. The jump script stops the trusted click and clicks
+// the link itself; the synthetic click passes the actor and reaches Zotero
+{
+  const html4 = S.html({
+    pages: [{ page: 1, height: 700 }], columns: 1, width: 500, imageDir: 'pages', pageCount: 1,
+    linkBase: 'zotero://open-pdf/library/items/ABCD1234',
+    annotations: [{ page: 1, key: 'K1', type: 'highlight', text: 'words' }],
+  });
+  const doc = new DOMParser().parseFromString(html4, 'text/html');
+  const script = S.JUMP_SCRIPT.replace(/^<script>\s*/, '').replace(/<\/script>\s*$/, '');
+  new Function('document', script)(doc);
+  const link = doc.querySelector('a.zl-annotation-open');
+  const seen = [];
+  link.addEventListener('click', (e) => seen.push(e.isTrusted ? 'trusted' : 'synthetic'));
+  const real = new Event('click', { bubbles: true, cancelable: true });
+  Object.defineProperty(real, 'isTrusted', { value: true });
+  Object.assign(real, { button: 0, metaKey: false, ctrlKey: false, shiftKey: false });
+  link.dispatchEvent(real);
+  eq(real.defaultPrevented, true, 'the trusted click on a reader link is stopped');
+  eq(seen, ['trusted', 'synthetic'], 'and the link is clicked again, synthetically, for the road past the actor');
+  const tile = doc.querySelector('.page a');
+  const seenTile = [];
+  tile.addEventListener('click', (e) => seenTile.push(e.isTrusted ? 'trusted' : 'synthetic'));
+  const onImage = new Event('click', { bubbles: true, cancelable: true });
+  Object.defineProperty(onImage, 'isTrusted', { value: true });
+  Object.assign(onImage, { button: 0, metaKey: false, ctrlKey: false, shiftKey: false });
+  tile.querySelector('img').dispatchEvent(onImage);
+  eq(onImage.defaultPrevented, false, 'a click on a tile\'s picture is left alone: it passes the actor as it is');
+  eq(seenTile, ['trusted'], 'and is not sent twice');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

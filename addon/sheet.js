@@ -38,10 +38,30 @@ var zotLookSheet = {
 	 *
 	 * Only same-page fragments: a page tile's link goes to the reader and
 	 * must stay a real navigation.
+	 *
+	 * The reader links get one thing done for them too. Zotero's viewer
+	 * window runs an actor that takes every click whose target is the
+	 * anchor itself and hands the address to the system — for an http
+	 * link the browser, for a zotero: link a dialogue asking whether Zotero
+	 * may open it. A tile's click lands on its picture, not on the anchor,
+	 * and passes; a text link such as an annotation's "Open in the reader"
+	 * does not. The actor sees only trusted events, so a real click on a
+	 * zotero: link is stopped here and sent again as a synthetic one, which
+	 * takes the road the keyboard's o takes: Zotero's own protocol handler,
+	 * and the reader.
 	 */
 	JUMP_SCRIPT: [
 		'<script>',
 		"document.addEventListener('click', function (event) {",
+		"  if (event.isTrusted && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey) {",
+		"    var reader = event.target.closest && event.target.closest('a[href^=\"zotero:\"]');",
+		"    if (reader && event.target.localName === 'a') {",
+		"      event.preventDefault();",
+		"      event.stopPropagation();",
+		"      reader.click();",
+		"      return;",
+		"    }",
+		"  }",
 		"  var link = event.target.closest && event.target.closest('a[href^=\"#\"]');",
 		"  if (!link || event.defaultPrevented) return;",
 		"  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;",
@@ -989,8 +1009,13 @@ var zotLookSheet = {
 				this.escape(this.PAGE_LABEL + " " + entry.page) +
 				"</a>";
 			if (entry.reader) {
+				// target="_blank" as on the tiles, and for the same reason:
+				// a plain navigation to a zotero: URL is refused by Quick
+				// Look and, in the Zotero window, comes back as a file
+				// load for the system to ask about; a new-window request
+				// goes to the system handler, which opens the reader
 				goto +=
-					' <a class="zl-annotation-open" href="' +
+					' <a class="zl-annotation-open" target="_blank" href="' +
 					this.escape(entry.reader) + '">' +
 					this.escape(this.OPEN_LABEL) + "</a>";
 			}

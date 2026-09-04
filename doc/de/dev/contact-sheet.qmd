@@ -166,6 +166,18 @@ Wo keine Skripte laufen, sind es gewöhnliche Anker und springen wie eh und je,
 und genommen werden nur Fragmente derselben Seite. Der Link einer Seitenkachel
 führt zum Reader und bleibt eine echte Navigation.
 
+Auch den Reader-Links wird eine Sache abgenommen. Zoteros Viewer-Fenster
+betreibt einen Aktor, `ExternalLinkHandler`, der jeden Klick nimmt, dessen
+unmittelbares Ziel ein Anker ist, und die Adresse an `Zotero.launchURL`
+weitergibt — für einen http-Link an den Browser, für einen `zotero:`-Link an
+das System, das dann fragt, ob Zotero ihn öffnen darf. Der Klick auf eine
+Kachel trifft ihr Bild, nicht den Anker, und geht durch; ein Textlink wie „Im
+Reader öffnen“ einer Annotation ging nicht durch und zeigte den Dialog. Der
+Aktor sieht nur vertrauenswürdige Ereignisse, darum hält das Skript einen
+echten Klick auf einen `zotero:`-Link an und klickt den Link selbst noch
+einmal: Der synthetische Klick passiert den Aktor und nimmt den Weg, den die
+Taste `o` immer nahm, Zoteros eigenen Protokoll-Handler und den Reader.
+
 ## Was behalten wird, und wie es wieder verschwindet
 
 Der Bogen ist nicht das Einzige hier, das aus einem Anhang entsteht und
