@@ -107,6 +107,15 @@ Annotationen, jeder Eintrag ein Sprung zu seiner Seite. Aus, ist der Bogen das
 Raster allein. Anders als die beiden Einstellungen darüber gelten diese auch
 für die Seitenübersicht eines Buches.
 
+**Fenstergröße** (Vorgabe 0 × 0) ist die Größe, in der das eigene Fenster des
+Bogens aufgeht (Strg+Alt+Leertaste). Sie muss nicht getippt werden: Wird das
+Fenster mit der Maus aufgezogen, merkt sich zotLook die Größe und trägt sie
+hier ein, und das nächste Fenster öffnet so. 0 überlässt es Zotero, dessen
+Viewer sein Fenster bei jedem Öffnen auf sein Minimum von etwa 1000 × 700
+zurücksetzt — der Grund, weshalb ein aufgezogenes Fenster ohne diese
+Einstellung beim nächsten Mal wieder klein war. Die Systemvorschauen
+bestimmen ihre Größe selbst; siehe [Plattformen](platforms.qmd).
+
 ## Zwischengespeicherte Vorschauen
 
 Was zotLook erzeugt, kostet Sekunden: der Kontaktbogen, der jede Seite eines

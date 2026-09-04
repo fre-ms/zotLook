@@ -96,9 +96,10 @@ figure you remember, or for seeing at a glance which pages you marked up.
   it is showing.
 
 The window variant (**Ctrl+Alt+Space**) puts the same sheet in a Zotero window,
-where it scrolls under the keyboard and needs no system preview. A click hands
-over the same way everywhere: the reader opens at that page, and sheet and
-panel alike close behind the handoff.
+where it scrolls under the keyboard and needs no system preview. The window
+keeps the size it was dragged to, and says that the sheet is on its way while
+it is still empty. A click hands over the same way everywhere: the reader
+opens at that page, and sheet and panel alike close behind the handoff.
 
 **The window can search.** A field in its top corner, also reached with
 Ctrl+F, takes a word or a phrase: pages without it are dimmed, pages with it

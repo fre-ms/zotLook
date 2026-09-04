@@ -135,6 +135,25 @@ This one is a Zotero window rather than the system's panel, which is why it
 looks the same everywhere — and why the page links work on Linux, where they
 cannot in Sushi.
 
+### How large the windows are
+
+Only the sheet's Zotero window can be given a size: it keeps what it was
+dragged to, and the [window size setting](settings.qmd#the-contact-sheet)
+shows and sets the value — the same on all three systems, since the window is
+Zotero's own.
+
+The system previews decide their own size, and none takes one from outside:
+
+- **macOS** sizes the Quick Look panel to the content and the screen.
+- **GNOME Sushi** sizes its window to the viewer at hand, remembers nothing
+  between two calls, and its D-Bus interface has no notion of size. A window
+  enlarged by hand holds only while it is open. For a large sheet on Linux,
+  use the Zotero window.
+- **QuickLook for Windows** opens HTML, and so the sheet, at 1280 × 720
+  pixels, fixed in its viewer plugin. A window resized by hand is kept until
+  QuickLook quits; there is no setting for it, and the named pipe zotLook
+  drives it through knows only open, switch and close.
+
 ## Which formats appear where
 
 That is the preview program's business, not zotLook's. The table describes each

@@ -140,6 +140,28 @@ Das ist ein Zotero-Fenster statt der Systemanzeige — deshalb sieht es überall
 gleich aus, und deshalb funktionieren die Seitenverweise auch unter Linux, wo
 sie es in Sushi nicht können.
 
+### Wie groß die Fenster sind
+
+Nur das Zotero-Fenster des Bogens lässt sich in der Größe festlegen: Es
+merkt sich, worauf es gezogen wurde, und die [Einstellung
+Fenstergröße](settings.qmd#der-kontaktbogen) zeigt und setzt den Wert — auf
+allen drei Systemen gleich, denn das Fenster ist Zoteros eigenes.
+
+Die Systemvorschauen bestimmen ihre Größe selbst, und keine nimmt von außen
+eine entgegen:
+
+- **macOS** bemisst das Quick-Look-Fenster nach dem Inhalt und dem Bildschirm.
+- **GNOME Sushi** richtet sein Fenster nach dem jeweiligen Betrachter aus,
+  merkt sich zwischen zwei Aufrufen nichts, und seine D-Bus-Schnittstelle
+  kennt keine Größe. Ein von Hand vergrößertes Fenster gilt nur, solange es
+  offen ist. Wer den Bogen unter Linux groß haben will, nimmt das
+  Zotero-Fenster.
+- **QuickLook für Windows** öffnet HTML, also den Bogen, in 1280 × 720 Pixeln,
+  fest im Betrachter-Plugin verdrahtet. Ein von Hand geändertes Fenster
+  behält QuickLook, bis es beendet wird; eine Einstellung dafür gibt es
+  nicht, und die Named Pipe, über die zotLook es steuert, kennt nur
+  Öffnen, Umschalten und Schließen.
+
 ## Welche Formate wo angezeigt werden
 
 Das ist Sache des Vorschauprogramms, nicht von zotLook. Der Überblick gilt für

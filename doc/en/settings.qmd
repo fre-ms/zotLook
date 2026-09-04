@@ -101,6 +101,14 @@ read from the PDF's outline, and its annotations, each entry a jump to its
 page. Off, the sheet is the grid alone. Unlike the two settings above, these
 apply to the page overview of a book as well.
 
+**Window size** (default 0 × 0) is the size the sheet's own window opens at
+(Ctrl+Alt+Space). It need not be typed: drag the window to the size you like,
+and zotLook keeps it, writes it here, and opens the next window so. 0 leaves
+it to Zotero, whose viewer resets its window to its minimum of about
+1000 × 700 on every opening — which is why a window pulled larger came back
+small without this setting. The system previews decide their own size; see
+[Platforms](platforms.qmd).
+
 ## Kept previews
 
 The things zotLook makes cost seconds to make: the contact sheet, which draws

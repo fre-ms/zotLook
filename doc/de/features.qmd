@@ -104,8 +104,10 @@ zu sehen, welche Seiten man bearbeitet hat.
 
 Die Fenster-Variante (**Strg+Alt+Leertaste**) zeigt denselben Bogen in einem
 Zotero-Fenster — dort blättert er unter der Tastatur und braucht keine
-Systemvorschau. Ein Klick übergibt überall gleich: Der Reader öffnet auf der
-Seite, und Bogen wie Vorschau schließen sich hinter der Übergabe.
+Systemvorschau. Das Fenster merkt sich die Größe, auf die es gezogen wurde,
+und sagt, dass der Bogen unterwegs ist, solange es noch leer ist. Ein Klick
+übergibt überall gleich: Der Reader öffnet auf der Seite, und Bogen wie
+Vorschau schließen sich hinter der Übergabe.
 
 **Das Fenster kann suchen.** Ein Feld in seiner oberen Ecke, auch mit Strg+F
 zu erreichen, nimmt ein Wort oder eine Wendung: Seiten ohne sie werden
