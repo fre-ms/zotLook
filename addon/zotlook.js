@@ -600,18 +600,31 @@ var zotLook = Object.seal({
 		let items = [];
 		try {
 			let pane = window.ZoteroPane;
-			let collection = pane && pane.getSelectedCollection && pane.getSelectedCollection();
-			if (!collection) {
+			// Zotero 10 selects several collections at once and took the
+			// singular away; the items of all of them, each once
+			let collections = [];
+			if (pane && typeof pane.getSelectedCollections === "function") {
+				collections = pane.getSelectedCollections() || [];
+			} else if (pane && typeof pane.getSelectedCollection === "function") {
+				let one = pane.getSelectedCollection();
+				collections = one ? [one] : [];
+			}
+			if (!collections.length) {
 				this.log("No collection selected; the sheet shortcut does nothing here");
 				return;
 			}
-			items = (collection.getChildItems(false) || []).filter((item) => {
-				try {
-					return item.isRegularItem();
-				} catch (e) {
-					return false;
+			let seen = new Set();
+			for (let collection of collections) {
+				for (let item of collection.getChildItems(false) || []) {
+					try {
+						if (!item.isRegularItem() || seen.has(item.id)) continue;
+					} catch (e) {
+						continue;
+					}
+					seen.add(item.id);
+					items.push(item);
 				}
-			});
+			}
 		} catch (e) {
 			this.log("Could not read the selected collection: " + e);
 			return;
