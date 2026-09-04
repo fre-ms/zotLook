@@ -1,0 +1,110 @@
+---
+title: "Der Bogen im Fenster"
+description: >-
+  Strg+Alt+Leertaste öffnet den Kontaktbogen in einem eigenen Zotero-Fenster: auf allen drei Systemen gleich, mit Suche, Tastatur, Menüs und Übergabe an den Reader.
+---
+
+zotLook hat drei Stufen, und die dritte ist die vollständige. Die
+**Leertaste** zeigt den Anhang in der Vorschau des Systems.
+**Strg+Umschalt+Leertaste** legt den Kontaktbogen in dieselbe Vorschau.
+**Strg+Alt+Leertaste** öffnet den Bogen in einem eigenen Zotero-Fenster — und
+das ist die Stufe, auf der alles geht, was der Bogen kann, und zwar überall
+gleich.
+
+Drei Dinge zeichnen das Fenster aus:
+
+- **Es ist auf allen drei Systemen dasselbe.** Die Systemvorschauen sind drei
+  verschiedene Programme mit drei verschiedenen Fenstern; das Zotero-Fenster
+  ist Zoteros eigenes, und der Bogen darin verhält sich unter macOS, Linux und
+  Windows nicht nur ähnlich, sondern identisch.
+- **Es kann alles.** Die Systemvorschauen führen keine Skripte aus, das Fenster
+  schon. Darum gibt es die Suche und die Tastatursteuerung nur hier; die
+  Menüs, die Annotationen und die Übergabe an den Reader hat es ohnehin.
+- **Unter Linux ist es der einzige Weg zum anklickbaren Bogen.** Sushis
+  Anzeige kann einem `zotero:`-Link nicht folgen; im Fenster öffnet der Klick
+  die Seite wie überall sonst.
+
+Die Leertaste bleibt für den einzelnen Anhang der schnellere Griff, und der
+Bogen in der Systemvorschau bleibt der Blick über ein Dokument, ohne dass sich
+ein Fenster öffnet. Das Fenster ist für die Arbeit mit dem Bogen: suchen,
+springen, mit der Tastatur durch ein Buch gehen und die Seite aufschlagen.
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-de-screencast.png" aria-label="Der Kontaktbogen in einem Zotero-Fenster, erst mit der Maus und dann mit der Tastatur bedient: Das Inhaltsverzeichnis öffnet sich, ein Eintrag holt seine Seite gerahmt in die Mitte des Bogens; das Annotationsmenü listet drei Hervorhebungen, eine führt zu Seite 6; eine Suche nach „Tasten“ blendet die Seiten ohne das Wort ab und zählt die Treffer auf den anderen; eine Seite öffnet sich in Zoteros Reader">
+  <source src="asset/screenshot/macos-de-screencast.webm" type="video/webm">
+  <source src="asset/screenshot/macos-de-screencast.mp4" type="video/mp4">
+</video>
+```
+
+:::
+
+::: {.content-visible unless-format="html"}
+![Der Kontaktbogen in einem Zotero-Fenster: das Inhaltsverzeichnis neben dem Raster der Seiten geöffnet, der Annotationen-Knopf in der anderen Ecke, das Suchfeld darüber](asset/screenshot/macos-de-screencast.png)
+
+:::
+
+## Öffnen und schließen
+
+**Strg+Alt+Leertaste** auf einem ausgewählten Eintrag öffnet das Fenster mit
+dem Bogen des PDFs oder, bei einem Buch, mit der
+[Seitenübersicht](features.qmd#die-seitenübersicht-eines-buches). Solange es
+noch leer ist, sagt das Fenster, dass der Bogen unterwegs ist; beim ersten Mal
+wird der Bogen erzeugt, danach kommt er aus dem
+[Zwischenspeicher](settings.qmd#zwischengespeicherte-vorschauen).
+
+Dasselbe Kürzel schließt das Fenster wieder — ebenso **Escape**, die
+**Leertaste** oder **q**, die Tasten, die auch die Systemvorschau schließen.
+Ein Klick auf eine Seite übergibt an den Reader, der auf dieser Seite öffnet,
+und das Fenster schließt sich hinter der Übergabe.
+
+Das Fenster merkt sich die Größe, auf die es gezogen wurde, und öffnet beim
+nächsten Mal so; die [Einstellung Fenstergröße](settings.qmd#der-kontaktbogen)
+zeigt den Wert und lässt ihn auch tippen. Das Kürzel ist
+[einstellbar](settings.qmd#tastenkürzel).
+
+## Die Menüs
+
+In jeder Ecke ein Knopf: das Inhaltsverzeichnis des Dokuments, aus der Outline
+des PDFs gelesen, und seine Annotationen in Lesereihenfolge mit Zitat,
+Kommentar und Seite. Ein Klick auf einen Eintrag holt die Seite gerahmt in die
+Mitte des Fensters. Beides gibt es auch in der Systemvorschau; im Fenster
+lassen sich die Menüs zusätzlich mit der Tastatur bedienen.
+
+## Die Suche
+
+Ein Feld in der oberen Ecke, auch mit **Strg+F** zu erreichen, nimmt ein Wort
+oder eine Wendung: Seiten ohne sie werden abgeblendet, Seiten mit ihr zeigen,
+wie oft, die erste wird in die Mitte geholt, und **Enter** geht zur nächsten.
+Der Text wird beim Zeichnen von den Seiten gelesen; ein Scan ohne Textebene
+hat also nichts zu durchsuchen. In der Seitenübersicht eines Buches werden die
+Treffer in den Kacheln markiert.
+
+Die Systemvorschauen haben kein Feld, weil sie keine Skripte ausführen; der
+Bogen dort ist derselbe, nur ohne die Suche.
+
+## Die Tastatur
+
+Der Rahmen ist ein Cursor:
+
+| Taste | Wirkung |
+|---|---|
+| **Enter** | rahmt die nächste Seite, beim ersten Druck die erste, oder mit einer Suche den nächsten Treffer; **Umschalt+Enter** geht zurück |
+| **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche gehen links und rechts trefferweise, auf und ab zur nächsten Zeile darüber oder darunter, die einen Treffer hat |
+| **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
+| **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** oder **o** folgt einem, derselbe Buchstabe schließt das Menü |
+| **Bild auf** / **Bild ab** | blättern |
+| **Leertaste**, **q**, **Escape** | schließen das Fenster |
+
+Im Suchfeld ist ein Buchstabe Tippen, und die Pfeile links und rechts bewegen
+die Schreibmarke; die Pfeile auf und ab wirken dort wie außerhalb. Enter geht
+zum nächsten Treffer und gibt die Tastatur an die Seite zurück, sodass das
+nächste **o** öffnet statt zu tippen; **Strg+F** führt zurück ins Feld.
+
+## Was in der Systemvorschau bleibt
+
+Der Bogen in der Systemvorschau (**Strg+Umschalt+Leertaste**) ist derselbe
+Bogen, mit denselben Menüs und Annotationen. Was ihm fehlt, fehlt ihm, weil
+die Vorschauprogramme keine Skripte ausführen: die Suche und die Tastatur.
+Und unter Linux öffnet dort kein Klick den Reader. Wie sich die drei
+Vorschauen sonst unterscheiden, steht unter [Plattformen](platforms.qmd).

@@ -11,8 +11,11 @@
 [![License: MIT](https://img.shields.io/github/license/fre-ms/zotLook)](LICENSE)
 
 A plugin for Zotero 10 — the version it is developed and tested against — that
-previews attachments when you press **Space**, the way a file manager does. It carries no
-viewer of its own, but drives the preview panel the system already has:
+previews attachments when you press **Space**, the way a file manager does,
+and builds a **contact sheet** of every page of a document — in the system's
+preview, or in a Zotero window of its own that searches and answers the
+keyboard, the same on all three systems. For the preview itself it carries no
+viewer, but drives the panel the system already has:
 
 - [**Quick Look**](https://en.wikipedia.org/wiki/Quick_Look) on **macOS**,
 - [**GNOME Sushi**](https://gitlab.gnome.org/GNOME/sushi) on **Linux** and
@@ -57,6 +60,13 @@ with the keyboard alone.
 - **Clicking a page of the contact sheet** opens it in Zotero's reader at that
   page. A button in each corner opens the document's contents and its
   annotations, each entry a jump to its page.
+- **The sheet in a Zotero window** (Ctrl+Alt+Space) is the full version, and
+  the same on all three systems: a search across every page that dims the
+  pages without the word and counts the hits on the others, control from the
+  keyboard alone — Enter and the arrows walk the pages or the hits, o opens
+  one in the reader, c and a open the menus — and a click that opens the
+  reader on Linux as well, where the system preview cannot. The window keeps
+  the size it was dragged to.
 - **A book gets a page overview too**, where it can have one. A reflowable EPUB
   has no pages of its own, but one published beside a print edition usually
   carries that edition's pagination along with it — and zotLook cuts the book

@@ -58,6 +58,8 @@ website:
         contents:
           - text: Was es kann
             href: features.qmd
+          - text: Der Bogen im Fenster
+            href: window.qmd
           - text: Einstellungen
             href: settings.qmd
           - text: Plattformen

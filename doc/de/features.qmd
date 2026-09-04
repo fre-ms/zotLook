@@ -14,7 +14,7 @@ Jede Funktion hat genau ein Kürzel, und jedes davon ist
 | **Leertaste** | Anhang des gewählten Eintrags anzeigen. Nochmals oder **Escape** schließt. |
 | **Umschalt+Leertaste** | Notizen des Eintrags als Seite anzeigen. |
 | **Strg+Umschalt+Leertaste** | Kontaktbogen: jede Seite eines PDFs als Miniatur, oder die gedruckten Seiten eines Buches. |
-| **Strg+Alt+Leertaste** | Derselbe Bogen in einem Zotero-Fenster: Er blättert unter der Tastatur und braucht keine Systemvorschau. Nochmals schließt es — oder **Escape**, **Leertaste** oder **q**, die Tasten, die auch die Systemvorschau schließen. Ein Klick auf eine Seite übergibt an den Reader und schließt es. |
+| **Strg+Alt+Leertaste** | Derselbe Bogen in [einem Zotero-Fenster](window.qmd): Er blättert unter der Tastatur und braucht keine Systemvorschau. Nochmals schließt es — oder **Escape**, **Leertaste** oder **q**, die Tasten, die auch die Systemvorschau schließen. Ein Klick auf eine Seite übergibt an den Reader und schließt es. |
 
 Jedes Kürzel ist sein eigener Schalter: Der Druck, der eine Vorschau geöffnet
 hat, schließt sie wieder, und **Escape** tut dasselbe. Ein anderes Kürzel,
@@ -102,36 +102,10 @@ zu sehen, welche Seiten man bearbeitet hat.
   Für ungewöhnlich große Scans lässt sich eines setzen; greift es, sagt der
   Bogen, wie viele Seiten er zeigt.
 
-Die Fenster-Variante (**Strg+Alt+Leertaste**) zeigt denselben Bogen in einem
-Zotero-Fenster — dort blättert er unter der Tastatur und braucht keine
-Systemvorschau. Das Fenster merkt sich die Größe, auf die es gezogen wurde,
-und sagt, dass der Bogen unterwegs ist, solange es noch leer ist. Ein Klick
-übergibt überall gleich: Der Reader öffnet auf der Seite, und Bogen wie
-Vorschau schließen sich hinter der Übergabe.
-
-**Das Fenster kann suchen.** Ein Feld in seiner oberen Ecke, auch mit Strg+F
-zu erreichen, nimmt ein Wort oder eine Wendung: Seiten ohne sie werden
-abgeblendet, Seiten mit ihr zeigen, wie oft, die erste wird in die Mitte
-geholt, und Enter geht zur nächsten. Der Text wird beim Zeichnen von den
-Seiten gelesen; ein Scan ohne Textebene hat also nichts zu durchsuchen. Die
-Systemvorschauen haben kein Feld, weil sie keine Skripte ausführen; der Bogen
-dort ist derselbe, nur ohne die Suche.
-
-**Das Fenster gehorcht der Tastatur.** Der Rahmen ist ein Cursor:
-
-| Taste | Wirkung |
-|---|---|
-| **Enter** | rahmt die nächste Seite, beim ersten Druck die erste, oder mit einer Suche den nächsten Treffer; **Umschalt+Enter** geht zurück |
-| **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche gehen links und rechts trefferweise, auf und ab zur nächsten Zeile darüber oder darunter, die einen Treffer hat |
-| **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
-| **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** oder **o** folgt einem, derselbe Buchstabe schließt das Menü |
-| **Bild auf** / **Bild ab** | blättern, wie bisher |
-| **Leertaste**, **q**, **Escape** | schließen das Fenster |
-
-Im Suchfeld ist ein Buchstabe Tippen, und die Pfeile links und rechts bewegen
-die Schreibmarke; die Pfeile auf und ab wirken dort wie außerhalb. Enter geht
-zum nächsten Treffer und gibt die Tastatur an die Seite zurück, sodass das
-nächste **o** öffnet statt zu tippen; **Strg+F** führt zurück ins Feld.
+Die dritte Stufe ist [**der Bogen im Fenster**](window.qmd)
+(**Strg+Alt+Leertaste**): derselbe Bogen in einem eigenen Zotero-Fenster, auf
+allen drei Systemen gleich, mit Suche, Tastatursteuerung und einem Klick, der
+überall den Reader öffnet. Er hat eine eigene Seite.
 
 ### Die Seitenübersicht eines Buches
 

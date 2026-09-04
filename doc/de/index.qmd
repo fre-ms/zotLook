@@ -2,14 +2,15 @@
 title: "zotLook"
 subtitle: "Dokumentation"
 description: >-
-  Was zotLook ist, was es braucht und wie man es installiert: Zotero-Anhänge mit der Leertaste ansehen, unter macOS, Linux und Windows.
+  Was zotLook ist, was es braucht und wie man es installiert: Zotero-Anhänge mit der Leertaste ansehen und den Kontaktbogen eines Dokuments durchsuchen, unter macOS, Linux und Windows.
 ---
 
 **zotLook** ist ein Plugin für den quelloffenen Literaturmanager
-[**Zotero**](https://www.zotero.org/). Es zeigt den Anhang des ausgewählten
-Zotero-Eintrags in einer Vorschau, sobald Sie die **Leertaste** drücken — so, wie
-ein Dateimanager es tut. zotLook bringt dafür keinen eigenen Betrachter mit,
-sondern steuert die Vorschau an, die das System bereits hat:
+[**Zotero**](https://www.zotero.org/). Es hat drei Stufen. Die erste: Es zeigt
+den Anhang des ausgewählten Zotero-Eintrags in einer Vorschau, sobald Sie die
+**Leertaste** drücken — so, wie ein Dateimanager es tut. zotLook bringt dafür
+keinen eigenen Betrachter mit, sondern steuert die Vorschau an, die das System
+bereits hat:
 
 - [**Quick Look**](https://en.wikipedia.org/wiki/Quick_Look) unter **macOS**,
 - [**GNOME Sushi**](https://gitlab.gnome.org/GNOME/sushi) unter **Linux**,
@@ -18,15 +19,22 @@ sondern steuert die Vorschau an, die das System bereits hat:
 [Was diese Vorschau-Programme anzeigen können](platforms.qmd#welche-formate-wo-angezeigt-werden), kann somit auch zotLook anzeigen.
 Wenn Sie [die Funktionalität der Vorschau-Programme durch Plugins erweitern](platforms.qmd#die-vorschau-erweitern), erweitern Sie damit auch die Funktionalität von zotLook.
 
-Darüber hinaus erzeugt zotLook mit **Strg+Umschalt+Leertaste** **Kontaktbögen**
-von PDF-Dateien: ein Übersichtsraster über alle Seiten, dessen Spaltenzahl sich
-einstellen lässt. **Das hilft vor allem bei umfangreichen Dokumenten wie Büchern**,
-denn die Vorschau des Betriebssystems zeigt zwar jede Seite, aber immer nur eine
-bzw. wenige auf einmal.
-Der Kontaktbogen, den zotLook generiert, wird von der Systemvorschau angezeigt — und
-**ein Klick auf eine Seite öffnet sie im Zotero-Reader**. Das Erzeugen des Kontaktbogens kann einige
-Sekunden dauern; eine Verlaufsanzeige nennt dabei die Seite, für die zotLook
-gerade die Vorschau generiert.
+Die zweite Stufe: Mit **Strg+Umschalt+Leertaste** erzeugt zotLook
+**Kontaktbögen** von PDF-Dateien — ein Übersichtsraster über alle Seiten, dessen
+Spaltenzahl sich einstellen lässt — und legt sie in dieselbe Systemvorschau.
+**Das hilft vor allem bei umfangreichen Dokumenten wie Büchern**, denn die
+Vorschau des Betriebssystems zeigt zwar jede Seite, aber immer nur eine bzw.
+wenige auf einmal. Ein Knopf in jeder Ecke öffnet das Inhaltsverzeichnis und
+die Annotationen, und **ein Klick auf eine Seite öffnet sie im Zotero-Reader**.
+Das Erzeugen kann einige Sekunden dauern; eine Verlaufsanzeige nennt dabei die
+Seite, für die zotLook gerade die Vorschau generiert.
+
+Die dritte Stufe: **Strg+Alt+Leertaste** öffnet denselben Bogen in einem
+**eigenen Zotero-Fenster**. Das ist die Stufe, auf der alles geht, was der Bogen
+kann, und zwar auf allen drei Systemen gleich, weil das Fenster Zoteros eigenes
+ist: Suche über alle Seiten, Bedienung ganz mit der Tastatur, die Menüs, und der
+Klick, der überall den Reader öffnet — auch unter Linux, wo Sushis Vorschau
+das nicht kann. [Der Bogen im Fenster](window.qmd) hat eine eigene Seite.
 
 Eine Besonderheit von zotLook ist neben der **plattformübergreifenden Vorschau**,
 dass **Zotero-Annotationen Bestandteil der Vorschau** werden — in der

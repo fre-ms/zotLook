@@ -89,9 +89,11 @@ own keys apply instead, until you click back.
 
 The one gap is Sushi. Its renderer really does follow links, and it cannot load
 a `zotero:` URL — so the links are made inert there on purpose, because a click
-that fails takes the whole preview down with it. The window variant
-(**Ctrl+Alt+Space**) gives Linux the clickable sheet. There is more on that in
-[The contact sheet](dev/contact-sheet.qmd).
+that fails takes the whole preview down with it. The last row is the
+one where everything works everywhere: the window is Zotero's own, and [the
+sheet in it](window.qmd) behaves identically on the three systems — with the
+clickable sheet on Linux too. Why Sushi cannot follow is explained in [The
+contact sheet](dev/contact-sheet.qmd).
 
 ## Seen side by side
 

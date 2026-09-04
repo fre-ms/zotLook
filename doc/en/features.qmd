@@ -14,7 +14,7 @@ Every action has exactly one shortcut, and every one of them is
 | **Space** | Preview the selected item's attachment. Again, or **Escape**, to dismiss. |
 | **Shift+Space** | Preview the item's notes, rendered as a page. |
 | **Ctrl+Shift+Space** | Contact sheet: every page of a PDF as a thumbnail, or a book’s printed pages. |
-| **Ctrl+Alt+Space** | The same sheet in a Zotero window: it scrolls under the keyboard and needs no system preview. Again to close it — or **Escape**, **Space** or **q**, the keys that close the system preview. A click on a page hands over to the reader and closes it. |
+| **Ctrl+Alt+Space** | The same sheet in [a Zotero window](window.qmd): it scrolls under the keyboard and needs no system preview. Again to close it — or **Escape**, **Space** or **q**, the keys that close the system preview. A click on a page hands over to the reader and closes it. |
 
 Each shortcut is its own switch: the press that put a preview up takes it down
 again, and **Escape** does the same. A different shortcut while one is showing
@@ -95,34 +95,10 @@ figure you remember, or for seeing at a glance which pages you marked up.
   be set for unusually large scans; when it bites, the sheet says how many pages
   it is showing.
 
-The window variant (**Ctrl+Alt+Space**) puts the same sheet in a Zotero window,
-where it scrolls under the keyboard and needs no system preview. The window
-keeps the size it was dragged to, and says that the sheet is on its way while
-it is still empty. A click hands over the same way everywhere: the reader
-opens at that page, and sheet and panel alike close behind the handoff.
-
-**The window can search.** A field in its top corner, also reached with
-Ctrl+F, takes a word or a phrase: pages without it are dimmed, pages with it
-show how often, the first is brought to the middle, and Enter walks on to the
-next. The text comes off the pages as the sheet is drawn, so a scan without a
-text layer has nothing to search. The system previews have no field, since
-they run no scripts; the sheet there is the same, minus the search.
-
-**The window answers the keyboard.** The frame is a cursor:
-
-| Key | Does |
-|---|---|
-| **Enter** | frames the next page — the first, on the first press — or, with a search, the next hit; **Shift+Enter** goes back |
-| **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, left and right go hit by hit, and up and down to the nearest row above or below that has a hit |
-| **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it |
-| **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** or **o** follows one, the same letter closes the menu |
-| **Page Up** / **Page Down** | scroll, as before |
-| **Space**, **q**, **Escape** | close the window |
-
-In the search field a letter is typing, and the left and right arrows move
-the caret; the up and down arrows work there as they do outside it. Enter
-walks on to the next hit and hands the keyboard back to the page, so the next
-**o** opens rather than types; **Ctrl+F** is the way back into the field.
+The third tier is [**the sheet in a window**](window.qmd)
+(**Ctrl+Alt+Space**): the same sheet in a Zotero window of its own, the same
+on all three systems, with search, keyboard control and a click that opens the
+reader everywhere. It has a page of its own.
 
 ### A page overview of a book
 

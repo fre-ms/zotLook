@@ -62,6 +62,8 @@ website:
         contents:
           - text: What it does
             href: features.qmd
+          - text: The sheet in a window
+            href: window.qmd
           - text: Settings
             href: settings.qmd
           - text: Platforms

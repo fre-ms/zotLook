@@ -93,8 +93,10 @@ Vorschau, gelten stattdessen QuickLooks eigene Tasten, bis Sie zurückklicken.
 Die eine Lücke ist Sushi. Seine Anzeige folgt Verweisen tatsächlich und kann
 eine `zotero:`-Adresse nicht laden — die Verweise sind dort deshalb absichtlich
 wirkungslos, denn ein fehlschlagender Klick reißt die ganze Vorschau mit sich.
-Die Fenster-Variante (**Strg+Alt+Leertaste**) gibt Linux den anklickbaren
-Bogen. Mehr dazu unter [Der Kontaktbogen](dev/contact-sheet.qmd).
+Die letzte Zeile ist die, in der alles überall geht: Das Fenster ist Zoteros
+eigenes, und [der Bogen darin](window.qmd) verhält sich auf den drei Systemen
+identisch — mit dem anklickbaren Bogen auch unter Linux. Warum Sushi nicht
+folgen kann, steht unter [Der Kontaktbogen](dev/contact-sheet.qmd).
 
 ## Nebeneinander gesehen
 

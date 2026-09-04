@@ -1,0 +1,108 @@
+---
+title: "The sheet in a window"
+description: >-
+  Ctrl+Alt+Space opens the contact sheet in a Zotero window of its own: the same on all three systems, with search, keyboard, menus and the handoff to the reader.
+---
+
+zotLook has three tiers, and the third is the complete one. **Space** shows
+the attachment in the system's preview. **Ctrl+Shift+Space** puts the contact
+sheet into that same preview. **Ctrl+Alt+Space** opens the sheet in a Zotero
+window of its own — and that is the tier on which everything the sheet can do
+works, and works the same everywhere.
+
+Three things set the window apart:
+
+- **It is the same on all three systems.** The system previews are three
+  different programs with three different windows; the Zotero window is
+  Zotero's own, and the sheet in it behaves not just alike but identically on
+  macOS, Linux and Windows.
+- **It does everything.** The system previews run no scripts; the window does.
+  That is why the search and the keyboard exist only here; the menus, the
+  annotations and the handoff to the reader it has anyway.
+- **On Linux it is the only way to a clickable sheet.** Sushi's renderer
+  cannot follow a `zotero:` link; in the window a click opens the page as it
+  does everywhere else.
+
+Space remains the quicker reach for a single attachment, and the sheet in the
+system preview remains the glance over a document with no window opening. The
+window is for working with the sheet: searching, jumping, walking through a
+book with the keyboard, and opening the page.
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-en-screencast.png" aria-label="The contact sheet in a Zotero window, driven first with the mouse and then with the keyboard: the contents menu opens and an entry brings its page to the middle of the sheet, framed; the annotations menu lists three highlights and one of them leads to page 6; a search for &quot;keys&quot; dims the pages without it and counts the hits on the others; a page opens in Zotero's reader">
+  <source src="asset/screenshot/macos-en-screencast.webm" type="video/webm">
+  <source src="asset/screenshot/macos-en-screencast.mp4" type="video/mp4">
+</video>
+```
+
+:::
+
+::: {.content-visible unless-format="html"}
+![The contact sheet in a Zotero window: the contents menu open beside the grid of pages, the annotations button in the other corner, and the search field above](asset/screenshot/macos-en-screencast.png)
+
+:::
+
+## Opening and closing
+
+**Ctrl+Alt+Space** on a selected item opens the window with the sheet of the
+PDF or, for a book, with its [page
+overview](features.qmd#a-page-overview-of-a-book). While it is still empty the
+window says that the sheet is on its way; the first time the sheet is built,
+after that it comes from the [kept previews](settings.qmd#kept-previews).
+
+The same shortcut closes the window again — so do **Escape**, **Space** and
+**q**, the keys that close the system preview. A click on a page hands over
+to the reader, which opens at that page, and the window closes behind the
+handoff.
+
+The window keeps the size it was dragged to and opens so the next time; the
+[window size setting](settings.qmd#the-contact-sheet) shows the value and
+takes a typed one too. The shortcut is
+[configurable](settings.qmd#shortcuts).
+
+## The menus
+
+A button in each corner: the document's contents, read from the PDF's
+outline, and its annotations in reading order with quotation, comment and
+page. A click on an entry brings the page to the middle of the window,
+framed. Both exist in the system preview as well; in the window the menus
+answer the keyboard too.
+
+## The search
+
+A field in the top corner, also reached with **Ctrl+F**, takes a word or a
+phrase: pages without it are dimmed, pages with it show how often, the first
+is brought to the middle, and **Enter** walks on to the next. The text comes
+off the pages as the sheet is drawn, so a scan without a text layer has
+nothing to search. In a book's page overview the hits are marked in the
+tiles.
+
+The system previews have no field, since they run no scripts; the sheet there
+is the same, minus the search.
+
+## The keyboard
+
+The frame is a cursor:
+
+| Key | Does |
+|---|---|
+| **Enter** | frames the next page — the first, on the first press — or, with a search, the next hit; **Shift+Enter** goes back |
+| **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, left and right go hit by hit, and up and down to the nearest row above or below that has a hit |
+| **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it |
+| **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** or **o** follows one, the same letter closes the menu |
+| **Page Up** / **Page Down** | scroll |
+| **Space**, **q**, **Escape** | close the window |
+
+In the search field a letter is typing, and the left and right arrows move
+the caret; the up and down arrows work there as they do outside it. Enter
+walks on to the next hit and hands the keyboard back to the page, so the next
+**o** opens rather than types; **Ctrl+F** is the way back into the field.
+
+## What stays in the system preview
+
+The sheet in the system preview (**Ctrl+Shift+Space**) is the same sheet,
+with the same menus and annotations. What it lacks, it lacks because the
+preview programs run no scripts: the search and the keyboard. And on Linux no
+click there opens the reader. How the three previews otherwise differ is on
+the [Platforms](platforms.qmd) page.
