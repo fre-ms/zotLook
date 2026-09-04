@@ -954,5 +954,43 @@ const ok = (c,l)=>eq(!!c,true,l);
   eq(await Q._stepPreviewList(1), false, 'a list of one has nothing to walk');
 }
 
+// ── the sheet shortcut on the collection tree ─────────────────────────
+{
+  const { zotLook: Q, zotLookUtil: U } = loadPlugin();
+  const key = U.parseShortcut(U.defaultShortcut('key.contactSheetWindow'));
+  const ev = (o) => ({ code:'', key:'', shiftKey:false, altKey:false, metaKey:false, ctrlKey:false,
+    prevented:false, preventDefault(){ this.prevented = true; }, stopPropagation(){}, ...o });
+  const own = () => ev({ code: key.code, ctrlKey: !!key.ctrl, shiftKey: !!key.shift, altKey: !!key.alt, metaKey: !!key.meta });
+  const opened = [];
+  Q._openContactSheetInViewer = async (items, options) => { opened.push([items.map((i) => i.id), options]); };
+  const item = (id, regular = true) => ({ id, isRegularItem: () => regular });
+  let collection = { getChildItems: () => [item(1), item(2, false), item(3)] };
+  const win = { ZoteroPane: { getSelectedCollection: () => collection } };
+  let e = own(); Q._onCollectionKeyDown(e, win);
+  eq(opened, [[[1, 3], { collection: true }]], 'the shortcut on a collection lays out its regular items as a collection sheet');
+  eq(e.prevented, true, 'and takes the key');
+  collection = { getChildItems: () => [item(7)] };
+  e = own(); Q._onCollectionKeyDown(e, win);
+  eq(opened[1], [[7], { collection: true }], 'a collection of one is a collection sheet all the same');
+  collection = null;
+  e = own(); Q._onCollectionKeyDown(e, win);
+  eq(opened.length, 2, 'the library root is left alone');
+  eq(e.prevented, false, 'and so is the key');
+  e = ev({ code: 'Space' }); Q._onCollectionKeyDown(e, win);
+  eq(e.prevented, false, 'Space on the tree is the tree\'s');
+}
+
+// ── the tag that keys kept sheets carries the sheet's own code ────────
+{
+  const { zotLook: Q, zotLookSheet: S } = loadPlugin();
+  Q.version = '9.9.9';
+  const before = Q._tag();
+  ok(/^9\.9\.9\+[0-9a-f]{8}$/.test(before), 'the tag is the version and a fingerprint of the sheet module');
+  const css = S.SEARCH_CSS; S.SEARCH_CSS = css + '\n/* changed */';
+  ok(Q._tag() !== before, 'a change to what a sheet carries changes the tag, so a kept sheet is remade');
+  S.SEARCH_CSS = css;
+  eq(Q._tag(), before, 'and the same code gives the same tag');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

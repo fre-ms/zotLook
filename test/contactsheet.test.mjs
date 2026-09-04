@@ -711,7 +711,7 @@ const ANNOTATIONS = [
   ok(html.includes('data-zl-tile="1"') && html.includes('data-zl-tile="3"'), 'one tile per item, the third included');
   ok(/collectionsheet_[0-9a-f]{8}_pages\/1\/p1\.jpg/.test(html), 'the first page of the first PDF is its picture');
   ok(html.includes('First paper') && html.includes('Adams, 2019'), 'the title and the creator and year under it');
-  ok(html.includes('zotero://open-pdf/library/items/ATT00011"'), 'a click opens the reader on that PDF');
+  ok(html.includes('zotero://open-pdf/library/items/ATT00011?page=1"'), 'a click opens the reader on that PDF, at the page the tile shows');
   ok(html.includes('No PDF') && html.includes('zotero://select/library/items/ITEM0003'),
      'an item without a PDF has a tile that says so and selects the item');
   eq(made.length, 2, 'each PDF rendered by a renderer of its own, one page each');
@@ -720,6 +720,8 @@ const ANNOTATIONS = [
      `rendered at the width three tiles across need (${want} px), not at one page's`);
   eq(Q._lastSheetItemIDs, [11, 12], 'the reader opening for either PDF is this sheet\'s handoff');
   ok(html.includes('zl-texts'), 'and the search has the titles and first pages to go by');
+  const one = await Q._buildContactSheet([items[0]], { collection: true });
+  ok(one && /collectionsheet_/.test(one), 'one item asked for as a collection is a collection sheet too');
 }
 
 // ── the printed page numbers reach the tiles and the page field ───────

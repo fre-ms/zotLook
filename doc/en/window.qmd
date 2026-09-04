@@ -118,7 +118,8 @@ The frame is a cursor:
 | **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, left and right go hit by hit, and up and down to the nearest row above or below that has a hit |
 | **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it |
 | **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** goes to the entry's page, **o** on an annotation opens the reader at it, the same letter closes the menu |
-| **digits**, then **Enter** | frame the page of that number; the digits show beside the search field as they are typed. **Ctrl+G** leads into the page field, which knows printed page numbers too |
+| **digits** | land in the page field, where Enter frames the page; **Ctrl+G** leads there as well |
+| **letters** | land in the search field and search at once; **Ctrl+F** or **/** lead there as well. The four command letters wait a third of a second: another letter on their heels makes a search word, anything else runs the command |
 | **+** / **−** | one column more or fewer, on the spot; the default in the settings stays |
 | **p** | prints the sheet — the print dialogue is where it becomes a PDF |
 | **Page Up** / **Page Down** | scroll |
@@ -151,7 +152,9 @@ keyboard walks the tiles as it walks the pages of a document, and the search
 finds an item by title, author or the text of its first page. An item without
 a PDF gets an empty tile with its title; a click on it selects the item in
 Zotero. It is the look over a collection the forum asked for as a gallery:
-select a collection, Ctrl+A, and the shortcut.
+choose a collection in the sidebar and press the shortcut, or select its
+items and then press it. A click on a tile opens the document at the page
+the tile shows.
 
 The collection sheet is made for the system preview too, with
 Ctrl+Shift+Space, without the search and the keyboard there.

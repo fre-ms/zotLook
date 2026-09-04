@@ -55,8 +55,15 @@ Tastatur.
   blättert selbst; unter Sushi und QuickLook folgt die Vorschau den Pfeilen
   und der Auswahl.
 - Mehrere ausgewählte Einträge geben einen Sammlungsbogen: die erste Seite
-  jedes PDFs mit seinem Titel, ein Klick öffnet es, Tastatur und Suche wie
-  im Seitenbogen.
+  jedes PDFs mit seinem Titel, ein Klick öffnet es auf dieser Seite, Tastatur
+  und Suche wie im Seitenbogen. Das Kürzel auf einer Sammlung in der
+  Seitenleiste gibt denselben Bogen der Sammlung.
+- Ein aufbewahrter Bogen entsteht neu, wenn sich Skript oder Stil des Bogens
+  seit seinem Bau geändert haben; bisher behielt er die alten, solange die
+  Datei gleich blieb.
+- Tippen auf dem Bogen geht dorthin, wo es hingehört: Ziffern ins
+  Seitenfeld, ein Wort ins Suchfeld; ein Befehlsbuchstabe wartet einen
+  Moment auf einen zweiten. Ein Schrägstrich führt auch in die Suche.
 - Die Dokumentation gibt dem Bogen im Fenster eine eigene Seite, und die
   Startseite erzählt die drei Stufen: Anhang, Bogen, Fenster.
 - Update-Anfragen gehen ab dieser Version an zotlook.org; das Update selbst

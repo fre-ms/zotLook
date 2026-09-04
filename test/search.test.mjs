@@ -17,7 +17,8 @@ const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++
 const ok=(c,l)=>eq(!!c,true,l);
 
 const { zotLookSheet: S } = loadPlugin({});
-const LABELS = { pages: 'pages', none: 'No matches', gotoNone: 'No such page' };
+const LABELS = { pages: 'pages', none: 'No matches', gotoNone: 'No such page', commandDelay: 5 };
+const later = () => new Promise((r) => setTimeout(r, 25));
 const type = (doc, value) => {
   const input = doc.querySelector('.zl-search input');
   input.value = value;
@@ -126,7 +127,7 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
 
   let opened = [];
   doc.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('a[href]'); if (a) opened.push(a.getAttribute('href')); });
-  press('o');
+  press('o'); await later();
   eq(opened, ['zotero://open-pdf/library/items/ABCD1234?page=4'], 'o clicks the framed page\'s link, which is the way to the reader');
   press('Enter', { ctrlKey: true });
   eq(opened.length, 2, 'so does Ctrl+Enter');
@@ -136,13 +137,13 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   for (const t of doc.querySelectorAll('.page')) t.classList.remove('zl-current');
   doc.querySelectorAll('.page')[5].classList.add('zl-current');
   opened = [];
-  press('o');
+  press('o'); await later();
   eq(opened, ['zotero://open-pdf/library/items/ABCD1234?page=6'],
      'o opens the page that is framed, wherever the frame came from');
   press('Enter');
   eq(framed(), 1, 'and Enter walks on from there, wrapping round');
 
-  press('c');
+  press('c'); await later();
   const toc = doc.querySelector('details.zl-toc');
   ok(toc.hasAttribute('open'), 'c opens the contents');
   eq(toc.querySelector('a.zl-menu-current').textContent, 'One', 'with the first entry highlighted');
@@ -154,14 +155,14 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   eq(opened, ['#p4'], 'Enter follows the highlighted entry');
   ok(!toc.hasAttribute('open'), 'and the menu closes behind it');
 
-  press('a');
+  press('a'); await later();
   const ann = doc.querySelector('details.zl-annotations');
   ok(ann.hasAttribute('open'), 'a opens the annotations');
   ok(ann.querySelector('details.zl-annotation-entry').hasAttribute('open'),
      'the highlighted entry\'s fold opens so its link can be seen');
-  press('c');
+  press('c'); await later();
   ok(!ann.hasAttribute('open') && toc.hasAttribute('open'), 'c swaps to the contents, closing the other');
-  press('c');
+  press('c'); await later();
   ok(!toc.hasAttribute('open'), 'and c again closes it');
 
   // the field: letters are typing, Enter and the arrows still walk
@@ -174,28 +175,30 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   inField('ArrowDown'); eq(framed(), 4, 'the down arrow in the field still moves the frame, a row down');
 
   // an annotation entry: Enter goes to its page, o into the reader at it
-  press('a');
+  press('a'); await later();
   opened = [];
   press('Enter');
   eq(opened, ['#p5'], 'Enter on an annotation goes to its page');
-  press('a');
+  press('a'); await later();
   opened = [];
-  press('o');
+  press('o'); await later();
   eq(opened, ['zotero://open-pdf/library/items/ABCD1234?annotation=K5'],
      'o on an annotation opens the reader at the annotation itself');
   ok(!ann.hasAttribute('open'), 'and the menu closes behind it');
 
-  // a page by its number: digits gather, Enter frames that page
+  // a page by its number: a digit typed lands in the page field, Enter there frames the page
+  const gotoField = doc.querySelector('.zl-goto input');
+  const enterInGoto = () => gotoField.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key: 'Enter' }));
   press('5');
-  eq(doc.querySelector('.zl-search-status').textContent, '→ 5', 'a digit shows in the status as it is typed');
-  press('Enter');
+  eq(gotoField.value, '5', 'a digit typed on the sheet lands in the page field');
+  enterInGoto();
   eq(framed(), 5, 'Enter frames the page of that number');
-  eq(doc.querySelector('.zl-search-status').textContent, '', 'and the status clears');
+  eq(gotoField.value, '5', 'and the number stays in the field');
   input.value = 'page'; input.dispatchEvent(new Event('input'));
-  press('3'); press('Enter');
+  gotoField.value = ''; press('3'); enterInGoto();
   eq(framed(), 3, 'under a search too');
   eq(doc.querySelector('.zl-search-status').textContent, '3 / 6', 'and the status says where among the hits that is');
-  input.value = ''; input.dispatchEvent(new Event('input'));
+  gotoField.value = ''; input.value = ''; input.dispatchEvent(new Event('input'));
 
   // the columns, live
   const grid = doc.querySelector('[data-zl-columns]');
@@ -224,6 +227,7 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   eq(doc.querySelector('.zl-search-status').textContent, '1 / 1', 'and is searched at once');
   ok(doc.querySelectorAll('.page')[1].classList.contains('zl-current'), 'with the hit framed');
   doc.body.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key: 'p' }));
+  await later();
   eq(printed.length, 1, 'p prints, which is where a sheet becomes a PDF');
 }
 
@@ -265,7 +269,7 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   eq(blurred, 1, 'and leaves the field, so the next key is navigation');
   let opened = [];
   doc.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('a[href]'); if (a) opened.push(a.getAttribute('href')); });
-  press(doc.body, 'o');
+  press(doc.body, 'o'); await later();
   eq(opened, ['zotero://open-pdf/library/items/ABCD1234?page=1'], 'so that o opens the framed page');
 }
 
@@ -401,6 +405,46 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   goto.value = '3–99'; inGoto('Enter');
   eq(doc.querySelector('.zl-goto-status').textContent, LABELS.gotoNone, 'a range with an end that is not there is refused');
   eq(out(), 'in in in in', 'and changes nothing');
+}
+
+// ── typing on the sheet goes into the fields ──────────────────────────
+// Digits go to the page field, a word to the search field; a command
+// letter waits a moment, and a second letter on its heels makes a word
+{
+  const html7 = S.html({
+    pages: [1, 2, 3].map((n) => ({ page: n, height: 700, text: n === 2 ? 'cat' : 'dog' })),
+    columns: 3, width: 500, imageDir: 'pages', pageCount: 3,
+    toc: [{ title: 'One', page: 1, level: 0 }],
+  });
+  const doc = new DOMParser().parseFromString(html7, 'text/html');
+  S.sheetRuntime(doc, LABELS);
+  const press = (key, extra = {}) =>
+    doc.body.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key, ...extra }));
+  const goto = doc.querySelector('.zl-goto input');
+  const search = doc.querySelector('.zl-search input');
+  const framed = () => [...doc.querySelectorAll('.page')].findIndex((t) => t.classList.contains('zl-current')) + 1;
+  press('2');
+  eq(goto.value, '2', 'a digit typed on the sheet lands in the page field');
+  goto.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key: 'Enter' }));
+  eq(framed(), 2, 'and Enter there frames the page');
+  press('d');
+  eq(search.value, 'd', 'a letter that is no command lands in the search field');
+  eq(doc.querySelector('.zl-search-status').textContent, '1 / 2', 'and is searched at once');
+  search.value = ''; search.dispatchEvent(new Event('input'));
+  press('c'); press('a');
+  eq(search.value, 'ca', 'a command letter followed by another letter is a word for the search, not a command');
+  ok(!doc.querySelector('details.zl-toc').hasAttribute('open'), 'so no menu opened');
+  eq(doc.querySelector('.zl-search-status').textContent, '1 / 1', 'and the word is searched');
+  search.value = ''; search.dispatchEvent(new Event('input'));
+  press('c'); await later();
+  ok(doc.querySelector('details.zl-toc').hasAttribute('open'), 'a command letter on its own runs the command after its moment');
+  press('c'); await later();
+  let focused = 0; search.focus = () => { focused++; };
+  press('/');
+  eq(focused, 1, 'a slash is the way into the search field');
+  search.value = ''; search.dispatchEvent(new Event('input'));
+  press('ä');
+  eq(search.value, 'ä', 'an umlaut is a letter too');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');

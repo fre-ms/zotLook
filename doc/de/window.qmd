@@ -121,7 +121,8 @@ Der Rahmen ist ein Cursor:
 | **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche gehen links und rechts trefferweise, auf und ab zur nächsten Zeile darüber oder darunter, die einen Treffer hat |
 | **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
 | **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** geht zur Seite des Eintrags, **o** öffnet bei einer Annotation den Reader an ihr, derselbe Buchstabe schließt das Menü |
-| **Ziffern**, dann **Enter** | rahmen die Seite mit dieser Nummer; die Ziffern erscheinen beim Tippen neben dem Suchfeld. **Strg+G** führt ins Seitenfeld, das auch gedruckte Seitenzahlen kennt |
+| **Ziffern** | landen im Seitenfeld, wo Enter die Seite rahmt; **Strg+G** führt auch so hinein |
+| **Buchstaben** | landen im Suchfeld und suchen sofort; **Strg+F** oder **/** führen auch so hinein. Die vier Befehlsbuchstaben warten eine Drittelsekunde: Folgt ein weiterer Buchstabe, wird ein Suchwort daraus, sonst läuft der Befehl |
 | **+** / **−** | eine Spalte mehr oder weniger, sofort; die Vorgabe in den Einstellungen bleibt |
 | **p** | druckt den Bogen — im Druckdialog wird daraus ein PDF |
 | **Bild auf** / **Bild ab** | blättern |
@@ -154,7 +155,9 @@ die Tastatur wandert wie im Seitenbogen von Kachel zu Kachel, und die Suche
 findet einen Eintrag nach Titel, Autor oder dem Text seiner ersten Seite. Ein
 Eintrag ohne PDF bekommt eine leere Kachel mit seinem Titel; ein Klick darauf
 wählt ihn in Zotero aus. Das ist der Blick über eine Sammlung, den das Forum
-sich als Galerie gewünscht hat: eine Sammlung markieren, Strg+A, und das Kürzel.
+sich als Galerie gewünscht hat: eine Sammlung in der Seitenleiste wählen und
+das Kürzel drücken, oder ihre Einträge markieren und dann das Kürzel. Ein
+Klick auf eine Kachel öffnet das Dokument auf der Seite, die sie zeigt.
 
 Der Sammlungsbogen entsteht auch für die Systemvorschau mit
 Strg+Umschalt+Leertaste, dort ohne Suche und Tastatur.

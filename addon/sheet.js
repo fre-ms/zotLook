@@ -248,7 +248,8 @@ var zotLookSheet = {
 	 * next o opens rather than types, and Ctrl+F is the way back in.
 	 *
 	 * @param {Document} document
-	 * @param {{pages: string, none: string, gotoNone?: string}} labels
+	 * @param {{pages: string, none: string, gotoNone?: string,
+	 *   commandDelay?: number}} labels
 	 */
 	sheetRuntime(document, labels) {
 		document.documentElement.classList.add("zl-scripted");
@@ -540,10 +541,56 @@ var zotLookSheet = {
 			else say(at >= 0 ? at + 1 + " / " + hits.length : "");
 		};
 		let takeDigit = (d) => {
+			// With a page field on the sheet the digits go there, where
+			// they can be seen and corrected, and Enter is the field's
+			if (gotoInput) {
+				gotoInput.focus();
+				gotoInput.value = (gotoInput.value || "") + d;
+				return;
+			}
 			digits += d;
 			say("→ " + digits);
 			if (digitsTimer !== null) clearTimeout(digitsTimer);
 			digitsTimer = setTimeout(clearDigits, 2000);
+		};
+		// ── letters typed on the sheet ────────────────────────────────
+		// A word typed goes into the search field as if the field had the
+		// keyboard. Four letters are commands — o, c, a, p — so one of them
+		// waits a moment: another letter on its heels makes the two a word
+		// for the search; anything else, or nothing, runs the command.
+		let COMMANDS = { o: true, c: true, a: true, p: true };
+		let pendingLetter = null;
+		let pendingTimer = null;
+		let commandDelay = Number(labels.commandDelay) > 0 ? Number(labels.commandDelay) : 350;
+		let typeInto = (text) => {
+			if (!input) return false;
+			input.focus();
+			input.value = (input.value || "") + text;
+			run();
+			return true;
+		};
+		let runCommand = (letter) => {
+			if (letter === "o") {
+				if (!follow(true)) open();
+			} else if (letter === "c" || letter === "a") {
+				toggle(MENUS[letter]);
+			} else if (letter === "p") {
+				let view = document.defaultView;
+				if (view && typeof view.print === "function") view.print();
+			}
+		};
+		let flushPending = () => {
+			if (pendingLetter === null) return;
+			let letter = pendingLetter;
+			pendingLetter = null;
+			if (pendingTimer !== null) clearTimeout(pendingTimer);
+			pendingTimer = null;
+			runCommand(letter);
+		};
+		let holdLetter = (letter) => {
+			pendingLetter = letter;
+			if (pendingTimer !== null) clearTimeout(pendingTimer);
+			pendingTimer = setTimeout(flushPending, commandDelay);
 		};
 		// The page asked for by its number: the printed number first, which
 		// is what a citation gives; then the tile's own, which is what the
@@ -765,6 +812,21 @@ var zotLookSheet = {
 				return;
 			}
 			if (inField) return;                     // letters are typing
+			let printable = key.length === 1 && !event.altKey;
+			// A command letter held a moment ago: a letter after it makes
+			// a word for the search; any other key runs the command first
+			if (pendingLetter !== null) {
+				if (printable && /^\p{L}$/u.test(key)) {
+					event.preventDefault();
+					let first = pendingLetter;
+					pendingLetter = null;
+					if (pendingTimer !== null) clearTimeout(pendingTimer);
+					pendingTimer = null;
+					typeInto(first + key);
+					return;
+				}
+				flushPending();
+			}
 			if (/^[0-9]$/.test(key)) {
 				event.preventDefault();
 				takeDigit(key);
@@ -779,18 +841,18 @@ var zotLookSheet = {
 				recolumn(key === "-" ? -1 : 1);
 				return;
 			}
+			if (key === "/" && input) {
+				// The editor's and the browser's way into a search
+				event.preventDefault();
+				input.focus();
+				if (input.select) input.select();
+				return;
+			}
 			let letter = key.toLowerCase();
-			if (letter === "o") {
+			if (printable && /^\p{L}$/u.test(letter)) {
 				event.preventDefault();
-				if (!follow(true)) open();
-			} else if (letter === "c" || letter === "a") {
-				event.preventDefault();
-				toggle(MENUS[letter]);
-			} else if (letter === "p") {
-				// The browser's print dialogue, where a sheet becomes a PDF
-				event.preventDefault();
-				let view = document.defaultView;
-				if (view && typeof view.print === "function") view.print();
+				if (COMMANDS[letter]) holdLetter(letter);
+				else typeInto(key);
 			}
 		});
 	},
@@ -807,6 +869,8 @@ var zotLookSheet = {
 		let labels = JSON.stringify({
 			pages: this.PAGES_LABEL, none: this.SEARCH_NONE, gotoNone: this.GOTO_NONE,
 		}).replace(/<\//g, "<\\/");
+		// commandDelay may be added to the labels by a caller — the tests —
+		// to shorten the moment a command letter waits
 		return (
 			"<script>\n(function " + this.sheetRuntime.toString() + ")(document, " +
 			labels + ");\n</script>\n"

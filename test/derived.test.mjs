@@ -223,7 +223,7 @@ function session(disk, prefValues = {}, source = { size: 10, mtime: 5 }) {
   const disk = makeDisk();
   const { Q } = session(disk);
   Q._buildTag = null;
-  eq(Q._tag(), '1.2.0', 'without a stamp the version alone is the tag');
+  ok(/^1\.2\.0\+[0-9a-f]{8}$/.test(Q._tag()), 'without a stamp the version, with the sheet module\'s fingerprint, is the tag');
 }
 
 // ── and it does not lie about until it ages out ───────────────────────
@@ -237,7 +237,7 @@ function session(disk, prefValues = {}, source = { size: 10, mtime: 5 }) {
   // reads any more and nothing would ever remove
   disk.files.set('/tmp/zt-cache/epub_old/.key', { text: '1.2.0+A|x', size: 9, lastModified: 1 });
   disk.files.set('/tmp/zt-cache/epub_old/preview.html', { text: 'h', size: 1, lastModified: 1 });
-  disk.files.set('/tmp/zt-cache/epub_new/.key', { text: '1.2.0+B|x', size: 9, lastModified: 1 });
+  disk.files.set('/tmp/zt-cache/epub_new/.key', { text: Q._tag() + '|x', size: 9, lastModified: 1 });
   disk.files.set('/tmp/zt-cache/epub_new/preview.html', { text: 'h', size: 1, lastModified: 1 });
   disk.files.set('/tmp/zt-cache/contactsheet_alt.key', { text: '1.1.9|x', size: 7, lastModified: 1 });
   disk.files.set('/tmp/zt-cache/contactsheet_alt.html', { text: 'h', size: 1, lastModified: 1 });

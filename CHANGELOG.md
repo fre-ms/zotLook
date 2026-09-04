@@ -46,8 +46,15 @@ The sheet in its own Zotero window can search and answers the keyboard.
   walk them; with several items, one file each. Quick Look walks on its own;
   under Sushi and QuickLook the preview follows the arrows and the selection.
 - Several selected items make a collection sheet: the first page of each
-  item's PDF with its title, a click opening it, the keyboard and the search
-  as on a page sheet.
+  item's PDF with its title, a click opening it at that page, the keyboard
+  and the search as on a page sheet. The shortcut on a collection in the
+  sidebar makes the same sheet of the collection.
+- A kept sheet is remade when the sheet's own script or styles have
+  changed since it was made; before, it kept the old ones for as long as
+  the file did not change.
+- Typing on the sheet goes where it belongs: digits into the page field, a
+  word into the search field; a command letter waits a moment for a second
+  letter. A slash leads into the search too.
 - The documentation gives the sheet in its window a page of its own, and the
   front page tells the three tiers: the attachment, the sheet, the window.
 - Update checks go to zotlook.org from this version on; the update itself

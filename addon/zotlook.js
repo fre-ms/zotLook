@@ -347,6 +347,14 @@ var zotLook = Object.seal({
 		let keydownHandler = (event) => this._onKeyDown(event, window);
 		itemsTree.addEventListener("keydown", keydownHandler, true);
 
+		// The sheet shortcuts on the collection tree as well: a collection
+		// selected there and the shortcut make a collection sheet of it
+		let collectionsTree = doc.getElementById("zotero-collections-tree");
+		let collectionKeyHandler = (event) => this._onCollectionKeyDown(event, window);
+		if (collectionsTree) {
+			collectionsTree.addEventListener("keydown", collectionKeyHandler, true);
+		}
+
 		// A second listener on the window itself, for closing only. The one
 		// on the tree opens a preview and needs the tree's focus to beat its
 		// find-as-you-type; but the press that closes one can come from
@@ -360,7 +368,10 @@ var zotLook = Object.seal({
 			window.addEventListener("keydown", closeHandler, true);
 		}
 
-		let listeners = { keydownHandler, itemsTree, closeHandler, window };
+		let listeners = {
+			keydownHandler, itemsTree, closeHandler, window,
+			collectionsTree, collectionKeyHandler,
+		};
 
 		this._addMenuToWindow(window, doc, listeners);
 
@@ -378,6 +389,13 @@ var zotLook = Object.seal({
 			listeners.keydownHandler,
 			true
 		);
+		if (listeners.collectionsTree && listeners.collectionKeyHandler) {
+			listeners.collectionsTree.removeEventListener(
+				"keydown",
+				listeners.collectionKeyHandler,
+				true
+			);
+		}
 		if (
 			listeners.closeHandler &&
 			listeners.window &&
@@ -564,6 +582,52 @@ var zotLook = Object.seal({
 		if (items && items.length > 0) {
 			this[binding.open](items);
 		}
+	},
+
+	/**
+	 * The sheet shortcuts pressed on the collection tree: the selected
+	 * collection's items, as a collection sheet — one item or many. The
+	 * library root and a saved search are left alone; a sheet of a whole
+	 * library is not a sheet. Space stays the tree's own, for its
+	 * find-as-you-type.
+	 */
+	_onCollectionKeyDown(event, window) {
+		let binding = this.bindings.find((b) =>
+			this._matchesBinding(event, b) &&
+			(b.open === "_openContactSheet" || b.open === "_openContactSheetInViewer")
+		);
+		if (!binding) return;
+		let items = [];
+		try {
+			let pane = window.ZoteroPane;
+			let collection = pane && pane.getSelectedCollection && pane.getSelectedCollection();
+			if (!collection) {
+				this.log("No collection selected; the sheet shortcut does nothing here");
+				return;
+			}
+			items = (collection.getChildItems(false) || []).filter((item) => {
+				try {
+					return item.isRegularItem();
+				} catch (e) {
+					return false;
+				}
+			});
+		} catch (e) {
+			this.log("Could not read the selected collection: " + e);
+			return;
+		}
+		event.preventDefault();
+		event.stopPropagation();
+		if (this._isActive) {
+			this._closeQuickLook();
+			return;
+		}
+		if (binding.close && this[binding.close]()) return;
+		if (!items.length) {
+			this.log("The collection has no items to lay out");
+			return;
+		}
+		this[binding.open](items, { collection: true });
 	},
 
 	/**
@@ -969,9 +1033,9 @@ var zotLook = Object.seal({
 		});
 	},
 
-	async _openContactSheet(items) {
+	async _openContactSheet(items, options) {
 		return this._withLaunchGuard(async () => {
-			let sheet = await this._buildContactSheet(items);
+			let sheet = await this._buildContactSheet(items, options);
 			if (!sheet) return false;
 			await this._launchPreview([sheet]);
 			return true;
@@ -992,13 +1056,13 @@ var zotLook = Object.seal({
 	 * See the comment in zotLookSheet.html for what the target attribute is
 	 * doing.
 	 */
-	async _openContactSheetInViewer(items) {
-		return this._withLaunchGuard(() => this._showSheetInViewer(items));
+	async _openContactSheetInViewer(items, options) {
+		return this._withLaunchGuard(() => this._showSheetInViewer(items, options));
 	},
 
 	/** The body of the above, for a caller already inside the guard. */
-	async _showSheetInViewer(items) {
-		let sheet = await this._buildContactSheet(items);
+	async _showSheetInViewer(items, options) {
+		let sheet = await this._buildContactSheet(items, options);
 		if (!sheet) return false;
 		let win = null;
 		try {
@@ -1606,9 +1670,10 @@ var zotLook = Object.seal({
 	/**
 	 * Renders the contact sheet and returns the path to its HTML, or null.
 	 */
-	async _buildContactSheet(items) {
+	async _buildContactSheet(items, options) {
 		// Several items at once are a collection to look over, not one
-		// document to leaf through
+		// document to leaf through — and a collection asked for by name is
+		// one even with a single item in it
 		let regular = (items || []).filter((item) => {
 			try {
 				return !item.isNote() && !item.isAttachment();
@@ -1616,7 +1681,9 @@ var zotLook = Object.seal({
 				return false;
 			}
 		});
-		if (regular.length > 1) return this._buildCollectionSheet(regular);
+		if (regular.length > 1 || (options && options.collection && regular.length)) {
+			return this._buildCollectionSheet(regular);
+		}
 
 		// Resolve to an attachment item rather than a bare path: the reader
 		// links in the sheet need the item's key and library
@@ -1856,7 +1923,8 @@ var zotLook = Object.seal({
 					index: index,
 					title: this._itemTitle(e.item),
 					meta: this._itemMeta(e.item),
-					link: e.pdf ? this._readerLink(e.pdf.item) : this._selectLink(e.item),
+					// The page the tile shows, not the page last read
+					link: e.pdf ? this._readerLink(e.pdf.item) + "?page=1" : this._selectLink(e.item),
 				};
 				if (e.pdf) {
 					let dir = PathUtils.join(imageDir, String(index));
@@ -2139,7 +2207,32 @@ var zotLook = Object.seal({
 
 	/** The first field of every key. */
 	_tag() {
-		return this._buildTag || this.version;
+		return (this._buildTag || this.version) + "+" + this._sheetFingerprint();
+	},
+
+	/**
+	 * A fingerprint of what the sheet module writes into a sheet: its
+	 * script, its styles, its menus. A kept sheet carries all of that
+	 * inside it, and a sheet kept before a change to any of it would go on
+	 * behaving the old way — a search field that works, a page field that
+	 * does not — for as long as the file and the settings stay the same.
+	 * The fingerprint in the tag makes such a sheet a stranger to the
+	 * build that changed it, and the startup clearing takes it away.
+	 */
+	_sheetFingerprint() {
+		try {
+			return zotLookUtil.hashString(
+				String(zotLookSheet.sheetRuntime) +
+				zotLookSheet.JUMP_SCRIPT +
+				zotLookSheet.MENU_CSS +
+				zotLookSheet.SEARCH_CSS +
+				zotLookSheet.pageStyles(1, 1.3) +
+				String(zotLookSheet.annotationsHtml) +
+				String(zotLookSheet.html)
+			);
+		} catch (e) {
+			return "0";
+		}
 	},
 
 	/**
