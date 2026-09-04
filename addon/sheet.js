@@ -543,7 +543,9 @@ var zotLookSheet = {
 				event.preventDefault();
 				let n = digits;
 				clearDigits();
-				frameTile(n);
+				if (frameTile(n) && hits) {
+					say(at >= 0 ? at + 1 + " / " + hits.length : "");
+				}
 				return;
 			}
 			if (key === "Enter") {

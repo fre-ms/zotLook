@@ -191,6 +191,11 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
   press('Enter');
   eq(framed(), 5, 'Enter frames the page of that number');
   eq(doc.querySelector('.zl-search-status').textContent, '', 'and the status clears');
+  input.value = 'page'; input.dispatchEvent(new Event('input'));
+  press('3'); press('Enter');
+  eq(framed(), 3, 'under a search too');
+  eq(doc.querySelector('.zl-search-status').textContent, '3 / 6', 'and the status says where among the hits that is');
+  input.value = ''; input.dispatchEvent(new Event('input'));
 
   // the columns, live
   const grid = doc.querySelector('[data-zl-columns]');
