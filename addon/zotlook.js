@@ -616,9 +616,12 @@ var zotLook = Object.seal({
 		if (this._sectionID) return;
 		let icon = this.rootURI + "icon/zotlook-24.svg";
 		let actions = [
-			{ id: "zotlook-pane-preview", open: "_openQuickLook", fallback: "Preview" },
-			{ id: "zotlook-pane-sheet", open: "_openContactSheet", fallback: "Contact sheet" },
-			{ id: "zotlook-pane-window", open: "_openContactSheetInViewer", fallback: "Sheet in a window" },
+			{ open: "_openQuickLook",
+				label: () => this._string("zotlook-pane-preview", "Preview") },
+			{ open: "_openContactSheet",
+				label: () => this._string("zotlook-pane-sheet", "Contact sheet") },
+			{ open: "_openContactSheetInViewer",
+				label: () => this._string("zotlook-pane-window", "Sheet in a window") },
 		];
 		try {
 			this._sectionID = manager.registerSection({
@@ -643,7 +646,7 @@ var zotLook = Object.seal({
 					for (let action of actions) {
 						let button = doc.createElement("button");
 						button.className = "zotlook-pane-button";
-						button.textContent = this._string(action.id, action.fallback);
+						button.textContent = action.label();
 						button.addEventListener("click", (event) => {
 							event.preventDefault();
 							this[action.open]([item]);

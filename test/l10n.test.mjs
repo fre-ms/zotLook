@@ -76,9 +76,10 @@ eq([...parsed.get('de-DE').keys()].sort(), [...parsed.get('en-US').keys()].sort(
     eq(missing, [], `${loc}: every button and menuitem string uses the .label form`);
   }
 
-  // Conversely, anything read as a value must have one
+  // Conversely, anything read as a value must have one — except the item
+  // pane's sidenav button, which Zotero labels by tooltip alone
   const readAsValue = new Set([
-    ...[...src.matchAll(/l10nID:\s*"([^"]+)"/g)].map(m => m[1]),
+    ...[...src.matchAll(/l10nID:\s*"([^"]+)"/g)].map(m => m[1]).filter(id => !/-sidenav$/.test(id)),
     ...[...src.matchAll(/_string\(\s*\n?\s*"([^"]+)"/g)].map(m => m[1]),
   ...[...src.matchAll(/_formatString\(\s*\n?\s*"([^"]+)"/g)].map(m => m[1]),
   ]);
