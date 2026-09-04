@@ -111,9 +111,11 @@ zotlook-sheet-loading = Laying out the contact sheet…
 zotlook-sheet-title = Contact Sheet
 # The link on an annotation that opens the reader at the annotation
 zotlook-sheet-open = Open in the reader
-# The item pane's section: its header, the sidenav button's tooltip, and
-# the three buttons in it
-zotlook-pane-header = zotLook
+# The item pane's section: its header — Zotero reads a section's label as
+# an attribute, and a value in its place would replace the section's
+# whole content — the sidenav button's tooltip, and the three buttons
+zotlook-pane-header =
+    .label = zotLook
 zotlook-pane-sidenav =
     .tooltiptext = zotLook: preview, contact sheet, window
 zotlook-pane-preview = Preview

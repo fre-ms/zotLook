@@ -627,6 +627,9 @@ var zotLook = Object.seal({
 			this._sectionID = manager.registerSection({
 				paneID: "zotlook-actions",
 				pluginID: this.id,
+				// The header's message carries its text as .label, as Zotero's
+				// own sections do: a value there would be written over the
+				// section's whole content, buttons and all
 				header: { l10nID: "zotlook-pane-header", icon: icon },
 				sidenav: { l10nID: "zotlook-pane-sidenav", icon: icon },
 				onItemChange: ({ item, setEnabled }) => {

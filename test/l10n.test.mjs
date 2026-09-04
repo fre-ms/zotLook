@@ -77,9 +77,11 @@ eq([...parsed.get('de-DE').keys()].sort(), [...parsed.get('en-US').keys()].sort(
   }
 
   // Conversely, anything read as a value must have one — except the item
-  // pane's sidenav button, which Zotero labels by tooltip alone
+  // pane section's header and sidenav button, which Zotero labels by the
+  // .label and .tooltiptext attributes; a value on the header replaced the
+  // section's whole content once
   const readAsValue = new Set([
-    ...[...src.matchAll(/l10nID:\s*"([^"]+)"/g)].map(m => m[1]).filter(id => !/-sidenav$/.test(id)),
+    ...[...src.matchAll(/l10nID:\s*"([^"]+)"/g)].map(m => m[1]).filter(id => !/-(?:sidenav|header)$/.test(id)),
     ...[...src.matchAll(/_string\(\s*\n?\s*"([^"]+)"/g)].map(m => m[1]),
   ...[...src.matchAll(/_formatString\(\s*\n?\s*"([^"]+)"/g)].map(m => m[1]),
   ]);
