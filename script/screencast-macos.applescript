@@ -13,7 +13,13 @@
 -- since that goes in at the HID level through script/screencast-mouse.swift,
 -- which this script compiles on first use.
 --
---   osascript script/screencast-macos.applescript [output directory]
+--   osascript script/screencast-macos.applescript [output directory] [de|en]
+--
+-- The language picks the documentation item — the German or the English
+-- one, each with the same three annotations — the search word, and the
+-- names of the takes; Zotero itself must run in that language
+-- (intl.locale.requested), so that the sheet's buttons and the window's
+-- title are in it too.
 --
 -- Wants: Zotero running with zotLook from the tree (tool/dev.mjs) and the
 -- window shortcut at Ctrl+Alt+Space; the collection "zotLook" holding the
@@ -23,7 +29,14 @@
 -- the mouse and keyboard are not yours.
 
 property collectionKey : "QLDZQ9F5"
-property docsRow : {480, 164} -- the item's row, relative to the main window
+-- The rows of the two documentation items, relative to the main window:
+-- "zotLook Dokumentation" second in the list, "zotLook Documentation" third
+property docsRowDE : {480, 164}
+property docsRowEN : {480, 195}
+-- The word searched for: twelve hits on page 14 of the German, ten on
+-- page 14 of the English, both reached with three presses of Enter
+property searchWordDE : "Tasten"
+property searchWordEN : "keys"
 property readerClose : {481, 18} -- the reader tab's close button, likewise
 
 -- The sheet window is put at a fixed place and size before the takes: the
@@ -39,14 +52,19 @@ property btnContents : {1340, 819}
 property btnAnnotations : {96, 819}
 property searchField : {1264, 59}
 property entryWasEsKann : {1194, 515} -- "2. Was es kann" in the contents menu
-property entryBlueAnnotation : {219, 718} -- the middle, blue annotation
-property linkSeite6 : {79, 718} -- its "Seite 6" link, once the fold is open
+-- The middle, blue annotation and its page link once the fold is open. The
+-- English annotation runs to two lines, so its entry sits higher and the
+-- link a little lower
+property entryBlueAnnotationDE : {219, 718}
+property linkSeite6DE : {79, 718}
+property entryBlueAnnotationEN : {219, 707}
+property linkSeite6EN : {79, 717}
 property tileAfterContents : {873, 442} -- page 11, framed after the jump
 property tileAfterAnnotation : {526, 442} -- page 6, likewise
 property tileAfterSearch : {526, 297} -- page 14, after the scroll
 property scrollTo14 : 1515 -- three rows of tiles
 
-global helper, timeline, t0, outDir, mainPos
+global helper, timeline, t0, outDir, mainPos, lang, docsRow, searchWord, entryBlueAnnotation, linkSeite6
 
 on run argv
 	set repoDir to do shell script "cd " & quoted form of (POSIX path of ((path to me as text) & "::")) & "/.. && pwd"
@@ -55,6 +73,19 @@ on run argv
 	else
 		set outDir to repoDir & "/build/screencast"
 	end if
+	set lang to "de"
+	if (count of argv) > 1 then set lang to item 2 of argv
+	if lang is "en" then
+		set docsRow to docsRowEN
+		set searchWord to searchWordEN
+		set entryBlueAnnotation to entryBlueAnnotationEN
+		set linkSeite6 to linkSeite6EN
+	else
+		set docsRow to docsRowDE
+		set searchWord to searchWordDE
+		set entryBlueAnnotation to entryBlueAnnotationDE
+		set linkSeite6 to linkSeite6DE
+	end if
 	do shell script "mkdir -p " & quoted form of outDir
 	set helper to buildHelper(repoDir)
 	set t0 to ""
@@ -62,14 +93,14 @@ on run argv
 
 	prepare()
 
-	set outFile to outDir & "/macos-mouse.mov"
-	set timeline to outDir & "/macos-mouse.tsv"
+	set outFile to outDir & "/macos-" & lang & "-mouse.mov"
+	set timeline to outDir & "/macos-" & lang & "-mouse.tsv"
 	startRecording(outFile)
 	mousePart()
 	stopRecording()
 
-	set outFile to outDir & "/macos-keyboard.mov"
-	set timeline to outDir & "/macos-keyboard.tsv"
+	set outFile to outDir & "/macos-" & lang & "-keyboard.mov"
+	set timeline to outDir & "/macos-" & lang & "-keyboard.tsv"
 	startRecording(outFile)
 	keyboardPart()
 	stopRecording()
@@ -118,13 +149,13 @@ on mousePart()
 	clickMain(readerClose, 800)
 	delay 1.5
 
-	-- search: "Tasten", scroll to page 14 and its twelve hits, open it
+	-- search: the word, scroll to page 14 and its hits, open it
 	chord("Ctrl+Alt+Space")
 	needSheet()
 	delay 1.5
 	clickSheet(searchField, 700)
 	delay 0.6
-	typeText("Tasten")
+	typeText(searchWord)
 	delay 2
 	scrollSheet(scrollTo14)
 	delay 2.2
@@ -171,14 +202,14 @@ on keyboardPart()
 	chordKey("Cmd+W", 13, {command down})
 	delay 1.5
 
-	-- the search: into the field, "Tasten", Enter walks the hits to page 14;
+	-- the search: into the field, the word, Enter walks the hits to page 14;
 	-- then the arrows between hits, then the page keys scroll, then open
 	chord("Ctrl+Alt+Space")
 	needSheet()
 	delay 1.5
 	chordKey("Ctrl+F", 3, {control down})
 	delay 0.6
-	typeText("Tasten")
+	typeText(searchWord)
 	delay 1.4
 	repeat 3 times
 		press("Enter", 36, {})
