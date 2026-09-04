@@ -116,6 +116,7 @@ var zotLook = Object.seal({
 		"zotlook-sheet-ink",
 		"zotlook-sheet-text",
 		"zotlook-sheet-loading",
+		"zotlook-sheet-title",
 		"zotlook-sheet-search",
 		"zotlook-sheet-search-none",
 		"zotlook-sheet-pages",
@@ -2510,6 +2511,10 @@ var zotLook = Object.seal({
 			);
 			// The sheet module likewise: its two menus, the page link in
 			// the annotation list, and the names of the kinds it lists
+			zotLookSheet.TITLE = this._string(
+				"zotlook-sheet-title",
+				zotLookSheet.TITLE
+			);
 			zotLookSheet.TOC_LABEL = this._string(
 				"zotlook-epub-contents",
 				zotLookSheet.TOC_LABEL

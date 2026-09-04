@@ -10,6 +10,8 @@ var zotLookSheet = {
 	/** Thumbnail width for a single column, before the column count widens it. */
 	BASE_WIDTH: 500,
 
+	/** The window's title; the host writes the locale's in. */
+	TITLE: "Contact Sheet",
 	/** Heading of the contents menu; the host writes the locale's in. */
 	TOC_LABEL: "Contents",
 	/**
@@ -1034,7 +1036,7 @@ var zotLookSheet = {
 			"<!DOCTYPE html>\n" +
 			"<html>\n<head>\n" +
 			'<meta charset="UTF-8">\n' +
-			"<title>Contact Sheet</title>\n" +
+			"<title>" + this.escape(this.TITLE) + "</title>\n" +
 			"<style>\n" +
 			"body {\n" +
 			"    background: #f0f0f0;\n" +

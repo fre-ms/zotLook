@@ -162,6 +162,21 @@
               data-l10n-id="zotlook-prefs-contactsheet-annotations"
               preference="extensions.zotlook.contactSheetAnnotations"
               native="true"/>
+    <description class="zotlook-setting-help"
+                 data-l10n-id="zotlook-prefs-contactsheet-window-help"/>
+    <hbox align="center" class="zotlook-row">
+      <label control="zotlook-window-width"
+             data-l10n-id="zotlook-prefs-contactsheet-window"/>
+      <html:input id="zotlook-window-width" type="number" min="0" max="10000"
+                  step="10" style="width: 6em;"
+                  preference="extensions.zotlook.windowWidth"/>
+      <label class="zotlook-hint" data-l10n-id="zotlook-prefs-contactsheet-window-by"/>
+      <html:input id="zotlook-window-height" type="number" min="0" max="10000"
+                  step="10" style="width: 6em;"
+                  preference="extensions.zotlook.windowHeight"/>
+      <label class="zotlook-hint"
+             data-l10n-id="zotlook-prefs-contactsheet-window-hint"/>
+    </hbox>
   </groupbox>
 
   <groupbox>

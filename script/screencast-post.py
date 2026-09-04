@@ -17,8 +17,8 @@ from. Clicks and scrolls are left to the pointer tool of the platform.
     script/screencast-post.py build/screencast --prefix macos --out asset/screenshot
 
 writes <prefix>-screencast.mp4, .webm and .gif into --out. The GIF is the
-mouse take alone, cut to the sheet and its surroundings at ten frames a
-second, since it is for the README and has to stay small; the videos are
+mouse take alone, cut to the sheet and its surroundings at eight frames
+a second, since it is for the README and has to stay small; the videos are
 both takes, the whole window, halved from the Retina recording, for the
 website's loop. The title card of each take is drawn over a darkened frame
 of the take itself.
@@ -43,6 +43,10 @@ FONTS = [
     ("C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf"),
 ]
 CHIP_SECONDS = 2.2
+TITLES = {
+    "en": ("mouse navigation", "keyboard navigation"),
+    "de": ("Navigation mit der Maus", "Navigation mit der Tastatur"),
+}
 TITLE_SECONDS = 2.5
 FPS = 30
 
@@ -51,6 +55,7 @@ FPS = 30
 # --crop overrides it, as x,y,width,height
 GIF_CROP = (30, 30, 1450, 890)  # x, y, width, height
 GIF_WIDTH = 900
+GIF_FPS = 8
 
 
 def font(size, bold=False):
@@ -183,7 +188,7 @@ def concat(parts, out):
     subprocess.check_call([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
         "-f", "concat", "-safe", "0", "-i", str(listing),
-        "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-an",
+        "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-an",
         "-movflags", "+faststart", str(out)])
     listing.unlink()
 
@@ -191,13 +196,13 @@ def concat(parts, out):
 def webm(src, out):
     subprocess.check_call([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src),
-        "-c:v", "libvpx-vp9", "-crf", "34", "-b:v", "0", "-row-mt", "1", "-an", str(out)])
+        "-c:v", "libvpx-vp9", "-crf", "36", "-b:v", "0", "-row-mt", "1", "-an", str(out)])
 
 
 def gif(src, out, width, work, crop):
     scale = width / 1512
     x, y, w, h = (int(v * scale) for v in crop)
-    vf = f"crop={w}:{h}:{x}:{y},fps=10,scale={GIF_WIDTH}:-1:flags=lanczos"
+    vf = f"crop={w}:{h}:{x}:{y},fps={GIF_FPS},scale={GIF_WIDTH}:-1:flags=lanczos"
     palette = work / "palette.png"
     subprocess.check_call([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src),
@@ -216,6 +221,8 @@ def main():
     ap.add_argument("--width", type=int, default=1512, help="width of the videos")
     ap.add_argument("--keep", action="store_true", help="keep the intermediate files")
     ap.add_argument("--crop", help="the GIF's cut, x,y,width,height in points of the window")
+    ap.add_argument("--lang", default="en", choices=sorted(TITLES),
+                    help="language of the title cards (default: en)")
     ap.add_argument("--offset", type=float, default=0.0,
                     help="seconds added to every timeline entry, for a recording that started later than the timeline assumed")
     ap.add_argument("--gif-take", default="mouse", choices=["mouse", "keyboard", "both"],
@@ -241,7 +248,7 @@ def main():
     try:
         parts = []
         clips = {}
-        for part, title in (("mouse", "mouse navigation"), ("keyboard", "keyboard navigation")):
+        for part, title in zip(("mouse", "keyboard"), TITLES[args.lang]):
             card = work / f"{part}-title.mp4"
             title_clip(title, card, width, height, work, frame_of(takes[part][0], 0.2, work))
             clip = work / f"{part}-take.mp4"

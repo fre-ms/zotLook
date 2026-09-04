@@ -96,7 +96,7 @@ on mousePart()
 	delay 1.2
 	clickSheet(tileAfterContents, 800)
 	waitForNoSheet()
-	delay 2.5
+	delay 3.5
 	clickMain(readerClose, 800)
 	delay 1.5
 
@@ -114,7 +114,7 @@ on mousePart()
 	delay 1.2
 	clickSheet(tileAfterAnnotation, 800)
 	waitForNoSheet()
-	delay 2.5
+	delay 3.5
 	clickMain(readerClose, 800)
 	delay 1.5
 
@@ -130,7 +130,7 @@ on mousePart()
 	delay 2.2
 	clickSheet(tileAfterSearch, 800)
 	waitForNoSheet()
-	delay 2.5
+	delay 3.5
 	clickMain(readerClose, 800)
 	delay 1.5
 end mousePart
@@ -151,7 +151,7 @@ on keyboardPart()
 	delay 2.2
 	letter("o")
 	waitForNoSheet()
-	delay 2.5
+	delay 3.5
 	chordKey("Cmd+W", 13, {command down})
 	delay 1.5
 
@@ -167,7 +167,7 @@ on keyboardPart()
 	delay 2.2
 	letter("o")
 	waitForNoSheet()
-	delay 2.5
+	delay 3.5
 	chordKey("Cmd+W", 13, {command down})
 	delay 1.5
 
@@ -194,12 +194,12 @@ on keyboardPart()
 	arrow("Left")
 	delay 1
 	press("Page Down", 121, {})
-	delay 1.2
+	delay 2.2
 	press("Page Up", 116, {})
-	delay 1.2
+	delay 2
 	letter("o")
 	waitForNoSheet()
-	delay 2.5
+	delay 3.5
 	chordKey("Cmd+W", 13, {command down})
 	delay 1.5
 end keyboardPart
@@ -375,22 +375,34 @@ on mainWindowRect()
 	error "no Zotero main window"
 end mainWindowRect
 
-on sheetOpen()
+-- The sheet window, by its title in either language
+property sheetTitles : {"Kontaktbogen", "Contact Sheet"}
+
+on sheetName()
 	tell application "System Events" to tell process "Zotero"
-		return exists window "Contact Sheet"
+		repeat with t in sheetTitles
+			if exists window (t as text) then return t as text
+		end repeat
 	end tell
+	return ""
+end sheetName
+
+on sheetOpen()
+	return sheetName() is not ""
 end sheetOpen
 
 on placeSheet()
+	set t to sheetName()
 	tell application "System Events" to tell process "Zotero"
-		set position of window "Contact Sheet" to sheetOrigin
-		set size of window "Contact Sheet" to sheetSize
+		set position of window t to sheetOrigin
+		set size of window t to sheetSize
 	end tell
 end placeSheet
 
 on sheetPosition()
+	set t to sheetName()
 	tell application "System Events" to tell process "Zotero"
-		return position of window "Contact Sheet"
+		return position of window t
 	end tell
 end sheetPosition
 

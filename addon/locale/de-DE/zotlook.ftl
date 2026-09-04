@@ -40,6 +40,10 @@ zotlook-prefs-contactsheet-contents =
     .label = Knopf für das Inhaltsverzeichnis anzeigen
 zotlook-prefs-contactsheet-annotations =
     .label = Knopf für die Annotationen anzeigen
+zotlook-prefs-contactsheet-window-help = Das eigene Fenster des Bogens (Kürzel oben) öffnet in der Größe, in der es zuletzt gelassen wurde; ziehen Sie es nach Wunsch auf, oder tragen Sie hier eine Größe ein. 0 überlässt es Zotero, das es in seiner Mindestgröße öffnet. Die Systemvorschauen bestimmen ihre Größe selbst.
+zotlook-prefs-contactsheet-window = Fenstergröße
+zotlook-prefs-contactsheet-window-by = ×
+zotlook-prefs-contactsheet-window-hint = Pixel (0 = Zoteros Minimum)
 
 # Pfeiltasten in der Systemvorschau (nur Linux; sonst verborgen)
 zotlook-prefs-arrows-title = Pfeiltasten in der Vorschau
@@ -102,6 +106,8 @@ zotlook-sheet-search-none = Keine Treffer
 zotlook-sheet-pages = Seiten
 # Über dem Fenster, solange die Übersicht noch lädt
 zotlook-sheet-loading = Kontaktbogen wird aufgebaut …
+# Der Fenstertitel
+zotlook-sheet-title = Kontaktbogen
 
 zotlook-prefs-keep-title = Zwischengespeicherte Vorschauen
 

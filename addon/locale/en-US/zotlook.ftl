@@ -38,6 +38,10 @@ zotlook-prefs-contactsheet-contents =
     .label = Show the contents button
 zotlook-prefs-contactsheet-annotations =
     .label = Show the annotations button
+zotlook-prefs-contactsheet-window-help = The sheet's own window (see the shortcut above) opens at the size it was last left at; drag it to the size you like, or set one here. 0 leaves it to Zotero, which opens it at its minimum. The system previews decide their own size.
+zotlook-prefs-contactsheet-window = Window size
+zotlook-prefs-contactsheet-window-by = ×
+zotlook-prefs-contactsheet-window-hint = pixels (0 = Zotero's minimum)
 
 # Arrow keys in the system preview (Linux only; hidden elsewhere)
 zotlook-prefs-arrows-title = Arrow keys in the preview
@@ -100,6 +104,8 @@ zotlook-sheet-search-none = No matches
 zotlook-sheet-pages = pages
 # Over the window while the sheet is still loading
 zotlook-sheet-loading = Laying out the contact sheet…
+# The window's title
+zotlook-sheet-title = Contact Sheet
 
 zotlook-prefs-keep-title = Kept previews
 

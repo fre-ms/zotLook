@@ -30,7 +30,8 @@ The sheet in its own Zotero window can search and answers the keyboard.
   next shortcut; it took a second press to open a new one. Fixed.
 - The window says that the sheet is on its way while it is still empty, and
   it comes back at the size it was last left at rather than at Zotero's
-  minimum.
+  minimum; the size can also be set in the preferences. Its title is in the
+  language of the rest of the sheet.
 - Update checks go to zotlook.org from this version on; the update itself
   still comes from GitHub. The privacy page says what that means.
 

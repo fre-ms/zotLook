@@ -33,7 +33,8 @@ Tastatur.
   Behoben.
 - Das Fenster sagt, dass der Bogen unterwegs ist, solange es noch leer ist,
   und es kommt in der Größe wieder, in der man es zuletzt gelassen hat, statt
-  in Zoteros Mindestgröße.
+  in Zoteros Mindestgröße; die Größe lässt sich auch in den Einstellungen
+  setzen. Sein Titel spricht die Sprache des übrigen Bogens.
 - Update-Anfragen gehen ab dieser Version an zotlook.org; das Update selbst
   kommt weiterhin von GitHub. Die Datenschutzerklärung sagt, was das
   bedeutet.
