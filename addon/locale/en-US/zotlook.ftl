@@ -105,6 +105,10 @@ zotlook-sheet-text = Text
 zotlook-sheet-search = Search pages
 zotlook-sheet-search-none = No matches
 zotlook-sheet-pages = pages
+# The page field in the sheet's other top corner: its placeholder, and
+# what it says for a page the document does not have
+zotlook-sheet-goto = Page
+zotlook-sheet-goto-none = No such page
 # Over the window while the sheet is still loading
 zotlook-sheet-loading = Laying out the contact sheet…
 # The window's title

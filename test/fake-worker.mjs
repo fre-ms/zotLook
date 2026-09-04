@@ -6,7 +6,7 @@
  * counting the finishes — had no coverage at all, and a dropped line in the
  * real worker is what broke the sheet twice.
  */
-export function fakeWorkerFactory({ pageCount = 8, failOn = null,
+export function fakeWorkerFactory({ pageCount = 8, failOn = null, labels = null,
                                     errorOn = null, silentOn = null,
                                     outline = null } = {}) {
   const made = [];
@@ -38,6 +38,7 @@ export function fakeWorkerFactory({ pageCount = 8, failOn = null,
         // exactly as the real worker does it
         const reply = { type: 'opened', pageCount };
         if (message.outline && outline) reply.outline = outline;
+        if (message.outline && labels) reply.labels = labels;
         return self._emit('message', reply);
       }
       if (message.type === 'render') {

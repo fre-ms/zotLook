@@ -71,6 +71,20 @@ the reader not just at the page but at the annotation itself, selected. Both
 exist in the system preview as well; in the window the menus answer the
 keyboard too.
 
+## The page number
+
+The field in the top left corner, also reached with **Ctrl+G**, takes a page
+number: Enter frames the page and brings it to the middle, and the page has
+the keyboard after that, so **o** opens it. The number meant is the printed
+one, the one a citation gives — in a book with roman front matter the printed
+1 is not the first tile. Where the PDF labels its pages, the tiles show those
+numbers and the field finds by them; otherwise the tile's own number counts. A
+number that is not there, the field says so. The placeholder names the range,
+such as "Page i–312".
+
+That gives the sheet a way in at every corner: contents, annotations, search
+and page number.
+
 ## The search
 
 A field in the top corner, also reached with **Ctrl+F**, takes a word or a
@@ -97,7 +111,7 @@ The frame is a cursor:
 | **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, left and right go hit by hit, and up and down to the nearest row above or below that has a hit |
 | **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it |
 | **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** goes to the entry's page, **o** on an annotation opens the reader at it, the same letter closes the menu |
-| **digits**, then **Enter** | frame the page of that number; the digits show beside the search field as they are typed |
+| **digits**, then **Enter** | frame the page of that number; the digits show beside the search field as they are typed. **Ctrl+G** leads into the page field, which knows printed page numbers too |
 | **+** / **−** | one column more or fewer, on the spot; the default in the settings stays |
 | **p** | prints the sheet — the print dialogue is where it becomes a PDF |
 | **Page Up** / **Page Down** | scroll |

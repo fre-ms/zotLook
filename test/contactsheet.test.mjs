@@ -722,5 +722,32 @@ const ANNOTATIONS = [
   ok(html.includes('zl-texts'), 'and the search has the titles and first pages to go by');
 }
 
+// ── the printed page numbers reach the tiles and the page field ───────
+{
+  const { FakeWorker, made } = fakeWorkerFactory({ pageCount: 3, labels: ['i', 'ii', '1'] });
+  const written = new Map(); const files = new Set();
+  const IOUtils = {
+    exists: async (p) => files.has(p), makeDirectory: async () => {}, read: async () => new Uint8Array(1024),
+    write: async (p, data) => { files.add(p); written.set(p, data.length); },
+    writeUTF8: async (p, text) => { files.add(p); written.set(p, text); },
+    setPermissions: async () => {}, remove: async () => {},
+    readUTF8: async (p) => { if (!files.has(p)) throw new Error('no ' + p); return written.get(p); },
+    stat: async () => ({ size: 4096, lastModified: 1000 }),
+  };
+  const attachment = { id: 1, key: 'ABCD1234', libraryID: 1, isNote: () => false, isAttachment: () => true,
+    isPDFAttachment: () => true, attachmentFilename: 'book.pdf', getAnnotations: () => [] };
+  const { zotLook: Q } = loadPlugin({ IOUtils, ChromeWorker: FakeWorker, Services: { sysinfo: { getProperty: () => 4 } },
+    zotero: { Libraries: { get: () => ({ isGroup: false }) }, openInViewer: () => {} } });
+  Q.version = '1.1.0'; Q.rootURI = 'file:///plugin/'; Q._getTempDirPath = () => '/tmp/zt';
+  Q._getAttachmentPath = async () => '/lib/book.pdf'; Q._showProgress = () => ({}); Q._closeProgress = () => {};
+  Q._resourceAlias = () => 'resource://zotlook/'; globalThis.fetch = async () => ({ arrayBuffer: async () => new ArrayBuffer(4) });
+  const out = await Q._buildContactSheet([attachment]);
+  const html = written.get(out);
+  ok(made.length >= 1, 'rendered');
+  ok(html.includes('data-zl-tile="1" data-zl-label="i"'), 'a tile carries its printed number beside its own');
+  ok(/<div class="label">ii<\/div>/.test(html), 'and shows the printed one');
+  ok(html.includes('placeholder="Page i–1"'), 'the page field names the range by the printed numbers');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

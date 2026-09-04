@@ -40,6 +40,9 @@ Tastatur.
 - Der Bogen ist dunkel, wo das System dunkel ist.
 - Wo keine Systemvorschau auf die Leertaste antwortet, öffnet sich
   stattdessen der Bogen im Fenster; eine Einstellung schaltet das ab.
+- Ein Seitenfeld links oben im Fenster, Strg+G, nimmt eine Seitenzahl und
+  rahmt die Seite — zuerst die gedruckte Zahl, wo das PDF seine Seiten
+  beschriftet, und die Kacheln zeigen diese Zahlen ebenfalls.
 - Im Fenster rahmen Ziffern und Enter eine Seite nach ihrer Nummer, Plus und
   Minus ändern die Spalten sofort, p druckt, und ein Wort in Zoteros
   Suchfeld geht als erste Suche des Bogens mit.

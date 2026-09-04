@@ -73,6 +73,20 @@ Mitte des Fensters. Eine Annotation trägt außerdem den Link **Im Reader
 Annotation selbst, markiert. Beides gibt es auch in der Systemvorschau; im
 Fenster lassen sich die Menüs zusätzlich mit der Tastatur bedienen.
 
+## Die Seitenzahl
+
+Das Feld in der linken oberen Ecke, auch mit **Strg+G** zu erreichen, nimmt
+eine Seitenzahl: Enter rahmt die Seite und holt sie in die Mitte, danach hat
+die Seite die Tastatur, sodass **o** sie öffnet. Gemeint ist die gedruckte
+Zahl, die ein Zitat nennt — bei einem Buch mit römischem Vorspann beginnt die
+gedruckte 1 nicht auf der ersten Kachel. Wo das PDF seine Seiten beschriftet,
+zeigen die Kacheln diese Zahlen, und das Feld findet danach; sonst gilt die
+Nummer der Kachel. Eine Zahl, die es nicht gibt, sagt das Feld. Der Platzhalter
+nennt den Bereich, etwa „Seite i–312“.
+
+Damit hat der Bogen in jeder Ecke einen Zugang: Inhaltsverzeichnis,
+Annotationen, Suche und Seitenzahl.
+
 ## Die Suche
 
 Ein Feld in der oberen Ecke, auch mit **Strg+F** zu erreichen, nimmt ein Wort
@@ -99,7 +113,7 @@ Der Rahmen ist ein Cursor:
 | **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche gehen links und rechts trefferweise, auf und ab zur nächsten Zeile darüber oder darunter, die einen Treffer hat |
 | **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
 | **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** geht zur Seite des Eintrags, **o** öffnet bei einer Annotation den Reader an ihr, derselbe Buchstabe schließt das Menü |
-| **Ziffern**, dann **Enter** | rahmen die Seite mit dieser Nummer; die Ziffern erscheinen beim Tippen neben dem Suchfeld |
+| **Ziffern**, dann **Enter** | rahmen die Seite mit dieser Nummer; die Ziffern erscheinen beim Tippen neben dem Suchfeld. **Strg+G** führt ins Seitenfeld, das auch gedruckte Seitenzahlen kennt |
 | **+** / **−** | eine Spalte mehr oder weniger, sofort; die Vorgabe in den Einstellungen bleibt |
 | **p** | druckt den Bogen — im Druckdialog wird daraus ein PDF |
 | **Bild auf** / **Bild ab** | blättern |

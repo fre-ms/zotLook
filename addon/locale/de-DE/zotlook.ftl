@@ -107,6 +107,10 @@ zotlook-sheet-text = Text
 zotlook-sheet-search = Seiten durchsuchen
 zotlook-sheet-search-none = Keine Treffer
 zotlook-sheet-pages = Seiten
+# Das Seitenfeld in der anderen oberen Ecke des Bogens: Platzhalter und
+# die Antwort auf eine Seite, die das Dokument nicht hat
+zotlook-sheet-goto = Seite
+zotlook-sheet-goto-none = Keine solche Seite
 # Über dem Fenster, solange die Übersicht noch lädt
 zotlook-sheet-loading = Kontaktbogen wird aufgebaut …
 # Der Fenstertitel

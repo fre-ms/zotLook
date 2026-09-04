@@ -81,6 +81,9 @@ var zotLookSheet = {
 	/** Placeholder of the search field, and what it says with no match. */
 	SEARCH_LABEL: "Search pages",
 	SEARCH_NONE: "No matches",
+	/** Placeholder of the page field, and what it says for a page not there. */
+	GOTO_LABEL: "Page",
+	GOTO_NONE: "No such page",
 	/** "12 pages", the count beside the field. */
 	PAGES_LABEL: "pages",
 	/** The link that opens the reader at an annotation. */
@@ -98,6 +101,34 @@ var zotLookSheet = {
 	// match, counts the hits on the ones with, marks them in a book's
 	// tiles, and brings the first to the middle; Enter walks on.
 	SEARCH_CSS: [
+		// The page field, the search field's mirror image in the other top
+		// corner: a page number typed and Enter frames that page — the
+		// printed number first, the one a citation gives, the tile's own
+		// number where the document has no printed ones
+		".zl-goto {",
+		"  display: none;",
+		"  position: fixed;",
+		"  top: 16px;",
+		"  left: 24px;",
+		"  z-index: 20;",
+		"  align-items: center;",
+		"  gap: 0.6em;",
+		"  padding: 0.35em 0.6em;",
+		"  background: #ffffff;",
+		"  border-radius: 999px;",
+		"  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);",
+		"  font-family: -apple-system, BlinkMacSystemFont, sans-serif;",
+		"  font-size: 14px;",
+		"}",
+		"html.zl-scripted .zl-goto { display: flex; }",
+		".zl-goto input {",
+		"  width: 7em;",
+		"  border: none;",
+		"  outline: none;",
+		"  font: inherit;",
+		"  background: transparent;",
+		"}",
+		".zl-goto-status { color: #4a4a4a; white-space: nowrap; }",
 		".zl-search {",
 		"  display: none;",
 		"  position: fixed;",
@@ -135,13 +166,30 @@ var zotLookSheet = {
 		"mark.zl-hit { background: #f5b841; color: inherit; }",
 		// The entry the keyboard stands on in an open menu
 		"a.zl-menu-current { background: #e6f0ef; box-shadow: inset 3px 0 0 #2e8b84; }",
-		// The field in the dark
+		// The fields in the dark
 		"@media (prefers-color-scheme: dark) {",
-		"  .zl-search { background: #262a30; color: #e8eaed; box-shadow: 0 3px 12px rgba(0, 0, 0, 0.6); }",
-		"  .zl-search input { color: #e8eaed; }",
-		"  .zl-search-status { color: #b8bcc2; }",
+		"  .zl-search, .zl-goto { background: #262a30; color: #e8eaed; box-shadow: 0 3px 12px rgba(0, 0, 0, 0.6); }",
+		"  .zl-search input, .zl-goto input { color: #e8eaed; }",
+		"  .zl-search-status, .zl-goto-status { color: #b8bcc2; }",
 		"}",
 	].join("\n"),
+
+	/**
+	 * The page field, as a string. The placeholder names the range, "Page
+	 * 1–58" — printed numbers where the document has them, so a reader
+	 * sees what kind of number is asked for.
+	 *
+	 * @param {string} [range] what the placeholder says after the word
+	 */
+	gotoBoxHtml(range) {
+		let hint = this.GOTO_LABEL + (range ? " " + range : "");
+		return (
+			'<div class="zl-goto"><input type="text" class="zl-goto-input"' +
+			' autocomplete="off" spellcheck="false" inputmode="numeric" placeholder="' +
+			this.escape(hint) + '" aria-label="' + this.escape(this.GOTO_LABEL) +
+			'"><span class="zl-goto-status"></span></div>\n'
+		);
+	},
 
 	/** The field, as a string; the EPUB sheet builds the same as DOM. */
 	searchBoxHtml() {
@@ -197,7 +245,7 @@ var zotLookSheet = {
 	 * next o opens rather than types, and Ctrl+F is the way back in.
 	 *
 	 * @param {Document} document
-	 * @param {{pages: string, none: string}} labels
+	 * @param {{pages: string, none: string, gotoNone?: string}} labels
 	 */
 	sheetRuntime(document, labels) {
 		document.documentElement.classList.add("zl-scripted");
@@ -208,6 +256,16 @@ var zotLookSheet = {
 		let status = box && box.querySelector(".zl-search-status");
 		let say = (text) => {
 			if (status) status.textContent = text;
+		};
+		let gotoBox = document.querySelector(".zl-goto");
+		let gotoInput = gotoBox && gotoBox.querySelector("input");
+		let gotoStatus = gotoBox && gotoBox.querySelector(".zl-goto-status");
+		// A tile's printed page number, where the document has them
+		let labelOf = (tile) => {
+			let own = tile.getAttribute("data-zl-label");
+			if (own) return own;
+			let el = tile.querySelector(".epub-page-label");
+			return el ? el.textContent.trim() : "";
 		};
 
 		let texts = {};
@@ -480,8 +538,18 @@ var zotLookSheet = {
 			if (digitsTimer !== null) clearTimeout(digitsTimer);
 			digitsTimer = setTimeout(clearDigits, 2000);
 		};
+		// The page asked for by its number: the printed number first, which
+		// is what a citation gives; then the tile's own, which is what the
+		// label under a tile without printed numbers shows
+		let findPage = (wanted) => {
+			let want = String(wanted || "").trim().toLowerCase();
+			if (!want) return null;
+			let byLabel = tiles.find((t) => labelOf(t).toLowerCase() === want);
+			if (byLabel) return byLabel;
+			return tiles.find((t) => t.getAttribute("data-zl-tile") === want) || null;
+		};
 		let frameTile = (n) => {
-			let tile = tiles.find((t) => t.getAttribute("data-zl-tile") === String(n));
+			let tile = findPage(n);
 			if (!tile) return false;
 			for (let t of tiles) t.classList.remove("zl-current");
 			tile.classList.add("zl-current");
@@ -549,7 +617,8 @@ var zotLookSheet = {
 		document.addEventListener("keydown", (event) => {
 			let key = String(event.key || "");
 			let chord = event.ctrlKey || event.metaKey;
-			let inField = !!input && event.target === input;
+			let inGoto = !!gotoInput && event.target === gotoInput;
+			let inField = (!!input && event.target === input) || inGoto;
 			if (chord && key === "Enter") {
 				event.preventDefault();
 				if (!follow(true)) open();
@@ -561,6 +630,27 @@ var zotLookSheet = {
 				if (input.select) input.select();
 				return;
 			}
+			if (chord && key.toLowerCase() === "g" && gotoInput) {
+				event.preventDefault();
+				gotoInput.focus();
+				if (gotoInput.select) gotoInput.select();
+				return;
+			}
+			// The page field: Enter frames the page and hands the keyboard
+			// back to the page, so that o opens it; a page not there is
+			// said beside the field
+			if (inGoto && key === "Enter") {
+				event.preventDefault();
+				if (frameTile(gotoInput.value)) {
+					if (gotoStatus) gotoStatus.textContent = "";
+					if (hits) say(at >= 0 ? at + 1 + " / " + hits.length : "");
+					if (typeof gotoInput.blur === "function") gotoInput.blur();
+				} else if (gotoStatus) {
+					gotoStatus.textContent = labels.gotoNone || "";
+				}
+				return;
+			}
+			if (inGoto && gotoStatus && gotoStatus.textContent) gotoStatus.textContent = "";
 			if (chord || event.altKey) return;
 			let menu = openMenu();
 			if (key === "Enter" && digits && !inField) {
@@ -640,8 +730,9 @@ var zotLookSheet = {
 	 * word is put in front, and the test parses the script the page gets.
 	 */
 	runtimeScript() {
-		let labels = JSON.stringify({ pages: this.PAGES_LABEL, none: this.SEARCH_NONE })
-			.replace(/<\//g, "<\\/");
+		let labels = JSON.stringify({
+			pages: this.PAGES_LABEL, none: this.SEARCH_NONE, gotoNone: this.GOTO_NONE,
+		}).replace(/<\//g, "<\\/");
 		return (
 			"<script>\n(function " + this.sheetRuntime.toString() + ")(document, " +
 			labels + ");\n</script>\n"
@@ -1158,8 +1249,9 @@ var zotLookSheet = {
 
 	/**
 	 * @param {object} spec
-	 * @param {Array<{page: number, height: number}>} spec.pages Rendered pages,
-	 *   in order. A page the renderer could not draw is simply absent.
+	 * @param {Array<{page: number, height: number, label?: string}>} spec.pages
+	 *   Rendered pages, in order; label is the printed page number where
+	 *   the document has one. A page the renderer could not draw is absent.
 	 * @param {number} spec.columns Grid columns.
 	 * @param {number} spec.width Rendered pixel width of a thumbnail.
 	 * @param {string} spec.imageDir Directory name the thumbnails live in.
@@ -1199,7 +1291,10 @@ var zotLookSheet = {
 				'" height="' +
 				entry.height +
 				'">\n<div class="label">' +
-				entry.page +
+				// The printed number where the document has one, since that
+				// is the number a reader knows the page by; the tile's own
+				// stays in the data, for the keyboard and the links
+				(entry.label ? this.escape(entry.label) : entry.page) +
 				"</div>";
 			// target="_blank" does two different jobs, and both were
 			// measured by clicking the four combinations in a real preview.
@@ -1231,10 +1326,19 @@ var zotLookSheet = {
 				? ' style="scroll-margin-top: ' +
 					this.scrollMargin(ratio, columns) + ';"'
 				: "";
+			let labelAttr = entry.label
+				? ' data-zl-label="' + this.escape(entry.label) + '"'
+				: "";
 			body +=
 				'<div class="page" id="' + this.tileId(entry.page) + '" data-zl-tile="' +
-				entry.page + '"' + own + ">\n" + inner + "</div>\n\n";
+				entry.page + '"' + labelAttr + own + ">\n" + inner + "</div>\n\n";
 		}
+		// The page field's placeholder names the range the way the tiles do
+		let first = pages.length ? pages[0] : null;
+		let last = pages.length ? pages[pages.length - 1] : null;
+		let range = first && last
+			? (first.label || first.page) + "–" + (last.label || last.page)
+			: "";
 
 		let notice = spec.notice
 			? '<p class="notice">' + this.escape(spec.notice) + "</p>\n"
@@ -1281,6 +1385,7 @@ var zotLookSheet = {
 			"</head>\n<body>\n" +
 			toc +
 			annotations +
+			this.gotoBoxHtml(range) +
 			this.searchBoxHtml() +
 			'<div class="grid" data-zl-columns="' + columns + '">\n\n' +
 			body +

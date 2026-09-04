@@ -34,6 +34,9 @@ The sheet in its own Zotero window can search and answers the keyboard.
 - The sheet is dark where the system is dark.
 - Where no system preview answers Space, the sheet opens in its window
   instead; a setting turns that off.
+- A page field in the window's top left corner, Ctrl+G, takes a page number
+  and frames the page — the printed number first, where the PDF labels its
+  pages, and the tiles show those numbers too.
 - In the window, digits and Enter frame a page by its number, plus and minus
   change the columns on the spot, p prints, and a word in Zotero's search
   field goes along as the sheet's first search.

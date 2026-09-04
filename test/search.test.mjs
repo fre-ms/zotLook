@@ -17,7 +17,7 @@ const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++
 const ok=(c,l)=>eq(!!c,true,l);
 
 const { zotLookSheet: S } = loadPlugin({});
-const LABELS = { pages: 'pages', none: 'No matches' };
+const LABELS = { pages: 'pages', none: 'No matches', gotoNone: 'No such page' };
 const type = (doc, value) => {
   const input = doc.querySelector('.zl-search input');
   input.value = value;
@@ -44,7 +44,7 @@ ok(html.includes('<\\/script>') && !/says <\/script>/.test(html),
    'and a page that says </script> cannot close that block early');
 ok(!/"4":/.test(html), 'a page without text is not in it');
 ok(/data-zl-tile="2"/.test(html), 'every tile says which page it is');
-ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
+ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No such page"})'),
    'the runtime is the function itself, handed the labels');
 {
   // The page gets source text, not the function: it has to parse as a
@@ -333,6 +333,33 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
   tile.querySelector('img').dispatchEvent(onImage);
   eq(onImage.defaultPrevented, false, 'a click on a tile\'s picture is left alone: it passes the actor as it is');
   eq(seenTile, ['trusted'], 'and is not sent twice');
+}
+
+// ── the page field: a number typed, Enter frames the page ─────────────
+{
+  const html5 = S.html({
+    pages: [{ page: 1, height: 700, label: 'i' }, { page: 2, height: 700, label: 'ii' }, { page: 3, height: 700, label: '1' }, { page: 4, height: 700, label: '2' }],
+    columns: 2, width: 500, imageDir: 'pages', pageCount: 4,
+  });
+  ok(html5.includes('class="zl-goto"'), 'the sheet has a page field');
+  ok(html5.includes('placeholder="Page i–2"'), 'whose placeholder names the printed range');
+  const doc = new DOMParser().parseFromString(html5, 'text/html');
+  S.sheetRuntime(doc, LABELS);
+  const goto = doc.querySelector('.zl-goto input');
+  const inGoto = (key, extra = {}) =>
+    goto.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key, ...extra }));
+  const framed = () => [...doc.querySelectorAll('.page')].findIndex((t) => t.classList.contains('zl-current')) + 1;
+  goto.value = '1'; inGoto('Enter');
+  eq(framed(), 3, 'the printed number wins: page 1 is the third tile');
+  goto.value = '4'; inGoto('Enter');
+  eq(framed(), 4, 'a number no tile is printed with falls back to the tile\'s own');
+  goto.value = 'ii'; inGoto('Enter');
+  eq(framed(), 2, 'roman front matter is found by its label');
+  goto.value = '99'; inGoto('Enter');
+  eq(doc.querySelector('.zl-goto-status').textContent, LABELS.gotoNone, 'a page not there is said beside the field');
+  eq(framed(), 2, 'and the frame stays');
+  doc.body.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key: 'g', ctrlKey: true }));
+  inGoto('3'); eq(doc.querySelector('.zl-search-status').textContent, '', 'a digit in the field is typing, not a jump');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');

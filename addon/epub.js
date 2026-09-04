@@ -1163,10 +1163,17 @@ var zotLookEpub = Object.seal({
 		// The search field and the two scripts the sheet module writes for
 		// the PDF sheet: hidden and inert in a preview panel, alive in the
 		// sheet's own window. The tiles are the text, so no JSON is needed.
+		let tilesHere = out.querySelectorAll("div.epub-page-label");
+		let range = tilesHere.length
+			? tilesHere[0].textContent.trim() + "–" + tilesHere[tilesHere.length - 1].textContent.trim()
+			: "";
 		let search = zotLookUtil.parseStrict(
-			"<div>" + zotLookSheet.searchBoxHtml() + "</div>", "text/html");
-		let field = search && search.querySelector(".zl-search");
-		if (field) out.body.insertBefore(out.importNode(field, true), grid);
+			"<div>" + zotLookSheet.gotoBoxHtml(range) + zotLookSheet.searchBoxHtml() + "</div>",
+			"text/html");
+		for (let cls of [".zl-goto", ".zl-search"]) {
+			let field = search && search.querySelector(cls);
+			if (field) out.body.insertBefore(out.importNode(field, true), grid);
+		}
 		for (let source of [zotLookSheet.JUMP_SCRIPT, zotLookSheet.runtimeScript()]) {
 			let script = out.createElement("script");
 			script.textContent = source.replace(/^<script>\n?|<\/script>\n?$/g, "");

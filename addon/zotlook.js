@@ -134,6 +134,8 @@ var zotLook = Object.seal({
 		"zotlook-sheet-open",
 		"zotlook-sheet-collection-title",
 		"zotlook-sheet-nopage",
+		"zotlook-sheet-goto",
+		"zotlook-sheet-goto-none",
 		"zotlook-progress-collection",
 		"zotlook-pane-preview",
 		"zotlook-pane-sheet",
@@ -1747,7 +1749,9 @@ var zotLook = Object.seal({
 			await IOUtils.writeUTF8(
 				outputPath,
 				zotLookSheet.html({
-					pages: manifest.pages,
+					pages: manifest.pages.map((p) => Object.assign({}, p, {
+						label: manifest.labels ? manifest.labels[p.page - 1] || "" : "",
+					})),
 					columns: manifest.columns,
 					width: manifest.width,
 					imageDir: imageDirName,
@@ -2517,12 +2521,16 @@ var zotLook = Object.seal({
 							width: fixedWidth || zotLookSheet.widthFor(count, maxColumns),
 							pages: [],
 							outline: [],
+							labels: null,
 						};
 					}
 					// Only the worker that was asked carries one, and it
 					// need not be the first to answer
 					if (Array.isArray(message.outline)) {
 						manifest.outline = message.outline;
+					}
+					if (Array.isArray(message.labels)) {
+						manifest.labels = message.labels;
 					}
 					if (++opened === workers.length) handOutPages();
 					return;
@@ -2859,6 +2867,14 @@ var zotLook = Object.seal({
 			zotLookSheet.OPEN_LABEL = this._string(
 				"zotlook-sheet-open",
 				zotLookSheet.OPEN_LABEL
+			);
+			zotLookSheet.GOTO_LABEL = this._string(
+				"zotlook-sheet-goto",
+				zotLookSheet.GOTO_LABEL
+			);
+			zotLookSheet.GOTO_NONE = this._string(
+				"zotlook-sheet-goto-none",
+				zotLookSheet.GOTO_NONE
 			);
 			zotLookSheet.COLLECTION_TITLE = this._string(
 				"zotlook-sheet-collection-title",

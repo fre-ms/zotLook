@@ -294,6 +294,21 @@ async function pageOf(doc, dest) {
 	}
 }
 
+/**
+ * The page labels as an array of strings, one per page, or null when the
+ * file has none or they are nothing but the numbers themselves.
+ */
+async function labelsOf(doc) {
+	try {
+		let labels = await doc.getPageLabels();
+		if (!Array.isArray(labels) || !labels.length) return null;
+		let plain = labels.every((l, i) => String(l) === String(i + 1));
+		return plain ? null : labels.map((l) => String(l == null ? "" : l));
+	} catch {
+		return null;
+	}
+}
+
 // Two steps, because the page count decides the column count, which decides
 // the width to render at — and only this side knows the page count.
 let document = null;
@@ -305,7 +320,14 @@ self.addEventListener("message", async (/** @type {MessageEvent} */ event) => {
 		if (message.type === "open") {
 			document = await open(message.data);
 			let reply = { type: "opened", pageCount: document.numPages };
-			if (message.outline) reply.outline = await outlineOf(document);
+			if (message.outline) {
+				reply.outline = await outlineOf(document);
+				// The printed page numbers, where the file carries them:
+				// roman front matter, a book that starts at 1 on its sixth
+				// page. What a citation names, and what the sheet's page
+				// field is asked for
+				reply.labels = await labelsOf(document);
+			}
 			self.postMessage(reply);
 			return;
 		}
