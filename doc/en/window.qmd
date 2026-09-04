@@ -121,6 +121,20 @@ running — the sheet opens in its window instead. The
 [setting](settings.qmd#the-contact-sheet) turns that off; then the press is
 logged and nothing shows.
 
+## Several items: the collection sheet
+
+With several items selected, the same shortcut makes a **collection sheet**
+of them: a tile per item with the first page of its PDF, and its title, first
+creator and year underneath. A click opens the document in the reader, the
+keyboard walks the tiles as it walks the pages of a document, and the search
+finds an item by title, author or the text of its first page. An item without
+a PDF gets an empty tile with its title; a click on it selects the item in
+Zotero. It is the look over a collection the forum asked for as a gallery:
+select a collection, Ctrl+A, and the shortcut.
+
+The collection sheet is made for the system preview too, with
+Ctrl+Shift+Space, without the search and the keyboard there.
+
 ## What stays in the system preview
 
 The sheet in the system preview (**Ctrl+Shift+Space**) is the same sheet,

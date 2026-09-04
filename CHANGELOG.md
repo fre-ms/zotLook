@@ -38,6 +38,9 @@ The sheet in its own Zotero window can search and answers the keyboard.
   change the columns on the spot, p prints, and a word in Zotero's search
   field goes along as the sheet's first search.
 - An item pane section named zotLook offers the three actions as buttons.
+- Several selected items make a collection sheet: the first page of each
+  item's PDF with its title, a click opening it, the keyboard and the search
+  as on a page sheet.
 - The documentation gives the sheet in its window a page of its own, and the
   front page tells the three tiers: the attachment, the sheet, the window.
 - Update checks go to zotlook.org from this version on; the update itself

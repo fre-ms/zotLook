@@ -670,5 +670,57 @@ const ANNOTATIONS = [
      'only same-page fragments are intercepted');
 }
 
+// ── several items: the collection sheet ───────────────────────────────
+// One tile per item, the first page of its PDF, title and creators under
+// it, a click into the reader; an item without a PDF still has its tile
+{
+  const { FakeWorker, made } = fakeWorkerFactory({ pageCount: 3 });
+  const written = new Map(); const files = new Set(); const dirs = [];
+  const IOUtils = {
+    exists: async (p) => files.has(p), makeDirectory: async (p) => { dirs.push(p); },
+    read: async () => new Uint8Array(1024),
+    write: async (p, data) => { files.add(p); written.set(p, data.length); },
+    writeUTF8: async (p, text) => { files.add(p); written.set(p, text); },
+    setPermissions: async () => {}, remove: async () => {},
+    readUTF8: async (p) => { if (!files.has(p)) throw new Error('no ' + p); return written.get(p); },
+    stat: async () => ({ size: 4096, lastModified: 1000 }),
+  };
+  const att = (id, key, pdf) => ({ id, key, libraryID: 1, isNote: () => false, isAttachment: () => true,
+    isPDFAttachment: () => pdf, attachmentFilename: pdf ? key + '.pdf' : key + '.html', getAnnotations: () => [] });
+  const atts = { 11: att(11, 'ATT00011', true), 12: att(12, 'ATT00012', true), 13: att(13, 'ATT00013', false) };
+  const item = (id, key, title, creator, year, attIDs) => ({ id, key, libraryID: 1,
+    isNote: () => false, isAttachment: () => false, isRegularItem: () => true,
+    getAttachments: () => attIDs, getDisplayTitle: () => title, firstCreator: creator,
+    getField: (f) => (f === 'year' ? year : f === 'title' ? title : '') });
+  const items = [item(1, 'ITEM0001', 'First paper', 'Adams', '2019', [11]),
+                 item(2, 'ITEM0002', 'Second paper', 'Baker', '2021', [12]),
+                 item(3, 'ITEM0003', 'A web page', 'Clark', '', [13])];
+  const { zotLook: Q, zotLookSheet } = loadPlugin({
+    IOUtils, ChromeWorker: FakeWorker, Services: { sysinfo: { getProperty: () => 4 } },
+    zotero: { Libraries: { get: () => ({ isGroup: false }) }, Items: { get: (id) => atts[id] }, openInViewer: () => {} },
+  });
+  Q.version = '1.1.0'; Q.rootURI = 'file:///plugin/'; Q._getTempDirPath = () => '/tmp/zt';
+  Q._getAttachmentPath = async (a) => '/lib/' + a.attachmentFilename;
+  Q._showProgress = () => ({}); Q._closeProgress = () => {}; Q._resourceAlias = () => 'resource://zotlook/';
+  globalThis.fetch = async () => ({ arrayBuffer: async () => new ArrayBuffer(4) });
+
+  const out = await Q._buildContactSheet(items);
+  ok(out && /collectionsheet_[0-9a-f]{8}\.html$/.test(out), 'several items make a collection sheet, named by their keys');
+  const html = written.get(out);
+  ok(html.includes('<title>Collection Sheet</title>'), 'with its own title');
+  ok(html.includes('data-zl-tile="1"') && html.includes('data-zl-tile="3"'), 'one tile per item, the third included');
+  ok(/collectionsheet_[0-9a-f]{8}_pages\/1\/p1\.jpg/.test(html), 'the first page of the first PDF is its picture');
+  ok(html.includes('First paper') && html.includes('Adams, 2019'), 'the title and the creator and year under it');
+  ok(html.includes('zotero://open-pdf/library/items/ATT00011"'), 'a click opens the reader on that PDF');
+  ok(html.includes('No PDF') && html.includes('zotero://select/library/items/ITEM0003'),
+     'an item without a PDF has a tile that says so and selects the item');
+  eq(made.length, 2, 'each PDF rendered by a renderer of its own, one page each');
+  const want = zotLookSheet.widthFor(3, 5);
+  ok(made.every((w) => w.posted.find((m) => m.type === 'render').width === want),
+     `rendered at the width three tiles across need (${want} px), not at one page's`);
+  eq(Q._lastSheetItemIDs, [11, 12], 'the reader opening for either PDF is this sheet\'s handoff');
+  ok(html.includes('zl-texts'), 'and the search has the titles and first pages to go by');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

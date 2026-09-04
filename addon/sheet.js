@@ -12,6 +12,10 @@ var zotLookSheet = {
 
 	/** The window's title; the host writes the locale's in. */
 	TITLE: "Contact Sheet",
+	/** The collection sheet's title, likewise. */
+	COLLECTION_TITLE: "Collection Sheet",
+	/** What a tile says when the item has no page to show. */
+	NO_PAGE_LABEL: "No PDF",
 	/** Heading of the contents menu; the host writes the locale's in. */
 	TOC_LABEL: "Contents",
 	/**
@@ -1054,6 +1058,80 @@ var zotLookSheet = {
 	},
 
 	/**
+	 * The styles of a page sheet: the grid, the tiles, the frame on the
+	 * one jumped to, the labels, the dark side, the menus and the field.
+	 * Shared by the contact sheet and the collection sheet.
+	 *
+	 * @param {number} columns
+	 * @param {number} common the tiles' usual height over width
+	 */
+	pageStyles(columns, common) {
+		return (
+			"body {\n" +
+			"    background: #f0f0f0;\n" +
+			"    margin: 0;\n" +
+			"    padding: 12px;\n" +
+			"    font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n" +
+			"}\n" +
+			".grid {\n" +
+			"    display: grid;\n" +
+			"    grid-template-columns: repeat(" +
+			columns +
+			", 1fr);\n" +
+			"    gap: 12px;\n" +
+			"}\n" +
+			".page {\n" +
+			"    background: white;\n" +
+			"    box-shadow: 0 1px 4px rgba(0,0,0,0.2);\n" +
+			"    text-align: center;\n" +
+			"    overflow: hidden;\n" +
+			"    scroll-margin-top: " + this.scrollMargin(common, columns) + ";\n" +
+			"}\n" +
+			// The page jumped to should be findable once the eye arrives.
+			// Two selectors for one look: :target when the jump was a real
+			// navigation, the class when the script below did it instead.
+			".page:target, .page.zl-current {\n" +
+			"    outline: 3px solid #f5b841;\n" +
+			"    outline-offset: 3px;\n" +
+			"}\n" +
+			".page:target .label, .page.zl-current .label {\n" +
+			"    color: #1f2a33; font-weight: 600;\n" +
+			"}\n" +
+			".page img {\n" +
+			"    width: 100%;\n" +
+			"    height: auto;\n" +
+			"    display: block;\n" +
+			"}\n" +
+			".page a {\n" +
+			"    text-decoration: none;\n" +
+			"    color: inherit;\n" +
+			"    display: block;\n" +
+			"}\n" +
+			".page .label {\n" +
+			"    font-size: 11px;\n" +
+			"    color: #666;\n" +
+			"    padding: 4px 0;\n" +
+			"}\n" +
+			".notice {\n" +
+			"    font-size: 13px;\n" +
+			"    color: #666;\n" +
+			"    text-align: center;\n" +
+			"    padding: 12px 0 0 0;\n" +
+			"}\n" +
+			// The same sheet in the dark, where the system is: the ground and
+			// the labels turn, the pages stay the paper they are
+			"@media (prefers-color-scheme: dark) {\n" +
+			"  body { background: #1c1f24; }\n" +
+			"  .page { box-shadow: 0 1px 4px rgba(0,0,0,0.6); }\n" +
+			"  .page .label, .notice { color: #a9adb3; }\n" +
+			"  .page:target .label, .page.zl-current .label { color: #f5f6f7; }\n" +
+			"}\n" +
+			this.MENU_CSS + "\n" +
+			this.SEARCH_CSS + "\n"
+		);
+	},
+
+	/**
 	 * @param {object} spec
 	 * @param {Array<{page: number, height: number}>} spec.pages Rendered pages,
 	 *   in order. A page the renderer could not draw is simply absent.
@@ -1173,67 +1251,7 @@ var zotLookSheet = {
 			'<meta charset="UTF-8">\n' +
 			"<title>" + this.escape(this.TITLE) + "</title>\n" +
 			"<style>\n" +
-			"body {\n" +
-			"    background: #f0f0f0;\n" +
-			"    margin: 0;\n" +
-			"    padding: 12px;\n" +
-			"    font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n" +
-			"}\n" +
-			".grid {\n" +
-			"    display: grid;\n" +
-			"    grid-template-columns: repeat(" +
-			columns +
-			", 1fr);\n" +
-			"    gap: 12px;\n" +
-			"}\n" +
-			".page {\n" +
-			"    background: white;\n" +
-			"    box-shadow: 0 1px 4px rgba(0,0,0,0.2);\n" +
-			"    text-align: center;\n" +
-			"    overflow: hidden;\n" +
-			"    scroll-margin-top: " + this.scrollMargin(common, columns) + ";\n" +
-			"}\n" +
-			// The page jumped to should be findable once the eye arrives.
-			// Two selectors for one look: :target when the jump was a real
-			// navigation, the class when the script below did it instead.
-			".page:target, .page.zl-current {\n" +
-			"    outline: 3px solid #f5b841;\n" +
-			"    outline-offset: 3px;\n" +
-			"}\n" +
-			".page:target .label, .page.zl-current .label {\n" +
-			"    color: #1f2a33; font-weight: 600;\n" +
-			"}\n" +
-			".page img {\n" +
-			"    width: 100%;\n" +
-			"    height: auto;\n" +
-			"    display: block;\n" +
-			"}\n" +
-			".page a {\n" +
-			"    text-decoration: none;\n" +
-			"    color: inherit;\n" +
-			"    display: block;\n" +
-			"}\n" +
-			".page .label {\n" +
-			"    font-size: 11px;\n" +
-			"    color: #666;\n" +
-			"    padding: 4px 0;\n" +
-			"}\n" +
-			".notice {\n" +
-			"    font-size: 13px;\n" +
-			"    color: #666;\n" +
-			"    text-align: center;\n" +
-			"    padding: 12px 0 0 0;\n" +
-			"}\n" +
-			// The same sheet in the dark, where the system is: the ground and
-			// the labels turn, the pages stay the paper they are
-			"@media (prefers-color-scheme: dark) {\n" +
-			"  body { background: #1c1f24; }\n" +
-			"  .page { box-shadow: 0 1px 4px rgba(0,0,0,0.6); }\n" +
-			"  .page .label, .notice { color: #a9adb3; }\n" +
-			"  .page:target .label, .page.zl-current .label { color: #f5f6f7; }\n" +
-			"}\n" +
-			this.MENU_CSS + "\n" +
-			this.SEARCH_CSS + "\n" +
+			this.pageStyles(columns, common) +
 			"</style>\n" +
 			"</head>\n<body>\n" +
 			toc +
@@ -1244,6 +1262,102 @@ var zotLookSheet = {
 			"</div>\n" +
 			notice +
 			this.textsHtml(pages) +
+			this.JUMP_SCRIPT +
+			this.runtimeScript() +
+			"</body>\n</html>"
+		);
+	},
+
+	/**
+	 * The collection sheet: one tile per item, its first page.
+	 *
+	 * Several items selected, one press, and every document is there at
+	 * a glance — the first page of each, its title and creators under it,
+	 * a click opening it in the reader. What the forum asked for as a
+	 * gallery to browse a collection with the arrow keys; the keyboard of
+	 * the page sheet does that here, the search finds a document by its
+	 * title, its author, or what is on its first page.
+	 *
+	 * @param {object} spec
+	 * @param {Array<{index: number, title: string, meta?: string,
+	 *   image?: string, height?: number, link?: string, text?: string}>}
+	 *   spec.tiles — image is the tile's picture relative to the sheet, or
+	 *   absent for an item without a page; height is the picture's, in
+	 *   pixels at spec.width; link opens the item; text is what a search
+	 *   finds it by
+	 * @param {number} spec.columns
+	 * @param {number} spec.width pixels the pictures were rendered at
+	 */
+	collectionHtml(spec) {
+		let tiles = spec.tiles || [];
+		let columns = Math.max(1, Number(spec.columns) || 1);
+		let width = Math.max(1, Number(spec.width) || 1);
+		let heights = tiles.filter((t) => t.image).map((t) => t.height / width);
+		let common = heights.length
+			? heights.slice().sort((a, b) => a - b)[Math.floor(heights.length / 2)]
+			: 1.3;
+		let body = "";
+		let texts = [];
+		for (let tile of tiles) {
+			let caption =
+				'<div class="label"><span class="zl-title">' +
+				this.escape(tile.title || "") + "</span>" +
+				(tile.meta ? '<span class="zl-meta">' + this.escape(tile.meta) + "</span>" : "") +
+				"</div>";
+			let picture = tile.image
+				? '<img src="' + this.escape(tile.image) + '" loading="lazy" width="' +
+					width + '" height="' + tile.height + '">\n'
+				: '<div class="zl-nopage" style="padding-top: ' +
+					(common * 100).toFixed(1) + '%;"><span>' +
+					this.escape(this.NO_PAGE_LABEL) + "</span></div>\n";
+			let inner = tile.link
+				? '<a target="_blank" href="' + this.escape(tile.link) + '">' +
+					picture + caption + "</a>"
+				: picture + caption;
+			let ratio = tile.image ? tile.height / width : common;
+			let own = Math.abs(ratio - common) > 0.01
+				? ' style="scroll-margin-top: ' + this.scrollMargin(ratio, columns) + ';"'
+				: "";
+			body +=
+				'<div class="page" id="' + this.tileId(tile.index) + '" data-zl-tile="' +
+				tile.index + '"' + own + ">\n" + inner + "</div>\n\n";
+			texts.push({
+				page: tile.index,
+				text: [tile.title, tile.meta, tile.text].filter(Boolean).join(" "),
+			});
+		}
+		return (
+			"<!DOCTYPE html>\n" +
+			"<html>\n<head>\n" +
+			'<meta charset="UTF-8">\n' +
+			"<title>" + this.escape(this.COLLECTION_TITLE) + "</title>\n" +
+			"<style>\n" +
+			this.pageStyles(columns, common) +
+			// The caption: the title on up to two lines, the creators and
+			// year under it; a tile without a page is grey paper with a word
+			// Tiles of their own height: a row is as tall as its tallest,
+			// and the others must not be stretched to it
+			".grid { align-items: start; }\n" +
+			".page .label { text-align: left; padding: 6px 8px 8px; line-height: 1.3; }\n" +
+			".page .label .zl-title { display: block; color: #1f2a33; font-size: 12px;" +
+			" overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2;" +
+			" -webkit-box-orient: vertical; }\n" +
+			".page .label .zl-meta { display: block; color: #666; font-size: 11px; margin-top: 2px; }\n" +
+			".page .zl-nopage { position: relative; background: #e4e4e4; }\n" +
+			".page .zl-nopage span { position: absolute; top: 50%; left: 0; right: 0;" +
+			" transform: translateY(-50%); color: #8a8a8a; font-size: 13px; }\n" +
+			"@media (prefers-color-scheme: dark) {\n" +
+			"  .page .label .zl-title { color: #e8eaed; }\n" +
+			"  .page .label .zl-meta { color: #a9adb3; }\n" +
+			"  .page .zl-nopage { background: #2a2f36; }\n" +
+			"}\n" +
+			"</style>\n" +
+			"</head>\n<body>\n" +
+			this.searchBoxHtml() +
+			'<div class="grid" data-zl-columns="' + columns + '">\n\n' +
+			body +
+			"</div>\n" +
+			this.textsHtml(texts) +
 			this.JUMP_SCRIPT +
 			this.runtimeScript() +
 			"</body>\n</html>"

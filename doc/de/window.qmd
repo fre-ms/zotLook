@@ -123,6 +123,20 @@ QuickLook nicht gestartet —, öffnet sich stattdessen der Bogen in seinem
 Fenster. Die [Einstellung](settings.qmd#der-kontaktbogen) schaltet das ab;
 dann bleibt es beim Eintrag im Protokoll.
 
+## Mehrere Einträge: der Sammlungsbogen
+
+Sind mehrere Einträge ausgewählt, macht dasselbe Kürzel aus ihnen einen
+**Sammlungsbogen**: je Eintrag eine Kachel mit der ersten Seite seines PDFs,
+Titel, Erstautor und Jahr darunter. Ein Klick öffnet das Dokument im Reader,
+die Tastatur wandert wie im Seitenbogen von Kachel zu Kachel, und die Suche
+findet einen Eintrag nach Titel, Autor oder dem Text seiner ersten Seite. Ein
+Eintrag ohne PDF bekommt eine leere Kachel mit seinem Titel; ein Klick darauf
+wählt ihn in Zotero aus. Das ist der Blick über eine Sammlung, den das Forum
+sich als Galerie gewünscht hat: eine Sammlung markieren, Strg+A, und das Kürzel.
+
+Der Sammlungsbogen entsteht auch für die Systemvorschau mit
+Strg+Umschalt+Leertaste, dort ohne Suche und Tastatur.
+
 ## Was in der Systemvorschau bleibt
 
 Der Bogen in der Systemvorschau (**Strg+Umschalt+Leertaste**) ist derselbe

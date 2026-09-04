@@ -111,6 +111,11 @@ zotlook-sheet-loading = Laying out the contact sheet…
 zotlook-sheet-title = Contact Sheet
 # The link on an annotation that opens the reader at the annotation
 zotlook-sheet-open = Open in the reader
+# The collection sheet: its window title, the tile of an item without a
+# PDF, and the progress line while it is laid out
+zotlook-sheet-collection-title = Collection Sheet
+zotlook-sheet-nopage = No PDF
+zotlook-progress-collection = Laying out the collection…
 # The item pane's section: its header — Zotero reads a section's label as
 # an attribute, and a value in its place would replace the section's
 # whole content — the sidenav button's tooltip, and the three buttons

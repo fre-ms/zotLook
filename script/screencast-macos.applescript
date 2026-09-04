@@ -407,7 +407,7 @@ on mainWindowRect()
 end mainWindowRect
 
 -- The sheet window, by its title in either language
-property sheetTitles : {"Kontaktbogen", "Contact Sheet"}
+property sheetTitles : {"Kontaktbogen", "Contact Sheet", "Sammlungsbogen", "Collection Sheet"}
 
 on sheetName()
 	tell application "System Events" to tell process "Zotero"

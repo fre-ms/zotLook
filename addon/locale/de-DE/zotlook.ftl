@@ -113,6 +113,11 @@ zotlook-sheet-loading = Kontaktbogen wird aufgebaut …
 zotlook-sheet-title = Kontaktbogen
 # Der Link an einer Annotation, der den Reader an der Annotation öffnet
 zotlook-sheet-open = Im Reader öffnen
+# Der Sammlungsbogen: Fenstertitel, die Kachel eines Eintrags ohne PDF und
+# die Fortschrittszeile beim Aufbau
+zotlook-sheet-collection-title = Sammlungsbogen
+zotlook-sheet-nopage = Kein PDF
+zotlook-progress-collection = Sammlung wird ausgelegt …
 # Der Abschnitt im Eintragsfenster: die Überschrift — Zotero liest die
 # Beschriftung eines Abschnitts als Attribut, ein Wert an dieser Stelle
 # ersetzt den ganzen Inhalt des Abschnitts —, der Tooltip des

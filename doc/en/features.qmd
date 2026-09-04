@@ -100,6 +100,10 @@ figure you remember, or for seeing at a glance which pages you marked up.
   be set for unusually large scans; when it bites, the sheet says how many pages
   it is showing.
 
+**Several items at once** give a
+[collection sheet](window.qmd#several-items-the-collection-sheet): the first
+page of each item's PDF, a click opening it.
+
 The third tier is [**the sheet in a window**](window.qmd)
 (**Ctrl+Alt+Space**): the same sheet in a Zotero window of its own, the same
 on all three systems, with search, keyboard control and a click that opens the

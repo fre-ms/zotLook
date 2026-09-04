@@ -65,6 +65,10 @@ var zotLook = Object.seal({
 	_viewerItemID: null,
 	// What the sheet just built was drawn from, for the line above to take
 	_lastSheetItemID: null,
+	// A collection sheet is drawn from several; the reader opening for any
+	// of them is that sheet's handoff
+	_lastSheetItemIDs: [],
+	_viewerItemIDs: [],
 	_launching: false,
 	_tempDir: null,
 	// binary name -> deployed path
@@ -123,6 +127,9 @@ var zotLook = Object.seal({
 		"zotlook-sheet-loading",
 		"zotlook-sheet-title",
 		"zotlook-sheet-open",
+		"zotlook-sheet-collection-title",
+		"zotlook-sheet-nopage",
+		"zotlook-progress-collection",
 		"zotlook-pane-preview",
 		"zotlook-pane-sheet",
 		"zotlook-pane-window",
@@ -983,6 +990,7 @@ var zotLook = Object.seal({
 			return false;
 		}
 		this._viewerItemID = this._lastSheetItemID;
+		this._viewerItemIDs = this._lastSheetItemIDs.slice();
 		this._adoptViewer(win);
 		return true;
 	},
@@ -1160,8 +1168,8 @@ var zotLook = Object.seal({
 			if (plugin._viewer) {
 				let opened = args.length ? args[0] : null;
 				if (
-					plugin._viewerItemID !== null &&
-					opened === plugin._viewerItemID
+					(plugin._viewerItemID !== null && opened === plugin._viewerItemID) ||
+					plugin._viewerItemIDs.indexOf(opened) !== -1
 				) {
 					fromViewer = true;
 				} else {
@@ -1575,6 +1583,17 @@ var zotLook = Object.seal({
 	 * Renders the contact sheet and returns the path to its HTML, or null.
 	 */
 	async _buildContactSheet(items) {
+		// Several items at once are a collection to look over, not one
+		// document to leaf through
+		let regular = (items || []).filter((item) => {
+			try {
+				return !item.isNote() && !item.isAttachment();
+			} catch (e) {
+				return false;
+			}
+		});
+		if (regular.length > 1) return this._buildCollectionSheet(regular);
+
 		// Resolve to an attachment item rather than a bare path: the reader
 		// links in the sheet need the item's key and library
 		let chosen = await this._pickPdfAttachment(items);
@@ -1587,6 +1606,7 @@ var zotLook = Object.seal({
 			let book = await this._pickEpubAttachment(items);
 			if (book) {
 				this._lastSheetItemID = book.item ? book.item.id : null;
+				this._lastSheetItemIDs = [];
 				return this._epubSheet(book.path, book.item);
 			}
 			this.log("No PDF or EPUB files for contact sheet");
@@ -1642,6 +1662,7 @@ var zotLook = Object.seal({
 			: null;
 
 		this._lastSheetItemID = chosen.item ? chosen.item.id : null;
+		this._lastSheetItemIDs = [];
 
 		let kept = await this._derivedHit(entry, key, sheetName + ".html");
 		if (kept) {
@@ -1731,6 +1752,157 @@ var zotLook = Object.seal({
 
 		return outputPath;
 	},
+	/**
+	 * The collection sheet: the first page of every selected item's PDF,
+	 * one tile each, the title and creators under it.
+	 *
+	 * What the page sheet is to a document, this is to a selection: the
+	 * documents at a glance, a click opening one in the reader, the
+	 * keyboard walking them, the search finding one by title, author or
+	 * first page. An item whose best attachment is not a PDF gets a tile
+	 * without a page, so the selection is complete on the sheet even where
+	 * it cannot be pictured.
+	 *
+	 * Kept like a page sheet, under a name made of the items' keys, and
+	 * remade when one of the files changes or the columns do.
+	 */
+	async _buildCollectionSheet(items) {
+		if (!this._contactSheetSupported()) {
+			this.log("No page renderer is available on this platform");
+			return null;
+		}
+		let maxColumns = this._contactSheetColumns();
+		let entries = [];
+		for (let item of items) {
+			let best = null;
+			try {
+				best = await this._pickBestAttachment(item);
+			} catch (e) {
+				this.log("Could not resolve an attachment: " + e);
+			}
+			let pdf = best && this._isPDFAttachment(best.item) ? best : null;
+			entries.push({ item: item, pdf: pdf });
+		}
+		let keys = items.map((item) => String(item.key || item.id));
+		let sheetName = "collectionsheet_" + zotLookUtil.hashString(keys.join(","));
+		let keep = this._keepPreviews();
+		let entry = await this._derivedEntry(sheetName, keep);
+		let outputPath = PathUtils.join(entry.dir, sheetName + ".html");
+		let imageDirName = sheetName + "_pages";
+		let imageDir = PathUtils.join(entry.dir, imageDirName);
+
+		let parts = [this._tag(), keys.join(","), maxColumns];
+		for (let e of entries) {
+			if (!e.pdf) {
+				parts.push("-");
+				continue;
+			}
+			parts.push(e.pdf.path, await this._fileIdentity(e.pdf.path));
+		}
+		let key = keep ? parts.join("|") : null;
+
+		this._lastSheetItemID = null;
+		this._lastSheetItemIDs = entries
+			.filter((e) => e.pdf && e.pdf.item)
+			.map((e) => e.pdf.item.id);
+
+		let kept = await this._derivedHit(entry, key, sheetName + ".html");
+		if (kept) {
+			this.log("Reusing the collection sheet built earlier: " + kept);
+			return kept;
+		}
+
+		this.log("Generating a collection sheet for " + items.length + " items");
+		let started = Date.now();
+		let progress = this._showProgress(
+			this._string("zotlook-progress-collection", "Laying out the collection…")
+		);
+		try {
+			await IOUtils.remove(imageDir, { recursive: true, ignoreAbsent: true });
+			await IOUtils.makeDirectory(imageDir, { ignoreExisting: true });
+			let columns = zotLookSheet.columnsFor(entries.length, maxColumns);
+			let width = zotLookSheet.widthFor(entries.length, maxColumns);
+			let tiles = [];
+			let index = 0;
+			for (let e of entries) {
+				index++;
+				let tile = {
+					index: index,
+					title: this._itemTitle(e.item),
+					meta: this._itemMeta(e.item),
+					link: e.pdf ? this._readerLink(e.pdf.item) : this._selectLink(e.item),
+				};
+				if (e.pdf) {
+					let dir = PathUtils.join(imageDir, String(index));
+					await IOUtils.makeDirectory(dir, { ignoreExisting: true });
+					let manifest = await this._renderPagesWithPdfjs(
+						e.pdf.path, dir, maxColumns, 1, null, { width: width });
+					let first = manifest && manifest.pages[0];
+					if (first) {
+						tile.image = imageDirName + "/" + index + "/p" + first.page + ".jpg";
+						tile.height = first.height;
+						tile.text = first.text || "";
+					}
+				}
+				tiles.push(tile);
+				this._setProgress(progress, index, entries.length);
+			}
+			this.log("Laid out " + tiles.length + " items in " + (Date.now() - started) + " ms");
+			await IOUtils.writeUTF8(
+				outputPath,
+				zotLookSheet.collectionHtml({ tiles: tiles, columns: columns, width: width })
+			);
+			await this._derivedCommit(entry, key);
+		} catch (e) {
+			this.log("Collection sheet generation error: " + e);
+			await this._writeFailureReport("the collection sheet threw: " + e);
+			return null;
+		} finally {
+			this._closeProgress(progress);
+		}
+		return outputPath;
+	},
+
+	/** An item's title, for a tile's caption. */
+	_itemTitle(item) {
+		try {
+			if (typeof item.getDisplayTitle === "function") return String(item.getDisplayTitle() || "");
+			if (typeof item.getField === "function") return String(item.getField("title") || "");
+		} catch (e) {
+			// fall through
+		}
+		return "";
+	},
+
+	/** "Creator, Year" under a tile, whichever of the two the item has. */
+	_itemMeta(item) {
+		let parts = [];
+		try {
+			let creator = typeof item.firstCreator === "string" ? item.firstCreator : "";
+			if (!creator && typeof item.getField === "function") creator = String(item.getField("firstCreator") || "");
+			if (creator) parts.push(creator);
+			let year = typeof item.getField === "function" ? String(item.getField("year") || "") : "";
+			if (year) parts.push(year);
+		} catch (e) {
+			// a caption is not worth failing over
+		}
+		return parts.join(", ");
+	},
+
+	/** A zotero://select URL for an item, for a tile with no page to open. */
+	_selectLink(item) {
+		if (!item || !item.key) return "";
+		try {
+			let library = /** @type {any} */ (Zotero.Libraries.get(item.libraryID));
+			if (library && library.isGroup) {
+				return "zotero://select/groups/" + library.groupID + "/items/" + item.key;
+			}
+		} catch (e) {
+			// the library alone
+		}
+		return "zotero://select/library/items/" + item.key;
+	},
+
 	// ── Derived files ─────────────────────────────────────────────────
 	//
 	// Three things here are made from an attachment and cost real time to
@@ -2243,8 +2415,10 @@ var zotLook = Object.seal({
 		imageDir,
 		maxColumns,
 		maxPages,
-		onProgress
+		onProgress,
+		options
 	) {
+		let fixedWidth = options && options.width > 0 ? Number(options.width) : 0;
 		let prefix = this._resourceAlias();
 		if (!prefix) {
 			this.log("Cannot start the renderer without the resource alias");
@@ -2315,7 +2489,10 @@ var zotLook = Object.seal({
 							pageCount: message.pageCount,
 							renderCount: count,
 							columns: zotLookSheet.columnsFor(count, maxColumns),
-							width: zotLookSheet.widthFor(count, maxColumns),
+							// A caller laying several documents side by
+							// side says the width itself; a page sheet
+							// takes it from its own page count
+							width: fixedWidth || zotLookSheet.widthFor(count, maxColumns),
 							pages: [],
 							outline: [],
 						};
@@ -2660,6 +2837,14 @@ var zotLook = Object.seal({
 			zotLookSheet.OPEN_LABEL = this._string(
 				"zotlook-sheet-open",
 				zotLookSheet.OPEN_LABEL
+			);
+			zotLookSheet.COLLECTION_TITLE = this._string(
+				"zotlook-sheet-collection-title",
+				zotLookSheet.COLLECTION_TITLE
+			);
+			zotLookSheet.NO_PAGE_LABEL = this._string(
+				"zotlook-sheet-nopage",
+				zotLookSheet.NO_PAGE_LABEL
 			);
 			zotLookSheet.TOC_LABEL = this._string(
 				"zotlook-epub-contents",

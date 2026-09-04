@@ -45,6 +45,9 @@ Tastatur.
   Suchfeld geht als erste Suche des Bogens mit.
 - Ein Abschnitt zotLook im Eintragsfenster bietet die drei Aktionen als
   Knöpfe.
+- Mehrere ausgewählte Einträge geben einen Sammlungsbogen: die erste Seite
+  jedes PDFs mit seinem Titel, ein Klick öffnet es, Tastatur und Suche wie
+  im Seitenbogen.
 - Die Dokumentation gibt dem Bogen im Fenster eine eigene Seite, und die
   Startseite erzählt die drei Stufen: Anhang, Bogen, Fenster.
 - Update-Anfragen gehen ab dieser Version an zotlook.org; das Update selbst

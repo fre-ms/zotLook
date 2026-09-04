@@ -107,6 +107,10 @@ zu sehen, welche Seiten man bearbeitet hat.
   Für ungewöhnlich große Scans lässt sich eines setzen; greift es, sagt der
   Bogen, wie viele Seiten er zeigt.
 
+**Mehrere Einträge auf einmal** geben einen
+[Sammlungsbogen](window.qmd#mehrere-einträge-der-sammlungsbogen): je Eintrag
+die erste Seite seines PDFs, ein Klick öffnet es.
+
 Die dritte Stufe ist [**der Bogen im Fenster**](window.qmd)
 (**Strg+Alt+Leertaste**): derselbe Bogen in einem eigenen Zotero-Fenster, auf
 allen drei Systemen gleich, mit Suche, Tastatursteuerung und einem Klick, der
