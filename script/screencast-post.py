@@ -10,9 +10,10 @@ keyboard — and beside each a timeline of what it sent, and when::
 
 This puts the takes one after the other, each behind its title card, and
 shows every key from the timeline as a chip at the bottom of the frame for
-as long as it is pressed — until the next key, or a good two seconds. No
-key-display tool sees a scripted keystroke, so this is where the keys come
-from. Clicks and scrolls are left to the pointer tool of the platform.
+as long as it is pressed — until the next key, or a good two seconds. On
+macOS no key-display tool sees a scripted keystroke, so this is where the
+keys come from; on Windows Keyviz does, and --no-chips leaves the keys to
+the take. Clicks and scrolls are left to the pointer tool of the platform.
 
     script/screencast-post.py build/screencast --prefix macos --out asset/screenshot
 
@@ -149,10 +150,13 @@ def probe(path):
     return int(w), int(h), duration
 
 
-def take_with_chips(take, timeline, out, width, height, work, offset=0.0):
-    """One take, halved to `width`, with its chips overlaid."""
+def take_with_chips(take, timeline, out, width, height, work, offset=0.0, with_chips=True):
+    """One take, halved to `width`, with its chips overlaid — or without
+    them, for a take whose keys were drawn on screen as it was recorded."""
     scale = width / 1512
-    events = [(a + offset, b + offset, t) for a, b, t in chips(read_timeline(timeline))]
+    events = []
+    if with_chips:
+        events = [(a + offset, b + offset, t) for a, b, t in chips(read_timeline(timeline))]
     inputs = ["-i", str(take)]
     filters = [f"[0:v]scale={width}:{height}:flags=lanczos,fps={FPS},format=yuv420p[v0]"]
     last = "v0"
@@ -227,6 +231,8 @@ def main():
                     help="seconds added to every timeline entry, for a recording that started later than the timeline assumed")
     ap.add_argument("--gif-take", default="mouse", choices=["mouse", "keyboard", "both"],
                     help="which take the GIF shows (default: the mouse)")
+    ap.add_argument("--no-chips", action="store_true",
+                    help="draw no key chips: the keys are already in the picture, as Keyviz puts them there on Windows")
     args = ap.parse_args()
     crop = tuple(int(v) for v in args.crop.split(",")) if args.crop else GIF_CROP
 
@@ -252,7 +258,8 @@ def main():
             card = work / f"{part}-title.mp4"
             title_clip(title, card, width, height, work, frame_of(takes[part][0], 0.2, work))
             clip = work / f"{part}-take.mp4"
-            take_with_chips(takes[part][0], takes[part][1], clip, width, height, work, args.offset)
+            take_with_chips(takes[part][0], takes[part][1], clip, width, height, work, args.offset,
+                            with_chips=not args.no_chips)
             parts += [card, clip]
             clips[part] = clip
         mp4 = args.out / f"{args.prefix}-screencast.mp4"
