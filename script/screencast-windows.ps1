@@ -37,10 +37,10 @@
 # tree or the freshly built XPI, the sheet window shortcut at Ctrl+Alt+Space,
 # four columns; the collection "zotLook" holding "zotLook Dokumentation"
 # with the German documentation PDF and its three annotations; ffmpeg with
-# gdigrab and libx264. Keyviz running: it sees the sent input and draws the
-# keys, the pointer and the clicks into the picture, so the cut runs with
-# --no-chips. During the roughly four minutes the mouse and the keyboard
-# are not yours.
+# gdigrab and libx264. Keystro running: it sees the sent input and draws
+# the keys into its bar at the bottom of the screen and a ring around the
+# pointer at each click, so the cut runs with --no-chips. During the
+# roughly four minutes the mouse and the keyboard are not yours.
 
 param(
     [string]$Out = "",
@@ -76,12 +76,13 @@ $readerSidebarToggle = @(23, 93)   # the reader toolbar's sidebar button, main w
 
 # The main window is 1512 × 949 like the macOS take's, so that the cut's
 # crop applies unchanged; it stands 204 px in from the left of the 1920 px
-# screen so that the screen's bottom centre, where Keyviz puts its keys,
-# is the bottom centre of the frame
-$mainOrigin = @(204, 0)
+# screen and 47 px down, so that Keystro's key bar — the bottom 76 px of
+# the screen above the taskbar, its keys centred — lies along the bottom
+# of the frame, centred
+$mainOrigin = @(204, 47)
 $mainSize = @(1512, 949)
 # The sheet window: the viewer remembers the place, zotLook the size
-$sheetOrigin = @(260, 78)      # 56 px in from the main window's left edge
+$sheetOrigin = @(260, 125)     # 56 px in and 78 px down from the main window's corner
 $sheetSize = @(1400, 860)
 
 # Positions inside the sheet window, relative to its top left, measured on
@@ -150,11 +151,25 @@ public class SC {
     INPUT[] a = new INPUT[1]; a[0].type = 1; a[0].u.ki.wVk = vk; a[0].u.ki.dwFlags = up ? 2u : 0u;
     SendInput(1, a, Marshal.SizeOf(typeof(INPUT)));
   }
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern short VkKeyScanW(char c);
+  // A character as the key that types it on the current layout, with Shift
+  // where the layout wants it — a real key event, which the key-display
+  // tools see; a Unicode packet (KEYEVENTF_UNICODE) types just as well but
+  // passes them by unseen. Characters the layout has no key for still go
+  // as a packet.
   public static void Char(char c) {
-    INPUT[] a = new INPUT[2];
-    a[0].type = 1; a[0].u.ki.wScan = c; a[0].u.ki.dwFlags = 0x0004;        // UNICODE
-    a[1].type = 1; a[1].u.ki.wScan = c; a[1].u.ki.dwFlags = 0x0004 | 0x0002;
-    SendInput(2, a, Marshal.SizeOf(typeof(INPUT)));
+    short r = VkKeyScanW(c);
+    if (r == -1) {
+      INPUT[] a = new INPUT[2];
+      a[0].type = 1; a[0].u.ki.wScan = c; a[0].u.ki.dwFlags = 0x0004;
+      a[1].type = 1; a[1].u.ki.wScan = c; a[1].u.ki.dwFlags = 0x0004 | 0x0002;
+      SendInput(2, a, Marshal.SizeOf(typeof(INPUT)));
+      return;
+    }
+    ushort vk = (ushort)(r & 0xFF); bool shift = (r & 0x100) != 0;
+    if (shift) Key(0x10, false);
+    Key(vk, false); System.Threading.Thread.Sleep(30); Key(vk, true);
+    if (shift) Key(0x10, true);
   }
 }
 "@
@@ -295,6 +310,30 @@ function Wait-ReaderPage {
     }
     $g.Dispose(); $bmp.Dispose()
 }
+# Right after a start Zotero shows "Loading items…" for a while — the
+# longer the library, and longer still after a change of language — and a
+# click on the row then hits nothing. The band where the rows will be is
+# watched for text before the row is clicked
+function Wait-Items {
+    $m = Main-Window; if (-not $m) { return }
+    $r = Window-Rect $m.Handle
+    $x = $r[0] + 340; $y = $r[1] + 150; $w = 800; $h = 90
+    $bmp = New-Object System.Drawing.Bitmap($w, $h)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    for ($i = 0; $i -lt 120; $i++) {
+        $g.CopyFromScreen($x, $y, 0, 0, (New-Object System.Drawing.Size($w, $h)))
+        $dark = 0
+        for ($py = 0; $py -lt $h; $py += 3) {
+            for ($px = 0; $px -lt $w; $px += 3) {
+                $c = $bmp.GetPixel($px, $py)
+                if (($c.R + $c.G + $c.B) -lt 300) { $dark++ }
+            }
+        }
+        if ($dark -gt 40) { break }
+        Start-Sleep -Seconds 1
+    }
+    $g.Dispose(); $bmp.Dispose()
+}
 function Shot($h, [string]$name) {
     $r = Window-Rect $h
     $bmp = New-Object System.Drawing.Bitmap($r[2], $r[3])
@@ -412,6 +451,7 @@ function Prepare {
     Place-Window $main.Handle $mainOrigin $mainSize
     Start-Sleep -Seconds 1
     Close-Reader-Tabs
+    Wait-Items
     Start-Sleep -Seconds 1
     if ($Stage -eq "probe") { Shot $main.Handle "probe-main-$Lang.png" }
     # The first shortcut after a zotero://select has been seen to do
