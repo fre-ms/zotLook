@@ -32,11 +32,14 @@ system already has. Click any image for the full-size version.
 | **Ctrl+Shift+Space**<br>contact sheet | [<img src="asset/screenshot/macos-contact-sheet.png" width="240" alt="Contact sheet of every page in Quick Look on macOS">](asset/screenshot/macos-contact-sheet.png) | [<img src="asset/screenshot/linux-contact-sheet.png" width="240" alt="Contact sheet of every page in GNOME Sushi on Linux">](asset/screenshot/linux-contact-sheet.png) | [<img src="asset/screenshot/windows-contact-sheet.png" width="240" alt="Contact sheet of every page in QuickLook on Windows">](asset/screenshot/windows-contact-sheet.png) |
 | **Ctrl+Alt+Space**<br>the same sheet in a Zotero window | [<img src="asset/screenshot/macos-contact-sheet-window.png" width="240" alt="Contact sheet in a Zotero window on macOS">](asset/screenshot/macos-contact-sheet-window.png) | [<img src="asset/screenshot/linux-contact-sheet-window.png" width="240" alt="Contact sheet in a Zotero window on Linux">](asset/screenshot/linux-contact-sheet-window.png) | [<img src="asset/screenshot/windows-contact-sheet-window.png" width="240" alt="Contact sheet in a Zotero window on Windows">](asset/screenshot/windows-contact-sheet-window.png) |
 
-The contact sheet's two menus, on macOS: the contents from the PDF's outline,
-the annotations from Zotero, each entry bringing its page to the middle of the
-sheet, and a click on the page handing over to the reader.
+The sheet in its Zotero window, on macOS, driven with the mouse: the contents
+from the PDF's outline, the annotations from Zotero, each entry bringing its
+page to the middle of the sheet; a search for a word, dimming the pages
+without it; and a click on a page handing over to the reader. The [full
+screencast](asset/screenshot/macos-en-screencast.mp4) goes on to do the same
+with the keyboard alone.
 
-![The contact sheet in Quick Look: the contents menu opens, an entry brings its page to the middle of the sheet, framed; the annotations menu lists three highlights, and one of them leads to page 9; a click on that page opens it in Zotero's reader](asset/screenshot/macos-contact-sheet-menus.gif)
+![The contact sheet in a Zotero window: the contents menu opens and an entry brings its page to the middle of the sheet, framed; the annotations menu lists three highlights and one of them leads to page 6; a search for "keys" dims the pages without it and counts the hits on the others; a click on a page opens it in Zotero's reader](asset/screenshot/macos-en-screencast.gif)
 
 **Shift+Space** previews the item's notes.
 

@@ -34,22 +34,23 @@ file as it is stored.
 
 ![](asset/screenshot/linux-contact-sheet-logo.png){fig-alt="The contact sheet under GNOME Sushi on Linux, showing a PDF whose sixteen pages reproduce the zotLook logo"}
 
-The sheet's two menus, on macOS: the contents from the PDF's outline, the
-annotations from Zotero, each entry bringing its page to the middle of the
-sheet, and a click on the page handing over to the reader.
+The sheet in its Zotero window, on macOS, first with the mouse and then with
+the keyboard alone: the contents from the PDF's outline, the annotations from
+Zotero, each entry bringing its page to the middle of the sheet; a search for a
+word, dimming the pages without it; and a page handed over to the reader.
 
 ::: {.content-visible when-format="html"}
 ```{=html}
-<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-contact-sheet-menus.png" aria-label="The contact sheet in Quick Look: the contents menu opens, an entry brings its page to the middle of the sheet, framed; the annotations menu lists three highlights, one of them leads to page 9, and a click on that page opens it in Zotero's reader">
-  <source src="asset/screenshot/macos-contact-sheet-menus.webm" type="video/webm">
-  <source src="asset/screenshot/macos-contact-sheet-menus.mp4" type="video/mp4">
+<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-en-screencast.png" aria-label="The contact sheet in a Zotero window, driven first with the mouse and then with the keyboard: the contents menu opens and an entry brings its page to the middle of the sheet, framed; the annotations menu lists three highlights and one of them leads to page 6; a search for &quot;keys&quot; dims the pages without it and counts the hits on the others; a page opens in Zotero's reader">
+  <source src="asset/screenshot/macos-en-screencast.webm" type="video/webm">
+  <source src="asset/screenshot/macos-en-screencast.mp4" type="video/mp4">
 </video>
 ```
 
 :::
 
 ::: {.content-visible unless-format="html"}
-![The contact sheet in Quick Look: the contents menu opens, an entry brings its page to the middle of the sheet, framed; the annotations menu lists three highlights, one of them leads to page 9, and a click on that page opens it in Zotero's reader](asset/screenshot/macos-contact-sheet-menus.png)
+![The contact sheet in a Zotero window: the contents menu open beside the grid of pages, the annotations button in the other corner, and the search field above](asset/screenshot/macos-en-screencast.png)
 
 :::
 

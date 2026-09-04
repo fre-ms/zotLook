@@ -38,29 +38,32 @@ for (const platform of PLATFORMS) {
 }
 
 // ── the moving picture, in the sizes the two places can carry ─────────
-// GitHub plays a GIF in a README and nothing else; the site plays a video,
-// which is a fraction of the size at twice the sharpness. Both are kept
-// small enough to load before a reader scrolls past them.
+// GitHub plays a GIF in a README and nothing else, so the README gets the
+// mouse take alone; the site plays the whole screencast as a video, in the
+// language of the page. Both are kept small enough to load before a reader
+// scrolls past them.
 {
-  const base = ROOT + 'asset/screenshot/macos-contact-sheet-menus';
-  const kb = (ext) => Math.round(fs.statSync(base + ext).size / 1024);
-  for (const ext of ['.gif', '.mp4', '.webm', '.png']) {
-    ok(fs.existsSync(base + ext), `the demo exists as ${ext}`);
-  }
-  ok(kb('.gif') < 4096, `the GIF is under 4 MB (${kb('.gif')} KB)`);
-  ok(kb('.mp4') < 3072 && kb('.webm') < 3072,
-     `the videos are under 3 MB (${kb('.mp4')} and ${kb('.webm')} KB)`);
   const readme = fs.readFileSync(ROOT + 'README.md', 'utf8');
-  ok(/\]\(asset\/screenshot\/macos-contact-sheet-menus\.gif\)/.test(readme),
-     'the README shows the GIF');
   for (const lang of ['en', 'de']) {
+    const base = ROOT + `asset/screenshot/macos-${lang}-screencast`;
+    const kb = (ext) => Math.round(fs.statSync(base + ext).size / 1024);
+    for (const ext of ['.gif', '.mp4', '.webm', '.png']) {
+      ok(fs.existsSync(base + ext), `${lang}: the screencast exists as ${ext}`);
+    }
+    ok(kb('.gif') < 5120, `${lang}: the GIF is under 5 MB (${kb('.gif')} KB)`);
+    ok(kb('.mp4') < 8192 && kb('.webm') < 8192,
+       `${lang}: the videos are under 8 MB (${kb('.mp4')} and ${kb('.webm')} KB)`);
+    ok(kb('.png') < 512, `${lang}: the poster is under 512 KB (${kb('.png')} KB)`);
     const page = fs.readFileSync(ROOT + `doc/${lang}/index.qmd`, 'utf8');
-    ok(/<video[^>]*poster="asset\/screenshot\/macos-contact-sheet-menus\.png"/.test(page)
-       && /macos-contact-sheet-menus\.mp4/.test(page),
-       `${lang}: the front page plays the video, with the poster before it`);
+    ok(new RegExp(`<video[^>]*poster="asset/screenshot/macos-${lang}-screencast\\.png"`).test(page)
+       && new RegExp(`macos-${lang}-screencast\\.mp4`).test(page),
+       `${lang}: the front page plays its language's screencast, with the poster before it`);
     ok(/unless-format="html"/.test(page),
        `${lang}: and the PDF gets the poster instead`);
   }
+  ok(/\]\(asset\/screenshot\/macos-en-screencast\.gif\)/.test(readme),
+     'the README shows the English GIF');
+  ok(/macos-en-screencast\.mp4/.test(readme), 'and links to the full screencast');
 }
 
 // ── the social preview points at something that is there ──────────────
@@ -122,7 +125,8 @@ function imagesIn(file) {
     const dir = ROOT + 'doc/' + lang;
     const out = new Set();
     for (const page of fs.readdirSync(dir, { recursive: true }).filter(f => f.endsWith('.qmd'))) {
-      for (const rel of imagesIn(path.join(dir, page))) out.add(rel);
+      // The screencast's poster is the one picture that comes per language
+      for (const rel of imagesIn(path.join(dir, page))) out.add(rel.replace(/macos-(?:de|en)-screencast/, 'macos-<lang>-screencast'));
     }
     return [...out].sort();
   };

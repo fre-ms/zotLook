@@ -37,22 +37,24 @@ abschalten.
 
 ![](asset/screenshot/linux-contact-sheet-logo.png){fig-alt="Der Kontaktbogen unter GNOME Sushi auf Linux, mit einem PDF, dessen sechzehn Seiten das zotLook-Logo ergeben"}
 
-Die beiden Menüs des Bogens, unter macOS: das Inhaltsverzeichnis aus der
-Outline des PDFs, die Annotationen aus Zotero, jeder Eintrag holt seine Seite in
-die Mitte des Bogens, und ein Klick auf die Seite übergibt an den Reader.
+Der Bogen in seinem Zotero-Fenster, unter macOS, erst mit der Maus und dann
+allein mit der Tastatur: das Inhaltsverzeichnis aus der Outline des PDFs, die
+Annotationen aus Zotero, jeder Eintrag holt seine Seite in die Mitte des
+Bogens; eine Suche nach einem Wort, die die Seiten ohne es abblendet; und eine
+Seite, die an den Reader übergeben wird.
 
 ::: {.content-visible when-format="html"}
 ```{=html}
-<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-contact-sheet-menus.png" aria-label="Der Kontaktbogen in Quick Look: Das Inhaltsverzeichnis öffnet sich, ein Eintrag holt seine Seite gerahmt in die Mitte des Bogens; das Annotationsmenü listet drei Hervorhebungen, eine führt zu Seite 9, und ein Klick auf diese Seite öffnet sie in Zoteros Reader">
-  <source src="asset/screenshot/macos-contact-sheet-menus.webm" type="video/webm">
-  <source src="asset/screenshot/macos-contact-sheet-menus.mp4" type="video/mp4">
+<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-de-screencast.png" aria-label="Der Kontaktbogen in einem Zotero-Fenster, erst mit der Maus und dann mit der Tastatur bedient: Das Inhaltsverzeichnis öffnet sich, ein Eintrag holt seine Seite gerahmt in die Mitte des Bogens; das Annotationsmenü listet drei Hervorhebungen, eine führt zu Seite 6; eine Suche nach „Tasten“ blendet die Seiten ohne das Wort ab und zählt die Treffer auf den anderen; eine Seite öffnet sich in Zoteros Reader">
+  <source src="asset/screenshot/macos-de-screencast.webm" type="video/webm">
+  <source src="asset/screenshot/macos-de-screencast.mp4" type="video/mp4">
 </video>
 ```
 
 :::
 
 ::: {.content-visible unless-format="html"}
-![Der Kontaktbogen in Quick Look: Das Inhaltsverzeichnis öffnet sich, ein Eintrag holt seine Seite gerahmt in die Mitte des Bogens; das Annotationsmenü listet drei Hervorhebungen, eine führt zu Seite 9, und ein Klick auf diese Seite öffnet sie in Zoteros Reader](asset/screenshot/macos-contact-sheet-menus.png)
+![Der Kontaktbogen in einem Zotero-Fenster: das Inhaltsverzeichnis neben dem Raster der Seiten geöffnet, der Annotationen-Knopf in der anderen Ecke, das Suchfeld darüber](asset/screenshot/macos-de-screencast.png)
 
 :::
 

@@ -7,7 +7,8 @@ project:
     - font/
     # the video's poster: Quarto copies what a page refers to by src,
     # and a poster attribute is not that
-    - asset/screenshot/macos-contact-sheet-menus.png
+    - asset/screenshot/macos-en-screencast.png
+    - asset/screenshot/macos-de-screencast.png
 
 lang: de
 
