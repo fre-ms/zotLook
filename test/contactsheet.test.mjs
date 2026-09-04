@@ -543,7 +543,7 @@ const OUTLINE = [
   { title: 'Beyond the limit', page: 9, level: 0 },
 ];
 const ANNOTATIONS = [
-  { annotationType: 'highlight', annotationText: 'A quoted passage',
+  { key: 'ANN00001', annotationType: 'highlight', annotationText: 'A quoted passage',
     annotationComment: 'why it matters', annotationColor: '#ff6666',
     annotationPosition: JSON.stringify({ pageIndex: 1, rects: [] }),
     annotationSortIndex: '00001|000100|00010', annotationPageLabel: '2' },
@@ -586,6 +586,10 @@ const ANNOTATIONS = [
      'with its comment');
   ok(/<a class="zl-annotation-goto" href="#p2">Page 2<\/a>/.test(html),
      'and a link to its page, named by the printed label');
+  ok(/<a class="zl-annotation-open" href="zotero:\/\/open-pdf\/library\/items\/[A-Z0-9]+\?annotation=ANN00001">Open in the reader<\/a>/.test(html),
+     'and a link that opens the reader at the annotation itself');
+  ok(html.includes('@media (prefers-color-scheme: dark)'),
+     'the sheet has a dark side, for a system that is dark');
   ok(/href="#p1">Page 1<\/a>/.test(html), 'a note has no passage, only its page');
   ok(/<span class="zl-annotation-comment">Image<\/span>[^<]*<a class="zl-annotation-goto" href="#p3">Page 3<\/a>/.test(html),
      'an area with nothing said is named by its kind');

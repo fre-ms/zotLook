@@ -35,6 +35,11 @@ Tastatur.
   und es kommt in der Größe wieder, in der man es zuletzt gelassen hat, statt
   in Zoteros Mindestgröße; die Größe lässt sich auch in den Einstellungen
   setzen. Sein Titel spricht die Sprache des übrigen Bogens.
+- Eine Annotation im Menü des Bogens öffnet den Reader an der Annotation
+  selbst, über einen eigenen Link oder im Fenster mit o.
+- Der Bogen ist dunkel, wo das System dunkel ist.
+- Wo keine Systemvorschau auf die Leertaste antwortet, öffnet sich
+  stattdessen der Bogen im Fenster; eine Einstellung schaltet das ab.
 - Die Dokumentation gibt dem Bogen im Fenster eine eigene Seite, und die
   Startseite erzählt die drei Stufen: Anhang, Bogen, Fenster.
 - Update-Anfragen gehen ab dieser Version an zotlook.org; das Update selbst

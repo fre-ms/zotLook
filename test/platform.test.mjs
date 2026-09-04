@@ -252,6 +252,22 @@ const on = (platform, prefValues = {}) => {
   Q._writeFailureReport = async () => {};
   eq(await Q._deliver(await Q._previewCommand(['/a/p.pdf'])), false, 'refused');
   eq(Q._sushiShown, false, 'and not believed to be showing');
+  eq(Q._previewerAbsent, true, 'and the reason is known: Sushi is not there');
+
+  // With no Sushi to answer, Space opens the sheet in a window instead
+  const shown = [];
+  Q._showSheetInViewer = async (items) => { shown.push(items); return true; };
+  Q._killPreviewProcess = () => {};
+  const items = [{ id: 7 }];
+  await Q._launchPreview(['/a/p.pdf'], items);
+  eq(shown, [items], 'the window stands in for the missing previewer');
+  Q.prefs?.set?.('extensions.zotlook.windowFallback', false);
+  Q._pref = (name, fallback) => (name === 'windowFallback' ? false : fallback);
+  await Q._launchPreview(['/a/p.pdf'], items);
+  eq(shown.length, 1, 'unless the preference says not to');
+  Q._pref = (name, fallback) => fallback;
+  await Q._launchPreview(['/a/p.pdf']);
+  eq(shown.length, 1, 'and never without items to make a sheet of');
 }
 
 // ── on Windows, Escape reaches QuickLook, and the keyboard stays put ──
@@ -292,6 +308,12 @@ const on = (platform, prefValues = {}) => {
   Q._writeFailureReport = async () => {};
   eq(await Q._deliver(await Q._previewCommand(['C:\\a\\p.pdf'])), false, 'refused');
   eq(Q._pipeShown, false, 'and not believed to be showing');
+  eq(Q._previewerAbsent, true, 'and the reason is known: QuickLook is not running');
+  const shown = [];
+  Q._showSheetInViewer = async (items) => { shown.push(items); return true; };
+  Q._killPreviewProcess = () => {};
+  await Q._launchPreview(['C:\\a\\p.pdf'], [{ id: 9 }]);
+  eq(shown.length, 1, 'so the window stands in');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');

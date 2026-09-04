@@ -99,6 +99,13 @@ var zotLookEpub = Object.seal({
 		"  outline-offset: 3px;",
 		"}",
 		"div.epub-page:target div.epub-page-label { color: #1f2a33; font-weight: 600; }",
+		// The overview in the dark: the desk turns, the paper stays white
+		"@media (prefers-color-scheme: dark) {",
+		"  body.epub-sheet-body { background: #1c1f24 !important; }",
+		"  div.epub-page-label { color: #a9adb3; }",
+		"  div.epub-page:target div.epub-page-label { color: #f5f6f7; }",
+		"  div.epub-paper { border-color: #0e1013; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); }",
+		"}",
 		// The margin belongs to the paper, not to the text inside it. Put it
 		// on the scaled box and it scales with the text, so a page whose
 		// content runs long is clipped flush against the edge — text sliced

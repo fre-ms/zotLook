@@ -36,6 +36,9 @@ var zotLook = Object.seal({
 	// Process state
 	_proc: null,
 	_isActive: false,
+	// Set by a refused preview request whose reason is that the previewer
+	// is not there at all; read once by _launchPreview for the fallback
+	_previewerAbsent: false,
 	// Whether a request that shows something has gone down QuickLook's pipe
 	// since the last one that closed it. QuickLook toggles on its own, so
 	// this can be stale in one direction — set while nothing is showing any
@@ -117,6 +120,7 @@ var zotLook = Object.seal({
 		"zotlook-sheet-text",
 		"zotlook-sheet-loading",
 		"zotlook-sheet-title",
+		"zotlook-sheet-open",
 		"zotlook-sheet-search",
 		"zotlook-sheet-search-none",
 		"zotlook-sheet-pages",
@@ -823,7 +827,7 @@ var zotLook = Object.seal({
 				return false;
 			}
 
-			await this._launchPreview(paths);
+			await this._launchPreview(paths, items);
 			return true;
 		});
 	},
@@ -865,20 +869,41 @@ var zotLook = Object.seal({
 	 * doing.
 	 */
 	async _openContactSheetInViewer(items) {
-		return this._withLaunchGuard(async () => {
-			let sheet = await this._buildContactSheet(items);
-			if (!sheet) return false;
-			let win = null;
-			try {
-				win = Zotero.openInViewer(PathUtils.toFileURI(sheet));
-			} catch (e) {
-				this.log("Could not open the contact sheet in a window: " + e);
-				return false;
-			}
-			this._viewerItemID = this._lastSheetItemID;
-			this._adoptViewer(win);
-			return true;
-		});
+		return this._withLaunchGuard(() => this._showSheetInViewer(items));
+	},
+
+	/** The body of the above, for a caller already inside the guard. */
+	async _showSheetInViewer(items) {
+		let sheet = await this._buildContactSheet(items);
+		if (!sheet) return false;
+		let win = null;
+		try {
+			win = Zotero.openInViewer(PathUtils.toFileURI(sheet));
+		} catch (e) {
+			this.log("Could not open the contact sheet in a window: " + e);
+			return false;
+		}
+		this._viewerItemID = this._lastSheetItemID;
+		this._adoptViewer(win);
+		return true;
+	},
+
+	/**
+	 * Space with no system preview to answer it: the sheet in the window
+	 * instead, which needs none and is the fuller of the two anyway. Only
+	 * where the previewer is missing outright — Sushi not installed,
+	 * QuickLook not running — not on any other refusal, and only for what
+	 * a sheet can be made of; the preference turns it off.
+	 */
+	async _fallbackToWindow(items) {
+		if (!this._pref("windowFallback", true)) return false;
+		this.log("No system preview to answer; the sheet in a window instead");
+		try {
+			return await this._showSheetInViewer(items);
+		} catch (e) {
+			this.log("The window could not stand in either: " + e);
+			return false;
+		}
 	},
 
 	/**
@@ -1262,13 +1287,19 @@ var zotLook = Object.seal({
 		if (!browser || typeof browser.addEventListener !== "function") return false;
 
 		const XHTML = "http://www.w3.org/1999/xhtml";
+		let dark = false;
+		try {
+			dark = !!(win.matchMedia && win.matchMedia("(prefers-color-scheme: dark)").matches);
+		} catch (e) {
+			dark = false;
+		}
 		let hint = doc.createElementNS(XHTML, "div");
 		hint.id = "zotlook-viewer-loading";
 		hint.setAttribute(
 			"style",
 			"position: fixed; inset: 0; z-index: 10; display: flex;" +
 				" align-items: center; justify-content: center;" +
-				" background: #f4f4f4; color: #4a4a4a;" +
+				(dark ? " background: #1c1f24; color: #b8bcc2;" : " background: #f4f4f4; color: #4a4a4a;") +
 				" font: 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;" +
 				" pointer-events: none;"
 		);
@@ -2515,6 +2546,10 @@ var zotLook = Object.seal({
 				"zotlook-sheet-title",
 				zotLookSheet.TITLE
 			);
+			zotLookSheet.OPEN_LABEL = this._string(
+				"zotlook-sheet-open",
+				zotLookSheet.OPEN_LABEL
+			);
 			zotLookSheet.TOC_LABEL = this._string(
 				"zotlook-epub-contents",
 				zotLookSheet.TOC_LABEL
@@ -2732,7 +2767,7 @@ var zotLook = Object.seal({
 	 * all. qlmanage remains only as a fallback for the case where the helper
 	 * cannot be deployed.
 	 */
-	async _launchPreview(filePaths) {
+	async _launchPreview(filePaths, items) {
 		// Callers run inside _withLaunchGuard, so no guard of our own here.
 		// A preview opened from the context menu can arrive while another one
 		// is still up; replace it rather than orphaning the process. Only
@@ -2749,7 +2784,11 @@ var zotLook = Object.seal({
 		// A one-shot request hands the toggling to the viewer itself, so
 		// there is nothing to track or kill — see _deliver
 		if (!plan.holdsProcess) {
-			await this._deliver(plan);
+			this._previewerAbsent = false;
+			let accepted = await this._deliver(plan);
+			if (!accepted && this._previewerAbsent && items) {
+				await this._fallbackToWindow(items);
+			}
 			return;
 		}
 
@@ -2991,7 +3030,10 @@ var zotLook = Object.seal({
 			return true;
 		} catch (e) {
 			this.log("The preview request was refused: " + e);
-			if (e && e.quickLookAbsent) this._logQuickLookMissing();
+			if (e && e.quickLookAbsent) {
+				this._previewerAbsent = true;
+				this._logQuickLookMissing();
+			}
 			await this._writeFailureReport("the preview request was refused");
 			return false;
 		}
@@ -3054,6 +3096,7 @@ var zotLook = Object.seal({
 		);
 		// The one failure worth naming: the service is simply not there.
 		if (/ServiceUnknown|not provided by any/.test(complaint)) {
+			this._previewerAbsent = true;
 			this.log(
 				"GNOME Sushi does not appear to be installed. Install it " +
 					"(package gnome-sushi) to preview outside Zotero; the " +
@@ -3063,6 +3106,7 @@ var zotLook = Object.seal({
 		// The marker the PowerShell fallback prints when the pipe never
 		// answered — its own exception text is localised.
 		if (/QuickLookUnreachable/.test(complaint)) {
+			this._previewerAbsent = true;
 			this._logQuickLookMissing();
 		}
 		await this._writeFailureReport("the preview request was refused");
@@ -3564,6 +3608,7 @@ var zotLook = Object.seal({
 				if (!Number.isInteger(index) || index < 0) continue;
 				out.push({
 					page: index + 1,
+					key: item.key || "",
 					label: String(item.annotationPageLabel || "").trim() || undefined,
 					type: item.annotationType || "highlight",
 					text: item.annotationText || "",

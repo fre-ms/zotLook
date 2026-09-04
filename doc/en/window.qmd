@@ -66,8 +66,10 @@ takes a typed one too. The shortcut is
 A button in each corner: the document's contents, read from the PDF's
 outline, and its annotations in reading order with quotation, comment and
 page. A click on an entry brings the page to the middle of the window,
-framed. Both exist in the system preview as well; in the window the menus
-answer the keyboard too.
+framed. An annotation also carries the link **Open in the reader**: it opens
+the reader not just at the page but at the annotation itself, selected. Both
+exist in the system preview as well; in the window the menus answer the
+keyboard too.
 
 ## The search
 
@@ -90,7 +92,7 @@ The frame is a cursor:
 | **Enter** | frames the next page — the first, on the first press — or, with a search, the next hit; **Shift+Enter** goes back |
 | **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, left and right go hit by hit, and up and down to the nearest row above or below that has a hit |
 | **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it |
-| **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** or **o** follows one, the same letter closes the menu |
+| **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** goes to the entry's page, **o** on an annotation opens the reader at it, the same letter closes the menu |
 | **Page Up** / **Page Down** | scroll |
 | **Space**, **q**, **Escape** | close the window |
 
@@ -98,6 +100,19 @@ In the search field a letter is typing, and the left and right arrows move
 the caret; the up and down arrows work there as they do outside it. Enter
 walks on to the next hit and hands the keyboard back to the page, so the next
 **o** opens rather than types; **Ctrl+F** is the way back into the field.
+
+## Dark where the system is dark
+
+The sheet follows the system's appearance: on a dark desktop the ground, the
+menus and the search field turn dark, and the pages stay the paper they are.
+That holds in the window and in the system previews alike.
+
+## Without a system preview
+
+Where no system preview answers Space — Sushi not installed, QuickLook not
+running — the sheet opens in its window instead. The
+[setting](settings.qmd#the-contact-sheet) turns that off; then the press is
+logged and nothing shows.
 
 ## What stays in the system preview
 

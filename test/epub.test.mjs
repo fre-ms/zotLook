@@ -507,5 +507,12 @@ ok(!('_cache' in E), 'the module keeps no cache of its own any more');
 
 fs.rmSync(TMP, { recursive: true, force: true });
 
+// ── the overview in the dark ──────────────────────────────────────────
+{
+  const { zotLookEpub: E } = await import('./load.mjs').then(m => m.loadPlugin());
+  ok(E.SHEET_CSS.includes('@media (prefers-color-scheme: dark)'),
+     'the page overview has a dark side, for a system that is dark');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

@@ -104,7 +104,7 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
     columns: 3, width: 500, imageDir: 'pages', pageCount: 6,
     linkBase: 'zotero://open-pdf/library/items/ABCD1234',
     toc: [{ title: 'One', page: 1, level: 0 }, { title: 'Four', page: 4, level: 0 }],
-    annotations: [{ page: 5, type: 'highlight', text: 'quoted words', comment: 'why' }],
+    annotations: [{ page: 5, key: 'K5', type: 'highlight', text: 'quoted words', comment: 'why' }],
   });
   ok(/<div class="grid" data-zl-columns="3">/.test(html2), 'the grid says how many columns it has');
   const doc = new DOMParser().parseFromString(html2, 'text/html');
@@ -172,6 +172,18 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
   inField('o'); eq(opened, [], 'o in the field opens nothing');
   inField('c'); ok(!toc.hasAttribute('open'), 'nor does c open a menu there');
   inField('ArrowDown'); eq(framed(), 4, 'the down arrow in the field still moves the frame, a row down');
+
+  // an annotation entry: Enter goes to its page, o into the reader at it
+  press('a');
+  opened = [];
+  press('Enter');
+  eq(opened, ['#p5'], 'Enter on an annotation goes to its page');
+  press('a');
+  opened = [];
+  press('o');
+  eq(opened, ['zotero://open-pdf/library/items/ABCD1234?annotation=K5'],
+     'o on an annotation opens the reader at the annotation itself');
+  ok(!ann.hasAttribute('open'), 'and the menu closes behind it');
 }
 
 // ── under a search the arrows keep their directions ───────────────────

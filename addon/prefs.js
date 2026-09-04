@@ -39,6 +39,11 @@ pref("extensions.zotlook.contactSheetAnnotations", true);
 pref("extensions.zotlook.windowWidth", 0);
 pref("extensions.zotlook.windowHeight", 0);
 
+// Space with no system preview to answer it — Sushi not installed,
+// QuickLook not running — opens the sheet in a window instead, which needs
+// none. Off, the press is logged and nothing shows, as before.
+pref("extensions.zotlook.windowFallback", true);
+
 // Keep what zotLook derives from an attachment and show it again unchanged,
 // rather than making it a second time: the contact sheet and the EPUB
 // preview, both of which cost seconds. Kept beside the working directory, in

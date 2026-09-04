@@ -89,7 +89,8 @@ zu sehen, welche Seiten man bearbeitet hat.
   seine Annotationen über das Raster, wie in der EPUB-Vorschau: das
   Inhaltsverzeichnis aus der Outline des PDFs, die Annotationen in
   Lesereihenfolge mit Zitat, Kommentar und Seite. Ein Klick auf einen Eintrag
-  holt die Seite gerahmt in die Mitte des Fensters. Ein PDF ohne Outline
+  holt die Seite gerahmt in die Mitte des Fensters; eine Annotation lässt
+  sich außerdem im Reader öffnen, an ihr selbst. Ein PDF ohne Outline
   bekommt keinen Inhaltsknopf, und beide Knöpfe lassen sich abschalten.
 - **Ein Klick auf eine Seite öffnet sie im Zotero-Reader.** Das funktioniert aus
   der Systemvorschau unter macOS und Windows und überall aus der

@@ -38,6 +38,9 @@ zotlook-prefs-contactsheet-contents =
     .label = Show the contents button
 zotlook-prefs-contactsheet-annotations =
     .label = Show the annotations button
+zotlook-prefs-contactsheet-fallback-help = Where there is no system preview to answer Space — Sushi not installed, QuickLook not running — the sheet can open in its window instead, which needs none.
+zotlook-prefs-contactsheet-fallback =
+    .label = Without a system preview, open the sheet in a window
 zotlook-prefs-contactsheet-window-help = The sheet's own window (see the shortcut above) opens at the size it was last left at; drag it to the size you like, or set one here. 0 leaves it to Zotero, which opens it at its minimum. The system previews decide their own size.
 zotlook-prefs-contactsheet-window = Window size
 zotlook-prefs-contactsheet-window-by = ×
@@ -106,6 +109,8 @@ zotlook-sheet-pages = pages
 zotlook-sheet-loading = Laying out the contact sheet…
 # The window's title
 zotlook-sheet-title = Contact Sheet
+# The link on an annotation that opens the reader at the annotation
+zotlook-sheet-open = Open in the reader
 
 zotlook-prefs-keep-title = Kept previews
 

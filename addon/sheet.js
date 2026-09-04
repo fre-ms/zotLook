@@ -59,6 +59,8 @@ var zotLookSheet = {
 	SEARCH_NONE: "No matches",
 	/** "12 pages", the count beside the field. */
 	PAGES_LABEL: "pages",
+	/** The link that opens the reader at an annotation. */
+	OPEN_LABEL: "Open in the reader",
 
 	// ── Search ────────────────────────────────────────────────────────
 	//
@@ -109,6 +111,12 @@ var zotLookSheet = {
 		"mark.zl-hit { background: #f5b841; color: inherit; }",
 		// The entry the keyboard stands on in an open menu
 		"a.zl-menu-current { background: #e6f0ef; box-shadow: inset 3px 0 0 #2e8b84; }",
+		// The field in the dark
+		"@media (prefers-color-scheme: dark) {",
+		"  .zl-search { background: #262a30; color: #e8eaed; box-shadow: 0 3px 12px rgba(0, 0, 0, 0.6); }",
+		"  .zl-search input { color: #e8eaed; }",
+		"  .zl-search-status { color: #b8bcc2; }",
+		"}",
 	].join("\n"),
 
 	/** The field, as a string; the EPUB sheet builds the same as DOM. */
@@ -431,12 +439,20 @@ var zotLookSheet = {
 			}
 		};
 		// Following an entry is the click, which the jump script answers;
-		// the menu closes so that the page it went to can be seen
-		let follow = () => {
+		// the menu closes so that the page it went to can be seen. Enter
+		// goes to the page; o, where the entry has a link into the reader
+		// — an annotation's — goes there instead, to the annotation itself
+		let follow = (toReader) => {
 			let menu = openMenu();
 			if (!menu) return false;
 			let link = entries(menu)[menuAt];
 			if (!link) return false;
+			if (toReader) {
+				let scope = link.parentNode;
+				let into = scope && scope.querySelector
+					? scope.querySelector("a.zl-annotation-open") : null;
+				if (into) link = into;
+			}
 			click(link);
 			closeMenu(menu);
 			return true;
@@ -448,7 +464,7 @@ var zotLookSheet = {
 			let inField = !!input && event.target === input;
 			if (chord && key === "Enter") {
 				event.preventDefault();
-				if (!follow()) open();
+				if (!follow(true)) open();
 				return;
 			}
 			if (chord && key.toLowerCase() === "f" && input) {
@@ -491,7 +507,7 @@ var zotLookSheet = {
 			let letter = key.toLowerCase();
 			if (letter === "o") {
 				event.preventDefault();
-				if (!follow()) open();
+				if (!follow(true)) open();
 			} else if (letter === "c" || letter === "a") {
 				event.preventDefault();
 				toggle(MENUS[letter]);
@@ -771,6 +787,20 @@ var zotLookSheet = {
 		"  border-bottom: 1px solid transparent;",
 		"}",
 		"ol.zl-annotation-list a:hover { border-bottom-color: #999; }",
+		"a.zl-annotation-open { margin-left: 0.9em; color: #2e8b84; }",
+		// The menus in the dark: panels of dark grey, light text, the two
+		// buttons as they are, which read on either ground
+		"@media (prefers-color-scheme: dark) {",
+		"  details.zl-toc > div, details.zl-annotations > div {",
+		"    background: #262a30; color: #e8eaed;",
+		"    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);",
+		"  }",
+		"  ol.zl-toc-list a, ol.zl-annotation-list, details.zl-annotation-entry > summary { color: #e8eaed; }",
+		"  ol.zl-toc-list a:hover { background: #30353c; }",
+		"  li.zl-toc-level2 a, .zl-annotation-comment, ol.zl-annotation-list a { color: #b8bcc2; }",
+		"  a.zl-annotation-open, ol.zl-annotation-list a.zl-annotation-goto { color: #6fc3bb; }",
+		"  a.zl-menu-current { background: #30353c; box-shadow: inset 3px 0 0 #6fc3bb; }",
+		"}",
 		".zl-annotation-unplaced { opacity: 0.75; font-style: italic; }",
 		".zl-annotation-comment {",
 		"  display: block;",
@@ -837,8 +867,10 @@ var zotLookSheet = {
 	 * an area or an ink drawing is still worth finding.
 	 *
 	 * @param {Array<{target: string, page: string|number, type?: string,
-	 *   text?: string, comment?: string, color?: string}>} entries
-	 *   target is the id of the page's tile; page is what the link says
+	 *   text?: string, comment?: string, color?: string, reader?: string}>}
+	 *   entries — target is the id of the page's tile; page is what the
+	 *   link says; reader, when given, is a URL that opens the reader at
+	 *   the annotation itself, and gets a link of its own
 	 * @returns {string} "" when there is nothing to list
 	 */
 	annotationsHtml(entries) {
@@ -860,6 +892,12 @@ var zotLookSheet = {
 				this.escape(entry.target) + '">' +
 				this.escape(this.PAGE_LABEL + " " + entry.page) +
 				"</a>";
+			if (entry.reader) {
+				goto +=
+					' <a class="zl-annotation-open" href="' +
+					this.escape(entry.reader) + '">' +
+					this.escape(this.OPEN_LABEL) + "</a>";
+			}
 			let note = comment
 				? '<span class="zl-annotation-comment">' +
 					this.escape(comment) + "</span>"
@@ -936,7 +974,7 @@ var zotLookSheet = {
 	 * @param {string} [spec.notice] Shown when not every page was rendered.
 	 * @param {Array<{title: string, page: number, level?: number}>} [spec.toc]
 	 *   The document's outline; entries whose page was not drawn are left out.
-	 * @param {Array<{page: number, label?: string, type?: string,
+	 * @param {Array<{page: number, key?: string, label?: string, type?: string,
 	 *   text?: string, comment?: string, color?: string}>} [spec.annotations]
 	 *   Zotero's annotations, page being the 1-based page they sit on.
 	 * @returns {string} A complete HTML document.
@@ -1029,6 +1067,11 @@ var zotLookSheet = {
 					text: a.text,
 					comment: a.comment,
 					color: a.color,
+					// The reader opened at the annotation itself, not just
+					// its page — where the sheet has a reader to link to
+					reader: linkBase && a.key
+						? linkBase + "?annotation=" + encodeURIComponent(a.key)
+						: "",
 				}))
 		);
 
@@ -1088,6 +1131,14 @@ var zotLookSheet = {
 			"    color: #666;\n" +
 			"    text-align: center;\n" +
 			"    padding: 12px 0 0 0;\n" +
+			"}\n" +
+			// The same sheet in the dark, where the system is: the ground and
+			// the labels turn, the pages stay the paper they are
+			"@media (prefers-color-scheme: dark) {\n" +
+			"  body { background: #1c1f24; }\n" +
+			"  .page { box-shadow: 0 1px 4px rgba(0,0,0,0.6); }\n" +
+			"  .page .label, .notice { color: #a9adb3; }\n" +
+			"  .page:target .label, .page.zl-current .label { color: #f5f6f7; }\n" +
 			"}\n" +
 			this.MENU_CSS + "\n" +
 			this.SEARCH_CSS + "\n" +

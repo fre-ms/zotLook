@@ -32,6 +32,11 @@ The sheet in its own Zotero window can search and answers the keyboard.
   it comes back at the size it was last left at rather than at Zotero's
   minimum; the size can also be set in the preferences. Its title is in the
   language of the rest of the sheet.
+- An annotation in the sheet's menu opens the reader at the annotation
+  itself, by its own link or with o in the window.
+- The sheet is dark where the system is dark.
+- Where no system preview answers Space, the sheet opens in its window
+  instead; a setting turns that off.
 - The documentation gives the sheet in its window a page of its own, and the
   front page tells the three tiers: the attachment, the sheet, the window.
 - Update checks go to zotlook.org from this version on; the update itself

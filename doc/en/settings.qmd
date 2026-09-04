@@ -101,6 +101,10 @@ read from the PDF's outline, and its annotations, each entry a jump to its
 page. Off, the sheet is the grid alone. Unlike the two settings above, these
 apply to the page overview of a book as well.
 
+**Without a system preview, open the sheet in a window** (on by default):
+when no system preview answers Space, because Sushi is missing or QuickLook
+is not running, [the sheet in its window](window.qmd) opens instead.
+
 **Window size** (default 0 × 0) is the size the sheet's own window opens at
 (Ctrl+Alt+Space). It need not be typed: drag the window to the size you like,
 and zotLook keeps it, writes it here, and opens the next window so. 0 leaves

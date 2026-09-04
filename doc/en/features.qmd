@@ -82,7 +82,8 @@ figure you remember, or for seeing at a glance which pages you marked up.
   annotations over the grid, as the EPUB preview has them: the contents from
   the PDF's outline, the annotations in reading order with the quotation, the
   comment and the page. Clicking an entry brings that page to the middle of
-  the window, framed. A PDF without an outline gets no contents button, and
+  the window, framed; an annotation can also be opened in the reader, at the
+  annotation itself. A PDF without an outline gets no contents button, and
   both buttons can be switched off.
 - **Clicking a page opens it in Zotero's reader** at that page. This works from
   the preview panel on macOS and Windows, and from the window variant

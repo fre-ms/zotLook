@@ -107,6 +107,10 @@ Annotationen, jeder Eintrag ein Sprung zu seiner Seite. Aus, ist der Bogen das
 Raster allein. Anders als die beiden Einstellungen darüber gelten diese auch
 für die Seitenübersicht eines Buches.
 
+**Ohne Systemvorschau den Bogen im Fenster öffnen** (Vorgabe an): Antwortet
+keine Systemvorschau auf die Leertaste, weil Sushi fehlt oder QuickLook nicht
+läuft, öffnet sich stattdessen [der Bogen in seinem Fenster](window.qmd).
+
 **Fenstergröße** (Vorgabe 0 × 0) ist die Größe, in der das eigene Fenster des
 Bogens aufgeht (Strg+Alt+Leertaste). Sie muss nicht getippt werden: Wird das
 Fenster mit der Maus aufgezogen, merkt sich zotLook die Größe und trägt sie

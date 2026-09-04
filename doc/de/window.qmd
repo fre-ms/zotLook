@@ -68,8 +68,10 @@ zeigt den Wert und lässt ihn auch tippen. Das Kürzel ist
 In jeder Ecke ein Knopf: das Inhaltsverzeichnis des Dokuments, aus der Outline
 des PDFs gelesen, und seine Annotationen in Lesereihenfolge mit Zitat,
 Kommentar und Seite. Ein Klick auf einen Eintrag holt die Seite gerahmt in die
-Mitte des Fensters. Beides gibt es auch in der Systemvorschau; im Fenster
-lassen sich die Menüs zusätzlich mit der Tastatur bedienen.
+Mitte des Fensters. Eine Annotation trägt außerdem den Link **Im Reader
+öffnen**: Er öffnet den Reader nicht nur auf der Seite, sondern an der
+Annotation selbst, markiert. Beides gibt es auch in der Systemvorschau; im
+Fenster lassen sich die Menüs zusätzlich mit der Tastatur bedienen.
 
 ## Die Suche
 
@@ -92,7 +94,7 @@ Der Rahmen ist ein Cursor:
 | **Enter** | rahmt die nächste Seite, beim ersten Druck die erste, oder mit einer Suche den nächsten Treffer; **Umschalt+Enter** geht zurück |
 | **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche gehen links und rechts trefferweise, auf und ab zur nächsten Zeile darüber oder darunter, die einen Treffer hat |
 | **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
-| **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** oder **o** folgt einem, derselbe Buchstabe schließt das Menü |
+| **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** geht zur Seite des Eintrags, **o** öffnet bei einer Annotation den Reader an ihr, derselbe Buchstabe schließt das Menü |
 | **Bild auf** / **Bild ab** | blättern |
 | **Leertaste**, **q**, **Escape** | schließen das Fenster |
 
@@ -100,6 +102,19 @@ Im Suchfeld ist ein Buchstabe Tippen, und die Pfeile links und rechts bewegen
 die Schreibmarke; die Pfeile auf und ab wirken dort wie außerhalb. Enter geht
 zum nächsten Treffer und gibt die Tastatur an die Seite zurück, sodass das
 nächste **o** öffnet statt zu tippen; **Strg+F** führt zurück ins Feld.
+
+## Dunkel, wo das System dunkel ist
+
+Der Bogen folgt dem Erscheinungsbild des Systems: Auf einem dunklen
+Schreibtisch werden Grund, Menüs und Suchfeld dunkel, die Seiten bleiben das
+Papier, das sie sind. Das gilt im Fenster wie in den Systemvorschauen.
+
+## Ohne Systemvorschau
+
+Wo keine Systemvorschau auf die Leertaste antwortet — Sushi nicht installiert,
+QuickLook nicht gestartet —, öffnet sich stattdessen der Bogen in seinem
+Fenster. Die [Einstellung](settings.qmd#der-kontaktbogen) schaltet das ab;
+dann bleibt es beim Eintrag im Protokoll.
 
 ## Was in der Systemvorschau bleibt
 

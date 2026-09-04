@@ -40,6 +40,9 @@ zotlook-prefs-contactsheet-contents =
     .label = Knopf für das Inhaltsverzeichnis anzeigen
 zotlook-prefs-contactsheet-annotations =
     .label = Knopf für die Annotationen anzeigen
+zotlook-prefs-contactsheet-fallback-help = Wo keine Systemvorschau auf die Leertaste antwortet — Sushi nicht installiert, QuickLook nicht gestartet —, kann sich stattdessen der Bogen in seinem Fenster öffnen, das keine braucht.
+zotlook-prefs-contactsheet-fallback =
+    .label = Ohne Systemvorschau den Bogen im Fenster öffnen
 zotlook-prefs-contactsheet-window-help = Das eigene Fenster des Bogens (Kürzel oben) öffnet in der Größe, in der es zuletzt gelassen wurde; ziehen Sie es nach Wunsch auf, oder tragen Sie hier eine Größe ein. 0 überlässt es Zotero, das es in seiner Mindestgröße öffnet. Die Systemvorschauen bestimmen ihre Größe selbst.
 zotlook-prefs-contactsheet-window = Fenstergröße
 zotlook-prefs-contactsheet-window-by = ×
@@ -108,6 +111,8 @@ zotlook-sheet-pages = Seiten
 zotlook-sheet-loading = Kontaktbogen wird aufgebaut …
 # Der Fenstertitel
 zotlook-sheet-title = Kontaktbogen
+# Der Link an einer Annotation, der den Reader an der Annotation öffnet
+zotlook-sheet-open = Im Reader öffnen
 
 zotlook-prefs-keep-title = Zwischengespeicherte Vorschauen
 
