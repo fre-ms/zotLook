@@ -222,7 +222,7 @@ gut aufgehoben.
   "applicationCategory": "ResearchApplication",
   "operatingSystem": "macOS, Windows, Linux",
   "programmingLanguage": "JavaScript",
-  "softwareVersion": "1.5.1",
+  "softwareVersion": "1.6.0",
   "license": "https://opensource.org/license/mit",
   "author": [
     {

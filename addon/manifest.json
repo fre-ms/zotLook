@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "zotLook",
-    "version": "1.5.1",
+    "version": "1.6.0",
     "description": "Preview attachments by pressing Space through the system's own panel, and see, search and walk every page of a document on a contact sheet",
     "homepage_url": "https://github.com/fre-ms/zotLook",
     "author": "fre.ms and Guillaume Chapron",

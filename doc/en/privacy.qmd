@@ -136,7 +136,7 @@ and nothing about your library or your documents to us or to anyone else.
 Your attachments and annotations stay where Zotero keeps them.
 
 **It asks for updates.** Like every Zotero plugin, zotLook checks once a day
-whether a newer version exists. Copies installed from version 1.4.2 onwards
+whether a newer version exists. Copies installed from version 1.6.0 onwards
 ask `zotlook.org/update.json`; that request reaches our web server and is
 logged as described above, with the address truncated before it is written.
 We count the number of such requests per day, which tells us roughly how many

@@ -9,7 +9,7 @@ with. This text is the source of the release notes on GitHub and of
 `CHANGELOG.md` in the repository. Versions are the plugin's own; a date is
 the day the release was published.
 
-## 1.5.1 — 2026-09-04 {#v1-5-1 .unnumbered}
+## 1.6.0 — 2026-09-05 {#v1-6-0 .unnumbered}
 
 The sheet in its own Zotero window can search and answers the keyboard.
 

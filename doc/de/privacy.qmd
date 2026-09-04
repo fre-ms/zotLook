@@ -139,7 +139,7 @@ Fehlerberichte und nichts über Ihre Bibliothek oder Ihre Dokumente an uns oder
 an Dritte. Ihre Anhänge und Annotationen bleiben, wo Zotero sie führt.
 
 **Es fragt nach Updates.** Wie jedes Zotero-Plugin prüft zotLook einmal am
-Tag, ob eine neuere Version vorliegt. Kopien, die ab Version 1.4.2 installiert
+Tag, ob eine neuere Version vorliegt. Kopien, die ab Version 1.6.0 installiert
 wurden, fragen dafür `zotlook.org/update.json`; diese Anfrage erreicht unseren
 Webserver und wird wie oben beschrieben protokolliert, mit vor dem Schreiben
 gekürzter Adresse. Wir zählen die Zahl solcher Anfragen je Tag, was uns
