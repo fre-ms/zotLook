@@ -45,6 +45,10 @@ Tastatur.
   Suchfeld geht als erste Suche des Bogens mit.
 - Ein Abschnitt zotLook im Eintragsfenster bietet die drei Aktionen als
   Knöpfe.
+- Die Leertaste zeigt alle Anhänge eines Eintrags, den besten zuerst, und
+  die Pfeile blättern durch sie; bei mehreren Einträgen je einen. Quick Look
+  blättert selbst; unter Sushi und QuickLook folgt die Vorschau den Pfeilen
+  und der Auswahl.
 - Mehrere ausgewählte Einträge geben einen Sammlungsbogen: die erste Seite
   jedes PDFs mit seinem Titel, ein Klick öffnet es, Tastatur und Suche wie
   im Seitenbogen.

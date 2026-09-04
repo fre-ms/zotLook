@@ -270,6 +270,34 @@ const on = (platform, prefValues = {}) => {
   eq(shown.length, 1, 'and never without items to make a sheet of');
 }
 
+// ── on Windows the arrows walk the files, and the preview follows the list ──
+{
+  const Q = on('Win');
+  const posted = [];
+  Q._winPreview = () => ({ pipePath: () => 'P', lockForeground: () => true, postLine: (p, line) => posted.push(line) });
+  Q.SUSHI_STEP_PREVIEW_DELAY_MS = 10;
+  const settle = () => new Promise((r) => setTimeout(r, 40));
+  Q._pipeShown = true;
+  Q._previewList = { paths: ['C:\\a.pdf', 'C:\\b.html'], index: 0 };
+  const ev = (key) => ({ key, ctrlKey: false, metaKey: false, altKey: false, shiftKey: false, code: '',
+    prevented: false, preventDefault() { this.prevented = true; }, stopPropagation() {} });
+  const selected = [{ id: 1, isNote: () => false, isAttachment: () => true }];
+  const win = { ZoteroPane: { getSelectedItems: () => selected } };
+  Q._getAttachmentPath = async () => 'C:\\next.pdf';
+  Q._normalizeForPreview = async (p) => p;
+  let e = ev('ArrowRight'); Q._onKeyDown(e, win); await settle();
+  eq(posted, ['QuickLook.App.PipeMessages.Switch|C:\\b.html|'], 'right shows the next file of the press, by Switch');
+  eq(e.prevented, true, 'and the tree does not see the key');
+  e = ev('ArrowDown'); Q._onKeyDown(e, win);
+  eq(e.prevented, false, 'down goes on to the tree, which moves the selection');
+  await settle();
+  eq(posted[1], 'QuickLook.App.PipeMessages.Switch|C:\\next.pdf|', 'and the preview follows once the keys rest');
+  eq(Q._pipeShown, true, 'still showing');
+  Q._pipeShown = false;
+  e = ev('ArrowRight'); Q._onKeyDown(e, win);
+  eq(e.prevented, false, 'with nothing up the arrows are the tree\'s');
+}
+
 // ── on Windows, Escape reaches QuickLook, and the keyboard stays put ──
 {
   const Q = on('Win');

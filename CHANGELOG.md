@@ -38,6 +38,9 @@ The sheet in its own Zotero window can search and answers the keyboard.
   change the columns on the spot, p prints, and a word in Zotero's search
   field goes along as the sheet's first search.
 - An item pane section named zotLook offers the three actions as buttons.
+- Space shows every attachment of an item, the best first, and the arrows
+  walk them; with several items, one file each. Quick Look walks on its own;
+  under Sushi and QuickLook the preview follows the arrows and the selection.
 - Several selected items make a collection sheet: the first page of each
   item's PDF with its title, a click opening it, the keyboard and the search
   as on a page sheet.

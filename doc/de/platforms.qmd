@@ -89,6 +89,7 @@ Vorschau, gelten stattdessen QuickLooks eigene Tasten, bis Sie zurückklicken.
 | Kontaktbogen | ✓ | ✓ | ✓ |
 | Klick öffnet den Reader | ✓ | — | ✓ |
 | Kontaktbogen im Zotero-Fenster | ✓ | ✓ | ✓ |
+| Pfeiltasten blättern durch die Dateien | ✓ | ✓ | ✓ |
 
 Die eine Lücke ist Sushi. Seine Anzeige folgt Verweisen tatsächlich und kann
 eine `zotero:`-Adresse nicht laden — die Verweise sind dort deshalb absichtlich

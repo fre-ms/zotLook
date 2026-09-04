@@ -39,6 +39,11 @@ var zotLook = Object.seal({
 	// Set by a refused preview request whose reason is that the previewer
 	// is not there at all; read once by _launchPreview for the fallback
 	_previewerAbsent: false,
+	// What the last press put up, for the arrows to walk: the files in
+	// order, and which of them is showing. Quick Look walks the list on
+	// its own; Sushi and QuickLook show one file at a time and are told
+	// the next by the plugin.
+	_previewList: { paths: [], index: 0 },
 	// Whether a request that shows something has gone down QuickLook's pipe
 	// since the last one that closed it. QuickLook toggles on its own, so
 	// this can be stale in one direction — set while nothing is showing any
@@ -508,6 +513,23 @@ var zotLook = Object.seal({
 			event.stopPropagation();
 			this._closeQuickLook();
 			return;
+		}
+
+		// A one-file previewer up and the keyboard still in Zotero, which is
+		// how QuickLook for Windows runs: left and right walk the files of
+		// the press, up and down move the selection and the preview follows
+		if (this._pipeShown && !event.ctrlKey && !event.metaKey && !event.altKey) {
+			if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+				if (this._previewList.paths.length > 1) {
+					event.preventDefault();
+					event.stopPropagation();
+					this._stepPreviewList(event.key === "ArrowRight" ? 1 : -1);
+					return;
+				}
+			} else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+				this._followSelection(window);
+				return;
+			}
 		}
 
 		let binding = this.bindings.find((b) =>
@@ -3144,7 +3166,8 @@ var zotLook = Object.seal({
 	 *          the caller is holding. sushiShows marks the plan that puts a
 	 *          window up which only Sushi can take down again.
 	 */
-	async _previewCommand(filePaths) {
+	async _previewCommand(filePaths, options) {
+		let replace = !!(options && options.replace);
 		if (Zotero.isMac) {
 			let helper = await this._ensureBinary("qlpreview");
 			if (helper) {
@@ -3166,7 +3189,7 @@ var zotLook = Object.seal({
 			if (filePaths.length > 1) {
 				this.log(
 					"Sushi previews one file; showing the first of " +
-						filePaths.length
+						filePaths.length + ", the arrows show the rest"
 				);
 			}
 			return {
@@ -3190,7 +3213,9 @@ var zotLook = Object.seal({
 					"org.gnome.NautilusPreviewer.ShowFile",
 					"string:" + PathUtils.toFileURI(filePaths[0]),
 					"int32:0",
-					"boolean:true",
+					// The flag closes a preview already showing this file:
+					// what a toggle wants, and what a switch must not do
+					replace ? "boolean:false" : "boolean:true",
 				],
 				holdsProcess: false,
 				sushiShows: true,
@@ -3201,11 +3226,11 @@ var zotLook = Object.seal({
 			if (filePaths.length > 1) {
 				this.log(
 					"QuickLook previews one file; showing the first of " +
-						filePaths.length
+						filePaths.length + ", the arrows show the rest"
 				);
 			}
 			return this._windowsPlan(
-				zotLookUtil.quickLookPipeLine("Toggle", filePaths[0]),
+				zotLookUtil.quickLookPipeLine(replace ? "Switch" : "Toggle", filePaths[0]),
 				true
 			);
 		}
@@ -3534,6 +3559,14 @@ var zotLook = Object.seal({
 		let direction = Number(event[1]);
 		let step =
 			this.SUSHI_NEXT_DIRECTIONS.indexOf(direction) !== -1 ? 1 : -1;
+		// Left and right walk the files of the press where there are
+		// several — an item's attachments — and the list otherwise; up
+		// and down walk the list, as they do in Files
+		let sideways = direction === 4 || direction === 5;
+		if (sideways && this._previewList.paths.length > 1) {
+			this._stepPreviewList(step);
+			return;
+		}
 		this._stepSelection(step);
 	},
 
@@ -3626,6 +3659,21 @@ var zotLook = Object.seal({
 	async _getPreviewPath(items) {
 		let paths = [];
 
+		// One item selected: every attachment it has, best first, so that
+		// a paper with its PDF and a snapshot shows both and the arrows go
+		// from one to the other. Several items: one file each, the best,
+		// so that a selection of twenty papers is twenty files and not
+		// sixty. Quick Look takes the whole list; Sushi and QuickLook are
+		// shown the first and told the next as the arrows go.
+		let regular = items.filter((item) => {
+			try {
+				return !item.isNote() && !item.isAttachment();
+			} catch (e) {
+				return false;
+			}
+		});
+		let every = regular.length === 1 && items.length === 1;
+
 		for (let item of items) {
 			let path = null;
 
@@ -3635,21 +3683,88 @@ var zotLook = Object.seal({
 				continue;
 			}
 
-			let attachment = null;
 			if (item.isAttachment()) {
-				attachment = item;
 				path = await this._getAttachmentPath(item);
-			} else {
-				let chosen = await this._pickBestAttachment(item);
-				if (chosen) ({ item: attachment, path } = chosen);
+				if (path) path = await this._normalizeForPreview(path, item);
+				if (path) paths.push(path);
+				continue;
 			}
 
-			if (!path) continue;
-			path = await this._normalizeForPreview(path, attachment);
-			if (path) paths.push(path);
+			let chosen = every
+				? await this._everyAttachment(item)
+				: [await this._pickBestAttachment(item)].filter(Boolean);
+			for (let one of chosen) {
+				let normal = await this._normalizeForPreview(one.path, one.item);
+				if (normal) paths.push(normal);
+			}
 		}
 
+		this._previewList = { paths: paths.slice(), index: 0 };
 		return paths;
+	},
+
+	/**
+	 * All of an item's attachments that can be previewed, in the order the
+	 * preference puts them, each with its path.
+	 */
+	async _everyAttachment(item) {
+		let out = [];
+		for (let attachment of this._orderAttachments(this._attachmentsOf(item))) {
+			let path = await this._getAttachmentPath(attachment);
+			if (path) out.push({ item: attachment, path: path });
+		}
+		return out;
+	},
+
+	/**
+	 * The next or the previous file of the list, shown in place of the
+	 * one up — for the previewers that show one file at a time. Quick
+	 * Look walks its own list, so there is nothing to do there; the
+	 * window shows a sheet, not a file, and has nothing to walk either.
+	 *
+	 * @returns {Promise<boolean>} whether there was a list to walk
+	 */
+	async _stepPreviewList(step) {
+		let list = this._previewList;
+		if (!list || list.paths.length < 2) return false;
+		let n = list.paths.length;
+		list.index = ((list.index + step) % n + n) % n;
+		let path = list.paths[list.index];
+		this.log("Arrow: file " + (list.index + 1) + " of " + n);
+		return this._switchPreviewTo(path);
+	},
+
+	/**
+	 * Shows another file where one is showing: Sushi's ShowFile without
+	 * its close-if-shown flag, QuickLook's Switch.
+	 */
+	async _switchPreviewTo(path) {
+		let plan = await this._previewCommand([path], { replace: true });
+		if (!plan) return false;
+		return this._deliver(plan);
+	},
+
+	/**
+	 * The preview following the selection: with a preview up, an arrow up
+	 * or down in the item list moves the selection as it always did, and
+	 * once the keys come to rest the preview shows what is selected now.
+	 * How Files does it with Sushi, and Explorer with QuickLook; on macOS
+	 * Quick Look holds the keyboard itself, so this is never reached.
+	 */
+	_followSelection(window) {
+		if (this._sushiPreviewTimer) clearTimeout(this._sushiPreviewTimer);
+		this._sushiPreviewTimer = setTimeout(async () => {
+			this._sushiPreviewTimer = null;
+			if (!this._pipeShown && !this._sushiShown) return;
+			try {
+				let items = window.ZoteroPane && window.ZoteroPane.getSelectedItems();
+				if (!items || !items.length) return;
+				let paths = await this._getPreviewPath(items);
+				if (paths.length) await this._switchPreviewTo(paths[0]);
+			} catch (e) {
+				this.log("Could not follow the selection: " + e);
+			}
+		}, this.SUSHI_STEP_PREVIEW_DELAY_MS);
 	},
 
 	/**

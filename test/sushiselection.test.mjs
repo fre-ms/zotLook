@@ -45,6 +45,23 @@ function harness({ focused = 5, rowCount = 10, prefValues } = {}) {
   return { Q, view, previews, settle, logs };
 }
 
+// ── left and right walk an item's files, up and down the list ─────────
+{
+  const { Q, view, settle } = harness();
+  Q._sushiShown = true;
+  Q._previewList = { paths: ['/lib/paper.pdf', '/lib/notes.html'], index: 0 };
+  const delivered = [];
+  Q._deliver = async (plan) => { delivered.push(plan); return true; };
+  Q._onSushiMonitorLine(LINE.right);
+  await settle();
+  eq(delivered.length, 1, 'right shows the next file');
+  ok(delivered[0].arguments.includes('string:file:///lib/notes.html'), 'the second of the press');
+  ok(delivered[0].arguments.includes('boolean:false'), 'shown in place, not toggled');
+  eq(view.selection.focused, 5, 'and the selection stays');
+  Q._onSushiMonitorLine(LINE.up);
+  eq(view.selection.focused, 4, 'up moves the selection, as in Files');
+}
+
 // ── an arrow in the preview walks the list ────────────────────────────
 {
   const { Q, view, previews, settle } = harness();

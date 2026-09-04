@@ -15,7 +15,7 @@ upstream commit, counting only lines that are neither blank, a comment nor a
 brace: **45 %** of the JavaScript and **52 %** of `bootstrap.js` survive
 verbatim, and 20 of the original 28 methods are still present under their own
 names. The plugin has grown around them — those surviving lines are about a
-seventeenth of what is here today. The figures come from `tool/provenance.mjs`,
+nineteenth of what is here today. The figures come from `tool/provenance.mjs`,
 and the test suite fails when they drift from what this page says.
 
 The architecture is his throughout:

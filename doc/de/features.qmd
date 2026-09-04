@@ -107,6 +107,13 @@ zu sehen, welche Seiten man bearbeitet hat.
   Für ungewöhnlich große Scans lässt sich eines setzen; greift es, sagt der
   Bogen, wie viele Seiten er zeigt.
 
+**Mehrere Anhänge, mehrere Einträge.** Hat der Eintrag mehrere Anhänge,
+zeigt die Leertaste alle, den besten zuerst, und die Pfeiltasten links und
+rechts blättern durch sie; sind mehrere Einträge ausgewählt, je Eintrag einen.
+Quick Look blättert selbst; unter Sushi und QuickLook zeigt zotLook die
+nächste Datei, und die Pfeile auf und ab bewegen die Auswahl in der Liste, der
+die Vorschau folgt, wie in Files und im Explorer.
+
 **Mehrere Einträge auf einmal** geben einen
 [Sammlungsbogen](window.qmd#mehrere-einträge-der-sammlungsbogen): je Eintrag
 die erste Seite seines PDFs, ein Klick öffnet es.

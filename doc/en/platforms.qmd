@@ -86,6 +86,7 @@ own keys apply instead, until you click back.
 | Contact sheet | ✓ | ✓ | ✓ |
 | Clicking a page opens the reader | ✓ | — | ✓ |
 | Contact sheet in a Zotero window | ✓ | ✓ | ✓ |
+| Arrow keys walk the files | ✓ | ✓ | ✓ |
 
 The one gap is Sushi. Its renderer really does follow links, and it cannot load
 a `zotero:` URL — so the links are made inert there on purpose, because a click

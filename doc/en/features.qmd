@@ -100,6 +100,13 @@ figure you remember, or for seeing at a glance which pages you marked up.
   be set for unusually large scans; when it bites, the sheet says how many pages
   it is showing.
 
+**Several attachments, several items.** An item with several attachments
+shows them all on Space, the best first, and the left and right arrows walk
+through them; with several items selected, one file each. Quick Look walks
+the list itself; under Sushi and QuickLook zotLook shows the next file, and
+the up and down arrows move the selection in the list, which the preview
+follows, as in Files and in Explorer.
+
 **Several items at once** give a
 [collection sheet](window.qmd#several-items-the-collection-sheet): the first
 page of each item's PDF, a click opening it.

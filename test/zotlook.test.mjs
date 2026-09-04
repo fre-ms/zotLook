@@ -929,5 +929,30 @@ const ok = (c,l)=>eq(!!c,true,l);
   eq(unregistered, ['zotlook-actions'], 'and it goes at shutdown');
 }
 
+// ── what a press previews: one item's every attachment, or one per item ──
+{
+  const att = (id, name) => ({ id, key: 'A' + id, isNote: () => false, isAttachment: () => true,
+    attachmentFilename: name, isPDFAttachment: () => name.endsWith('.pdf') });
+  const atts = { 1: att(1, 'notes.html'), 2: att(2, 'paper.pdf'), 3: att(3, 'figure.png') };
+  const item = (id, ids) => ({ id, key: 'I' + id, isNote: () => false, isAttachment: () => false,
+    getAttachments: () => ids });
+  const { zotLook: Q } = loadPlugin({ zotero: { Items: { get: (id) => atts[id] } } });
+  Q._getAttachmentPath = async (a) => '/lib/' + a.attachmentFilename;
+  Q._normalizeForPreview = async (p) => p;
+  Q._attachmentType = (a) => (a.attachmentFilename.endsWith('.pdf') ? 'pdf' : a.attachmentFilename.endsWith('.png') ? 'image' : 'html');
+  eq(await Q._getPreviewPath([item(10, [1, 2, 3])]), ['/lib/paper.pdf', '/lib/notes.html', '/lib/figure.png'],
+     'one item: every attachment it has, in the order the preference puts them');
+  eq(Q._previewList.paths.length, 3, 'and the list is kept for the arrows');
+  eq(await Q._getPreviewPath([item(10, [1, 2, 3]), item(11, [3])]), ['/lib/paper.pdf', '/lib/figure.png'],
+     'several items: the best of each, one file per item');
+  const list = Q._previewList; const shown = [];
+  Q._switchPreviewTo = async (p) => { shown.push(p); return true; };
+  await Q._stepPreviewList(1); await Q._stepPreviewList(1); await Q._stepPreviewList(-1);
+  eq(shown, ['/lib/figure.png', '/lib/paper.pdf', '/lib/figure.png'], 'the arrows walk the list and wrap');
+  eq(list.index, 1, 'and it knows where it stands');
+  Q._previewList = { paths: ['/one'], index: 0 };
+  eq(await Q._stepPreviewList(1), false, 'a list of one has nothing to walk');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);
