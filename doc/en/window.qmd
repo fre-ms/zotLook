@@ -82,6 +82,13 @@ numbers and the field finds by them; otherwise the tile's own number counts. A
 number that is not there, the field says so. The placeholder names the range,
 such as "Page i–312".
 
+A **page range**, "12–18", shows those pages alone: the other tiles leave the
+grid, and the column count is chosen so that the range fits the window without
+scrolling: as few columns as possible, so the tiles are as large as possible,
+and as many as needed so that no row falls below the edge.
+The search and the keyboard then work on the range. An empty field and Enter
+shows every page again at the column count from before.
+
 That gives the sheet a way in at every corner: contents, annotations, search
 and page number.
 

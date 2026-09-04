@@ -42,7 +42,9 @@ Tastatur.
   stattdessen der Bogen im Fenster; eine Einstellung schaltet das ab.
 - Ein Seitenfeld links oben im Fenster, Strg+G, nimmt eine Seitenzahl und
   rahmt die Seite — zuerst die gedruckte Zahl, wo das PDF seine Seiten
-  beschriftet, und die Kacheln zeigen diese Zahlen ebenfalls.
+  beschriftet, und die Kacheln zeigen diese Zahlen ebenfalls. Ein Bereich,
+  12–18, zeigt nur diese Seiten, in so vielen Spalten, wie sie ins Fenster
+  passen.
 - Im Fenster rahmen Ziffern und Enter eine Seite nach ihrer Nummer, Plus und
   Minus ändern die Spalten sofort, p druckt, und ein Wort in Zoteros
   Suchfeld geht als erste Suche des Bogens mit.

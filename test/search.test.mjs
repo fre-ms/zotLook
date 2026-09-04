@@ -335,6 +335,28 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   eq(seenTile, ['trusted'], 'and is not sent twice');
 }
 
+// ── the columns that fit a range into the window ──────────────────────
+// Seven A4 pages in a 1400 by 860 window: five columns and two rows fit,
+// four columns and two rows are too tall
+{
+  const html6 = S.html({
+    pages: [1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ page: n, height: 707 })),
+    columns: 4, width: 500, imageDir: 'pages', pageCount: 8,
+  });
+  const doc = new DOMParser().parseFromString(html6, 'text/html');
+  Object.defineProperty(doc.documentElement, 'clientWidth', { value: 1400, configurable: true });
+  Object.defineProperty(doc.documentElement, 'clientHeight', { value: 860, configurable: true });
+  S.sheetRuntime(doc, LABELS);
+  const goto = doc.querySelector('.zl-goto input');
+  goto.value = '1–7';
+  goto.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key: 'Enter' }));
+  eq(doc.querySelector('[data-zl-columns]').getAttribute('data-zl-columns'), '5', 'seven pages take five columns, the fewest whose two rows fit');
+  goto.value = '1–2';
+  goto.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key: 'Enter' }));
+  eq(doc.querySelector('[data-zl-columns]').getAttribute('data-zl-columns'), '3', 'two pages take three: at two a page would be taller than the window');
+  eq(doc.querySelectorAll('.page.zl-out').length, 6, 'the other six are out');
+}
+
 // ── the page field: a number typed, Enter frames the page ─────────────
 {
   const html5 = S.html({
@@ -360,6 +382,25 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   eq(framed(), 2, 'and the frame stays');
   doc.body.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key: 'g', ctrlKey: true }));
   inGoto('3'); eq(doc.querySelector('.zl-search-status').textContent, '', 'a digit in the field is typing, not a jump');
+
+  // a range: the tiles outside go out of the grid, and the columns are set
+  // so that the range fits the window
+  Object.defineProperty(doc.documentElement, 'clientWidth', { value: 1400, configurable: true });
+  Object.defineProperty(doc.documentElement, 'clientHeight', { value: 860, configurable: true });
+  const grid = doc.querySelector('[data-zl-columns]');
+  const out = () => [...doc.querySelectorAll('.page')].map((t) => (t.classList.contains('zl-out') ? 'out' : 'in')).join(' ');
+  goto.value = 'ii–1'; inGoto('Enter');
+  eq(out(), 'out in in out', 'a range by printed numbers keeps its tiles and takes the others out');
+  eq(framed(), 2, 'and frames its first page');
+  eq(grid.getAttribute('data-zl-columns'), '3', 'two pages 700 tall at 500 wide need three columns of a 1400 by 860 window to fit its height');
+  goto.value = '1-4'; inGoto('Enter');
+  eq(out(), 'out out in in', 'a range by tile numbers too, with a plain hyphen');
+  goto.value = ''; inGoto('Enter');
+  eq(out(), 'in in in in', 'an empty field and Enter show every page again');
+  eq(grid.getAttribute('data-zl-columns'), '2', 'at the column count from before the range');
+  goto.value = '3–99'; inGoto('Enter');
+  eq(doc.querySelector('.zl-goto-status').textContent, LABELS.gotoNone, 'a range with an end that is not there is refused');
+  eq(out(), 'in in in in', 'and changes nothing');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');

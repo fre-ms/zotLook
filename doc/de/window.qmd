@@ -84,6 +84,14 @@ zeigen die Kacheln diese Zahlen, und das Feld findet danach; sonst gilt die
 Nummer der Kachel. Eine Zahl, die es nicht gibt, sagt das Feld. Der Platzhalter
 nennt den Bereich, etwa „Seite i–312“.
 
+Ein **Seitenbereich**, „12–18“, zeigt nur diese Seiten: Die anderen Kacheln
+verlassen das Raster, und die Spaltenzahl wird so gewählt, dass der Bereich
+ohne Scrollen ins Fenster passt: so wenige Spalten wie möglich, damit die
+Kacheln so groß wie möglich werden, und so viele wie nötig, damit keine Zeile
+unter den Rand fällt. Suche und Tastatur arbeiten dann auf dem
+Bereich. Ein leeres Feld und Enter zeigt wieder alle Seiten mit der
+Spaltenzahl von vorher.
+
 Damit hat der Bogen in jeder Ecke einen Zugang: Inhaltsverzeichnis,
 Annotationen, Suche und Seitenzahl.
 

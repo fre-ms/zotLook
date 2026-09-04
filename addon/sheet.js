@@ -154,6 +154,9 @@ var zotLookSheet = {
 		"}",
 		".zl-search-status { color: #4a4a4a; white-space: nowrap; }",
 		".zl-miss { opacity: 0.3; }",
+		// A tile outside the page range asked for: gone from the grid, so
+		// that the range can have the room
+		".zl-out { display: none !important; }",
 		".zl-hit-count {",
 		"  display: inline-block;",
 		"  margin-left: 0.5em;",
@@ -355,7 +358,9 @@ var zotLookSheet = {
 		// ── the frame: a cursor over the pages, or over the hits ──────
 		let hits = null;           // null: no search, every page is in play
 		let at = -1;               // the framed one, -1 for none yet
-		let current = () => hits || tiles;
+		let inRange = (tile) => !tile.classList.contains("zl-out");
+		let shown = () => tiles.filter(inRange);
+		let current = () => hits || shown();
 		let frame = (index) => {
 			let items = current();
 			if (!items.length) return;
@@ -406,8 +411,9 @@ var zotLookSheet = {
 				return;
 			}
 			let n = columns();
-			let rowOf = (tile) => Math.floor(tiles.indexOf(tile) / n);
-			let colOf = (tile) => tiles.indexOf(tile) % n;
+			let laid = shown();
+			let rowOf = (tile) => Math.floor(laid.indexOf(tile) / n);
+			let colOf = (tile) => laid.indexOf(tile) % n;
 			let row = rowOf(items[at]);
 			let col = colOf(items[at]);
 			let nearer = (a, b) => (dir > 0 ? a < b : a > b);
@@ -465,6 +471,7 @@ var zotLookSheet = {
 			}
 			hits = [];
 			for (let tile of tiles) {
+				if (!inRange(tile)) continue;
 				let n = count(norm(textOf(tile)), query);
 				if (!n) {
 					tile.classList.add("zl-miss");
@@ -507,10 +514,10 @@ var zotLookSheet = {
 		// ── the columns, live ─────────────────────────────────────────
 		// Plus and minus change the grid on the spot. The sheet's own count
 		// stays what the preferences say; this is for the one at hand
-		let recolumn = (delta) => {
+		let recolumn = (delta, absolute) => {
 			let grid = /** @type {HTMLElement|null} */ (document.querySelector("[data-zl-columns]"));
 			if (!grid) return;
-			let n = Math.max(1, Math.min(12, columns() + delta));
+			let n = Math.max(1, Math.min(12, absolute ? delta : columns() + delta));
 			grid.setAttribute("data-zl-columns", String(n));
 			grid.style.gridTemplateColumns = "repeat(" + n + ", 1fr)";
 			sync();
@@ -547,6 +554,62 @@ var zotLookSheet = {
 			let byLabel = tiles.find((t) => labelOf(t).toLowerCase() === want);
 			if (byLabel) return byLabel;
 			return tiles.find((t) => t.getAttribute("data-zl-tile") === want) || null;
+		};
+		// ── a page range ──────────────────────────────────────────────
+		// "12–18" in the page field: the tiles outside go out of the grid,
+		// and the columns are set so that the range fits the window without
+		// scrolling — the smallest count whose rows all fit, from the
+		// window's size and the tiles' proportion; twelve at most, and then
+		// the rest scrolls. An empty field and Enter end the range and bring
+		// the count from before back. Not Escape: in the Zotero window that
+		// key closes the window before the page ever sees it.
+		let columnsBefore = null;
+		let fitColumns = (n) => {
+			let root = document.documentElement;
+			let W = root ? root.clientWidth : 0;
+			let H = root ? root.clientHeight : 0;
+			if (!W || !H || !n) return 0;
+			let sample = tiles.find(inRange) || tiles[0];
+			let img = sample && sample.querySelector("img");
+			let iw = img && Number(img.getAttribute("width"));
+			let ih = img && Number(img.getAttribute("height"));
+			let ratio = iw && ih ? ih / iw : 1.3;
+			for (let c = 1; c <= 12; c++) {
+				let rows = Math.ceil(n / c);
+				let tileW = (W - 24 - 12 * (c - 1)) / c;
+				let tileH = tileW * ratio + 21;
+				if (rows * tileH + 12 * (rows - 1) + 24 <= H) return c;
+			}
+			return 12;
+		};
+		let clearRange = () => {
+			for (let t of tiles) t.classList.remove("zl-out");
+			if (columnsBefore !== null) {
+				recolumn(columnsBefore, true);
+				columnsBefore = null;
+			}
+			if (input && input.value) run();
+		};
+		let setRange = (fromText, toText) => {
+			let from = findPage(fromText);
+			let to = findPage(toText);
+			if (!from || !to) return false;
+			let a = tiles.indexOf(from);
+			let b = tiles.indexOf(to);
+			if (a > b) [a, b] = [b, a];
+			for (let t of tiles) t.classList.remove("zl-out");
+			tiles.forEach((t, i) => {
+				if (i < a || i > b) t.classList.add("zl-out");
+			});
+			if (columnsBefore === null) columnsBefore = columns();
+			let fit = fitColumns(b - a + 1);
+			if (fit) recolumn(fit, true);
+			if (input && input.value) run();
+			for (let t of tiles) t.classList.remove("zl-current");
+			tiles[a].classList.add("zl-current");
+			if (tiles[a].scrollIntoView) tiles[a].scrollIntoView({ block: "start" });
+			sync();
+			return true;
 		};
 		let frameTile = (n) => {
 			let tile = findPage(n);
@@ -641,7 +704,18 @@ var zotLookSheet = {
 			// said beside the field
 			if (inGoto && key === "Enter") {
 				event.preventDefault();
-				if (frameTile(gotoInput.value)) {
+				let asked = String(gotoInput.value || "").trim();
+				let span = /^(.+?)\s*[-–—]\s*(.+)$/.exec(asked);
+				let done;
+				if (!asked) {
+					clearRange();
+					done = true;
+				} else if (span) {
+					done = setRange(span[1], span[2]);
+				} else {
+					done = frameTile(asked);
+				}
+				if (done) {
 					if (gotoStatus) gotoStatus.textContent = "";
 					if (hits) say(at >= 0 ? at + 1 + " / " + hits.length : "");
 					if (typeof gotoInput.blur === "function") gotoInput.blur();
