@@ -34,6 +34,10 @@ The sheet in its own Zotero window can search and answers the keyboard.
 - The sheet is dark where the system is dark.
 - Where no system preview answers Space, the sheet opens in its window
   instead; a setting turns that off.
+- In the window, digits and Enter frame a page by its number, plus and minus
+  change the columns on the spot, p prints, and a word in Zotero's search
+  field goes along as the sheet's first search.
+- An item pane section named zotLook offers the three actions as buttons.
 - The documentation gives the sheet in its window a page of its own, and the
   front page tells the three tiers: the attachment, the sheet, the window.
 - Update checks go to zotlook.org from this version on; the update itself

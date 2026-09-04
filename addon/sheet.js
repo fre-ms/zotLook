@@ -164,9 +164,11 @@ var zotLookSheet = {
 	 * reported. o, or Ctrl/⌘+Enter, opens the framed page in the reader,
 	 * which is a click on its link, so the window closes on the handoff as
 	 * it does for the mouse. c and a open the contents and the annotations,
-	 * where the arrows walk the entries and Enter or o follows one. Page Up
-	 * and Page Down are left to the browser: they scroll. In the field, a
-	 * letter is typing and the arrows left and right move the caret; Enter
+	 * where the arrows walk the entries and Enter or o follows one. Digits
+	 * and Enter frame a page by its number; plus and minus change the
+	 * columns on the spot; p prints. Page Up and Page Down are left to the
+	 * browser: they scroll. In the field, a letter is typing and the arrows
+	 * left and right move the caret; Enter
 	 * there walks on and hands the keyboard back to the page, so that the
 	 * next o opens rather than types, and Ctrl+F is the way back in.
 	 *
@@ -402,6 +404,68 @@ var zotLookSheet = {
 		};
 		if (input) input.addEventListener("input", run);
 
+		// A query brought along in the fragment — #zl-q=word — is what was
+		// in Zotero's own search field when the window was opened: the
+		// word the reader was looking for is what the sheet searches first
+		let brought = "";
+		try {
+			let view = document.defaultView;
+			let hash = String((view && view.location && view.location.hash) ||
+				(document.location && document.location.hash) || "");
+			let m = /[#&]zl-q=([^&]*)/.exec(hash);
+			if (m) brought = decodeURIComponent(m[1]);
+		} catch {
+			brought = "";
+		}
+		if (brought && input) {
+			input.value = brought;
+			run();
+		}
+
+		// ── the columns, live ─────────────────────────────────────────
+		// Plus and minus change the grid on the spot. The sheet's own count
+		// stays what the preferences say; this is for the one at hand
+		let recolumn = (delta) => {
+			let grid = /** @type {HTMLElement|null} */ (document.querySelector("[data-zl-columns]"));
+			if (!grid) return;
+			let n = Math.max(1, Math.min(12, columns() + delta));
+			grid.setAttribute("data-zl-columns", String(n));
+			grid.style.gridTemplateColumns = "repeat(" + n + ", 1fr)";
+			sync();
+			if (at >= 0 && current()[at] && current()[at].scrollIntoView) {
+				current()[at].scrollIntoView({ block: "center" });
+			}
+		};
+
+		// ── a page by its number ──────────────────────────────────────
+		// Digits typed outside the field gather for a moment; Enter frames
+		// that page, whatever the search says, and the status shows the
+		// number as it grows
+		let digits = "";
+		let digitsTimer = null;
+		let clearDigits = () => {
+			digits = "";
+			if (digitsTimer !== null) clearTimeout(digitsTimer);
+			digitsTimer = null;
+			if (!hits) say("");
+			else say(at >= 0 ? at + 1 + " / " + hits.length : "");
+		};
+		let takeDigit = (d) => {
+			digits += d;
+			say("→ " + digits);
+			if (digitsTimer !== null) clearTimeout(digitsTimer);
+			digitsTimer = setTimeout(clearDigits, 2000);
+		};
+		let frameTile = (n) => {
+			let tile = tiles.find((t) => t.getAttribute("data-zl-tile") === String(n));
+			if (!tile) return false;
+			for (let t of tiles) t.classList.remove("zl-current");
+			tile.classList.add("zl-current");
+			if (tile.scrollIntoView) tile.scrollIntoView({ block: "center" });
+			sync();
+			return true;
+		};
+
 		// ── the two menus, from the keyboard ──────────────────────────
 		let MENUS = { c: "details.zl-toc", a: "details.zl-annotations" };
 		let menuAt = -1;
@@ -475,6 +539,13 @@ var zotLookSheet = {
 			}
 			if (chord || event.altKey) return;
 			let menu = openMenu();
+			if (key === "Enter" && digits && !inField) {
+				event.preventDefault();
+				let n = digits;
+				clearDigits();
+				frameTile(n);
+				return;
+			}
 			if (key === "Enter") {
 				event.preventDefault();
 				if (menu) follow();
@@ -504,6 +575,20 @@ var zotLookSheet = {
 				return;
 			}
 			if (inField) return;                     // letters are typing
+			if (/^[0-9]$/.test(key)) {
+				event.preventDefault();
+				takeDigit(key);
+				return;
+			}
+			if (key === "Escape" && digits) {
+				clearDigits();
+				return;
+			}
+			if (key === "+" || key === "=" || key === "-") {
+				event.preventDefault();
+				recolumn(key === "-" ? -1 : 1);
+				return;
+			}
 			let letter = key.toLowerCase();
 			if (letter === "o") {
 				event.preventDefault();
@@ -511,6 +596,11 @@ var zotLookSheet = {
 			} else if (letter === "c" || letter === "a") {
 				event.preventDefault();
 				toggle(MENUS[letter]);
+			} else if (letter === "p") {
+				// The browser's print dialogue, where a sheet becomes a PDF
+				event.preventDefault();
+				let view = document.defaultView;
+				if (view && typeof view.print === "function") view.print();
 			}
 		});
 	},

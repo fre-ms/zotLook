@@ -6,6 +6,10 @@ description: >-
 
 ## Shortcuts
 
+The shortcuts are the quickest way in; the visible one is the **zotLook**
+section of the item pane, with three buttons for the preview, the contact
+sheet and the window, and an item's context menu, which names the same three.
+
 Every action has exactly one shortcut, and every one of them is
 [configurable](settings.qmd).
 

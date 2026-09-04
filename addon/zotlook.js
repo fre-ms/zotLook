@@ -55,6 +55,8 @@ var zotLook = Object.seal({
 	_viewerKeyHandler: null,
 	// Takes the loading hint off the window, while one is up
 	_viewerLoadingClear: null,
+	// The item pane section's id, while it is registered
+	_sectionID: null,
 	// Zotero.Reader.open, unwrapped — held only while the window lives
 	_readerOpenOriginal: null,
 	_readerOpenPatched: null,
@@ -121,6 +123,9 @@ var zotLook = Object.seal({
 		"zotlook-sheet-loading",
 		"zotlook-sheet-title",
 		"zotlook-sheet-open",
+		"zotlook-pane-preview",
+		"zotlook-pane-sheet",
+		"zotlook-pane-window",
 		"zotlook-sheet-search",
 		"zotlook-sheet-search-none",
 		"zotlook-sheet-pages",
@@ -256,6 +261,7 @@ var zotLook = Object.seal({
 			.catch((e) => this.log("Could not read the build stamp: " + e));
 
 		this._registerPreferencePane();
+		this._registerItemPaneSection();
 		this._watchPreferences();
 		this._loadStrings().catch((e) =>
 			this.log("String loading failed: " + e)
@@ -305,6 +311,16 @@ var zotLook = Object.seal({
 		}
 
 		let doc = window.document;
+
+		// The window's own strings, for what Zotero labels by id: the item
+		// pane section's header and its sidenav button
+		try {
+			if (window.MozXULElement && typeof window.MozXULElement.insertFTLIfNeeded === "function") {
+				window.MozXULElement.insertFTLIfNeeded(this.L10N_FILE);
+			}
+		} catch (e) {
+			this.log("Could not add the strings to the window: " + e);
+		}
 
 		// Keyboard listener on items tree (capture phase to intercept
 		// before VirtualizedTable's bubble-phase Space handler)
@@ -582,6 +598,77 @@ var zotLook = Object.seal({
 				this.log("Registered preference pane");
 			})
 			.catch((e) => this.log("Could not register preference pane: " + e));
+	},
+
+	/**
+	 * A section of the item pane with the three actions as buttons.
+	 *
+	 * The shortcuts are the quickest way in and the least findable: nothing
+	 * in Zotero's window says that Space does anything. Beside the
+	 * attachment preview Zotero draws itself, a small section names the
+	 * three — preview, sheet, window — for the item shown, and a click
+	 * does what the key would. Registered through Zotero's item pane API
+	 * where it exists; an older Zotero simply has no section.
+	 */
+	_registerItemPaneSection() {
+		let manager = Zotero.ItemPaneManager;
+		if (!manager || typeof manager.registerSection !== "function") return;
+		if (this._sectionID) return;
+		let icon = this.rootURI + "icon/zotlook-24.svg";
+		let actions = [
+			{ id: "zotlook-pane-preview", open: "_openQuickLook", fallback: "Preview" },
+			{ id: "zotlook-pane-sheet", open: "_openContactSheet", fallback: "Contact sheet" },
+			{ id: "zotlook-pane-window", open: "_openContactSheetInViewer", fallback: "Sheet in a window" },
+		];
+		try {
+			this._sectionID = manager.registerSection({
+				paneID: "zotlook-actions",
+				pluginID: this.id,
+				header: { l10nID: "zotlook-pane-header", icon: icon },
+				sidenav: { l10nID: "zotlook-pane-sidenav", icon: icon },
+				onItemChange: ({ item, setEnabled }) => {
+					let shown = false;
+					try {
+						shown = !!item && (item.isRegularItem() || item.isAttachment());
+					} catch (e) {
+						shown = false;
+					}
+					setEnabled(shown);
+				},
+				onRender: ({ doc, body, item }) => {
+					while (body.firstChild) body.removeChild(body.firstChild);
+					let row = doc.createElement("div");
+					row.className = "zotlook-pane-row";
+					row.setAttribute("style", "display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 0 6px;");
+					for (let action of actions) {
+						let button = doc.createElement("button");
+						button.className = "zotlook-pane-button";
+						button.textContent = this._string(action.id, action.fallback);
+						button.addEventListener("click", (event) => {
+							event.preventDefault();
+							this[action.open]([item]);
+						});
+						row.appendChild(button);
+					}
+					body.appendChild(row);
+				},
+			});
+			this.log("Registered the item pane section");
+		} catch (e) {
+			this.log("Could not add the item pane section: " + e);
+			this._sectionID = null;
+		}
+	},
+
+	_unregisterItemPaneSection() {
+		let manager = Zotero.ItemPaneManager;
+		if (!this._sectionID || !manager) return;
+		try {
+			manager.unregisterSection(this._sectionID);
+		} catch (e) {
+			this.log("Could not remove the item pane section: " + e);
+		}
+		this._sectionID = null;
 	},
 
 	_unregisterPreferencePane() {
@@ -878,7 +965,13 @@ var zotLook = Object.seal({
 		if (!sheet) return false;
 		let win = null;
 		try {
-			win = Zotero.openInViewer(PathUtils.toFileURI(sheet));
+			let uri = PathUtils.toFileURI(sheet);
+			// What is in Zotero's search field goes along, as the sheet's
+			// first search: the word the library was searched for is the
+			// word to find in the document
+			let query = this._quickSearchText();
+			if (query) uri += "#zl-q=" + encodeURIComponent(query);
+			win = Zotero.openInViewer(uri);
 		} catch (e) {
 			this.log("Could not open the contact sheet in a window: " + e);
 			return false;
@@ -886,6 +979,18 @@ var zotLook = Object.seal({
 		this._viewerItemID = this._lastSheetItemID;
 		this._adoptViewer(win);
 		return true;
+	},
+
+	/** The text in the main window's quick search, or "". */
+	_quickSearchText() {
+		try {
+			let main = Zotero.getMainWindow && Zotero.getMainWindow();
+			let box = /** @type {any} */ (main && main.document && main.document.getElementById("zotero-tb-search"));
+			let value = box && (box.value || (box.searchTextbox && box.searchTextbox.value));
+			return String(value || "").trim();
+		} catch (e) {
+			return "";
+		}
 	},
 
 	/**
@@ -3997,6 +4102,7 @@ var zotLook = Object.seal({
 		this._releaseViewer();
 		this._dropResourceAlias();
 		this._unregisterPreferencePane();
+		this._unregisterItemPaneSection();
 		if (Zotero.zotLook === this) delete Zotero.zotLook;
 		this._unwatchPreferences();
 		this._cleanTempDir().catch((e) =>

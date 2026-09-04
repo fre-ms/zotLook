@@ -184,6 +184,42 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches"})'),
   eq(opened, ['zotero://open-pdf/library/items/ABCD1234?annotation=K5'],
      'o on an annotation opens the reader at the annotation itself');
   ok(!ann.hasAttribute('open'), 'and the menu closes behind it');
+
+  // a page by its number: digits gather, Enter frames that page
+  press('5');
+  eq(doc.querySelector('.zl-search-status').textContent, '→ 5', 'a digit shows in the status as it is typed');
+  press('Enter');
+  eq(framed(), 5, 'Enter frames the page of that number');
+  eq(doc.querySelector('.zl-search-status').textContent, '', 'and the status clears');
+
+  // the columns, live
+  const grid = doc.querySelector('[data-zl-columns]');
+  press('+');
+  eq(grid.getAttribute('data-zl-columns'), '4', 'plus adds a column');
+  eq(grid.style.gridTemplateColumns, 'repeat(4, 1fr)', 'and the grid follows on the spot');
+  press('-'); press('-');
+  eq(grid.getAttribute('data-zl-columns'), '2', 'minus takes them away');
+  press('ArrowDown');
+  eq(framed(), 7 > 6 ? 1 : 7, 'the arrows take the new count: a row of two from page 5 wraps to the first');
+}
+
+// ── what the window brings along, and what it hands on ────────────────
+{
+  const html3 = S.html({
+    pages: [1, 2, 3].map((n) => ({ page: n, height: 700, text: n === 2 ? 'the word' : 'other' })),
+    columns: 3, width: 500, imageDir: 'pages', pageCount: 3,
+    linkBase: 'zotero://open-pdf/library/items/ABCD1234',
+  });
+  const doc = new DOMParser().parseFromString(html3, 'text/html');
+  const printed = [];
+  Object.defineProperty(doc, 'defaultView', {
+    value: { location: { hash: '#zl-q=the%20word' }, print: () => printed.push(1) }, configurable: true });
+  S.sheetRuntime(doc, LABELS);
+  eq(doc.querySelector('.zl-search input').value, 'the word', 'a query in the fragment fills the field');
+  eq(doc.querySelector('.zl-search-status').textContent, '1 / 1', 'and is searched at once');
+  ok(doc.querySelectorAll('.page')[1].classList.contains('zl-current'), 'with the hit framed');
+  doc.body.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key: 'p' }));
+  eq(printed.length, 1, 'p prints, which is where a sheet becomes a PDF');
 }
 
 // ── under a search the arrows keep their directions ───────────────────

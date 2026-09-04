@@ -82,6 +82,10 @@ Der Text wird beim Zeichnen von den Seiten gelesen; ein Scan ohne Textebene
 hat also nichts zu durchsuchen. In der Seitenübersicht eines Buches werden die
 Treffer in den Kacheln markiert.
 
+Steht beim Öffnen ein Wort in Zoteros eigenem Suchfeld, nimmt das Fenster es
+mit und sucht es als Erstes: Wer die Bibliothek nach einem Begriff durchsucht
+hat, sieht im Bogen sofort, wo er im Dokument liegt.
+
 Die Systemvorschauen haben kein Feld, weil sie keine Skripte ausführen; der
 Bogen dort ist derselbe, nur ohne die Suche.
 
@@ -95,6 +99,9 @@ Der Rahmen ist ein Cursor:
 | **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche gehen links und rechts trefferweise, auf und ab zur nächsten Zeile darüber oder darunter, die einen Treffer hat |
 | **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
 | **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** geht zur Seite des Eintrags, **o** öffnet bei einer Annotation den Reader an ihr, derselbe Buchstabe schließt das Menü |
+| **Ziffern**, dann **Enter** | rahmen die Seite mit dieser Nummer; die Ziffern erscheinen beim Tippen neben dem Suchfeld |
+| **+** / **−** | eine Spalte mehr oder weniger, sofort; die Vorgabe in den Einstellungen bleibt |
+| **p** | druckt den Bogen — im Druckdialog wird daraus ein PDF |
 | **Bild auf** / **Bild ab** | blättern |
 | **Leertaste**, **q**, **Escape** | schließen das Fenster |
 

@@ -80,6 +80,10 @@ off the pages as the sheet is drawn, so a scan without a text layer has
 nothing to search. In a book's page overview the hits are marked in the
 tiles.
 
+A word standing in Zotero's own search field when the window opens goes
+along and is searched first: whoever searched the library for a term sees at
+once where it sits in the document.
+
 The system previews have no field, since they run no scripts; the sheet there
 is the same, minus the search.
 
@@ -93,6 +97,9 @@ The frame is a cursor:
 | **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, left and right go hit by hit, and up and down to the nearest row above or below that has a hit |
 | **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it |
 | **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** goes to the entry's page, **o** on an annotation opens the reader at it, the same letter closes the menu |
+| **digits**, then **Enter** | frame the page of that number; the digits show beside the search field as they are typed |
+| **+** / **−** | one column more or fewer, on the spot; the default in the settings stays |
+| **p** | prints the sheet — the print dialogue is where it becomes a PDF |
 | **Page Up** / **Page Down** | scroll |
 | **Space**, **q**, **Escape** | close the window |
 

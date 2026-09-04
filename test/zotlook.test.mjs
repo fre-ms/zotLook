@@ -891,5 +891,43 @@ const ok = (c,l)=>eq(!!c,true,l);
   eq(e.prevented, false, 'Escape likewise');
 }
 
+// ── the item pane section: the three actions as buttons ───────────────
+{
+  let registered = null; const unregistered = [];
+  const { zotLook: Q } = loadPlugin({ zotero: { ItemPaneManager: {
+    registerSection: (o) => { registered = o; return 'zotlook-actions'; },
+    unregisterSection: (id) => { unregistered.push(id); return true; },
+  } } });
+  Q.rootURI = 'file:///plugin/';
+  Q._registerItemPaneSection();
+  ok(registered && registered.paneID === 'zotlook-actions', 'a section is registered');
+  eq(registered.header.l10nID, 'zotlook-pane-header', 'with a header of its own');
+  ok(registered.header.icon.endsWith('icon/zotlook-24.svg'), 'and the plugin\'s icon');
+  let enabled = null;
+  registered.onItemChange({ item: { isRegularItem: () => true, isAttachment: () => false }, setEnabled: (v) => { enabled = v; } });
+  eq(enabled, true, 'shown for a regular item');
+  registered.onItemChange({ item: { isRegularItem: () => false, isAttachment: () => false }, setEnabled: (v) => { enabled = v; } });
+  eq(enabled, false, 'not for a note or a collection');
+  const made = [];
+  const el = (tag) => ({ tag, children: [], attrs: {}, listeners: {}, textContent: '', className: '',
+    setAttribute(k, v) { this.attrs[k] = v; }, appendChild(c) { this.children.push(c); return c; },
+    removeChild(c) { this.children.splice(this.children.indexOf(c), 1); }, get firstChild() { return this.children[0] || null; },
+    addEventListener(t, fn) { this.listeners[t] = fn; } });
+  const body = el('div'); const item = { id: 42 };
+  registered.onRender({ doc: { createElement: (t) => { const e = el(t); made.push(e); return e; } }, body, item });
+  const buttons = made.filter((e) => e.tag === 'button');
+  eq(buttons.map((b) => b.textContent), ['Preview', 'Contact sheet', 'Sheet in a window'], 'three buttons, named');
+  const opened = [];
+  Q._openQuickLook = async (items) => { opened.push(['preview', items]); };
+  Q._openContactSheet = async (items) => { opened.push(['sheet', items]); };
+  Q._openContactSheetInViewer = async (items) => { opened.push(['window', items]); };
+  for (const b of buttons) b.listeners.click({ preventDefault() {} });
+  eq(opened, [['preview', [item]], ['sheet', [item]], ['window', [item]]], 'each does what its key would, for the item shown');
+  registered.onRender({ doc: { createElement: (t) => el(t) }, body, item });
+  eq(body.children.length, 1, 'rendered again, the body holds one row, not two');
+  Q._unregisterItemPaneSection();
+  eq(unregistered, ['zotlook-actions'], 'and it goes at shutdown');
+}
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

@@ -113,6 +113,14 @@ zotlook-sheet-loading = Kontaktbogen wird aufgebaut …
 zotlook-sheet-title = Kontaktbogen
 # Der Link an einer Annotation, der den Reader an der Annotation öffnet
 zotlook-sheet-open = Im Reader öffnen
+# Der Abschnitt im Eintragsfenster: Überschrift, Tooltip des Seitenleisten-Knopfs
+# und die drei Knöpfe darin
+zotlook-pane-header = zotLook
+zotlook-pane-sidenav =
+    .tooltiptext = zotLook: Vorschau, Kontaktbogen, Fenster
+zotlook-pane-preview = Vorschau
+zotlook-pane-sheet = Kontaktbogen
+zotlook-pane-window = Bogen im Fenster
 
 zotlook-prefs-keep-title = Zwischengespeicherte Vorschauen
 

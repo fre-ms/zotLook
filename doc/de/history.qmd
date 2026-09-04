@@ -40,6 +40,11 @@ Tastatur.
 - Der Bogen ist dunkel, wo das System dunkel ist.
 - Wo keine Systemvorschau auf die Leertaste antwortet, öffnet sich
   stattdessen der Bogen im Fenster; eine Einstellung schaltet das ab.
+- Im Fenster rahmen Ziffern und Enter eine Seite nach ihrer Nummer, Plus und
+  Minus ändern die Spalten sofort, p druckt, und ein Wort in Zoteros
+  Suchfeld geht als erste Suche des Bogens mit.
+- Ein Abschnitt zotLook im Eintragsfenster bietet die drei Aktionen als
+  Knöpfe.
 - Die Dokumentation gibt dem Bogen im Fenster eine eigene Seite, und die
   Startseite erzählt die drei Stufen: Anhang, Bogen, Fenster.
 - Update-Anfragen gehen ab dieser Version an zotlook.org; das Update selbst

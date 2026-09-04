@@ -111,6 +111,14 @@ zotlook-sheet-loading = Laying out the contact sheet…
 zotlook-sheet-title = Contact Sheet
 # The link on an annotation that opens the reader at the annotation
 zotlook-sheet-open = Open in the reader
+# The item pane's section: its header, the sidenav button's tooltip, and
+# the three buttons in it
+zotlook-pane-header = zotLook
+zotlook-pane-sidenav =
+    .tooltiptext = zotLook: preview, contact sheet, window
+zotlook-pane-preview = Preview
+zotlook-pane-sheet = Contact sheet
+zotlook-pane-window = Sheet in a window
 
 zotlook-prefs-keep-title = Kept previews
 

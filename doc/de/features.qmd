@@ -6,6 +6,10 @@ description: >-
 
 ## Tastenkürzel
 
+Die Kürzel sind der schnellste Weg; der sichtbare ist der Abschnitt
+**zotLook** im Eintragsfenster, mit drei Knöpfen für Vorschau, Kontaktbogen
+und Fenster, und das Kontextmenü eines Eintrags, das dieselben drei nennt.
+
 Jede Funktion hat genau ein Kürzel, und jedes davon ist
 [einstellbar](settings.qmd).
 
