@@ -639,6 +639,33 @@ const ok = (c,l)=>eq(!!c,true,l);
   eq(Q._viewer, null, 'a window closed by hand is forgotten');
   eq(Q._closeViewer(), false, 'so the shortcut opens rather than closes next time');
 
+  // The real close by hand — Cmd+W, the red button — sends the unload while
+  // closed is still false and only then goes: looked at once, it passes for
+  // the swap above. So it is looked at again a moment later.
+  const w3c = makeWin();
+  Q._adoptViewer(w3c);
+  w3c.listeners.unload();
+  w3c.closed = true;
+  eq(Q._viewer, w3c, 'at the unload itself the window is still held');
+  await new Promise((r) => setTimeout(r, 350));
+  eq(Q._viewer, null, 'a moment later the closed window is forgotten');
+  eq(Q._closeViewer(), false, 'and the next press opens rather than closes');
+
+  // Torn down by Gecko, the reference is a dead wrapper that throws on any
+  // read — which is the surest sign of a closed window, not of an open one:
+  // taken for open, it swallowed the next shortcut
+  const w3d = makeWin();
+  Q._adoptViewer(w3d);
+  Object.defineProperty(w3d, 'closed', { get() { throw new TypeError("can't access dead object"); } });
+  eq(Q._closeViewer(), false, 'a dead reference counts as closed');
+  eq(Q._viewer, null, 'and is let go');
+  const w3e = makeWin();
+  Q._adoptViewer(w3e);
+  w3e.listeners.unload();
+  Object.defineProperty(w3e, 'closed', { get() { throw new TypeError("can't access dead object"); } });
+  await new Promise((r) => setTimeout(r, 350));
+  eq(Q._viewer, null, 'a window dead after its unload is forgotten too');
+
   const w4 = makeWin();
   Q._adoptViewer(w4);
   Q._adoptViewer(w4);
@@ -775,6 +802,20 @@ const ok = (c,l)=>eq(!!c,true,l);
   Q._viewer = {};
   e = ev({ code:'Space' }); Q._onCloseKey(e);
   eq(e.prevented, false, 'Space is left for the tree to open a preview with');
+
+  // A window the reader closed by hand may still be remembered for a
+  // moment. The press that finds it gone closed nothing, and must go on to
+  // the item list, which opens a fresh one — consumed here, it took a
+  // second press to do so.
+  Q._closeViewer = () => { Q._viewer = null; return false; };
+  Q._viewer = { closed: true };
+  e = ev({ code: key.code, ctrlKey: !!key.ctrl, shiftKey: !!key.shift, altKey: !!key.alt, metaKey: !!key.meta });
+  Q._onCloseKey(e);
+  eq(e.prevented, false, 'the shortcut that finds the window gone is not consumed');
+  eq(Q._viewer, null, 'and the window is let go');
+  Q._viewer = { closed: true };
+  e = ev({ key:'Escape' }); Q._onCloseKey(e);
+  eq(e.prevented, false, 'Escape likewise');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');

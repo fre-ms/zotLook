@@ -218,9 +218,9 @@ on prepare()
 	end repeat
 	if not sheetOpen() then error "the contact sheet did not open"
 	delay 2
-	-- Closed with Cmd+W, the sheet leaves the next shortcut doing nothing
-	-- (seen every time, and worth a fix in the plugin), so the warm-up ends
-	-- the way the takes do: a page into the reader, whose tab is then closed
+	-- Up to 1.5.0, a sheet closed with Cmd+W left the next shortcut doing
+	-- nothing (fixed since), so the warm-up ends the way the takes do: a
+	-- page into the reader, whose tab is then closed
 	tell application "System Events" to key code 36
 	delay 0.8
 	tell application "System Events" to keystroke "o"

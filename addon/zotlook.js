@@ -529,21 +529,23 @@ var zotLook = Object.seal({
 				event.preventDefault();
 				event.stopPropagation();
 				this._closeQuickLook();
-			} else if (this._viewer) {
+			} else if (this._viewer && this._closeViewer()) {
 				event.preventDefault();
 				event.stopPropagation();
-				this._closeViewer();
 			}
 			return;
 		}
 
-		// The windowed sheet's own shortcut, pressed again to close it
+		// The windowed sheet's own shortcut, pressed again to close it. Only
+		// a press that closed something is taken: a window the reader shut
+		// by hand may still be remembered here for a moment, and the press
+		// that finds it gone must go on to the item list, which opens a
+		// fresh one — swallowed instead, it took a second press to do so.
 		if (this._viewer) {
 			let own = this.bindings.find((b) => b.close === "_closeViewer");
-			if (own && this._matchesBinding(event, own)) {
+			if (own && this._matchesBinding(event, own) && this._closeViewer()) {
 				event.preventDefault();
 				event.stopPropagation();
-				this._closeViewer();
 			}
 		}
 	},
@@ -907,25 +909,44 @@ var zotLook = Object.seal({
 			// listener on it, left the listener firing against a null
 			// reference and nothing ever closing. Guarded on win.closed so
 			// the swap is ignored and only the close is heeded.
-			win.addEventListener(
-				"unload",
-				() => {
-					let closed = false;
-					try {
-						closed = !!win.closed;
-					} catch (e) {
-						// treat an unreadable state as still open
+			//
+			//
+			// Not listened for once only: the swap sends the first unload,
+			// and a listener spent on it never heard the close. A window
+			// closed by hand — Cmd+W, the red button — sends its unload
+			// while closed is still false, and only then goes away; so an
+			// unload that finds the window open looks again a moment later,
+			// when a closed window says so, or has become a dead wrapper
+			// that says nothing at all. Left adopted, the closed window
+			// swallowed the next shortcut, which tried to close it instead
+			// of opening a fresh one.
+			let forget = () => {
+				try {
+					win.removeEventListener("unload", onUnload);
+				} catch (e) {
+					// The window is beyond listening
+				}
+				if (this._viewer !== win) return;
+				this._viewer = null;
+				this._viewerKeyHandler = null;
+				this._viewerItemID = null;
+				this._syncReaderHook();
+			};
+			let onUnload = () => {
+				let closed = this._viewerGone(win);
+				this.log("Contact sheet window unload (closed=" + closed + ")");
+				if (closed) {
+					forget();
+					return;
+				}
+				setTimeout(() => {
+					if (this._viewerGone(win)) {
+						this.log("Contact sheet window gone after its unload");
+						forget();
 					}
-					this.log("Contact sheet window unload (closed=" + closed + ")");
-					if (closed && this._viewer === win) {
-						this._viewer = null;
-						this._viewerKeyHandler = null;
-						this._viewerItemID = null;
-						this._syncReaderHook();
-					}
-				},
-				{ once: true }
-			);
+				}, 250);
+			};
+			win.addEventListener("unload", onUnload);
 		} catch (e) {
 			this.log("Could not listen to the contact sheet window: " + e);
 		}
@@ -1187,12 +1208,7 @@ var zotLook = Object.seal({
 	_closeViewer() {
 		let win = this._viewer;
 		if (!win) return false;
-		let alreadyClosed = false;
-		try {
-			alreadyClosed = !!win.closed;
-		} catch (e) {
-			// Some window references do not expose `closed`; assume open
-		}
+		let alreadyClosed = this._viewerGone(win);
 		this._releaseViewer();
 		// A window the user already closed by hand is not ours to close
 		// again — and saying so lets the caller open a fresh one rather
@@ -1225,6 +1241,28 @@ var zotLook = Object.seal({
 		}
 		this.log("Closed the contact sheet window (" + how + ")");
 		return true;
+	},
+
+	/**
+	 * Whether the window is no longer there.
+	 *
+	 * A closed window says so through `closed` — for as long as it can be
+	 * asked. Once Gecko has torn it down, the reference the plugin holds is
+	 * a dead wrapper, and reading anything from it throws; that is the
+	 * surest sign of all that the window is gone, and was once taken for
+	 * the opposite.
+	 */
+	_viewerGone(win) {
+		if (!win) return true;
+		try {
+			let cu = typeof Components !== "undefined" && Components.utils;
+			if (cu && typeof cu.isDeadWrapper === "function" && cu.isDeadWrapper(win)) {
+				return true;
+			}
+			return !!win.closed;
+		} catch (e) {
+			return true;
+		}
 	},
 
 	/** Forgets the window without closing it: neither the listener nor the

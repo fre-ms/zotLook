@@ -26,6 +26,8 @@ The sheet in its own Zotero window can search and answers the keyboard.
   Up and Page Down scroll, as before.
 - The system previews are as they were: they run no scripts, so they show no
   field and answer no keys.
+- A sheet window closed by hand, with Cmd+W or its red button, swallowed the
+  next shortcut; it took a second press to open a new one. Fixed.
 - Update checks go to zotlook.org from this version on; the update itself
   still comes from GitHub. The privacy page says what that means.
 

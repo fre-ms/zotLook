@@ -28,6 +28,9 @@ Tastatur.
   zurück. Bild auf und Bild ab blättern wie bisher.
 - Die Systemvorschauen bleiben, wie sie waren: Sie führen keine Skripte aus,
   zeigen also kein Feld und antworten auf keine Taste.
+- Ein von Hand geschlossenes Bogen-Fenster, mit Cmd+W oder dem roten Knopf,
+  verschluckte das nächste Kürzel; erst der zweite Druck öffnete wieder.
+  Behoben.
 - Update-Anfragen gehen ab dieser Version an zotlook.org; das Update selbst
   kommt weiterhin von GitHub. Die Datenschutzerklärung sagt, was das
   bedeutet.
