@@ -10,16 +10,18 @@ keyboard — and beside each a timeline of what it sent, and when::
 
 This puts the takes one after the other, each behind its title card, and
 shows every key from the timeline as a chip at the bottom of the frame for
-as long as it is pressed — until the next key, or a moment and a half. No
+as long as it is pressed — until the next key, or a good two seconds. No
 key-display tool sees a scripted keystroke, so this is where the keys come
 from. Clicks and scrolls are left to the pointer tool of the platform.
 
     script/screencast-post.py build/screencast --prefix macos --out asset/screenshot
 
-writes <prefix>-screencast.mp4, .webm and .gif into --out. The GIF is cut
-to the sheet and its surroundings and runs at ten frames a second, since
-it is for the README; the videos are the whole window, halved from the
-Retina recording, for the website's loop.
+writes <prefix>-screencast.mp4, .webm and .gif into --out. The GIF is the
+mouse take alone, cut to the sheet and its surroundings at ten frames a
+second, since it is for the README and has to stay small; the videos are
+both takes, the whole window, halved from the Retina recording, for the
+website's loop. The title card of each take is drawn over a darkened frame
+of the take itself.
 
 Wants ffmpeg with libx264 and libvpx, and Pillow for the chips.
 """
@@ -40,13 +42,15 @@ FONTS = [
     ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
     ("C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf"),
 ]
-CHIP_SECONDS = 1.5
+CHIP_SECONDS = 2.2
 TITLE_SECONDS = 2.5
 FPS = 30
 
 # The contact sheet window and a margin of its surroundings, in points of
-# the 1512 × 949 Zotero window the takes show; the GIF is cut to this
-GIF_CROP = (170, 60, 1110, 840)  # x, y, width, height
+# the 1512 × 949 Zotero window the takes show; the GIF is cut to this.
+# --crop overrides it, as x,y,width,height
+GIF_CROP = (30, 30, 1450, 890)  # x, y, width, height
+GIF_WIDTH = 900
 
 
 def font(size, bold=False):
@@ -98,14 +102,36 @@ def chip_image(text, scale):
     return img
 
 
-def title_image(text, width, height):
-    img = Image.new("RGB", (width, height), (31, 42, 51))
-    d = ImageDraw.Draw(img)
-    f = font(int(height * 0.075), bold=True)
-    x0, y0, x1, y1 = d.textbbox((0, 0), text, font=f)
-    d.text(((width - (x1 - x0)) / 2 - x0, (height - (y1 - y0)) / 2 - y0), text,
-           font=f, fill=(245, 184, 65))
-    return img
+def title_image(text, width, height, backdrop=None):
+    """The title on a card, over a darkened frame of the take when one is
+    given — the window the take is about, seen through the card."""
+    if backdrop is not None:
+        img = backdrop.convert("RGB").resize((width, height), Image.LANCZOS)
+        shade = Image.new("RGBA", (width, height), (20, 28, 36, 150))
+        img = Image.alpha_composite(img.convert("RGBA"), shade)
+    else:
+        img = Image.new("RGBA", (width, height), (31, 42, 51, 255))
+    f = font(int(height * 0.07), bold=True)
+    probe = ImageDraw.Draw(img)
+    x0, y0, x1, y1 = probe.textbbox((0, 0), text, font=f)
+    tw, th = x1 - x0, y1 - y0
+    pad_x, pad_y = int(height * 0.06), int(height * 0.04)
+    cw, ch = tw + 2 * pad_x, th + 2 * pad_y
+    card = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+    ImageDraw.Draw(card).rounded_rectangle((0, 0, cw - 1, ch - 1), radius=int(ch * 0.28),
+                                           fill=(31, 42, 51, 225))
+    ImageDraw.Draw(card).text((pad_x - x0, pad_y - y0), text, font=f, fill=(245, 184, 65))
+    img.alpha_composite(card, ((width - cw) // 2, (height - ch) // 2))
+    return img.convert("RGB")
+
+
+def frame_of(take, at, work):
+    """One frame of a take, `at` seconds in, as an image."""
+    png = work / f"frame-{take.stem}.png"
+    subprocess.check_call([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-ss", str(at), "-i", str(take), "-frames:v", "1", str(png)])
+    return Image.open(png)
 
 
 def probe(path):
@@ -118,10 +144,10 @@ def probe(path):
     return int(w), int(h), duration
 
 
-def take_with_chips(take, timeline, out, width, height, work):
+def take_with_chips(take, timeline, out, width, height, work, offset=0.0):
     """One take, halved to `width`, with its chips overlaid."""
     scale = width / 1512
-    events = chips(read_timeline(timeline))
+    events = [(a + offset, b + offset, t) for a, b, t in chips(read_timeline(timeline))]
     inputs = ["-i", str(take)]
     filters = [f"[0:v]scale={width}:{height}:flags=lanczos,fps={FPS},format=yuv420p[v0]"]
     last = "v0"
@@ -141,9 +167,9 @@ def take_with_chips(take, timeline, out, width, height, work):
     subprocess.check_call(cmd)
 
 
-def title_clip(text, out, width, height, work):
+def title_clip(text, out, width, height, work, backdrop=None):
     png = work / f"title-{out.stem}.png"
-    title_image(text, width, height).save(png)
+    title_image(text, width, height, backdrop).save(png)
     subprocess.check_call([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
         "-loop", "1", "-framerate", str(FPS), "-i", str(png),
@@ -168,10 +194,10 @@ def webm(src, out):
         "-c:v", "libvpx-vp9", "-crf", "34", "-b:v", "0", "-row-mt", "1", "-an", str(out)])
 
 
-def gif(src, out, width, work):
+def gif(src, out, width, work, crop):
     scale = width / 1512
-    x, y, w, h = (int(v * scale) for v in GIF_CROP)
-    vf = f"crop={w}:{h}:{x}:{y},fps=10,scale=800:-1:flags=lanczos"
+    x, y, w, h = (int(v * scale) for v in crop)
+    vf = f"crop={w}:{h}:{x}:{y},fps=10,scale={GIF_WIDTH}:-1:flags=lanczos"
     palette = work / "palette.png"
     subprocess.check_call([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src),
@@ -189,7 +215,13 @@ def main():
     ap.add_argument("--out", type=Path, default=Path("asset/screenshot"))
     ap.add_argument("--width", type=int, default=1512, help="width of the videos")
     ap.add_argument("--keep", action="store_true", help="keep the intermediate files")
+    ap.add_argument("--crop", help="the GIF's cut, x,y,width,height in points of the window")
+    ap.add_argument("--offset", type=float, default=0.0,
+                    help="seconds added to every timeline entry, for a recording that started later than the timeline assumed")
+    ap.add_argument("--gif-take", default="mouse", choices=["mouse", "keyboard", "both"],
+                    help="which take the GIF shows (default: the mouse)")
     args = ap.parse_args()
+    crop = tuple(int(v) for v in args.crop.split(",")) if args.crop else GIF_CROP
 
     if not shutil.which("ffmpeg"):
         sys.exit("ffmpeg is not on the PATH")
@@ -208,16 +240,19 @@ def main():
     work = Path(tempfile.mkdtemp(prefix="screencast-"))
     try:
         parts = []
+        clips = {}
         for part, title in (("mouse", "mouse navigation"), ("keyboard", "keyboard navigation")):
             card = work / f"{part}-title.mp4"
-            title_clip(title, card, width, height, work)
+            title_clip(title, card, width, height, work, frame_of(takes[part][0], 0.2, work))
             clip = work / f"{part}-take.mp4"
-            take_with_chips(takes[part][0], takes[part][1], clip, width, height, work)
+            take_with_chips(takes[part][0], takes[part][1], clip, width, height, work, args.offset)
             parts += [card, clip]
+            clips[part] = clip
         mp4 = args.out / f"{args.prefix}-screencast.mp4"
         concat(parts, mp4)
         webm(mp4, args.out / f"{args.prefix}-screencast.webm")
-        gif(mp4, args.out / f"{args.prefix}-screencast.gif", width, work)
+        gif_src = mp4 if args.gif_take == "both" else clips[args.gif_take]
+        gif(gif_src, args.out / f"{args.prefix}-screencast.gif", width, work, crop)
         for name in ("mp4", "webm", "gif"):
             p = args.out / f"{args.prefix}-screencast.{name}"
             print(f"{p}  {p.stat().st_size / 1e6:.1f} MB")

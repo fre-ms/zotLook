@@ -524,7 +524,7 @@ const ok = (c,l)=>eq(!!c,true,l);
   const readerOpens = [];
   const readerOpen = async (...args) => { readerOpens.push(args); return 'reader'; };
   const Reader = { open: readerOpen };
-  const { zotLook: Q, zotLookUtil: U } = loadPlugin({ zotero: { Reader } });
+  const { zotLook: Q, zotLookUtil: U, prefs } = loadPlugin({ zotero: { Reader } });
   // A window with just enough of a XUL document for the key injection
   const makeWin = () => {
     const byId = {};
@@ -665,6 +665,79 @@ const ok = (c,l)=>eq(!!c,true,l);
   Object.defineProperty(w3e, 'closed', { get() { throw new TypeError("can't access dead object"); } });
   await new Promise((r) => setTimeout(r, 350));
   eq(Q._viewer, null, 'a window dead after its unload is forgotten too');
+
+  // ── the loading hint ──
+  // The window stands empty until its browser has the file; a line is laid
+  // over it, and taken away when the browser reports the sheet's title —
+  // not the blank's title, which comes first
+  const withBrowser = () => {
+    const w = makeWin();
+    const appended = [];
+    w.document.documentElement.appendChild = (n) => { appended.push(n); if (n.id) w.document._byId(n.id, n); };
+    const byId = {};
+    w.document._byId = (id, n) => { byId[id] = n; };
+    const getById = w.document.getElementById;
+    w.document.getElementById = (id) => byId[id] || getById(id);
+    w.document.createElementNS = (ns, tag) => ({
+      ns, tag, id: '', attrs: {}, textContent: '',
+      setAttribute(k, v) { this.attrs[k] = v; },
+      remove() { delete byId[this.id]; this.removed = true; },
+    });
+    const handlers = {};
+    w.browser.currentURI = { spec: 'about:blank' };
+    w.browser.addEventListener = (type, fn) => { handlers[type] = fn; };
+    w.browser.removeEventListener = (type) => { delete handlers[type]; };
+    w.browser.handlers = handlers;
+    return w;
+  };
+  const wl = withBrowser();
+  Q._adoptViewer(wl);
+  const hint = wl.document.getElementById('zotlook-viewer-loading');
+  ok(hint, 'a loading hint goes over the window as it is adopted');
+  ok(hint.textContent.length > 0, 'with a word on it');
+  ok(wl.browser.handlers.pagetitlechanged, 'and the browser is listened to for the title');
+  wl.browser.handlers.pagetitlechanged();
+  eq(hint.removed, undefined, 'the blank’s title does not take it away');
+  wl.browser.currentURI = { spec: 'file:///tmp/sheet.html' };
+  wl.browser.handlers.pagetitlechanged();
+  eq(hint.removed, true, 'the sheet’s title does');
+  eq(wl.browser.handlers.pagetitlechanged, undefined, 'and the listener goes with it');
+  const wl2 = withBrowser();
+  Q._adoptViewer(wl2);
+  const hint2 = wl2.document.getElementById('zotlook-viewer-loading');
+  Q._releaseViewer();
+  eq(hint2.removed, true, 'a released window loses the hint at once');
+
+  // ── the window's size is kept ──
+  // The viewer sizes itself to its minimum on every load; the size the
+  // reader left it at is put back on the load, and kept as it changes
+  const sized = () => {
+    const w = makeWin();
+    w.sizes = []; w.outerWidth = 1000; w.outerHeight = 728;
+    w.resizeTo = (x, y) => { w.sizes.push([x, y]); w.outerWidth = x; w.outerHeight = y; };
+    return w;
+  };
+  const tick = () => new Promise((r) => setTimeout(r, 20));
+  const ws = sized();
+  Q._adoptViewer(ws);
+  eq(ws.sizes.length, 0, 'before the load nothing is sized');
+  ws.listeners.load();
+  eq(ws.listeners.resize, undefined, 'the viewer’s own sizing, right after the load, is not taken for the reader’s');
+  await tick();
+  eq(ws.sizes.length, 0, 'with no size kept, the viewer’s own stands');
+  ok(ws.listeners.resize, 'and the window is watched for a resize from then on');
+  ws.outerWidth = 1400; ws.outerHeight = 860; ws.listeners.resize();
+  eq(prefs.get('extensions.zotlook.windowWidth'), 1400, 'a resize keeps the width');
+  eq(prefs.get('extensions.zotlook.windowHeight'), 860, 'and the height');
+  Q._releaseViewer();
+  const ws2 = sized();
+  Q._adoptViewer(ws2);
+  ws2.listeners.load();
+  await tick();
+  eq(JSON.stringify(ws2.sizes), '[[1400,860]]', 'the next window is put back to that size on its load');
+  ws2.outerWidth = 200; ws2.outerHeight = 100; ws2.listeners.resize();
+  eq(prefs.get('extensions.zotlook.windowWidth'), 1400, 'an absurd size is not kept');
+  Q._releaseViewer();
 
   const w4 = makeWin();
   Q._adoptViewer(w4);

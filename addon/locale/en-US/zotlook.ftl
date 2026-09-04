@@ -98,6 +98,8 @@ zotlook-sheet-text = Text
 zotlook-sheet-search = Search pages
 zotlook-sheet-search-none = No matches
 zotlook-sheet-pages = pages
+# Over the window while the sheet is still loading
+zotlook-sheet-loading = Laying out the contact sheet…
 
 zotlook-prefs-keep-title = Kept previews
 

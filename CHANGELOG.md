@@ -25,6 +25,9 @@ The sheet in its own Zotero window can search and answers the keyboard.
   field and answer no keys.
 - A sheet window closed by hand, with Cmd+W or its red button, swallowed the
   next shortcut; it took a second press to open a new one. Fixed.
+- The window says that the sheet is on its way while it is still empty, and
+  it comes back at the size it was last left at rather than at Zotero's
+  minimum.
 - Update checks go to zotlook.org from this version on; the update itself
   still comes from GitHub. The privacy page says what that means.
 

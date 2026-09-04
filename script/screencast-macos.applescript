@@ -26,18 +26,25 @@ property collectionKey : "QLDZQ9F5"
 property docsRow : {480, 164} -- the item's row, relative to the main window
 property readerClose : {481, 18} -- the reader tab's close button, likewise
 
--- Positions inside the contact sheet window, measured on a 1000 × 728 window
--- with four columns, relative to its top left
-property btnContents : {940, 687}
-property btnAnnotations : {97, 687}
-property searchField : {867, 59}
-property entryWasEsKann : {794, 465} -- "2. Was es kann" in the contents menu
-property entryBlueAnnotation : {217, 586} -- the middle, blue annotation
-property linkSeite6 : {79, 586} -- its "Seite 6" link, once the fold is open
-property tileAfterContents : {623, 370} -- page 11, framed after the jump
-property tileAfterAnnotation : {377, 370} -- page 6, likewise
-property tileAfterSearch : {377, 220} -- page 14, after the scroll
-property scrollTo14 : 1095 -- three rows of tiles
+-- The sheet window is put at a fixed place and size before the takes: the
+-- viewer remembers the place, and zotLook (from 1.5.1) the size, so every
+-- opening lands there. Larger than the default, so that the tiles can be
+-- read in the cut
+property sheetOrigin : {56, 78}
+property sheetSize : {1400, 860}
+
+-- Positions inside the contact sheet window, measured on that window with
+-- four columns, relative to its top left
+property btnContents : {1340, 819}
+property btnAnnotations : {96, 819}
+property searchField : {1264, 59}
+property entryWasEsKann : {1194, 515} -- "2. Was es kann" in the contents menu
+property entryBlueAnnotation : {219, 718} -- the middle, blue annotation
+property linkSeite6 : {79, 718} -- its "Seite 6" link, once the fold is open
+property tileAfterContents : {873, 442} -- page 11, framed after the jump
+property tileAfterAnnotation : {526, 442} -- page 6, likewise
+property tileAfterSearch : {526, 297} -- page 14, after the scroll
+property scrollTo14 : 1515 -- three rows of tiles
 
 global helper, timeline, t0, outDir, mainPos
 
@@ -84,7 +91,7 @@ on mousePart()
 	clickSheet(btnContents, 700)
 	delay 1.4
 	clickSheet(entryWasEsKann, 700)
-	delay 1.6
+	delay 2.4
 	clickSheet(btnContents, 600)
 	delay 1.2
 	clickSheet(tileAfterContents, 800)
@@ -102,7 +109,7 @@ on mousePart()
 	clickSheet(entryBlueAnnotation, 700)
 	delay 1.2
 	clickSheet(linkSeite6, 500)
-	delay 1.6
+	delay 2.4
 	clickSheet(btnAnnotations, 600)
 	delay 1.2
 	clickSheet(tileAfterAnnotation, 800)
@@ -118,9 +125,9 @@ on mousePart()
 	clickSheet(searchField, 700)
 	delay 0.6
 	typeText("Tasten")
-	delay 1.6
+	delay 2
 	scrollSheet(scrollTo14)
-	delay 1.6
+	delay 2.2
 	clickSheet(tileAfterSearch, 800)
 	waitForNoSheet()
 	delay 2.5
@@ -132,7 +139,7 @@ on keyboardPart()
 	-- the sheet; the contents menu, down to "2. Was es kann", Enter follows
 	chord("Ctrl+Alt+Space")
 	needSheet()
-	delay 1.5
+	delay 2
 	letter("c")
 	delay 1
 	repeat 8 times
@@ -141,7 +148,7 @@ on keyboardPart()
 	end repeat
 	delay 0.6
 	press("Enter", 36, {})
-	delay 1.6
+	delay 2.2
 	letter("o")
 	waitForNoSheet()
 	delay 2.5
@@ -157,7 +164,7 @@ on keyboardPart()
 	arrow("Down")
 	delay 0.8
 	press("Enter", 36, {})
-	delay 1.6
+	delay 2.2
 	letter("o")
 	waitForNoSheet()
 	delay 2.5
@@ -218,6 +225,8 @@ on prepare()
 	end repeat
 	if not sheetOpen() then error "the contact sheet did not open"
 	delay 2
+	placeSheet()
+	delay 1
 	-- Up to 1.5.0, a sheet closed with Cmd+W left the next shortcut doing
 	-- nothing (fixed since), so the warm-up ends the way the takes do: a
 	-- page into the reader, whose tab is then closed
@@ -245,10 +254,12 @@ on startRecording(outFile)
 	do shell script "rm -f " & quoted form of outFile & " " & quoted form of timeline
 	set r to mainWindowRect()
 	do shell script "screencapture -v -C -R " & r & " " & quoted form of outFile & " > /dev/null 2>&1 &"
-	-- the capture is running about half a second after the launch. The
-	-- moment is kept as the shell wrote it: a number passed through
-	-- AppleScript would come back with the locale's decimal comma
-	set t0 to do shell script "perl -MTime::HiRes=time -e 'printf \"%.3f\", time + 0.5'"
+	-- the capture is running a tenth of a second after the launch — measured
+	-- with a cursor sent into the frame at a known moment, and the frame it
+	-- first shows in. The moment is kept as the shell wrote it: a number
+	-- passed through AppleScript would come back with the locale's decimal
+	-- comma
+	set t0 to do shell script "perl -MTime::HiRes=time -e 'printf \"%.3f\", time + 0.1'"
 	delay 2.5
 end startRecording
 
@@ -316,21 +327,28 @@ end typeText
 
 on clickMain(pt, ms)
 	set {x, y} to pt
+	do shell script quoted form of helper & " move " & ((item 1 of mainPos) + x) & " " & ((item 2 of mainPos) + y) & " " & ms
+	delay 0.6
 	mark("click", "")
-	do shell script quoted form of helper & " click " & ((item 1 of mainPos) + x) & " " & ((item 2 of mainPos) + y) & " " & ms
+	do shell script quoted form of helper & " click " & ((item 1 of mainPos) + x) & " " & ((item 2 of mainPos) + y) & " 0"
 end clickMain
 
+-- The pointer travels to the target, rests on it for a moment — long
+-- enough for the eye to arrive too — and then clicks
 on clickSheet(pt, ms)
 	set {x, y} to pt
 	set p to sheetPosition()
+	do shell script quoted form of helper & " move " & ((item 1 of p) + x) & " " & ((item 2 of p) + y) & " " & ms
+	delay 0.6
 	mark("click", "")
-	do shell script quoted form of helper & " click " & ((item 1 of p) + x) & " " & ((item 2 of p) + y) & " " & ms
+	do shell script quoted form of helper & " click " & ((item 1 of p) + x) & " " & ((item 2 of p) + y) & " 0"
 end clickSheet
 
 on scrollSheet(points)
 	set p to sheetPosition()
 	mark("scroll", points as text)
-	do shell script quoted form of helper & " scroll " & ((item 1 of p) + 500) & " " & ((item 2 of p) + 400) & " " & points
+	-- div, not /: a real would reach the shell with the locale's comma
+	do shell script quoted form of helper & " scroll " & ((item 1 of p) + ((item 1 of sheetSize) div 2)) & " " & ((item 2 of p) + ((item 2 of sheetSize) div 2)) & " " & points
 end scrollSheet
 
 -- ── the windows ──────────────────────────────────────────────────────────
@@ -362,6 +380,13 @@ on sheetOpen()
 		return exists window "Contact Sheet"
 	end tell
 end sheetOpen
+
+on placeSheet()
+	tell application "System Events" to tell process "Zotero"
+		set position of window "Contact Sheet" to sheetOrigin
+		set size of window "Contact Sheet" to sheetSize
+	end tell
+end placeSheet
 
 on sheetPosition()
 	tell application "System Events" to tell process "Zotero"

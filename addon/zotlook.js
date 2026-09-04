@@ -50,6 +50,8 @@ var zotLook = Object.seal({
 	// The Zotero window holding a contact sheet, while one is open
 	_viewer: null,
 	_viewerKeyHandler: null,
+	// Takes the loading hint off the window, while one is up
+	_viewerLoadingClear: null,
 	// Zotero.Reader.open, unwrapped — held only while the window lives
 	_readerOpenOriginal: null,
 	_readerOpenPatched: null,
@@ -113,6 +115,7 @@ var zotLook = Object.seal({
 		"zotlook-sheet-image",
 		"zotlook-sheet-ink",
 		"zotlook-sheet-text",
+		"zotlook-sheet-loading",
 		"zotlook-sheet-search",
 		"zotlook-sheet-search-none",
 		"zotlook-sheet-pages",
@@ -954,7 +957,7 @@ var zotLook = Object.seal({
 		// The document may not be built yet when openInViewer returns, so
 		// the keys are installed now and again on load; the second is a
 		// no-op once the first has taken.
-		let install = () => {
+		let install = (loaded) => {
 			try {
 				if (this._installViewerKeys(win)) {
 					this.log("Contact sheet window keys installed");
@@ -962,11 +965,23 @@ var zotLook = Object.seal({
 			} catch (e) {
 				this.log("Could not add the contact sheet window's keys: " + e);
 			}
+			try {
+				this._showViewerLoading(win);
+			} catch (e) {
+				this.log("Could not put up the loading hint: " + e);
+			}
+			if (loaded) {
+				try {
+					this._rememberViewerSize(win);
+				} catch (e) {
+					this.log("Could not size the contact sheet window: " + e);
+				}
+			}
 			this._focusViewerContent(win);
 		};
-		install();
+		install(false);
 		try {
-			win.addEventListener("load", install, { once: true });
+			win.addEventListener("load", () => install(true), { once: true });
 		} catch (e) {
 			// The window is already gone
 		}
@@ -1180,6 +1195,119 @@ var zotLook = Object.seal({
 	},
 
 	/**
+	 * The window's size, kept from one sheet to the next.
+	 *
+	 * Zotero's viewer sizes itself to its content on every load, which for
+	 * a window holding nothing but a browser is its minimum, so a window
+	 * the reader had pulled larger came back small the next time. Now the
+	 * size it was last left at is written to the preferences as it changes
+	 * and put back on the load. The viewer's own sizing runs from the
+	 * window's onload attribute, which Gecko fires after the listeners a
+	 * script added — so ours must wait a tick, or be undone by it; the tick
+	 * is still ahead of the first paint. The place is the viewer's own
+	 * business; it keeps that itself.
+	 */
+	_rememberViewerSize(win) {
+		if (typeof win.resizeTo !== "function" || typeof win.addEventListener !== "function") {
+			return false;
+		}
+		let width = Number(this._pref("windowWidth", 0)) || 0;
+		let height = Number(this._pref("windowHeight", 0)) || 0;
+		setTimeout(() => {
+			if (this._viewerGone(win)) return;
+			if (width >= 400 && height >= 300) {
+				try {
+					win.resizeTo(width, height);
+					this.log("Contact sheet window sized to " + width + "×" + height);
+				} catch (e) {
+					this.log("Could not size the contact sheet window: " + e);
+				}
+			}
+			// Only from here on is a resize the reader's doing
+			win.addEventListener("resize", () => {
+				let w = Number(win.outerWidth) || 0;
+				let h = Number(win.outerHeight) || 0;
+				if (w < 400 || h < 300) return;
+				try {
+					Zotero.Prefs.set(this.PREF_BRANCH + "windowWidth", w, true);
+					Zotero.Prefs.set(this.PREF_BRANCH + "windowHeight", h, true);
+				} catch (e) {
+					this.log("Could not keep the contact sheet window's size: " + e);
+				}
+			});
+		}, 0);
+		return true;
+	},
+
+	/**
+	 * A word over the window while the sheet is still on its way.
+	 *
+	 * The window is up before its browser has the file: for a moment it
+	 * stands empty, and on a sheet of many pages the moment is long enough
+	 * to look like nothing happening. So a line is laid over the browser —
+	 * in the window's own document, which is ours whatever process the
+	 * file loads in — and taken away when the browser reports the sheet's
+	 * title, the first thing a loading page announces. The title of the
+	 * blank the browser starts with is not that report. A window that never
+	 * reports is cleared after a while, and a released window at once.
+	 */
+	_showViewerLoading(win) {
+		let doc = win.document;
+		if (!doc || !doc.documentElement) return false;
+		if (doc.getElementById("zotlook-viewer-loading")) return true;
+		if (typeof doc.createElementNS !== "function") return false;
+		let browser =
+			typeof doc.querySelector === "function" ? doc.querySelector("browser") : null;
+		if (!browser || typeof browser.addEventListener !== "function") return false;
+
+		const XHTML = "http://www.w3.org/1999/xhtml";
+		let hint = doc.createElementNS(XHTML, "div");
+		hint.id = "zotlook-viewer-loading";
+		hint.setAttribute(
+			"style",
+			"position: fixed; inset: 0; z-index: 10; display: flex;" +
+				" align-items: center; justify-content: center;" +
+				" background: #f4f4f4; color: #4a4a4a;" +
+				" font: 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;" +
+				" pointer-events: none;"
+		);
+		hint.textContent = this._string(
+			"zotlook-sheet-loading",
+			"Laying out the contact sheet…"
+		);
+		doc.documentElement.appendChild(hint);
+
+		let clear = () => {
+			try {
+				browser.removeEventListener("pagetitlechanged", onTitle);
+			} catch (e) {
+				// Already gone
+			}
+			if (timer !== null) clearTimeout(timer);
+			timer = null;
+			try {
+				hint.remove();
+			} catch (e) {
+				// Likewise
+			}
+		};
+		let onTitle = () => {
+			let spec = "";
+			try {
+				spec = String(browser.currentURI && browser.currentURI.spec);
+			} catch (e) {
+				spec = "";
+			}
+			if (spec.indexOf("about:") === 0) return;
+			clear();
+		};
+		let timer = setTimeout(clear, 8000);
+		browser.addEventListener("pagetitlechanged", onTitle);
+		this._viewerLoadingClear = clear;
+		return true;
+	},
+
+	/**
 	 * A shortcut binding as the attributes of a XUL <key>. Space is named by
 	 * its key code, which sits in the same place on every layout; a letter or
 	 * digit by the character it produces, as elsewhere in this plugin.
@@ -1269,6 +1397,10 @@ var zotLook = Object.seal({
 	 *  injected keys must outlive the plugin, the window may. */
 	_releaseViewer() {
 		let win = this._viewer;
+		if (this._viewerLoadingClear) {
+			this._viewerLoadingClear();
+			this._viewerLoadingClear = null;
+		}
 		if (win) {
 			if (this._viewerKeyHandler) {
 				try {

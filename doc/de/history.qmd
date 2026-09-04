@@ -31,6 +31,9 @@ Tastatur.
 - Ein von Hand geschlossenes Bogen-Fenster, mit Cmd+W oder dem roten Knopf,
   verschluckte das nächste Kürzel; erst der zweite Druck öffnete wieder.
   Behoben.
+- Das Fenster sagt, dass der Bogen unterwegs ist, solange es noch leer ist,
+  und es kommt in der Größe wieder, in der man es zuletzt gelassen hat, statt
+  in Zoteros Mindestgröße.
 - Update-Anfragen gehen ab dieser Version an zotlook.org; das Update selbst
   kommt weiterhin von GitHub. Die Datenschutzerklärung sagt, was das
   bedeutet.

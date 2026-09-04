@@ -34,6 +34,11 @@ pref("extensions.zotlook.contactSheetColumns", 5);
 pref("extensions.zotlook.contactSheetContents", true);
 pref("extensions.zotlook.contactSheetAnnotations", true);
 
+// The size the sheet's own window was last left at, put back when the next
+// one opens. 0 leaves it to Zotero's viewer, which sizes to its minimum.
+pref("extensions.zotlook.windowWidth", 0);
+pref("extensions.zotlook.windowHeight", 0);
+
 // Keep what zotLook derives from an attachment and show it again unchanged,
 // rather than making it a second time: the contact sheet and the EPUB
 // preview, both of which cost seconds. Kept beside the working directory, in

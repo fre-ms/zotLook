@@ -100,6 +100,8 @@ zotlook-sheet-text = Text
 zotlook-sheet-search = Seiten durchsuchen
 zotlook-sheet-search-none = Keine Treffer
 zotlook-sheet-pages = Seiten
+# Über dem Fenster, solange die Übersicht noch lädt
+zotlook-sheet-loading = Kontaktbogen wird aufgebaut …
 
 zotlook-prefs-keep-title = Zwischengespeicherte Vorschauen
 
