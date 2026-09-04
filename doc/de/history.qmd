@@ -32,9 +32,11 @@ Tastatur.
   verschluckte das nächste Kürzel; erst der zweite Druck öffnete wieder.
   Behoben.
 - Das Fenster sagt, dass der Bogen unterwegs ist, solange es noch leer ist,
-  und es kommt in der Größe wieder, in der man es zuletzt gelassen hat, statt
-  in Zoteros Mindestgröße; die Größe lässt sich auch in den Einstellungen
-  setzen. Sein Titel spricht die Sprache des übrigen Bogens.
+  und es kommt in der Größe wieder, in der man es zuletzt gelassen hat,
+  statt in Zoteros Mindestgröße; die Größe lässt sich auch in den
+  Einstellungen setzen. Sein Titel spricht die Sprache des übrigen Bogens.
+  Unter Linux, wo der Fensterverwalter die Titelleiste zeichnet, kam das
+  Fenster bei jedem Öffnen um diese Leiste höher zurück; behoben.
 - Eine Annotation im Menü des Bogens öffnet den Reader an der Annotation
   selbst, über einen eigenen Link oder im Fenster mit o.
 - Der Bogen ist dunkel, wo das System dunkel ist.

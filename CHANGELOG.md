@@ -28,7 +28,9 @@ The sheet in its own Zotero window can search and answers the keyboard.
 - The window says that the sheet is on its way while it is still empty, and
   it comes back at the size it was last left at rather than at Zotero's
   minimum; the size can also be set in the preferences. Its title is in the
-  language of the rest of the sheet.
+  language of the rest of the sheet. On Linux, where the window manager
+  draws the title bar, the window came back taller by that bar each time it
+  opened; fixed.
 - An annotation in the sheet's menu opens the reader at the annotation
   itself, by its own link or with o in the window.
 - The sheet is dark where the system is dark.

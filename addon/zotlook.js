@@ -1452,6 +1452,16 @@ var zotLook = Object.seal({
 	 * script added — so ours must wait a tick, or be undone by it; the tick
 	 * is still ahead of the first paint. The place is the viewer's own
 	 * business; it keeps that itself.
+	 *
+	 * Under X11, when the window manager frames the window, Gecko takes
+	 * a resizeTo for the frame once it knows the frame's extents and for
+	 * the content before — and on the load it does not know them yet. So
+	 * the size put back came out as content, taller by the title bar, and
+	 * outerHeight, which counts the bar, kept the taller figure: the
+	 * window grew a bar per opening on GNOME. So the size is asked for
+	 * once more when it has taken, if the content took it whole: by then
+	 * the frame is known, and the second asking is held to the outer
+	 * measure. Where the two agree from the start, nothing is asked again.
 	 */
 	_rememberViewerSize(win) {
 		if (typeof win.resizeTo !== "function" || typeof win.addEventListener !== "function") {
@@ -1461,7 +1471,8 @@ var zotLook = Object.seal({
 		let height = Number(this._pref("windowHeight", 0)) || 0;
 		setTimeout(() => {
 			if (this._viewerGone(win)) return;
-			if (width >= 400 && height >= 300) {
+			let wanted = width >= 400 && height >= 300;
+			if (wanted) {
 				try {
 					win.resizeTo(width, height);
 					this.log("Contact sheet window sized to " + width + "×" + height);
@@ -1469,8 +1480,32 @@ var zotLook = Object.seal({
 					this.log("Could not size the contact sheet window: " + e);
 				}
 			}
+			// The size asked for is checked when it has taken, and asked for
+			// once more if the content took it whole
+			let checked = !wanted;
+			let check = () => {
+				if (checked || this._viewerGone(win)) return true;
+				let inW = Number(win.innerWidth) || 0;
+				let inH = Number(win.innerHeight) || 0;
+				let barW = (Number(win.outerWidth) || 0) - inW;
+				let barH = (Number(win.outerHeight) || 0) - inH;
+				let tookWhole = (barH > 0 && Math.abs(inH - height) <= 1)
+					|| (barW > 0 && Math.abs(inW - width) <= 1);
+				if (!tookWhole) return true;
+				checked = true;
+				try {
+					win.resizeTo(width, height);
+					this.log("Contact sheet window sized again, the frame of "
+						+ barW + "×" + barH + " now known");
+				} catch (e) {
+					this.log("Could not size the contact sheet window: " + e);
+				}
+				return false;
+			};
+			setTimeout(check, 400);
 			// Only from here on is a resize the reader's doing
 			win.addEventListener("resize", () => {
+				if (!check()) return;
 				let w = Number(win.outerWidth) || 0;
 				let h = Number(win.outerHeight) || 0;
 				if (w < 400 || h < 300) return;

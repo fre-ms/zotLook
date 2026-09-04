@@ -739,6 +739,55 @@ const ok = (c,l)=>eq(!!c,true,l);
   eq(prefs.get('extensions.zotlook.windowWidth'), 1400, 'an absurd size is not kept');
   Q._releaseViewer();
 
+  // ── under X11 the size is asked for twice ──
+  // Gecko takes a resizeTo for the content until it knows the frame the
+  // window manager put on, and for the frame from then on; outerHeight
+  // counts the frame throughout. A window whose content took the outer
+  // measure whole is asked for the same size again, which the frame now
+  // known holds to the outer measure; and that measure is what is kept
+  const x11 = () => {
+    const w = makeWin();
+    const bar = 37;
+    w.sizes = []; w.innerWidth = 1000; w.innerHeight = 700;
+    w.outerWidth = 1000; w.outerHeight = 700 + bar;
+    w.framed = false;
+    w.resizeTo = (x, y) => {
+      w.sizes.push([x, y]);
+      if (w.framed) {
+        w.outerWidth = x; w.outerHeight = y; w.innerWidth = x; w.innerHeight = y - bar;
+      } else {
+        w.innerWidth = x; w.innerHeight = y; w.outerWidth = x; w.outerHeight = y + bar;
+        w.framed = true;
+      }
+    };
+    return w;
+  };
+  const wx = x11();
+  Q._adoptViewer(wx);
+  wx.listeners.load();
+  await tick();
+  eq(JSON.stringify(wx.sizes), '[[1400,860]]', 'the kept size is asked for first');
+  eq(wx.outerHeight, 897, 'and comes out taller by the bar, as content');
+  wx.listeners.resize();
+  eq(JSON.stringify(wx.sizes), '[[1400,860],[1400,860]]', 'the content having taken it whole, the same size is asked for again');
+  eq(wx.outerHeight, 860, 'which the frame now known holds to the outer measure');
+  eq(prefs.get('extensions.zotlook.windowHeight'), 860, 'and the taller figure is not kept');
+  wx.listeners.resize();
+  eq(wx.sizes.length, 2, 'the next resize asks for nothing');
+  eq(prefs.get('extensions.zotlook.windowHeight'), 860, 'and keeps the outer measure, which holds');
+  wx.innerHeight = 900; wx.outerHeight = 937; wx.listeners.resize();
+  eq(prefs.get('extensions.zotlook.windowHeight'), 937, 'a resize by the reader is kept as before');
+  Q._releaseViewer();
+  const wx2 = x11();
+  Q._adoptViewer(wx2);
+  wx2.listeners.load();
+  await tick();
+  wx2.listeners.resize();
+  eq(JSON.stringify(wx2.sizes), '[[1400,937],[1400,937]]', 'and the next window comes back at that outer size the same way');
+  eq(wx2.outerHeight, 937, 'outer');
+  eq(wx2.innerHeight, 900, 'content less the bar');
+  Q._releaseViewer();
+
   const w4 = makeWin();
   Q._adoptViewer(w4);
   Q._adoptViewer(w4);
