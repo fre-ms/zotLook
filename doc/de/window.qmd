@@ -85,9 +85,18 @@ Zahl, die ein Zitat nennt — bei einem Buch mit römischem Vorspann beginnt die
 gedruckte 1 nicht auf der ersten Kachel. Wo das PDF seine Seiten beschriftet,
 zeigen die Kacheln diese Zahlen, und das Feld findet danach; sonst gilt die
 Nummer der Kachel. Eine Zahl, die es nicht gibt, sagt das Feld. Der Platzhalter
-nennt den Bereich, etwa „Seite i–312“. In der Seitenübersicht eines Buches ist
-jede Kachel eine gedruckte Seite; dort zählt allein die Marke des Buches, auch
-wenn sie „Page 13.“ heißt, und eine Zahl ohne Seite ist keine.
+nennt den Bereich, etwa „Seite i–312“.
+
+Das Feld nimmt die Zahl, wie ein Zitat sie nennt, und sieht über das hinweg,
+was ein Buch um sie herumschreibt: „Page 13.“, „[13]“ und „13“ sind dieselbe
+Seite, Groß- und Kleinschreibung gilt nicht, Ziffern anderer Schriften sind
+dieselben Ziffern. Ein Präfix, das der Druck selbst hat, bleibt Teil der Zahl:
+„A‑1“ ist eine Seite des Anhangs, „1“ findet sie nicht, solange es eine Seite 1
+gibt; „a1“ findet sie schon. Tragen zwei Seiten dieselbe Zahl mit
+verschiedenen Präfixen, „A‑3“ und „B‑3“, weist das Feld die nackte 3 ab, statt
+zu raten. In der Seitenübersicht eines Buches ist jede Kachel eine gedruckte
+Seite; dort zählt allein die Marke des Buches, und eine Zahl ohne Seite ist
+keine.
 
 Ein **Seitenbereich**, „12–18“, zeigt nur diese Seiten: Die anderen Kacheln
 verlassen das Raster, und die Spaltenzahl wird so gewählt, dass der Bereich
@@ -131,6 +140,7 @@ Der Rahmen ist ein Cursor:
 | **Ziffern** | landen im Seitenfeld, wo Enter die Seite rahmt; **Strg+G** führt auch so hinein |
 | **Rückschritt** (Backspace) | nimmt zurück, was das Seitenfeld verlangt hat: Seite, Bereich und Rahmen; ein zweiter Druck leert die Suche. **Entf** dasselbe |
 | **Buchstaben** | landen im Suchfeld und suchen sofort; **Strg+F** oder **/** führen auch so hinein. Die vier Befehlsbuchstaben warten eine Drittelsekunde: Folgt ein weiterer Buchstabe, wird ein Suchwort daraus, sonst läuft der Befehl |
+| **römische Zahlen** | auf einem Bogen mit römisch gezählten Seiten warten auch i, v, x, l, c, d und m diese Drittelsekunde: Ergibt das Getippte eine Seite des Bogens, „xiv“, landet es im Seitenfeld wie Ziffern; ein Wort wie „mix“ geht in die Suche |
 | **+** / **−** | eine Spalte mehr oder weniger, sofort; die Vorgabe in den Einstellungen bleibt |
 | **p** | druckt den Bogen — im Druckdialog wird daraus ein PDF |
 | **Bild auf** / **Bild ab** | blättern |

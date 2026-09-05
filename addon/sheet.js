@@ -570,7 +570,17 @@ var zotLookSheet = {
 		// waits a moment: another letter on its heels makes the two a word
 		// for the search; anything else, or nothing, runs the command.
 		let COMMANDS = { o: true, c: true, a: true, p: true };
-		let pendingLetter = null;
+		// On a sheet whose pages are numbered in roman, the seven letters
+		// those numerals are made of wait the same moment: "xiv" typed is
+		// a page and lands in the page field as digits do; "mix" or
+		// "civil" is a word and goes to the search as any other
+		let ROMAN_LETTER = /^[mdclxvi]$/;
+		let romanPages = null;
+		let hasRomanPages = () => {
+			if (romanPages === null) romanPages = tiles.some((t) => ROMAN.test(pageKey(labelOf(t))));
+			return romanPages;
+		};
+		let pending = "";
 		let pendingTimer = null;
 		let commandDelay = Number(labels.commandDelay) > 0 ? Number(labels.commandDelay) : 350;
 		let typeInto = (text) => {
@@ -590,32 +600,96 @@ var zotLookSheet = {
 				if (view && typeof view.print === "function") view.print();
 			}
 		};
+		// What the held letters were: a page number for the field, a
+		// command, or a word for the search. Says which, for an Enter that
+		// came on their heels
 		let flushPending = () => {
-			if (pendingLetter === null) return;
-			let letter = pendingLetter;
-			pendingLetter = null;
+			if (!pending) return "";
+			let held = pending;
+			pending = "";
 			if (pendingTimer !== null) clearTimeout(pendingTimer);
 			pendingTimer = null;
-			runCommand(letter);
+			if (gotoInput && hasRomanPages() && ROMAN.test(held) && findPage(held)) {
+				gotoInput.focus();
+				gotoInput.value = held;
+				return "goto";
+			}
+			if (held.length === 1 && COMMANDS[held]) {
+				runCommand(held);
+				return "command";
+			}
+			typeInto(held);
+			return "search";
 		};
 		let holdLetter = (letter) => {
-			pendingLetter = letter;
+			pending += letter;
 			if (pendingTimer !== null) clearTimeout(pendingTimer);
 			pendingTimer = setTimeout(flushPending, commandDelay);
 		};
-		// The page asked for by its number: the printed number first, which
-		// is what a citation gives; then the tile's own, which is what the
-		// label under a tile without printed numbers shows. Not on a book's
-		// overview: there every tile is a printed page, its own number is
-		// a mere position, and 13 asked for with no page 13 marked is no
-		// page rather than the thirteenth tile of the front matter
+		// ── what a page is called ─────────────────────────────────────
+		// A label as the document wrote it, and a number as typed, meet on
+		// a key: lower case, digits of any script as 0–9, a leading word
+		// for "page" gone (the EPUB module takes the same words off the
+		// visible label; keep the two lists together), and nothing but
+		// letters and digits left. "Page 13.", "[13]" and "13" are one key;
+		// "A-1" and "a1" are one key, and not the key of "1" — a prefix the
+		// author gave is part of the number, as the PDF page labels have it
+		let PAGE_WORD = /^(?:pages?|pg|pp|seite|pagina|página|pág|pag|pagine|str|стр|p|s)(?=[.\s])\.?\s*/i;
+		// Strict, so that "mix" and "civil" are words and not numerals
+		let ROMAN = /^(?=[mdclxvi])m{0,4}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$/;
+		let asciiDigits = (text) =>
+			text.replace(/\p{Nd}/gu, (ch) => {
+				// The digits of a script stand in a row of ten: count back
+				// to its zero
+				let cp = ch.codePointAt(0);
+				let value = 0;
+				while (value < 9 && /\p{Nd}/u.test(String.fromCodePoint(cp - 1))) {
+					cp--;
+					value++;
+				}
+				return String(value);
+			});
+		let pageWords = (text) =>
+			asciiDigits(String(text || "")).toLowerCase().trim()
+				.replace(/^[[(]\s*/, "").replace(PAGE_WORD, "");
+		let pageKey = (text) => pageWords(text).replace(/[^\p{L}\p{N}]+/gu, "");
+		// The number in a label, prefix or not: its last token that is a
+		// decimal or a roman numeral. "A-1" has the core 1, "Plate 3" the
+		// core 3, "Cover" none
+		let pageCore = (text) => {
+			let tokens = pageWords(text).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+			for (let i = tokens.length - 1; i >= 0; i--) {
+				if (/^\d+$/.test(tokens[i])) return tokens[i].replace(/^0+(?=\d)/, "");
+				if (ROMAN.test(tokens[i])) return tokens[i];
+			}
+			return "";
+		};
+		// The page asked for by its number: the label that is that number,
+		// prefix and all; then the one label whose number that is, so that
+		// 13 finds "Page 13." and 1 does not find "A-1" while a plain 1 is
+		// there, and two labels with the same number find nothing rather
+		// than guessing; then the tile's own number, which is what the label
+		// under a tile without printed numbers shows. Not that last step on
+		// a book's overview: there every tile is a printed page, its own
+		// number is a mere position, and 13 asked for with no page 13 marked
+		// is no page rather than the thirteenth tile of the front matter
+		let findExact = (wanted) => {
+			let want = pageKey(wanted);
+			return want ? tiles.find((t) => pageKey(labelOf(t)) === want) || null : null;
+		};
 		let findPage = (wanted) => {
-			let want = String(wanted || "").trim().toLowerCase();
+			let want = pageKey(wanted);
 			if (!want) return null;
-			let byLabel = tiles.find((t) => labelOf(t).toLowerCase() === want);
-			if (byLabel) return byLabel;
+			let exact = findExact(wanted);
+			if (exact) return exact;
+			let core = pageCore(wanted);
+			if (core) {
+				let same = tiles.filter((t) => pageCore(labelOf(t)) === core);
+				if (same.length === 1) return same[0];
+			}
 			if (document.querySelector("[data-zl-scale]")) return null;
-			return tiles.find((t) => t.getAttribute("data-zl-tile") === want) || null;
+			let own = String(wanted || "").trim();
+			return tiles.find((t) => t.getAttribute("data-zl-tile") === own) || null;
 		};
 		// ── a page range ──────────────────────────────────────────────
 		// "12–18" in the page field: the tiles outside go out of the grid,
@@ -782,6 +856,31 @@ var zotLookSheet = {
 			return true;
 		};
 
+		// Enter in the page field: a number frames its page, a range shows
+		// its pages, an empty field ends the range; a page not there is
+		// said beside the field
+		let submitGoto = () => {
+			let asked = String(gotoInput.value || "").trim();
+			// A label with a hyphen of its own, "A-1", is a page before it
+			// is a range
+			let span = findExact(asked) ? null : /^(.+?)\s*[-–—]\s*(.+)$/.exec(asked);
+			let done;
+			if (!asked) {
+				clearRange();
+				done = true;
+			} else if (span) {
+				done = setRange(span[1], span[2]);
+			} else {
+				done = frameTile(asked);
+			}
+			if (done) {
+				if (gotoStatus) gotoStatus.textContent = "";
+				if (hits) say(at >= 0 ? at + 1 + " / " + hits.length : "");
+				if (typeof gotoInput.blur === "function") gotoInput.blur();
+			} else if (gotoStatus) {
+				gotoStatus.textContent = labels.gotoNone || "";
+			}
+		};
 		document.addEventListener("keydown", (event) => {
 			let key = String(event.key || "");
 			let chord = event.ctrlKey || event.metaKey;
@@ -809,24 +908,7 @@ var zotLookSheet = {
 			// said beside the field
 			if (inGoto && key === "Enter") {
 				event.preventDefault();
-				let asked = String(gotoInput.value || "").trim();
-				let span = /^(.+?)\s*[-–—]\s*(.+)$/.exec(asked);
-				let done;
-				if (!asked) {
-					clearRange();
-					done = true;
-				} else if (span) {
-					done = setRange(span[1], span[2]);
-				} else {
-					done = frameTile(asked);
-				}
-				if (done) {
-					if (gotoStatus) gotoStatus.textContent = "";
-					if (hits) say(at >= 0 ? at + 1 + " / " + hits.length : "");
-					if (typeof gotoInput.blur === "function") gotoInput.blur();
-				} else if (gotoStatus) {
-					gotoStatus.textContent = labels.gotoNone || "";
-				}
+				submitGoto();
 				return;
 			}
 			if (inGoto && gotoStatus && gotoStatus.textContent) gotoStatus.textContent = "";
@@ -843,6 +925,12 @@ var zotLookSheet = {
 			}
 			if (key === "Enter") {
 				event.preventDefault();
+				// Letters still held: settled first, and an Enter on the
+				// heels of a roman numeral is the page field's
+				if (pending && flushPending() === "goto") {
+					submitGoto();
+					return;
+				}
 				if (menu) follow();
 				else step(event.shiftKey ? -1 : 1);
 				// Enter in the field hands the keyboard back to the page:
@@ -871,19 +959,31 @@ var zotLookSheet = {
 			}
 			if (inField) return;                     // letters are typing
 			let printable = key.length === 1 && !event.altKey;
-			// A command letter held a moment ago: a letter after it makes
-			// a word for the search; any other key runs the command first
-			if (pendingLetter !== null) {
+			// Letters held a moment ago: another letter of a roman numeral
+			// joins them; any other letter makes the lot a word for the
+			// search; any other key settles them first — and an Enter goes
+			// on to the page field if that is where they went
+			if (pending) {
 				if (printable && /^\p{L}$/u.test(key)) {
 					event.preventDefault();
-					let first = pendingLetter;
-					pendingLetter = null;
+					let letter = key.toLowerCase();
+					if (hasRomanPages() && ROMAN_LETTER.test(letter) && /^[mdclxvi]+$/.test(pending)) {
+						holdLetter(letter);
+						return;
+					}
+					let held = pending;
+					pending = "";
 					if (pendingTimer !== null) clearTimeout(pendingTimer);
 					pendingTimer = null;
-					typeInto(first + key);
+					typeInto(held + key);
 					return;
 				}
-				flushPending();
+				let went = flushPending();
+				if (went === "goto" && key === "Enter") {
+					event.preventDefault();
+					submitGoto();
+					return;
+				}
 			}
 			// Backspace, outside the fields, takes back what was asked for:
 			// the page field with its range and the frame first; then, with
@@ -932,7 +1032,7 @@ var zotLookSheet = {
 			let letter = key.toLowerCase();
 			if (printable && /^\p{L}$/u.test(letter)) {
 				event.preventDefault();
-				if (COMMANDS[letter]) holdLetter(letter);
+				if (COMMANDS[letter] || (hasRomanPages() && ROMAN_LETTER.test(letter))) holdLetter(letter);
 				else typeInto(key);
 			}
 		});

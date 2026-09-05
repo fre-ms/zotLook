@@ -334,6 +334,95 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   fs.rmSync(TMP, { recursive: true, force: true });
 }
 
+// ── what a page is called: labels and numbers typed meet on a key ─────
+// A PDF's labels come with the prefix the author gave: "A-1" is a page of
+// the appendix and not page 1. A number typed finds the label that is that
+// number first, then the one label whose number it is
+{
+  const html = S.html({
+    pages: [{ page: 1, height: 700, label: 'Page i.' }, { page: 2, height: 700, label: '[1]' },
+            { page: 3, height: 700, label: '2' }, { page: 4, height: 700, label: 'A-1' },
+            { page: 5, height: 700, label: 'A-2' }, { page: 6, height: 700, label: 'Plate 7' },
+            { page: 7, height: 700, label: '١٣' }],
+    columns: 4, width: 500, imageDir: 'pages', pageCount: 7,
+  });
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  S.sheetRuntime(doc, LABELS);
+  const goto = doc.querySelector('.zl-goto input');
+  const enter = (v) => { goto.value = v; goto.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key: 'Enter' })); };
+  const framed = () => [...doc.querySelectorAll('.page')].findIndex((t) => t.classList.contains('zl-current')) + 1;
+  const status = () => doc.querySelector('.zl-goto-status').textContent;
+  enter('i');    eq(framed(), 1, '"Page i." is found by i: the word and the stop are not part of the number');
+  enter('1');    eq(framed(), 2, '"[1]" is found by 1, and 1 does not go to "A-1"');
+  enter('A-1');  eq(framed(), 4, 'the appendix page is found by its whole label');
+  enter('a1');   eq(framed(), 4, 'in any case and without the hyphen');
+  enter('A 2');  eq(framed(), 5, 'or with a space for it');
+  enter('7');    eq(framed(), 6, 'a number no label is exactly finds the one label whose number it is');
+  enter('13');   eq(framed(), 7, 'digits of another script are the same digits');
+  enter('9');    eq(status(), LABELS.gotoNone, 'a number no label carries is no page');
+  eq(framed(), 7, 'on a PDF with labels the tile\'s own number is the last resort — 9 is beyond the seven');
+  enter('4');    eq(framed(), 4, 'and 4 is the fourth tile, since no label is 4');
+}
+
+// ── two labels with the same number: no guess ─────────────────────────
+{
+  const { zotLookEpub: E, zotLookUtil: U } = bookPlugin;
+  const TMP = fs.mkdtempSync(os.tmpdir() + '/zotlook-cores-');
+  const mark = (id, n) => `<span epub:type="pagebreak" role="doc-pagebreak" id="${id}" title="${n}"/>`;
+  const epub = makeBook(TMP + '/book', { chapters: [
+    `<h1>Front</h1>${mark('PB1', 'A-3')}<p>Appendix A.</p>${mark('PB2', 'B-3')}<p>Appendix B.</p>${mark('PB3', 'Page 4.')}<p>Four.</p>`,
+  ]});
+  const out = await E.convert(epub, { outDir: fs.mkdtempSync(TMP + '/out-'), openZip, openBook, extractEntry, mode: 'sheet' });
+  const doc = U.parseStrict(fs.readFileSync(out, 'utf8'), 'text/html');
+  S.sheetRuntime(doc, LABELS);
+  const goto = doc.querySelector('.zl-goto input');
+  const enter = (v) => { goto.value = v; goto.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key: 'Enter' })); };
+  const framed = () => [...doc.querySelectorAll('div.epub-page')].findIndex((t) => t.classList.contains('zl-current'));
+  enter('3');
+  eq(doc.querySelector('.zl-goto-status').textContent, LABELS.gotoNone, '3 with A-3 and B-3 and no plain 3 is refused rather than guessed');
+  enter('B-3'); eq(framed(), 2, 'B-3 is found as itself');
+  enter('4');   eq(framed(), 3, 'and "Page 4." by its number');
+  fs.rmSync(TMP, { recursive: true, force: true });
+}
+
+// ── roman numerals typed on the sheet go to the page field ────────────
+// On a sheet with roman page numbers the seven letters wait the moment a
+// command letter waits: a numeral that is a page lands in the page field,
+// a word goes to the search, c on its own is still the contents
+{
+  const html = S.html({
+    pages: [{ page: 1, height: 700, label: 'i' }, { page: 2, height: 700, label: 'iv' }, { page: 3, height: 700, label: '1' }, { page: 4, height: 700, label: '2' }],
+    columns: 2, width: 500, imageDir: 'pages', pageCount: 4,
+    toc: [{ title: 'One', level: 0, page: 3 }],
+  });
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  S.sheetRuntime(doc, LABELS);
+  const goto = doc.querySelector('.zl-goto input');
+  const search = doc.querySelector('.zl-search input');
+  const press = (key) => doc.body.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key }));
+  const framed = () => [...doc.querySelectorAll('.page')].findIndex((t) => t.classList.contains('zl-current')) + 1;
+  press('i'); press('v'); await later();
+  eq(goto.value, 'iv', 'iv typed is a page of this sheet and lands in the page field');
+  eq(search.value, '', 'not in the search');
+  goto.value = '';
+  press('m'); press('i'); press('x'); await later();
+  eq(search.value, 'mix', 'mix is no numeral: a word for the search');
+  eq(goto.value, '', 'and nothing for the page field');
+  search.value = '';
+  press('i'); press('n'); 
+  eq(search.value, 'in', 'a letter that is not roman settles the held ones as a word at once');
+  search.value = '';
+  press('v'); await later();
+  eq(search.value, 'v', 'a numeral no page is printed with is a word too');
+  search.value = '';
+  press('c'); await later();
+  ok(doc.querySelector('details.zl-toc').hasAttribute('open'), 'c on its own is still the contents, roman pages or not');
+  press('c'); await later();
+  press('i'); press('v'); press('Enter');
+  eq(framed(), 2, 'Enter on the heels of iv frames page iv straight away');
+  eq(goto.value, 'iv', 'through the page field');
+}
+
 // ── a real click on a reader link is sent again as a synthetic one ────
 // Zotero's viewer window runs an actor that takes a trusted click whose
 // target is an anchor and hands the address to the system — a dialogue,

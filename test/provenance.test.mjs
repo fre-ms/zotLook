@@ -26,9 +26,11 @@ ok(m.methods.total >= 20, `${m.methods.present} of ${m.methods.total} upstream m
 
 // ── the page says what the measure says ───────────────────────────────
 const EN_WORDS = { tenth: 10, eleventh: 11, twelfth: 12, thirteenth: 13, fourteenth: 14,
-  fifteenth: 15, sixteenth: 16, seventeenth: 17, eighteenth: 18, nineteenth: 19, twentieth: 20 };
+  fifteenth: 15, sixteenth: 16, seventeenth: 17, eighteenth: 18, nineteenth: 19, twentieth: 20,
+  'twenty-first': 21, 'twenty-second': 22, 'twenty-third': 23, 'twenty-fourth': 24, 'twenty-fifth': 25 };
 const DE_WORDS = { Zehntel: 10, Elftel: 11, Zwölftel: 12, Dreizehntel: 13, Vierzehntel: 14,
-  Fünfzehntel: 15, Sechzehntel: 16, Siebzehntel: 17, Achtzehntel: 18, Neunzehntel: 19, Zwanzigstel: 20 };
+  Fünfzehntel: 15, Sechzehntel: 16, Siebzehntel: 17, Achtzehntel: 18, Neunzehntel: 19, Zwanzigstel: 20,
+  Einundzwanzigstel: 21, Zweiundzwanzigstel: 22, Dreiundzwanzigstel: 23, Vierundzwanzigstel: 24, Fünfundzwanzigstel: 25 };
 
 function figures(text, lang) {
   const pct = lang === 'en'
@@ -38,7 +40,7 @@ function figures(text, lang) {
     ? text.match(/(\d+) of the original (\d+) methods/)
     : text.match(/(\d+) der ursprünglich (\d+) Methoden/);
   const share = lang === 'en'
-    ? text.match(/about a\s+(\w+)\s+of what is here today/)
+    ? text.match(/about a\s+([\w-]+)\s+of what is here today/)
     : text.match(/etwa ein\s+(\S+)\s+des Bestands/);   // \w stops at an umlaut
   const ronkko = lang === 'en'
     ? text.match(/of (\d+) substantive lines in the\s+original, (\d+) also occur here/)

@@ -70,9 +70,15 @@ Tastatur.
   zweiter Druck die Suche.
 - Ein Seitenbereich in der Seitenübersicht eines Buches lässt die Kacheln
   wachsen, bis der Bereich das Fenster füllt.
-- Eine Seitenmarke, die „Page 13.“ heißt, gilt als 13, und eine Zahl, die
-  kein Blatt des Buches trägt, ist in seiner Übersicht keine Seite; bisher
-  landete sie auf der Kachel in dieser Position, irgendwo im Vorspann.
+- Das Seitenfeld sieht über das hinweg, was ein Buch um die Zahl schreibt:
+  „Page 13.“, „[13]“ und „13“ sind eine Seite, Ziffern anderer Schriften
+  dieselben Ziffern. Ein Präfix des Drucks, „A‑1“, bleibt Teil der Zahl;
+  zwei Seiten mit derselben Zahl und verschiedenen Präfixen weist eine nackte
+  Zahl ab. In der Übersicht eines Buches ist eine Zahl ohne Seite keine
+  Seite; bisher landete sie auf der Kachel in dieser Position, im Vorspann.
+- Römische Zahlen getippt landen im Seitenfeld wie Ziffern, auf einem Bogen
+  mit römisch gezählten Seiten; ein Wort aus denselben Buchstaben geht
+  weiter in die Suche.
 - Im Sammlungsbogen zeigt ein Buch ohne PDF seinen Umschlag und ein Bild
   sich selbst; ein Bogen legt höchstens 200 Einträge aus und sagt es an, die
   Zahl ist einstellbar.

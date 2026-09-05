@@ -441,11 +441,12 @@ const REST = {
 {
   const { doc } = await sheetOf({ chapters: [
     `<h1>Front</h1>${mark('PB1', 'Page xiv.')}<p>Roman.</p>${mark('PB2', 'Page 13.')}<p>Thirteen.</p>`
-    + `${mark('PB3', 'p. 14')}<p>Fourteen.</p>${mark('PB4', 'Plate 3')}<p>A plate.</p>`,
+    + `${mark('PB3', 'p. 14')}<p>Fourteen.</p>${mark('PB4', '[15]')}<p>Bracketed.</p>${mark('PB5', 'Seite 16')}<p>German.</p>`
+    + `${mark('PB6', 'A-1')}<p>Appendix.</p>${mark('PB7', 'Plate 3')}<p>A plate.</p>`,
   ]});
   const labels = [...doc.querySelectorAll('div.epub-page-label')].map((l) => l.textContent.trim());
-  eq(labels.slice(1), ['xiv', '13', '14', 'Plate 3'],
-     'the word and the stop go, a label that is something else stays');
+  eq(labels.slice(1), ['xiv', '13', '14', '15', '16', 'A-1', 'Plate 3'],
+     'the word, the brackets and the stop go; a prefix of the print and a label that is something else stay');
   eq(doc.querySelector('.zl-goto input').getAttribute('placeholder').replace(/^\S+ /, ''), 'Before page one–Plate 3',
      'and the placeholder names the cleaned range');
 }

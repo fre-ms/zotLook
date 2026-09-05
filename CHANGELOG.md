@@ -61,9 +61,15 @@ The sheet in its own Zotero window can search and answers the keyboard.
   a second press the search.
 - A page range on a book's page overview grows the tiles until the range
   fills the window.
-- A page mark that reads "Page 13." counts as 13, and a number no page of
-  the book is marked with is no page on its overview; before, it landed on
-  the tile in that position, somewhere in the front matter.
+- The page field looks past what a book writes around the number: "Page
+  13.", "[13]" and "13" are one page, and digits of another script the same
+  digits. A prefix of the print, "A‑1", stays part of the number; two pages
+  with the same number and different prefixes refuse a bare number. On a
+  book's overview a number with no page is no page; before, it landed on the
+  tile in that position, in the front matter.
+- Roman numerals typed land in the page field as digits do, on a sheet whose
+  pages are numbered in roman; a word of the same letters still goes to the
+  search.
 - On the collection sheet a book without a PDF shows its cover and a
   picture itself; a sheet lays out 200 items at most and says so, the
   number a setting.

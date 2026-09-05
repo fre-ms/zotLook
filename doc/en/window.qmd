@@ -82,9 +82,16 @@ one, the one a citation gives — in a book with roman front matter the printed
 1 is not the first tile. Where the PDF labels its pages, the tiles show those
 numbers and the field finds by them; otherwise the tile's own number counts. A
 number that is not there, the field says so. The placeholder names the range,
-such as "Page i–312". On a book's page overview every tile is a printed page;
-there the book's mark alone counts, even one that reads "Page 13.", and a
-number with no page is none.
+such as "Page i–312".
+
+The field takes the number as a citation gives it and looks past what a book
+writes around it: "Page 13.", "[13]" and "13" are the same page, case does not
+count, and digits of another script are the same digits. A prefix the print
+itself has stays part of the number: "A‑1" is a page of the appendix, and "1"
+does not find it while there is a page 1; "a1" does. Where two pages carry the
+same number with different prefixes, "A‑3" and "B‑3", the field refuses a bare
+3 rather than guess. On a book's page overview every tile is a printed page;
+there the book's mark alone counts, and a number with no page is none.
 
 A **page range**, "12–18", shows those pages alone: the other tiles leave the
 grid, and the column count is chosen so that the range fits the window without
@@ -127,6 +134,7 @@ The frame is a cursor:
 | **digits** | land in the page field, where Enter frames the page; **Ctrl+G** leads there as well |
 | **Backspace** | takes back what the page field asked for: page, range and frame; a second press empties the search. **Delete** likewise |
 | **letters** | land in the search field and search at once; **Ctrl+F** or **/** lead there as well. The four command letters wait a third of a second: another letter on their heels makes a search word, anything else runs the command |
+| **roman numerals** | on a sheet whose pages are numbered in roman, i, v, x, l, c, d and m wait that third of a second too: what was typed being a page of the sheet, "xiv", it lands in the page field as digits do; a word such as "mix" goes to the search |
 | **+** / **−** | one column more or fewer, on the spot; the default in the settings stays |
 | **p** | prints the sheet — the print dialogue is where it becomes a PDF |
 | **Page Up** / **Page Down** | scroll |

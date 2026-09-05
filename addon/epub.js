@@ -1510,15 +1510,18 @@ var zotLookEpub = Object.seal({
 	},
 
 	/**
-	 * The number alone. Some books write the mark out as "Page 13." or
-	 * "p. xiv", and a page field asked for 13 must find that page, not
-	 * fall through to nothing. The word and the stop go; a label that is
-	 * something else entirely stays as it is.
+	 * The number alone, for the label under the tile. Some books write the
+	 * mark out as "Page 13.", "p. xiv" or "[13]"; the word, the brackets
+	 * and the stop go, and a prefix the print itself has — "A-1" — stays,
+	 * as does a label that is something else entirely. The sheet runtime
+	 * takes the same words off when it compares a number typed with a
+	 * label: the two lists are kept the same.
 	 */
 	_cleanLabel(value) {
 		let bare = value
-			.replace(/^(?:page|pg\.?|p\.|seite|s\.)\s*/i, "")
-			.replace(/[.:;,]+$/, "")
+			.replace(/^[[(]\s*/, "")
+			.replace(/^(?:pages?|pg|pp|seite|pagina|página|pág|pag|pagine|str|стр|p|s)(?=[.\s])\.?\s*/i, "")
+			.replace(/[\s.:;,\])]+$/, "")
 			.trim();
 		return bare || value;
 	},
