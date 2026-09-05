@@ -82,7 +82,9 @@ one, the one a citation gives — in a book with roman front matter the printed
 1 is not the first tile. Where the PDF labels its pages, the tiles show those
 numbers and the field finds by them; otherwise the tile's own number counts. A
 number that is not there, the field says so. The placeholder names the range,
-such as "Page i–312".
+such as "Page i–312". On a book's page overview every tile is a printed page;
+there the book's mark alone counts, even one that reads "Page 13.", and a
+number with no page is none.
 
 A **page range**, "12–18", shows those pages alone: the other tiles leave the
 grid, and the column count is chosen so that the range fits the window without

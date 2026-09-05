@@ -324,6 +324,13 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   goto.value = ''; inGoto('Enter');
   eq(grid.getAttribute('data-zl-scale'), '1', 'an empty field brings the thumbnails back');
   eq(grid.style.getPropertyValue('--zl-scale'), '1', 'in the variable too');
+  // a number no page is marked with is no page here — not the tile in
+  // that position, which on a book's overview is somewhere in the front
+  // matter; the PDF sheet keeps its fall-back to the tile's own number
+  const framedBefore = tiles.findIndex((t) => t.classList.contains('zl-current'));
+  goto.value = '0'; inGoto('Enter');
+  eq(doc.querySelector('.zl-goto-status').textContent, LABELS.gotoNone, 'a number not printed on any page is refused on the overview');
+  eq(tiles.findIndex((t) => t.classList.contains('zl-current')), framedBefore, 'and the frame stays where it was, not on the tile in that position');
   fs.rmSync(TMP, { recursive: true, force: true });
 }
 

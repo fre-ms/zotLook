@@ -70,6 +70,9 @@ Tastatur.
   zweiter Druck die Suche.
 - Ein Seitenbereich in der Seitenübersicht eines Buches lässt die Kacheln
   wachsen, bis der Bereich das Fenster füllt.
+- Eine Seitenmarke, die „Page 13.“ heißt, gilt als 13, und eine Zahl, die
+  kein Blatt des Buches trägt, ist in seiner Übersicht keine Seite; bisher
+  landete sie auf der Kachel in dieser Position, irgendwo im Vorspann.
 - Im Sammlungsbogen zeigt ein Buch ohne PDF seinen Umschlag und ein Bild
   sich selbst; ein Bogen legt höchstens 200 Einträge aus und sagt es an, die
   Zahl ist einstellbar.

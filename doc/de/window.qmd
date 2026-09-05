@@ -85,7 +85,9 @@ Zahl, die ein Zitat nennt — bei einem Buch mit römischem Vorspann beginnt die
 gedruckte 1 nicht auf der ersten Kachel. Wo das PDF seine Seiten beschriftet,
 zeigen die Kacheln diese Zahlen, und das Feld findet danach; sonst gilt die
 Nummer der Kachel. Eine Zahl, die es nicht gibt, sagt das Feld. Der Platzhalter
-nennt den Bereich, etwa „Seite i–312“.
+nennt den Bereich, etwa „Seite i–312“. In der Seitenübersicht eines Buches ist
+jede Kachel eine gedruckte Seite; dort zählt allein die Marke des Buches, auch
+wenn sie „Page 13.“ heißt, und eine Zahl ohne Seite ist keine.
 
 Ein **Seitenbereich**, „12–18“, zeigt nur diese Seiten: Die anderen Kacheln
 verlassen das Raster, und die Spaltenzahl wird so gewählt, dass der Bereich

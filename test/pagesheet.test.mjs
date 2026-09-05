@@ -435,6 +435,21 @@ const REST = {
      'a book with no navigation and no annotations shows neither button');
 }
 
+// ── a mark written out as "Page 13." is page 13 ───────────────────────
+// Some books put the word and a stop into the mark's title. The tile says
+// the number alone, and the page field finds it by that number
+{
+  const { doc } = await sheetOf({ chapters: [
+    `<h1>Front</h1>${mark('PB1', 'Page xiv.')}<p>Roman.</p>${mark('PB2', 'Page 13.')}<p>Thirteen.</p>`
+    + `${mark('PB3', 'p. 14')}<p>Fourteen.</p>${mark('PB4', 'Plate 3')}<p>A plate.</p>`,
+  ]});
+  const labels = [...doc.querySelectorAll('div.epub-page-label')].map((l) => l.textContent.trim());
+  eq(labels.slice(1), ['xiv', '13', '14', 'Plate 3'],
+     'the word and the stop go, a label that is something else stays');
+  eq(doc.querySelector('.zl-goto input').getAttribute('placeholder').replace(/^\S+ /, ''), 'Before page one–Plate 3',
+     'and the placeholder names the cleaned range');
+}
+
 fs.rmSync(TMP, { recursive: true, force: true });
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

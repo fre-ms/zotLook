@@ -2351,7 +2351,14 @@ var zotLook = Object.seal({
 				zotLookSheet.SEARCH_CSS +
 				zotLookSheet.pageStyles(1, 1.3) +
 				String(zotLookSheet.annotationsHtml) +
-				String(zotLookSheet.html)
+				String(zotLookSheet.html) +
+				// The book's overview is built by the EPUB module: its
+				// styles, its tiles and the reading of the page marks
+				zotLookEpub.SHEET_CSS +
+				String(zotLookEpub._buildSheet) +
+				String(zotLookEpub._pageTile) +
+				String(zotLookEpub._markLabel) +
+				String(zotLookEpub._cleanLabel)
 			);
 		} catch (e) {
 			return "0";

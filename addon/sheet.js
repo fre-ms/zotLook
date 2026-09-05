@@ -605,12 +605,16 @@ var zotLookSheet = {
 		};
 		// The page asked for by its number: the printed number first, which
 		// is what a citation gives; then the tile's own, which is what the
-		// label under a tile without printed numbers shows
+		// label under a tile without printed numbers shows. Not on a book's
+		// overview: there every tile is a printed page, its own number is
+		// a mere position, and 13 asked for with no page 13 marked is no
+		// page rather than the thirteenth tile of the front matter
 		let findPage = (wanted) => {
 			let want = String(wanted || "").trim().toLowerCase();
 			if (!want) return null;
 			let byLabel = tiles.find((t) => labelOf(t).toLowerCase() === want);
 			if (byLabel) return byLabel;
+			if (document.querySelector("[data-zl-scale]")) return null;
 			return tiles.find((t) => t.getAttribute("data-zl-tile") === want) || null;
 		};
 		// ── a page range ──────────────────────────────────────────────

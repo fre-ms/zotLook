@@ -64,6 +64,9 @@ The sheet in its own Zotero window can search and answers the keyboard.
   a second press the search.
 - A page range on a book's page overview grows the tiles until the range
   fills the window.
+- A page mark that reads "Page 13." counts as 13, and a number no page of
+  the book is marked with is no page on its overview; before, it landed on
+  the tile in that position, somewhere in the front matter.
 - On the collection sheet a book without a PDF shows its cover and a
   picture itself; a sheet lays out 200 items at most and says so, the
   number a setting.

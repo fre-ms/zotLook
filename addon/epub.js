@@ -1504,9 +1504,23 @@ var zotLookEpub = Object.seal({
 				let digits = value.replace(/^[^0-9ivxlcIVXLC]*/, "");
 				return digits || value;
 			}
-			return value;
+			return this._cleanLabel(value);
 		}
-		return this._collapse(el.textContent || "");
+		return this._cleanLabel(this._collapse(el.textContent || ""));
+	},
+
+	/**
+	 * The number alone. Some books write the mark out as "Page 13." or
+	 * "p. xiv", and a page field asked for 13 must find that page, not
+	 * fall through to nothing. The word and the stop go; a label that is
+	 * something else entirely stays as it is.
+	 */
+	_cleanLabel(value) {
+		let bare = value
+			.replace(/^(?:page|pg\.?|p\.|seite|s\.)\s*/i, "")
+			.replace(/[.:;,]+$/, "")
+			.trim();
+		return bare || value;
 	},
 
 	/** Whether a comes before b in the document. */
