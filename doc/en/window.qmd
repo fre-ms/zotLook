@@ -89,7 +89,9 @@ grid, and the column count is chosen so that the range fits the window without
 scrolling: as few columns as possible, so the tiles are as large as possible,
 and as many as needed so that no row falls below the edge.
 The search and the keyboard then work on the range. An empty field and Enter
-shows every page again at the column count from before.
+shows every page again at the column count from before. On a book's page
+overview, whose tiles are of one fixed size, the tiles grow instead: as far
+as fills the window with the range, up to reading size at most.
 
 That gives the sheet a way in at every corner: contents, annotations, search
 and page number.
@@ -153,8 +155,12 @@ of them: a tile per item with the first page of its PDF, and its title, first
 creator and year underneath. A click opens the document in the reader, the
 keyboard walks the tiles as it walks the pages of a document, and the search
 finds an item by title, author or the text of its first page. An item without
-a PDF gets an empty tile with its title; a click on it selects the item in
-Zotero. It is the look over a collection the forum asked for as a gallery:
+a PDF is not always without a face: a book shows its cover, where the EPUB
+names one, and a click opens it in the reader; a picture shows itself. What
+remains gets an empty tile with its title, and a click on it selects the item
+in Zotero. A whole library selected would take a long while, so the sheet
+lays out the first 200 items at most and says so at the bottom; the
+[setting](settings.qmd#the-contact-sheet) changes the number. It is the look over a collection the forum asked for as a gallery:
 choose a collection in the sidebar and press the shortcut, or select its
 items and then press it. A click on a tile opens the document at the page
 the tile shows.

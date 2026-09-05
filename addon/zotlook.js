@@ -1919,6 +1919,17 @@ var zotLook = Object.seal({
 			return null;
 		}
 		let maxColumns = this._contactSheetColumns();
+		// A whole library selected would draw a page per item for an hour;
+		// the cap keeps the sheet to its first so many and says so
+		let total = items.length;
+		let maxItems = this._collectionSheetMaxItems();
+		if (maxItems && items.length > maxItems) {
+			this.log("Laying out the first " + maxItems + " of " + total + " items");
+			items = items.slice(0, maxItems);
+		}
+		// The best attachment of each item: a PDF shows its first page, a
+		// book its cover, a picture itself; anything else leaves the tile
+		// grey with the title alone
 		let entries = [];
 		for (let item of items) {
 			let best = null;
@@ -1927,8 +1938,10 @@ var zotLook = Object.seal({
 			} catch (e) {
 				this.log("Could not resolve an attachment: " + e);
 			}
-			let pdf = best && this._isPDFAttachment(best.item) ? best : null;
-			entries.push({ item: item, pdf: pdf });
+			let kind = best ? this._attachmentType(best.item) : "none";
+			let pdf = kind === "pdf" ? best : null;
+			let shown = kind === "pdf" || kind === "epub" || kind === "image" ? best : null;
+			entries.push({ item: item, pdf: pdf, kind: kind, shown: shown });
 		}
 		let keys = items.map((item) => String(item.key || item.id));
 		let sheetName = "collectionsheet_" + zotLookUtil.hashString(keys.join(","));
@@ -1938,13 +1951,13 @@ var zotLook = Object.seal({
 		let imageDirName = sheetName + "_pages";
 		let imageDir = PathUtils.join(entry.dir, imageDirName);
 
-		let parts = [this._tag(), keys.join(","), maxColumns];
+		let parts = [this._tag(), keys.join(","), maxColumns, total];
 		for (let e of entries) {
-			if (!e.pdf) {
+			if (!e.shown) {
 				parts.push("-");
 				continue;
 			}
-			parts.push(e.pdf.path, await this._fileIdentity(e.pdf.path));
+			parts.push(e.shown.path, await this._fileIdentity(e.shown.path));
 		}
 		let key = keep ? parts.join("|") : null;
 
@@ -1977,28 +1990,42 @@ var zotLook = Object.seal({
 					index: index,
 					title: this._itemTitle(e.item),
 					meta: this._itemMeta(e.item),
-					// The page the tile shows, not the page last read
-					link: e.pdf ? this._readerLink(e.pdf.item) + "?page=1" : this._selectLink(e.item),
+					// The page the tile shows, not the page last read; a book
+					// opens in the reader where it was left, a picture and an
+					// item without a file are selected in Zotero
+					link: e.kind === "pdf"
+						? this._readerLink(e.pdf.item) + "?page=1"
+						: e.kind === "epub"
+							? this._readerLink(e.shown.item)
+							: this._selectLink(e.item),
 				};
-				if (e.pdf) {
+				if (e.shown) {
 					let dir = PathUtils.join(imageDir, String(index));
 					await IOUtils.makeDirectory(dir, { ignoreExisting: true });
-					let manifest = await this._renderPagesWithPdfjs(
-						e.pdf.path, dir, maxColumns, 1, null, { width: width });
-					let first = manifest && manifest.pages[0];
-					if (first) {
-						tile.image = imageDirName + "/" + index + "/p" + first.page + ".jpg";
-						tile.height = first.height;
-						tile.text = first.text || "";
+					let picture = await this._collectionPicture(e, dir, maxColumns, width);
+					if (picture) {
+						tile.image = imageDirName + "/" + index + "/" + picture.name;
+						if (picture.height) tile.height = picture.height;
+						else tile.fit = true;
+						tile.text = picture.text || "";
 					}
 				}
 				tiles.push(tile);
 				this._setProgress(progress, index, entries.length);
 			}
 			this.log("Laid out " + tiles.length + " items in " + (Date.now() - started) + " ms");
+			let notice = tiles.length < total
+				? await this._formatString(
+					"zotlook-sheet-truncated-items",
+					{ shown: tiles.length, total: total },
+					"Showing the first " + tiles.length + " of " + total + " items."
+				)
+				: "";
 			await IOUtils.writeUTF8(
 				outputPath,
-				zotLookSheet.collectionHtml({ tiles: tiles, columns: columns, width: width })
+				zotLookSheet.collectionHtml({
+					tiles: tiles, columns: columns, width: width, notice: notice,
+				})
 			);
 			await this._derivedCommit(entry, key);
 		} catch (e) {
@@ -2009,6 +2036,48 @@ var zotLook = Object.seal({
 			this._closeProgress(progress);
 		}
 		return outputPath;
+	},
+
+	/**
+	 * The picture of one tile on the collection sheet, written into dir: a
+	 * PDF's first page rendered at the sheet's width, a book's cover taken
+	 * out of the archive, a picture copied as it is. The page comes with its
+	 * height and text; the other two are shown fitted into the tile, since
+	 * nothing has measured them.
+	 *
+	 * @returns {Promise<{name: string, height?: number, text?: string}|null>}
+	 */
+	async _collectionPicture(entry, dir, maxColumns, width) {
+		if (entry.kind === "pdf") {
+			let manifest = await this._renderPagesWithPdfjs(
+				entry.pdf.path, dir, maxColumns, 1, null, { width: width });
+			let first = manifest && manifest.pages[0];
+			if (!first) return null;
+			return { name: "p" + first.page + ".jpg", height: first.height, text: first.text || "" };
+		}
+		if (entry.kind === "epub") {
+			let name = await zotLookEpub.cover(entry.shown.path, this._epubEnv(dir), dir);
+			return name ? { name: name } : null;
+		}
+		if (entry.kind === "image") {
+			let source = entry.shown.path;
+			let name = "picture" + (/\.[a-z0-9]+$/i.exec(source) || [""])[0].toLowerCase();
+			try {
+				await IOUtils.copy(source, PathUtils.join(dir, name));
+			} catch (e) {
+				this.log("Could not copy the picture " + source + ": " + e);
+				return null;
+			}
+			return { name: name };
+		}
+		return null;
+	},
+
+	/** How many items a collection sheet lays out at most; 0 is no cap. */
+	_collectionSheetMaxItems() {
+		let value = Number(this._pref("collectionSheetMaxItems", 200));
+		if (!Number.isFinite(value) || value < 0) return 0;
+		return Math.floor(value);
 	},
 
 	/** An item's title, for a tile's caption. */

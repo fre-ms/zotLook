@@ -83,13 +83,18 @@ var zotLookEpub = Object.seal({
 		"  padding: 24px !important;",
 		"  background: #eceae6 !important;",
 		"}",
+		// Every length of a tile hangs off one factor, so that a page range
+		// can grow the tiles to fill the window: the runtime sets --zl-scale
+		// on the grid, and the paper, the text inside it and the grid's
+		// column width all follow. 1 is the thumbnail, 210 pixels of paper.
 		"div.epub-sheet {",
+		"  --zl-scale: 1;",
 		"  display: grid;",
-		"  grid-template-columns: repeat(auto-fill, minmax(210px, 210px));",
+		"  grid-template-columns: repeat(auto-fill, minmax(calc(210px * var(--zl-scale)), calc(210px * var(--zl-scale))));",
 		"  gap: 26px 22px;",
 		"  justify-content: center;",
 		"}",
-		"div.epub-page { width: 210px; }",
+		"div.epub-page { width: calc(210px * var(--zl-scale)); }",
 		"div.epub-page a { text-decoration: none; color: inherit; }",
 		// Where a menu entry lands: the tile in the middle of the window,
 		// framed. 297px of paper and a label under it, halved.
@@ -113,9 +118,9 @@ var zotLookEpub = Object.seal({
 		// like. Out here the clip happens inside the margin, and every tile
 		// keeps white all the way round.
 		"div.epub-paper {",
-		"  width: 210px;",
-		"  height: 297px;",
-		"  padding: 10px;",
+		"  width: calc(210px * var(--zl-scale));",
+		"  height: calc(297px * var(--zl-scale));",
+		"  padding: calc(10px * var(--zl-scale));",
 		"  overflow: hidden;",
 		"  background: #fff;",
 		"  border: 1px solid #cfcdc8;",
@@ -128,7 +133,7 @@ var zotLookEpub = Object.seal({
 		"div.epub-paper-inner {",
 		"  width: 626px;",
 		"  height: 916px;",
-		"  transform: scale(0.3);",
+		"  transform: scale(calc(0.3 * var(--zl-scale)));",
 		"  transform-origin: top left;",
 		"  font-size: 14px;",
 		"  line-height: 1.45;",
@@ -242,6 +247,68 @@ var zotLookEpub = Object.seal({
 		} finally {
 			this._close(zip, book);
 		}
+	},
+
+	/**
+	 * The book's cover, written out as a file of its own — for the
+	 * collection sheet, where a book without a PDF shows its cover as a PDF
+	 * shows its first page. EPUB 3 marks the picture in the manifest with
+	 * properties="cover-image"; EPUB 2 names the manifest item's id in a
+	 * <meta name="cover">, and some books put the file name there instead.
+	 * A book with none of that gives null, and the tile stays grey.
+	 *
+	 * @param {string} epubPath
+	 * @param {{openZip: function, extractEntry: function}} env - as convert()
+	 *   has them
+	 * @param {string} destDir - where the file goes; it must exist
+	 * @returns {Promise<string|null>} the file's name in destDir, or null
+	 */
+	async cover(epubPath, env, destDir) {
+		let zip = null;
+		try {
+			zip = env.openZip(epubPath);
+			let pkg = await this._readPackage(zip);
+			if (!pkg) return null;
+			let item = this._coverItem(pkg.doc);
+			if (!item) {
+				this.log("No cover in " + epubPath);
+				return null;
+			}
+			let href = item.getAttribute("href") || "";
+			let target = zotLookUtil.resolveRelativePath(href, pkg.dir);
+			let entry = target && target.path;
+			if (!entry || !zip.hasEntry(entry)) {
+				this.log("Cover named but missing: " + href);
+				return null;
+			}
+			let match = /\.(jpe?g|png|gif|webp|svg)$/i.exec(href);
+			let name = "cover." + (match ? match[1].toLowerCase() : "jpg");
+			await env.extractEntry(zip, entry, PathUtils.join(destDir, name));
+			return name;
+		} catch (e) {
+			this.log("Could not take the cover out of " + epubPath + ": " + e);
+			return null;
+		} finally {
+			this._close(zip, null);
+		}
+	},
+
+	/** The manifest item that is the cover picture, or null. */
+	_coverItem(opfDoc) {
+		let items = Array.from(opfDoc.querySelectorAll("manifest item"));
+		let isImage = (item) =>
+			/^image\//i.test(item.getAttribute("media-type") || "");
+		let marked = items.find((item) =>
+			/(^|\s)cover-image(\s|$)/.test(item.getAttribute("properties") || ""));
+		if (marked && isImage(marked)) return marked;
+		let meta = Array.from(opfDoc.querySelectorAll("metadata meta")).find(
+			(m) => (m.getAttribute("name") || "").toLowerCase() === "cover");
+		let named = meta && meta.getAttribute("content");
+		if (!named) return null;
+		let byId = items.find((item) => item.getAttribute("id") === named);
+		if (byId && isImage(byId)) return byId;
+		let byHref = items.find((item) => item.getAttribute("href") === named);
+		return byHref && isImage(byHref) ? byHref : null;
 	},
 
 	/** Both handles, whatever happened. An archive left open holds the file. */
@@ -1123,6 +1190,9 @@ var zotLookEpub = Object.seal({
 		out.body.className = "epub-sheet-body";
 		let grid = out.createElement("div");
 		grid.className = "epub-sheet";
+		// A page range grows the tiles rather than setting columns: the
+		// runtime reads this and sets --zl-scale on the grid
+		grid.setAttribute("data-zl-scale", "1");
 		pages.forEach((page, index) => {
 			grid.appendChild(this._pageTile(out, page, env, index));
 		});

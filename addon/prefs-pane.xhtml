@@ -153,6 +153,16 @@
       <label class="zotlook-hint" data-l10n-id="zotlook-prefs-contactsheet-unit"/>
     </hbox>
     <description class="zotlook-setting-help"
+                 data-l10n-id="zotlook-prefs-collection-maxitems-help"/>
+    <hbox align="center" class="zotlook-row">
+      <label control="zotlook-max-items"
+             data-l10n-id="zotlook-prefs-collection-maxitems"/>
+      <html:input id="zotlook-max-items" type="number" min="0" max="100000"
+                  step="50" style="width: 6em;"
+                  preference="extensions.zotlook.collectionSheetMaxItems"/>
+      <label class="zotlook-hint" data-l10n-id="zotlook-prefs-collection-unit"/>
+    </hbox>
+    <description class="zotlook-setting-help"
                  data-l10n-id="zotlook-prefs-contactsheet-menus-help"/>
     <checkbox id="zotlook-sheet-contents"
               data-l10n-id="zotlook-prefs-contactsheet-contents"

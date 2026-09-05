@@ -302,6 +302,28 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   eq(tiles[3].querySelectorAll('mark.zl-hit').length, 0, 'a new query takes the old marks away');
   eq(tiles[3].querySelector('div.epub-paper-inner').textContent.includes('Reading, and reading again.'), true,
      'and leaves the text as it was');
+
+  // a range on the overview grows the tiles instead of setting columns:
+  // two pages in a 1400 by 860 window, side by side, are 2.65 times the
+  // thumbnail — the window's height, less the padding and the labels,
+  // over one row of paper
+  type(doc, '');
+  Object.defineProperty(doc.documentElement, 'clientWidth', { value: 1400, configurable: true });
+  Object.defineProperty(doc.documentElement, 'clientHeight', { value: 860, configurable: true });
+  const grid = doc.querySelector('div.epub-sheet');
+  eq(grid.getAttribute('data-zl-scale'), '1', 'the overview says it scales rather than recolumns');
+  const goto = doc.querySelector('.zl-goto input');
+  const inGoto = (key) =>
+    goto.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key }));
+  goto.value = '1–2'; inGoto('Enter');
+  eq(grid.getAttribute('data-zl-scale'), '2.65', 'two pages grow to fill the window side by side');
+  eq(grid.style.getPropertyValue('--zl-scale'), '2.65', 'through the variable every length of a tile hangs off');
+  eq(tiles.map((t) => t.classList.contains('zl-out')), [true, false, false, true], 'the other tiles are out');
+  goto.value = '1–3'; inGoto('Enter');
+  eq(grid.getAttribute('data-zl-scale'), '2.08', 'three pages a little less, still in one row: the width now binds');
+  goto.value = ''; inGoto('Enter');
+  eq(grid.getAttribute('data-zl-scale'), '1', 'an empty field brings the thumbnails back');
+  eq(grid.style.getPropertyValue('--zl-scale'), '1', 'in the variable too');
   fs.rmSync(TMP, { recursive: true, force: true });
 }
 

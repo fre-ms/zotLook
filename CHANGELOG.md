@@ -59,6 +59,11 @@ The sheet in its own Zotero window can search and answers the keyboard.
   the file did not change.
 - Backspace on the sheet takes the page, its range and the frame back, and
   a second press the search.
+- A page range on a book's page overview grows the tiles until the range
+  fills the window.
+- On the collection sheet a book without a PDF shows its cover and a
+  picture itself; a sheet lays out 200 items at most and says so, the
+  number a setting.
 - Typing on the sheet goes where it belongs: digits into the page field, a
   word into the search field; a command letter waits a moment for a second
   letter. A slash leads into the search too.

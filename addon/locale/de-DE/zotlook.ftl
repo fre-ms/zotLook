@@ -35,6 +35,9 @@ zotlook-prefs-contactsheet-columns = Spalten
 zotlook-prefs-contactsheet-columns-hint = weniger Spalten bedeutet größere Miniaturen
 zotlook-prefs-contactsheet-maxpages = Höchstens
 zotlook-prefs-contactsheet-unit = Seiten (0 = ohne Begrenzung)
+zotlook-prefs-collection-maxitems-help = Ein Sammlungsbogen zeichnet die erste Seite jedes PDFs; eine ganze Bibliothek ausgewählt dauerte lange. Der Bogen legt die ersten so vielen Einträge aus und sagt es unten an. 0 legt jeden Eintrag aus.
+zotlook-prefs-collection-maxitems = Sammlungsbogen: höchstens
+zotlook-prefs-collection-unit = Einträge (0 = ohne Begrenzung)
 zotlook-prefs-contactsheet-menus-help = In den Ecken der Übersicht öffnen zwei Knöpfe das Inhaltsverzeichnis des Dokuments und seine Annotationen; ein Klick auf einen Eintrag holt die Seite in die Mitte des Fensters. Dieselben Knöpfe hat die Seitenübersicht eines EPUB.
 zotlook-prefs-contactsheet-contents =
     .label = Knopf für das Inhaltsverzeichnis anzeigen
@@ -87,6 +90,7 @@ zotlook-prefs-epub-own =
 # PDF-Annotationen
 
 zotlook-sheet-truncated = Es werden die ersten { $shown } von { $total } Seiten gezeigt.
+zotlook-sheet-truncated-items = Es werden die ersten { $shown } von { $total } Einträgen gezeigt.
 
 zotlook-epub-contents = Inhalt
 

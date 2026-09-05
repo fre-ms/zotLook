@@ -5,8 +5,11 @@
 // The rendering itself is driven through the fake worker; what is checked
 // here is everything around it: which attachment is chosen, whether an
 // annotated copy is made, what the sheet is called, and what goes into it.
+import fs from 'node:fs';
+import os from 'node:os';
 import { loadPlugin } from './load.mjs';
 import { fakeWorkerFactory } from './fake-worker.mjs';
+import { makeBook, openZip as openBookZip, host as bookHost } from './book.mjs';
 
 let fail = 0;
 const eq=(g,w,l)=>{const ok=JSON.stringify(g)===JSON.stringify(w); if(!ok)fail++;
@@ -724,6 +727,81 @@ const ANNOTATIONS = [
   ok(html.includes('zl-texts'), 'and the search has the titles and first pages to go by');
   const one = await Q._buildContactSheet([items[0]], { collection: true });
   ok(one && /collectionsheet_/.test(one), 'one item asked for as a collection is a collection sheet too');
+}
+
+// ── the collection sheet: a book's cover, a picture, and the cap ──────
+// An item without a PDF is not always without a face: a book shows its
+// cover, a picture shows itself, fitted into a tile of the common shape.
+// And a whole library selected is cut to the first so many, said below.
+{
+  const TMP = fs.mkdtempSync(os.tmpdir() + '/zotlook-collection-');
+  const book = makeBook(TMP + '/book', { cover: 'epub3' });
+  const { FakeWorker } = fakeWorkerFactory({ pageCount: 3 });
+  const written = new Map(); const files = new Set(); const copies = [];
+  const IOUtils = {
+    exists: async (p) => files.has(p), makeDirectory: async () => {},
+    read: async () => new Uint8Array(1024),
+    write: async (p, data) => { files.add(p); written.set(p, data.length); },
+    writeUTF8: async (p, text) => { files.add(p); written.set(p, text); },
+    copy: async (from, to) => { copies.push([from, to]); files.add(to); },
+    setPermissions: async () => {}, remove: async () => {},
+    readUTF8: async (p) => { if (!files.has(p)) throw new Error('no ' + p); return written.get(p); },
+    stat: async () => ({ size: 4096, lastModified: 1000 }),
+  };
+  const att = (id, key, kind, filename) => ({ id, key, libraryID: 1, isNote: () => false, isAttachment: () => true,
+    isPDFAttachment: () => kind === 'pdf', isEPUBAttachment: () => kind === 'epub',
+    isImageAttachment: () => kind === 'image', attachmentFilename: filename, getAnnotations: () => [] });
+  const atts = { 21: att(21, 'ATT00021', 'pdf', 'paper.pdf'), 22: att(22, 'ATT00022', 'epub', 'novel.epub'),
+                 23: att(23, 'ATT00023', 'image', 'Plate.JPG'), 24: att(24, 'ATT00024', 'html', 'page.html') };
+  const paths = { 'paper.pdf': '/lib/paper.pdf', 'novel.epub': book, 'Plate.JPG': '/lib/Plate.JPG', 'page.html': '/lib/page.html' };
+  const item = (id, key, title, attIDs) => ({ id, key, libraryID: 1,
+    isNote: () => false, isAttachment: () => false, isRegularItem: () => true,
+    getAttachments: () => attIDs, getDisplayTitle: () => title, firstCreator: 'Doe',
+    getField: (f) => (f === 'title' ? title : '') });
+  const items = [item(1, 'ITEM0001', 'A paper', [21]), item(2, 'ITEM0002', 'A novel', [22]),
+                 item(3, 'ITEM0003', 'A plate', [23]), item(4, 'ITEM0004', 'A web page', [24])];
+  const prefs = { collectionSheetMaxItems: 200 };
+  const { zotLook: Q } = loadPlugin({
+    IOUtils, ChromeWorker: FakeWorker, Services: { sysinfo: { getProperty: () => 4 } },
+    zotero: { ...bookHost, Libraries: { get: () => ({ isGroup: false }) }, Items: { get: (id) => atts[id] }, openInViewer: () => {} },
+  });
+  Q.version = '1.1.0'; Q.rootURI = 'file:///plugin/'; Q._getTempDirPath = () => '/tmp/zt';
+  Q._getAttachmentPath = async (a) => paths[a.attachmentFilename];
+  Q._showProgress = () => ({}); Q._closeProgress = () => {}; Q._resourceAlias = () => 'resource://zotlook/';
+  const basePref = Q._pref.bind(Q);
+  Q._pref = (name, fallback) => (name in prefs ? prefs[name] : basePref(name, fallback));
+  const extracted = [];
+  Q._epubEnv = () => ({ openZip: openBookZip, extractEntry: (zip, entry, dest) => { extracted.push([entry, dest]); } });
+  globalThis.fetch = async () => ({ arrayBuffer: async () => new ArrayBuffer(4) });
+
+  const out = await Q._buildContactSheet(items);
+  const html = written.get(out);
+  eq(extracted.map((e) => e[0]), ['OEBPS/images/front.png'], 'the book\'s cover is taken out of the archive');
+  ok(/_pages\/2\/cover\.png/.test(extracted[0][1]), 'into the tile\'s own folder');
+  ok(/<div class="zl-cover"[^>]*><img src="collectionsheet_[0-9a-f]{8}_pages\/2\/cover\.png"/.test(html),
+     'and the novel\'s tile shows it, fitted');
+  ok(html.includes('zotero://open-pdf/library/items/ATT00022"'), 'a click opens the book in the reader');
+  eq(copies.map((c) => c[0]), ['/lib/Plate.JPG'], 'the picture is copied as it is');
+  ok(/_pages\/3\/picture\.jpg$/.test(copies[0][1]), 'under a name of the sheet\'s, its kind in lower case');
+  ok(/<div class="zl-cover"[^>]*><img src="collectionsheet_[0-9a-f]{8}_pages\/3\/picture\.jpg"/.test(html),
+     'and the plate\'s tile shows it, fitted too');
+  ok(html.includes('zotero://select/library/items/ITEM0003'), 'a click on the picture selects the item');
+  ok((html.match(/No PDF/g) || []).length === 1 && html.includes('zotero://select/library/items/ITEM0004'),
+     'the web page alone is a grey tile that selects its item');
+  ok(!html.includes('class="notice"'), 'four items under the cap: no notice');
+  ok(html.includes('.zl-cover img') && html.includes('object-fit: contain'), 'a fitted picture is shown whole');
+
+  // the cap: the first so many items, and a line saying so
+  prefs.collectionSheetMaxItems = 2;
+  const cut = await Q._buildContactSheet(items);
+  ok(cut !== out, 'a different cap is a different sheet');
+  const cutHtml = written.get(cut);
+  eq((cutHtml.match(/data-zl-tile="/g) || []).length, 2, 'two tiles at a cap of two');
+  ok(cutHtml.includes('<p class="notice">Showing the first 2 of 4 items.</p>'), 'and the notice says what was left out');
+  prefs.collectionSheetMaxItems = 0;
+  const all = await Q._buildContactSheet(items);
+  eq((written.get(all).match(/data-zl-tile="/g) || []).length, 4, '0 is no cap');
+  fs.rmSync(TMP, { recursive: true, force: true });
 }
 
 // ── the printed page numbers reach the tiles and the page field ───────

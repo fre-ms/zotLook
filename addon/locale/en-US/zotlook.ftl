@@ -33,6 +33,9 @@ zotlook-prefs-contactsheet-columns = Columns
 zotlook-prefs-contactsheet-columns-hint = fewer columns means larger thumbnails
 zotlook-prefs-contactsheet-maxpages = Limit to at most
 zotlook-prefs-contactsheet-unit = pages (0 = no limit)
+zotlook-prefs-collection-maxitems-help = A collection sheet draws the first page of every item's PDF, so a whole library selected would take a long while. The sheet lays out the first so many items and says so at the bottom. 0 lays out every item.
+zotlook-prefs-collection-maxitems = Collection sheet: at most
+zotlook-prefs-collection-unit = items (0 = no limit)
 zotlook-prefs-contactsheet-menus-help = A button in each corner of the sheet opens the document's contents and its annotations; a click on an entry brings that page to the middle of the window. The same two buttons are on the page overview of an EPUB.
 zotlook-prefs-contactsheet-contents =
     .label = Show the contents button
@@ -85,6 +88,7 @@ zotlook-prefs-epub-own =
 # PDF annotations
 
 zotlook-sheet-truncated = Showing the first { $shown } of { $total } pages.
+zotlook-sheet-truncated-items = Showing the first { $shown } of { $total } items.
 
 zotlook-epub-contents = Contents
 

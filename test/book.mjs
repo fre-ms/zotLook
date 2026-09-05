@@ -86,9 +86,12 @@ export function openBook(archive) {
  * @param {string} [opts.nav]       navigation document, EPUB 3
  * @param {string} [opts.ncx]       NCX, EPUB 2
  * @param {string[]} [opts.chapters] each chapter's body markup
+ * @param {string|null} [opts.cover] how the book names its cover picture:
+ *   'epub3' by properties="cover-image", 'epub2' by <meta name="cover"> with
+ *   the item's id, 'href' by that meta with the file's name; null for none
  */
 export function makeBook(dir, { nav = null, ncx = null, sharedImage = false,
-                        repeated = false, chapters = null } = {}) {
+                        repeated = false, chapters = null, cover = null } = {}) {
   fs.mkdirSync(dir + '/META-INF', { recursive: true });
   fs.mkdirSync(dir + '/OEBPS', { recursive: true });
   fs.writeFileSync(dir + '/mimetype', 'application/epub+zip');
@@ -125,11 +128,20 @@ export function makeBook(dir, { nav = null, ncx = null, sharedImage = false,
       + 'media-type="application/x-dtbncx+xml"/>';
     spineAttr = ' toc="ncx"';
   }
+  let meta = '';
+  if (cover) {
+    fs.mkdirSync(dir + '/OEBPS/images', { recursive: true });
+    fs.writeFileSync(dir + '/OEBPS/images/front.png', 'PNG-bytes');
+    items += '<item id="cover-pic" href="images/front.png" media-type="image/png"'
+      + (cover === 'epub3' ? ' properties="cover-image"' : '') + '/>';
+    if (cover === 'epub2') meta = '<meta name="cover" content="cover-pic"/>';
+    if (cover === 'href') meta = '<meta name="cover" content="images/front.png"/>';
+  }
   fs.writeFileSync(dir + '/OEBPS/content.opf',
     '<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" '
     + 'version="3.0" unique-identifier="i"><metadata '
     + 'xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>A Book</dc:title>'
-    + '</metadata><manifest>' + items + '</manifest>'
+    + meta + '</metadata><manifest>' + items + '</manifest>'
     + `<spine${spineAttr}>`
     + bodies.map((_, i) => `<itemref idref="c${i + 1}"/>`).join('')
     + '</spine>'

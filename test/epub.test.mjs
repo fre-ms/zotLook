@@ -505,6 +505,25 @@ ok(!('_cache' in E), 'the module keeps no cache of its own any more');
      'every asset it refers to, none skipped');
 }
 
+// ── the cover, taken out for the collection sheet ─────────────────────
+{
+  const out = TMP + '/covers';
+  fs.mkdirSync(out, { recursive: true });
+  for (const [how, label] of [['epub3', 'marked cover-image in the manifest'],
+                              ['epub2', 'named by id in a meta'],
+                              ['href', 'named by file in a meta']]) {
+    const dir = TMP + '/cover-' + how;
+    fs.mkdirSync(out + '/' + how, { recursive: true });
+    const name = await E.cover(makeBook(dir, { cover: how }), env, out + '/' + how);
+    eq(name, 'cover.png', 'a cover ' + label + ' is found, and keeps its kind');
+    eq(fs.readFileSync(out + '/' + how + '/cover.png', 'utf8'), 'PNG-bytes', 'and its bytes');
+  }
+  fs.mkdirSync(out + '/none', { recursive: true });
+  eq(await E.cover(makeBook(TMP + '/cover-none'), env, out + '/none'), null,
+     'a book without a cover gives null');
+  eq(fs.readdirSync(out + '/none'), [], 'and writes nothing');
+}
+
 fs.rmSync(TMP, { recursive: true, force: true });
 
 // ── the overview in the dark ──────────────────────────────────────────

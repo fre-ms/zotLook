@@ -640,12 +640,45 @@ var zotLookSheet = {
 			}
 			return 12;
 		};
+		// A book's overview has no column count to set: its tiles are of one
+		// fixed size and fill what fits. There the range grows the tiles
+		// instead — the grid says data-zl-scale, and every length of a tile
+		// hangs off the --zl-scale variable the runtime sets on it. The
+		// factor is the largest at which some column count fits the range
+		// into the window: the paper is 210 by 297, its label 24 below, the
+		// gaps 22 by 26 and the body's padding 24 a side, as the EPUB
+		// module's styles say. Not below the thumbnail, and not beyond
+		// reading size, which the thumbnail is three and a third of.
+		let scaleGrid = () =>
+			/** @type {HTMLElement|null} */ (document.querySelector("[data-zl-scale]"));
+		let fitScale = (n) => {
+			let root = document.documentElement;
+			let W = root ? root.clientWidth : 0;
+			let H = root ? root.clientHeight : 0;
+			if (!W || !H || !n) return 0;
+			let best = 0;
+			for (let c = 1; c <= Math.min(n, 12); c++) {
+				let rows = Math.ceil(n / c);
+				let byWidth = (W - 48 - 22 * (c - 1)) / (210 * c);
+				let byHeight = (H - 48 - 26 * (rows - 1) - 24 * rows) / (297 * rows);
+				best = Math.max(best, Math.min(byWidth, byHeight));
+			}
+			return Math.max(1, Math.min(best, 10 / 3));
+		};
+		let setScale = (factor) => {
+			let grid = scaleGrid();
+			if (!grid) return;
+			let value = factor && factor !== 1 ? String(Math.round(factor * 100) / 100) : "1";
+			grid.setAttribute("data-zl-scale", value);
+			grid.style.setProperty("--zl-scale", value);
+		};
 		let clearRange = () => {
 			for (let t of tiles) t.classList.remove("zl-out");
 			if (columnsBefore !== null) {
 				recolumn(columnsBefore, true);
 				columnsBefore = null;
 			}
+			setScale(1);
 			if (input && input.value) run();
 		};
 		let setRange = (fromText, toText) => {
@@ -659,9 +692,13 @@ var zotLookSheet = {
 			tiles.forEach((t, i) => {
 				if (i < a || i > b) t.classList.add("zl-out");
 			});
-			if (columnsBefore === null) columnsBefore = columns();
-			let fit = fitColumns(b - a + 1);
-			if (fit) recolumn(fit, true);
+			if (scaleGrid()) {
+				setScale(fitScale(b - a + 1));
+			} else {
+				if (columnsBefore === null) columnsBefore = columns();
+				let fit = fitColumns(b - a + 1);
+				if (fit) recolumn(fit, true);
+			}
 			if (input && input.value) run();
 			for (let t of tiles) t.classList.remove("zl-current");
 			tiles[a].classList.add("zl-current");
@@ -1606,13 +1643,17 @@ var zotLookSheet = {
 	 *
 	 * @param {object} spec
 	 * @param {Array<{index: number, title: string, meta?: string,
-	 *   image?: string, height?: number, link?: string, text?: string}>}
+	 *   image?: string, height?: number, fit?: boolean, link?: string,
+	 *   text?: string}>}
 	 *   spec.tiles — image is the tile's picture relative to the sheet, or
 	 *   absent for an item without a page; height is the picture's, in
 	 *   pixels at spec.width; link opens the item; text is what a search
-	 *   finds it by
+	 *   finds it by. A tile with fit set has a picture nothing measured — a
+	 *   book's cover, a picture of the item's own — and shows it fitted
+	 *   into a tile of the common proportion
 	 * @param {number} spec.columns
 	 * @param {number} spec.width pixels the pictures were rendered at
+	 * @param {string} [spec.notice] Shown when not every item was laid out
 	 * @param {boolean} [spec.menuMouse] as on the page sheet; the collection
 	 *   sheet has no menus, but its root says the same
 	 * @param {boolean} [spec.menuKeyboard] likewise
@@ -1633,7 +1674,10 @@ var zotLookSheet = {
 				this.escape(tile.title || "") + "</span>" +
 				(tile.meta ? '<span class="zl-meta">' + this.escape(tile.meta) + "</span>" : "") +
 				"</div>";
-			let picture = tile.image
+			let picture = tile.image && tile.fit
+				? '<div class="zl-cover" style="padding-top: ' + (common * 100).toFixed(1) +
+					'%;"><img src="' + this.escape(tile.image) + '" loading="lazy" alt=""></div>\n'
+				: tile.image
 				? '<img src="' + this.escape(tile.image) + '" loading="lazy" width="' +
 					width + '" height="' + tile.height + '">\n'
 				: '<div class="zl-nopage" style="padding-top: ' +
@@ -1643,7 +1687,7 @@ var zotLookSheet = {
 				? '<a target="_blank" href="' + this.escape(tile.link) + '">' +
 					picture + caption + "</a>"
 				: picture + caption;
-			let ratio = tile.image ? tile.height / width : common;
+			let ratio = tile.image && !tile.fit ? tile.height / width : common;
 			let own = Math.abs(ratio - common) > 0.01
 				? ' style="scroll-margin-top: ' + this.scrollMargin(ratio, columns) + ';"'
 				: "";
@@ -1675,10 +1719,15 @@ var zotLookSheet = {
 			".page .zl-nopage { position: relative; background: #e4e4e4; }\n" +
 			".page .zl-nopage span { position: absolute; top: 50%; left: 0; right: 0;" +
 			" transform: translateY(-50%); color: #8a8a8a; font-size: 13px; }\n" +
+			// A cover or a picture: whole, in the middle of a tile of the
+			// common proportion, on the same grey as an empty tile
+			".page .zl-cover { position: relative; background: #e4e4e4; }\n" +
+			".page .zl-cover img { position: absolute; top: 0; left: 0; width: 100%;" +
+			" height: 100%; object-fit: contain; }\n" +
 			"@media (prefers-color-scheme: dark) {\n" +
 			"  .page .label .zl-title { color: #e8eaed; }\n" +
 			"  .page .label .zl-meta { color: #a9adb3; }\n" +
-			"  .page .zl-nopage { background: #2a2f36; }\n" +
+			"  .page .zl-nopage, .page .zl-cover { background: #2a2f36; }\n" +
 			"}\n" +
 			"</style>\n" +
 			"</head>\n<body>\n" +
@@ -1686,6 +1735,7 @@ var zotLookSheet = {
 			'<div class="grid" data-zl-columns="' + columns + '">\n\n' +
 			body +
 			"</div>\n" +
+			(spec.notice ? '<p class="notice">' + this.escape(spec.notice) + "</p>\n" : "") +
 			this.textsHtml(texts) +
 			this.JUMP_SCRIPT +
 			this.runtimeScript() +

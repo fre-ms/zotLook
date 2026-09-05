@@ -100,6 +100,12 @@ richtet sich nach dem Fenster, in dem sie steht — so viele Kacheln je Reihe,
 wie hineinpassen —, und gezeichnet wird dabei nichts; keine der beiden
 Einstellungen hat also etwas, woran sie greifen könnte.
 
+**Sammlungsbogen: höchstens … Einträge** (Vorgabe 200) begrenzt, wie viele
+Einträge der [Sammlungsbogen](window.qmd#mehrere-einträge-der-sammlungsbogen)
+auslegt. Er zeichnet die erste Seite jedes PDFs; eine ganze Bibliothek
+ausgewählt dauerte lange. Greift die Grenze, legt der Bogen die ersten so
+vielen Einträge aus und sagt es unten an. 0 legt jeden Eintrag aus.
+
 **Knopf für das Inhaltsverzeichnis anzeigen** und **Knopf für die Annotationen
 anzeigen** (Vorgabe beide an) setzen in jede Ecke des Bogens einen Knopf: das
 Inhaltsverzeichnis des Dokuments, aus der Outline des PDFs gelesen, und seine

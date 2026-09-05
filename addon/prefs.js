@@ -27,6 +27,11 @@ pref("extensions.zotlook.key.contactSheetWindow", "Ctrl+Alt+Space");
 // and the renderer raises the rendered resolution to match.
 pref("extensions.zotlook.contactSheetColumns", 5);
 
+// How many items a collection sheet lays out at most. A whole library
+// selected would render a page per item for a long while; the sheet takes
+// the first so many and says so at the bottom. 0 lays out every item.
+pref("extensions.zotlook.collectionSheetMaxItems", 200);
+
 // The two corner menus of a sheet: the document's own contents, and the
 // annotations on it, every entry a jump to its page. Off, the sheet is the
 // grid alone. Both apply to the PDF contact sheet and to the page overview

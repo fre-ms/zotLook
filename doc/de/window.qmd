@@ -93,7 +93,9 @@ ohne Scrollen ins Fenster passt: so wenige Spalten wie möglich, damit die
 Kacheln so groß wie möglich werden, und so viele wie nötig, damit keine Zeile
 unter den Rand fällt. Suche und Tastatur arbeiten dann auf dem
 Bereich. Ein leeres Feld und Enter zeigt wieder alle Seiten mit der
-Spaltenzahl von vorher.
+Spaltenzahl von vorher. In der Seitenübersicht eines Buches, deren Kacheln
+von fester Größe sind, wachsen stattdessen die Kacheln: so weit, dass der
+Bereich das Fenster füllt, höchstens bis zur Lesegröße.
 
 Damit hat der Bogen in jeder Ecke einen Zugang: Inhaltsverzeichnis,
 Annotationen, Suche und Seitenzahl.
@@ -157,8 +159,13 @@ Sind mehrere Einträge ausgewählt, macht dasselbe Kürzel aus ihnen einen
 Titel, Erstautor und Jahr darunter. Ein Klick öffnet das Dokument im Reader,
 die Tastatur wandert wie im Seitenbogen von Kachel zu Kachel, und die Suche
 findet einen Eintrag nach Titel, Autor oder dem Text seiner ersten Seite. Ein
-Eintrag ohne PDF bekommt eine leere Kachel mit seinem Titel; ein Klick darauf
-wählt ihn in Zotero aus. Das ist der Blick über eine Sammlung, den das Forum
+Eintrag ohne PDF ist nicht immer ohne Gesicht: Ein Buch zeigt seinen
+Umschlag, wo das EPUB einen nennt, und ein Klick öffnet es im Reader; ein
+Bild zeigt sich selbst. Was sonst bleibt, bekommt eine leere Kachel mit
+seinem Titel, und ein Klick darauf wählt den Eintrag in Zotero aus. Eine
+ganze Bibliothek ausgewählt dauerte lange, darum legt der Bogen höchstens
+die ersten 200 Einträge aus und sagt es unten an; die
+[Einstellung](settings.qmd#der-kontaktbogen) ändert die Zahl. Das ist der Blick über eine Sammlung, den das Forum
 sich als Galerie gewünscht hat: eine Sammlung in der Seitenleiste wählen und
 das Kürzel drücken, oder ihre Einträge markieren und dann das Kürzel. Ein
 Klick auf eine Kachel öffnet das Dokument auf der Seite, die sie zeigt.

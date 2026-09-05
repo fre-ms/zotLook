@@ -68,6 +68,11 @@ Tastatur.
   Datei gleich blieb.
 - Rückschritt auf dem Bogen nimmt Seite, Bereich und Rahmen zurück, ein
   zweiter Druck die Suche.
+- Ein Seitenbereich in der Seitenübersicht eines Buches lässt die Kacheln
+  wachsen, bis der Bereich das Fenster füllt.
+- Im Sammlungsbogen zeigt ein Buch ohne PDF seinen Umschlag und ein Bild
+  sich selbst; ein Bogen legt höchstens 200 Einträge aus und sagt es an, die
+  Zahl ist einstellbar.
 - Tippen auf dem Bogen geht dorthin, wo es hingehört: Ziffern ins
   Seitenfeld, ein Wort ins Suchfeld; ein Befehlsbuchstabe wartet einen
   Moment auf einen zweiten. Ein Schrägstrich führt auch in die Suche.

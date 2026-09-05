@@ -95,6 +95,12 @@ Columns and the page limit apply to PDFs. A book's page overview is laid out
 by the window it is shown in — as many tiles per row as fit — and nothing is
 rendered, so neither setting has anything to act on.
 
+**Collection sheet: at most … items** (default 200) caps how many items the
+[collection sheet](window.qmd#several-items-the-collection-sheet) lays out.
+It draws the first page of every item's PDF, and a whole library selected
+would take a long while. When the cap bites, the sheet lays out the first so
+many items and says so at the bottom. 0 lays out every item.
+
 **Show the contents button** and **Show the annotations button** (both on by
 default) put a button in each corner of the sheet: the document's contents,
 read from the PDF's outline, and its annotations, each entry a jump to its
