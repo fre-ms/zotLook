@@ -90,9 +90,9 @@ SHEET_SIZE = (1400, 860)
 BTN_CONTENTS = (1339, 817)
 BTN_ANNOTATIONS = (96, 817)
 SEARCH_FIELD = (1264, 110)
-ENTRY_WAS_ES_KANN = (1150, 563)
-ENTRY_BLUE_ANNOTATION = {"de": (219, 707), "en": (0, 0)}
-LINK_SEITE_6 = {"de": (78, 718), "en": (0, 0)}
+ENTRY_WAS_ES_KANN = {"de": (1150, 563), "en": (1150, 543)}   # "2. Was es kann" / "2. What it does": entry 1.4 is one line in English
+ENTRY_BLUE_ANNOTATION = {"de": (219, 707), "en": (219, 707)}
+LINK_SEITE_6 = {"de": (78, 718), "en": (78, 718)}
 TILE_AFTER_CONTENTS = (873, 468)    # page 11, framed in the middle after the jump
 TILE_AFTER_ANNOTATION = (526, 468)  # page 6, likewise
 TILE_AFTER_SEARCH = (526, 490)      # page 14 after the scroll, with its twelve hits
@@ -544,10 +544,10 @@ def prepare(lang, stage):
         # the menus open, for measuring their entries; and, once those are
         # known, the sheet after the jump each entry makes, for the tile
         click_sheet(BTN_CONTENTS, 400); time.sleep(1.2); shot(need_sheet_id(), f"probe-sheet-contents-{lang}.png")
-        if ENTRY_WAS_ES_KANN != (0, 0):
-            click_sheet(ENTRY_WAS_ES_KANN, 400); time.sleep(2)
+        if ENTRY_WAS_ES_KANN[lang] != (0, 0):
+            click_sheet(ENTRY_WAS_ES_KANN[lang], 400); time.sleep(2)
         click_sheet(BTN_CONTENTS, 300); time.sleep(1)
-        if ENTRY_WAS_ES_KANN != (0, 0):
+        if ENTRY_WAS_ES_KANN[lang] != (0, 0):
             shot(need_sheet_id(), f"probe-sheet-after-contents-{lang}.png")
         click_sheet(BTN_ANNOTATIONS, 400); time.sleep(1.2); shot(need_sheet_id(), f"probe-sheet-annotations-{lang}.png")
         if ENTRY_BLUE_ANNOTATION[lang] != (0, 0):
@@ -584,7 +584,7 @@ def mouse_part(lang):
     chord(); need_sheet(); time.sleep(1.5)
 
     click_sheet(BTN_CONTENTS, 700); time.sleep(1.4)
-    click_sheet(ENTRY_WAS_ES_KANN, 700); time.sleep(2.4)
+    click_sheet(ENTRY_WAS_ES_KANN[lang], 700); time.sleep(2.4)
     click_sheet(BTN_CONTENTS, 600); time.sleep(1.2)
     click_sheet(TILE_AFTER_CONTENTS, 800); wait_no_sheet(); wait_reader_page(); time.sleep(2.5)
     click_main(READER_CLOSE, 800); time.sleep(1.5)
