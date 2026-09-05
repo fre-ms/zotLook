@@ -125,6 +125,7 @@ Der Rahmen ist ein Cursor:
 | **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
 | **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** geht zur Seite des Eintrags und lässt das Menü offen, **o** öffnet bei einer Annotation den Reader an ihr, derselbe Buchstabe schließt das Menü |
 | **Ziffern** | landen im Seitenfeld, wo Enter die Seite rahmt; **Strg+G** führt auch so hinein |
+| **Rückschritt** (Backspace) | nimmt zurück, was das Seitenfeld verlangt hat: Seite, Bereich und Rahmen; ein zweiter Druck leert die Suche. **Entf** dasselbe |
 | **Buchstaben** | landen im Suchfeld und suchen sofort; **Strg+F** oder **/** führen auch so hinein. Die vier Befehlsbuchstaben warten eine Drittelsekunde: Folgt ein weiterer Buchstabe, wird ein Suchwort daraus, sonst läuft der Befehl |
 | **+** / **−** | eine Spalte mehr oder weniger, sofort; die Vorgabe in den Einstellungen bleibt |
 | **p** | druckt den Bogen — im Druckdialog wird daraus ein PDF |

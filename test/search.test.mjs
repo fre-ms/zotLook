@@ -405,6 +405,26 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   goto.value = '3–99'; inGoto('Enter');
   eq(doc.querySelector('.zl-goto-status').textContent, LABELS.gotoNone, 'a range with an end that is not there is refused');
   eq(out(), 'in in in in', 'and changes nothing');
+
+  // Backspace on the sheet takes back the page, then the search
+  const press = (key) =>
+    doc.body.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key }));
+  const search = doc.querySelector('.zl-search input');
+  goto.value = 'ii–1'; inGoto('Enter');
+  search.value = 'page'; search.dispatchEvent(new Event('input'));
+  eq(out(), 'out in in out', 'a range and a search are set');
+  press('Backspace');
+  eq(out(), 'in in in in', 'Backspace ends the range');
+  eq(goto.value, '', 'and empties the page field');
+  eq(framed(), 0, 'and takes the frame off');
+  eq(search.value, 'page', 'the search stays for now');
+  press('Backspace');
+  eq(search.value, '', 'the next Backspace empties the search');
+  eq(doc.querySelector('.zl-search-status').textContent, '', 'and the status with it');
+  goto.value = '2'; inGoto('Enter');
+  eq(framed(), 4, 'a page framed by its printed number, the fourth tile');
+  press('Delete');
+  eq(framed(), 0, 'Delete takes it back like Backspace');
 }
 
 // ── typing on the sheet goes into the fields ──────────────────────────

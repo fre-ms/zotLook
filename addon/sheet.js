@@ -250,7 +250,8 @@ var zotLookSheet = {
 	 * which is a click on its link, so the window closes on the handoff as
 	 * it does for the mouse. c and a open the contents and the annotations,
 	 * where the arrows walk the entries and Enter or o follows one. Digits
-	 * and Enter frame a page by its number; plus and minus change the
+	 * and Enter frame a page by its number; Backspace takes the page and
+	 * its range back, and then the search; plus and minus change the
 	 * columns on the spot; p prints. Page Up and Page Down are left to the
 	 * browser: they scroll. In the field, a letter is typing and the arrows
 	 * left and right move the caret; Enter
@@ -842,6 +843,29 @@ var zotLookSheet = {
 					return;
 				}
 				flushPending();
+			}
+			// Backspace, outside the fields, takes back what was asked for:
+			// the page field with its range and the frame first; then, with
+			// that empty, the search. Two presses and the sheet is as it
+			// opened. Delete does the same
+			if (key === "Backspace" || key === "Delete") {
+				event.preventDefault();
+				let hadPage = (gotoInput && gotoInput.value) || tiles.some((t) => t.classList.contains("zl-out")) ||
+					tiles.some((t) => t.classList.contains("zl-current"));
+				if (hadPage) {
+					if (gotoInput) gotoInput.value = "";
+					if (gotoStatus) gotoStatus.textContent = "";
+					clearRange();
+					for (let t of tiles) t.classList.remove("zl-current");
+					at = -1;
+					if (hits) say(hits.length ? "1 / " + hits.length : labels.none);
+					return;
+				}
+				if (input && input.value) {
+					input.value = "";
+					run();
+				}
+				return;
 			}
 			if (/^[0-9]$/.test(key)) {
 				event.preventDefault();

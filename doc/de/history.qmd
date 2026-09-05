@@ -66,6 +66,8 @@ Tastatur.
 - Ein aufbewahrter Bogen entsteht neu, wenn sich Skript oder Stil des Bogens
   seit seinem Bau geändert haben; bisher behielt er die alten, solange die
   Datei gleich blieb.
+- Rückschritt auf dem Bogen nimmt Seite, Bereich und Rahmen zurück, ein
+  zweiter Druck die Suche.
 - Tippen auf dem Bogen geht dorthin, wo es hingehört: Ziffern ins
   Seitenfeld, ein Wort ins Suchfeld; ein Befehlsbuchstabe wartet einen
   Moment auf einen zweiten. Ein Schrägstrich führt auch in die Suche.

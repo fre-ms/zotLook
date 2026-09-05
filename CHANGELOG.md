@@ -57,6 +57,8 @@ The sheet in its own Zotero window can search and answers the keyboard.
 - A kept sheet is remade when the sheet's own script or styles have
   changed since it was made; before, it kept the old ones for as long as
   the file did not change.
+- Backspace on the sheet takes the page, its range and the frame back, and
+  a second press the search.
 - Typing on the sheet goes where it belongs: digits into the page field, a
   word into the search field; a command letter waits a moment for a second
   letter. A slash leads into the search too.

@@ -121,6 +121,7 @@ The frame is a cursor:
 | **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it |
 | **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** goes to the entry's page and leaves the menu open, **o** on an annotation opens the reader at it, the same letter closes the menu |
 | **digits** | land in the page field, where Enter frames the page; **Ctrl+G** leads there as well |
+| **Backspace** | takes back what the page field asked for: page, range and frame; a second press empties the search. **Delete** likewise |
 | **letters** | land in the search field and search at once; **Ctrl+F** or **/** lead there as well. The four command letters wait a third of a second: another letter on their heels makes a search word, anything else runs the command |
 | **+** / **−** | one column more or fewer, on the spot; the default in the settings stays |
 | **p** | prints the sheet — the print dialogue is where it becomes a PDF |
