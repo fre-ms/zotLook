@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "zotLook",
     "version": "1.6.0",
-    "description": "Preview attachments by pressing Space through the system's own panel, and see, search and walk every page of a document on a contact sheet",
+    "description": "Preview, search and navigate attachments in Zotero – with one keystroke, on macOS, Linux and Windows.",
     "homepage_url": "https://github.com/fre-ms/zotLook",
     "author": "fre.ms and Guillaume Chapron",
     "icons": {

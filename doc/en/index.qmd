@@ -2,7 +2,7 @@
 title: "zotLook"
 subtitle: "Documentation"
 description: >-
-  What zotLook is, what it needs, and how to install it: preview Zotero attachments with the Space key and search a document's contact sheet, on macOS, Linux and Windows.
+  Preview, search and navigate attachments in Zotero – with one keystroke, on macOS, Linux and Windows. What it is, what it needs, and how to install it.
 ---
 
 **zotLook** is a plugin for the open-source reference manager
@@ -204,7 +204,7 @@ and *let me actually look at it* — and sit well side by side.
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "zotLook",
-  "description": "A Zotero plugin that previews attachments with the operating system's Quick Look, GNOME Sushi or QuickLook when you press Space.",
+  "description": "Preview, search and navigate attachments in Zotero – with one keystroke, on macOS, Linux and Windows.",
   "applicationCategory": "ResearchApplication",
   "operatingSystem": "macOS, Windows, Linux",
   "programmingLanguage": "JavaScript",

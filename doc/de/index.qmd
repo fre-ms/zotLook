@@ -2,7 +2,7 @@
 title: "zotLook"
 subtitle: "Dokumentation"
 description: >-
-  Was zotLook ist, was es braucht und wie man es installiert: Zotero-Anhänge mit der Leertaste ansehen und den Kontaktbogen eines Dokuments durchsuchen, unter macOS, Linux und Windows.
+  Anhänge in Zotero ansehen, durchsuchen und durchblättern – mit einem Tastendruck, unter macOS, Linux und Windows. Was es ist, was es braucht und wie man es installiert.
 ---
 
 **zotLook** ist ein Plugin für den quelloffenen Literaturmanager
@@ -218,7 +218,7 @@ gut aufgehoben.
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "zotLook",
-  "description": "Ein Zotero-Plugin, das Anhaenge per Leertaste mit der Vorschau des Betriebssystems anzeigt (Quick Look, GNOME Sushi oder QuickLook).",
+  "description": "Anhänge in Zotero ansehen, durchsuchen und durchblättern – mit einem Tastendruck, unter macOS, Linux und Windows.",
   "applicationCategory": "ResearchApplication",
   "operatingSystem": "macOS, Windows, Linux",
   "programmingLanguage": "JavaScript",
