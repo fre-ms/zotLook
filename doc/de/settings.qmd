@@ -173,6 +173,17 @@ ab; dann bleiben sie liegen, bis Sie sie selbst löschen.
 viel sie derzeit belegen — ohne diese Zahl wäre das Drücken ein Ratespiel. Nach
 dem Löschen steht dort eine Null, und der nächste Aufruf erzeugt neu.
 
+Darunter steht **jede Vorschau einzeln**, die größte zuerst: der Eintrag, aus
+dem sie entstand, ihre Art (Kontaktbogen, Seitenübersicht, EPUB-Vorschau,
+Sammlungsbogen), ihre Größe, ihre letzte Benutzung, und ein Kreuz, das nur sie
+löscht. Das ist der Weg für das eine Buch, dessen Vorschau ein Gigabyte
+geworden ist, ohne die anderen mitzunehmen. Dieselben Zeilen zeigt der
+Abschnitt **zotLook** im Eintragsfenster für den gezeigten Eintrag: seine
+Vorschauen unter den drei Knöpfen, jede mit ihrem Kreuz. Eine Vorschau aus
+einer früheren Version, die noch nicht aufschrieb, woher sie stammt, steht in
+den Einstellungen unter dem Namen ihrer Datei und im Eintragsfenster gar
+nicht; beim nächsten Erzeugen holt sie das nach.
+
 ::: {.callout-note title="Was nicht behalten wird"}
 Die annotierte Kopie eines PDFs entsteht auf demselben Weg, wird aber bewusst
 nicht behalten: sie ist eine vollständige Kopie des Dokuments, also das größte

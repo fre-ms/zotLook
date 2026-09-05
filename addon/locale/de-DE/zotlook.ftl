@@ -143,6 +143,17 @@ zotlook-pane-preview = Vorschau
 zotlook-pane-sheet = Kontaktbogen
 zotlook-pane-window = Bogen im Fenster
 
+# Wie eine zwischengespeicherte Vorschau in einer Liste heißt — der
+# Abschnitt im Eintragsfenster und die Einstellungen führen sie beide —
+# und das Kreuz, das eine einzelne löscht
+zotlook-kept-contactsheet = Kontaktbogen
+zotlook-kept-epubsheet = Seitenübersicht
+zotlook-kept-epub = EPUB-Vorschau
+zotlook-kept-annotated = Annotierte Kopie
+zotlook-kept-collectionsheet = Sammlungsbogen, { $count } Einträge
+zotlook-kept-unknown = Vorschau
+zotlook-kept-delete = Diese Vorschau löschen
+
 zotlook-prefs-keep-title = Zwischengespeicherte Vorschauen
 
 zotlook-prefs-keep =
@@ -158,6 +169,8 @@ zotlook-prefs-keep-size = Derzeit belegt: { $size }
 
 zotlook-prefs-keep-purge =
     .label = Zwischengespeicherte Vorschauen löschen
+
+zotlook-prefs-keep-list-help = Jede zwischengespeicherte Vorschau, die größte zuerst, mit einem Kreuz, das nur sie löscht. Der Abschnitt zotLook im Eintragsfenster führt die Vorschauen des gezeigten Eintrags.
 
 zotlook-prefs-annotations-title = Annotationen
 

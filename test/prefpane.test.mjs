@@ -109,7 +109,10 @@ ok(/id="zotlook-kept-size"/.test(xhtml),
 ok(/#zotlook-keep-purge/.test(js) && /addEventListener\(\s*["']command["']/.test(js),
    'and the button is wired, not merely declared');
 ok(/_purgeKept\(/.test(js), 'to the clearing the plugin implements');
-ok(/_keptSize\(/.test(js), 'and the figure to the size it reports');
+ok(/_keptEntries\(/.test(js), 'and the figure to the entries it reports');
+ok(/id="zotlook-kept-list"/.test(xhtml), 'and a list of every kept preview');
+ok(/_dropEntry\(/.test(js) && /zotlook-kept-delete/.test(js),
+   'each with a cross that deletes that one alone');
 ok(/preference="extensions\.zotlook\.contactSheetContents"/.test(xhtml)
    && /preference="extensions\.zotlook\.contactSheetAnnotations"/.test(xhtml),
    'the two corner menus of a sheet can be switched off in the pane');

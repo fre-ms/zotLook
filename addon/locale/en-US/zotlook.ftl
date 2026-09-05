@@ -140,6 +140,16 @@ zotlook-pane-preview = Preview
 zotlook-pane-sheet = Contact sheet
 zotlook-pane-window = Sheet in a window
 
+# What a kept preview is called in a list — the item pane's section and
+# the settings pane both list them — and the cross that deletes one
+zotlook-kept-contactsheet = Contact sheet
+zotlook-kept-epubsheet = Page overview
+zotlook-kept-epub = EPUB preview
+zotlook-kept-annotated = Annotated copy
+zotlook-kept-collectionsheet = Collection sheet, { $count } items
+zotlook-kept-unknown = Preview
+zotlook-kept-delete = Delete this preview
+
 zotlook-prefs-keep-title = Kept previews
 
 zotlook-prefs-keep =
@@ -155,6 +165,8 @@ zotlook-prefs-keep-size = Currently kept: { $size }
 
 zotlook-prefs-keep-purge =
     .label = Delete kept previews
+
+zotlook-prefs-keep-list-help = Every kept preview, the largest first, each with a cross that deletes it alone. The zotLook section of the item pane lists the ones made from the item shown.
 
 zotlook-prefs-annotations-title = Annotations
 

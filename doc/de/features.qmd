@@ -8,7 +8,9 @@ description: >-
 
 Die Kürzel sind der schnellste Weg; der sichtbare ist der Abschnitt
 **zotLook** im Eintragsfenster, mit drei Knöpfen für Vorschau, Kontaktbogen
-und Fenster, und das Kontextmenü eines Eintrags, das dieselben drei nennt.
+und Fenster und darunter den zwischengespeicherten Vorschauen des Eintrags,
+jede einzeln zu löschen, und das Kontextmenü eines Eintrags, das dieselben
+drei Aktionen nennt.
 
 Jede Funktion hat genau ein Kürzel, und jedes davon ist
 [einstellbar](settings.qmd).

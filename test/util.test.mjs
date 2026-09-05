@@ -137,5 +137,10 @@ eq(new Set(U.attachmentOrder('pdf,pdf,epub')).size, U.ATTACHMENT_TYPES.length,
   }
 }
 
+// ── bytes as a person reads them ─────────────────────────────────────
+eq([0, 512, 1024, 1536, 10 * 1024 * 1024, 1.5 * 1024 ** 3, 3 * 1024 ** 4].map((b) => U.formatBytes(b)),
+   ['0\u00a0B', '512\u00a0B', '1.0\u00a0kB', '1.5\u00a0kB', '10\u00a0MB', '1.5\u00a0GB', '3.0\u00a0TB'],
+   'a decimal under ten, none above, the unit joined by a no-break space');
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
 process.exit(fail ? 1 : 0);

@@ -54,7 +54,11 @@ Tastatur.
   Minus ändern die Spalten sofort, p druckt, und ein Wort in Zoteros
   Suchfeld geht als erste Suche des Bogens mit.
 - Ein Abschnitt zotLook im Eintragsfenster bietet die drei Aktionen als
-  Knöpfe.
+  Knöpfe und führt darunter die zwischengespeicherten Vorschauen des
+  Eintrags, jede mit Art, Größe und einem Kreuz, das nur sie löscht. Die
+  Einstellungen führen jede Vorschau einzeln, die größte zuerst, mit
+  Eintrag, Art, Größe und letzter Benutzung; bisher ließ sich der Speicher
+  nur im Ganzen leeren.
 - Die Leertaste zeigt alle Anhänge eines Eintrags, den besten zuerst, und
   die Pfeile blättern durch sie; bei mehreren Einträgen je einen. Quick Look
   blättert selbst; unter Sushi und QuickLook folgt die Vorschau den Pfeilen

@@ -46,7 +46,11 @@ The sheet in its own Zotero window can search and answers the keyboard.
 - In the window, digits and Enter frame a page by its number, plus and minus
   change the columns on the spot, p prints, and a word in Zotero's search
   field goes along as the sheet's first search.
-- An item pane section named zotLook offers the three actions as buttons.
+- An item pane section named zotLook offers the three actions as buttons
+  and lists the item's kept previews under them, each with its kind, its
+  size and a cross that deletes it alone. The settings list every kept
+  preview, the largest first, with item, kind, size and last use; before, the
+  store could only be emptied whole.
 - Space shows every attachment of an item, the best first, and the arrows
   walk them; with several items, one file each. Quick Look walks on its own;
   under Sushi and QuickLook the preview follows the arrows and the selection.

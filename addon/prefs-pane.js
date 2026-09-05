@@ -237,22 +237,69 @@
 		// object reaches it through Zotero, the one scope both share.
 		let plugin = () => Zotero.zotLook;
 
+		let list = root.querySelector("#zotlook-kept-list");
 		let show = async () => {
 			try {
-				let bytes = await plugin()._keptSize();
+				let entries = await plugin()._keptEntries();
+				let bytes = entries.reduce((sum, entry) => sum + entry.bytes, 0);
 				root.ownerDocument.l10n.setAttributes(
 					label,
 					"zotlook-prefs-keep-size",
-					{ size: formatBytes(bytes) }
+					{ size: zotLookUtil.formatBytes(bytes) }
 				);
 				label.hidden = false;
 				button.disabled = bytes === 0;
+				await showList(entries);
 			} catch (e) {
 				// Hidden rather than showing a figure that might be wrong —
 				// but said out loud, because a silently empty label is what
 				// hid this from view in 1.1.8
 				Zotero.debug("zotLook: could not measure kept sheets: " + e);
 				label.hidden = true;
+			}
+		};
+
+		// Every entry as a row, the largest first: what it was made from,
+		// what it is, how much it holds, when it was last used — and a
+		// cross that deletes that one alone. The one button above deletes
+		// them all, which is the wrong tool for a single book that turned
+		// out a gigabyte.
+		let HTML = "http://www.w3.org/1999/xhtml";
+		let showList = async (entries) => {
+			if (!list) return;
+			while (list.firstChild) list.removeChild(list.firstChild);
+			let doc = root.ownerDocument;
+			let make = (tag, className, text) => {
+				let el = doc.createElementNS(HTML, tag);
+				el.className = className;
+				if (text !== undefined) el.textContent = text;
+				return el;
+			};
+			let remove = await doc.l10n.formatValue("zotlook-kept-delete");
+			for (let entry of entries.slice().sort((a, b) => b.bytes - a.bytes)) {
+				let about = entry.about || {};
+				let row = make("div", "zotlook-kept-row");
+				let title = about.title || entry.dir.split(/[\\/]/).pop();
+				row.appendChild(make("span", "zotlook-kept-title", title));
+				row.appendChild(make("span", "zotlook-kept-kind", await plugin()._keptLabel(entry)));
+				row.appendChild(make("span", "zotlook-kept-size", zotLookUtil.formatBytes(entry.bytes)));
+				row.appendChild(make("span", "zotlook-kept-used",
+					entry.used ? new Date(entry.used).toLocaleDateString() : ""));
+				let cross = make("button", "zotlook-kept-delete", "×");
+				cross.setAttribute("title", remove);
+				cross.setAttribute("aria-label", remove);
+				cross.addEventListener("click", async (event) => {
+					event.preventDefault();
+					cross.disabled = true;
+					try {
+						await plugin()._dropEntry(entry);
+					} catch (e) {
+						Zotero.debug("zotLook: could not delete a kept preview: " + e);
+					}
+					await show();
+				});
+				row.appendChild(cross);
+				list.appendChild(row);
 			}
 		};
 
@@ -269,19 +316,6 @@
 		show();
 	}
 
-	/** Bytes as something a person reads, in the pane's own language. */
-	function formatBytes(bytes) {
-		if (bytes < 1024) return bytes + " B";
-		let units = ["kB", "MB", "GB"];
-		let value = bytes / 1024;
-		let unit = 0;
-		while (value >= 1024 && unit < units.length - 1) {
-			value /= 1024;
-			unit++;
-		}
-		return (value < 10 ? value.toFixed(1) : Math.round(value)) +
-			"\u00a0" + units[unit];
-	}
 
 	// ── Attachment priority ───────────────────────────────────────────
 

@@ -162,6 +162,16 @@ switches it off, and they then stay until you delete them yourself.
 they currently occupy — without that figure, pressing it would be a guess.
 After the deletion it reads zero, and the next call makes them afresh.
 
+Under it stands **every preview on its own**, the largest first: the item it
+was made from, its kind (contact sheet, page overview, EPUB preview,
+collection sheet), its size, its last use, and a cross that deletes it alone.
+That is the way for the one book whose preview turned out a gigabyte, without
+taking the others with it. The **zotLook** section of the item pane shows the
+same rows for the item shown: its previews under the three buttons, each with
+its cross. A preview from an earlier version, which did not yet write down
+where it came from, stands in the settings under its file's name and not in
+the item pane at all; the next making puts that right.
+
 ::: {.callout-note title="What is not kept"}
 The annotated copy of a PDF is made the same way but deliberately not kept: it
 is a whole copy of the document, the largest thing here for the smallest

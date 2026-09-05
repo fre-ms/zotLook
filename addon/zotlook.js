@@ -29,6 +29,9 @@ var zotLook = Object.seal({
 	// nothing about itself outside strict mode.
 	_buildTag: null,
 	_keptRoot: null,
+	// The size of each kept entry at its last use, so that the item pane
+	// does not walk a book's hundreds of files every time an item is shown
+	_sizeMemo: null,
 	// undefined rather than null on purpose: _resourceAlias uses "!== undefined"
 	// to tell "not worked out yet" from "worked out, and there is none"
 	_resourcePrefix: undefined,
@@ -140,6 +143,12 @@ var zotLook = Object.seal({
 		"zotlook-pane-preview",
 		"zotlook-pane-sheet",
 		"zotlook-pane-window",
+		"zotlook-kept-contactsheet",
+		"zotlook-kept-epubsheet",
+		"zotlook-kept-epub",
+		"zotlook-kept-annotated",
+		"zotlook-kept-unknown",
+		"zotlook-kept-delete",
 		"zotlook-sheet-search",
 		"zotlook-sheet-search-none",
 		"zotlook-sheet-pages",
@@ -765,12 +774,59 @@ var zotLook = Object.seal({
 						row.appendChild(button);
 					}
 					body.appendChild(row);
+					// Under the buttons, what is kept of this item: each
+					// preview with its size and a way to throw it away alone,
+					// which the settings pane's one button cannot
+					let kept = doc.createElement("div");
+					kept.className = "zotlook-pane-kept";
+					body.appendChild(kept);
+					this._renderKept(doc, kept, item);
 				},
 			});
 			this.log("Registered the item pane section");
 		} catch (e) {
 			this.log("Could not add the item pane section: " + e);
 			this._sectionID = null;
+		}
+	},
+
+	/**
+	 * The kept previews of an item, as rows in the section: a label, the
+	 * size, and a cross that deletes that one. Filled in after the section
+	 * is drawn, since the sizes come from the disk. Nothing at all for an
+	 * item that has none — the section is the three buttons then, as it was.
+	 */
+	async _renderKept(doc, box, item) {
+		let entries = [];
+		try {
+			entries = await this._keptEntriesFor(item);
+		} catch (e) {
+			this.log("Could not list the kept previews: " + e);
+		}
+		while (box.firstChild) box.removeChild(box.firstChild);
+		if (!entries.length) return;
+		let remove = this._string("zotlook-kept-delete", "Delete this preview");
+		for (let entry of entries) {
+			let row = doc.createElement("div");
+			row.className = "zotlook-pane-kept-row";
+			row.setAttribute("style", "display: flex; align-items: center; gap: 6px; padding: 1px 0; font-size: 0.92em;");
+			let label = doc.createElement("span");
+			label.className = "zotlook-pane-kept-label";
+			label.textContent = (await this._keptLabel(entry)) + " · " + zotLookUtil.formatBytes(entry.bytes);
+			let button = doc.createElement("button");
+			button.className = "zotlook-pane-kept-delete";
+			button.textContent = "×";
+			button.title = remove;
+			button.setAttribute("aria-label", remove);
+			button.setAttribute("style", "min-width: 0; padding: 0 6px; margin: 0;");
+			button.addEventListener("click", async (event) => {
+				event.preventDefault();
+				await this._dropEntry(entry);
+				this._renderKept(doc, box, item);
+			});
+			row.appendChild(label);
+			row.appendChild(button);
+			box.appendChild(row);
 		}
 	},
 
@@ -1888,7 +1944,7 @@ var zotLook = Object.seal({
 
 			// Written last, and only now: a key beside a sheet that was never
 			// finished would hand back a half-built one for ever after.
-			await this._derivedCommit(entry, key);
+			await this._derivedCommit(entry, key, this._aboutFor("contactsheet", chosen.item));
 		} catch (e) {
 			this.log("Contact sheet generation error: " + e);
 			await this._writeFailureReport("the contact sheet threw: " + e);
@@ -2027,7 +2083,11 @@ var zotLook = Object.seal({
 					tiles: tiles, columns: columns, width: width, notice: notice,
 				})
 			);
-			await this._derivedCommit(entry, key);
+			await this._derivedCommit(entry, key, Object.assign(this._aboutFor("collectionsheet", null), {
+				itemKeys: keys,
+				attachmentKeys: entries.filter((e) => e.shown).map((e) => String(e.shown.item.key)),
+				count: keys.length,
+			}));
 		} catch (e) {
 			this.log("Collection sheet generation error: " + e);
 			await this._writeFailureReport("the collection sheet threw: " + e);
@@ -2231,14 +2291,47 @@ var zotLook = Object.seal({
 		return file;
 	},
 
-	/** Marks an entry finished. Called last, and only when it really is. */
-	async _derivedCommit(entry, key) {
+	/**
+	 * Marks an entry finished. Called last, and only when it really is.
+	 *
+	 * With it, what the entry is about — the kind of preview, the item and
+	 * attachment it was made from, a title — written beside the key, so
+	 * that the item pane can list an item's kept previews and the settings
+	 * pane can name every entry. The key alone says only that the work is
+	 * done; the directory's name says the file's, not the item's.
+	 */
+	async _derivedCommit(entry, key, about) {
 		if (!key) return;
 		try {
 			await IOUtils.writeUTF8(entry.keyPath, key);
+			if (about) {
+				await IOUtils.writeUTF8(
+					PathUtils.join(entry.dir, ".about"), JSON.stringify(about));
+			}
 		} catch (e) {
 			this.log("Could not record a derived file: " + e);
 		}
+	},
+
+	/**
+	 * What an entry is about: the attachment it was made from, the item
+	 * that attachment belongs to (the attachment itself, standing alone),
+	 * and that item's title for a list to show.
+	 */
+	_aboutFor(kind, attachment) {
+		let about = { kind: kind, itemKeys: [], attachmentKeys: [], title: "", libraryID: null };
+		try {
+			if (attachment && attachment.key) about.attachmentKeys.push(String(attachment.key));
+			let parent = attachment ? attachment.parentItem : null;
+			let owner = parent || attachment;
+			if (owner && owner.key) about.itemKeys.push(String(owner.key));
+			about.title = this._itemTitle(owner) ||
+				(attachment && attachment.attachmentFilename ? String(attachment.attachmentFilename) : "");
+			if (owner && owner.libraryID != null) about.libraryID = owner.libraryID;
+		} catch (e) {
+			this.log("Could not describe a derived file: " + e);
+		}
+		return about;
 	},
 
 	/**
@@ -2464,10 +2557,15 @@ var zotLook = Object.seal({
 	},
 
 	/**
-	 * The kept entries, as {dir, key, bytes, used}.
+	 * The kept entries, as {dir, keyPath, bytes, used, about}.
 	 *
 	 * A directory without a `.key` is a half-written one and is not counted:
-	 * the key is what says the work finished.
+	 * the key is what says the work finished. `about` is what the entry
+	 * recorded of itself at that moment, or null for one that recorded
+	 * nothing — made before there was anything to record it in.
+	 *
+	 * The sizes are remembered per entry and use: a book's preview is
+	 * hundreds of files, and the item pane asks every time an item is shown.
 	 */
 	async _keptEntries() {
 		let out = [];
@@ -2477,6 +2575,7 @@ var zotLook = Object.seal({
 		} catch (e) {
 			return out;
 		}
+		if (!this._sizeMemo) this._sizeMemo = new Map();
 		for (let dir of children) {
 			let keyPath = PathUtils.join(dir, ".key");
 			let used;
@@ -2485,14 +2584,70 @@ var zotLook = Object.seal({
 			} catch (e) {
 				continue;
 			}
-			out.push({
-				dir,
-				keyPath,
-				used,
-				bytes: await this._dirSize(dir),
-			});
+			let memo = this._sizeMemo.get(dir);
+			let bytes = memo && memo.used === used ? memo.bytes : await this._dirSize(dir);
+			this._sizeMemo.set(dir, { used, bytes });
+			let about = null;
+			try {
+				about = JSON.parse(await IOUtils.readUTF8(PathUtils.join(dir, ".about")));
+			} catch (e) {
+				// none recorded, or unreadable: the entry is listed by its name
+			}
+			out.push({ dir, keyPath, used, bytes, about });
 		}
 		return out;
+	},
+
+	/**
+	 * The kept previews made from an item: from any of its attachments, or
+	 * from the item itself where it is an attachment; a collection sheet
+	 * that has the item among its own. Largest first.
+	 */
+	async _keptEntriesFor(item) {
+		let keys = new Set();
+		try {
+			if (item && item.key) keys.add(String(item.key));
+			if (item && typeof item.isAttachment === "function" && item.isAttachment()) {
+				let parent = item.parentItem;
+				if (parent && parent.key) keys.add(String(parent.key));
+			} else {
+				for (let attachment of this._attachmentsOf(item)) {
+					if (attachment.key) keys.add(String(attachment.key));
+				}
+			}
+		} catch (e) {
+			this.log("Could not read an item's keys: " + e);
+		}
+		if (!keys.size) return [];
+		let mine = (about) =>
+			!!about && [].concat(about.itemKeys || [], about.attachmentKeys || [])
+				.some((k) => keys.has(String(k)));
+		return (await this._keptEntries())
+			.filter((entry) => mine(entry.about))
+			.sort((a, b) => b.bytes - a.bytes);
+	},
+
+	/** What a kept entry is called in a list: its kind, in words. */
+	async _keptLabel(entry) {
+		let about = entry.about || {};
+		switch (about.kind) {
+			case "contactsheet":
+				return this._string("zotlook-kept-contactsheet", "Contact sheet");
+			case "epubsheet":
+				return this._string("zotlook-kept-epubsheet", "Page overview");
+			case "epub":
+				return this._string("zotlook-kept-epub", "EPUB preview");
+			case "annotated":
+				return this._string("zotlook-kept-annotated", "Annotated copy");
+			case "collectionsheet": {
+				let count = Number(about.count) || (about.itemKeys || []).length;
+				return this._formatString(
+					"zotlook-kept-collectionsheet", { count: count },
+					"Collection sheet, " + count + " items");
+			}
+			default:
+				return this._string("zotlook-kept-unknown", "Preview");
+		}
 	},
 
 	/** What the kept entries occupy, in bytes. */
@@ -4157,7 +4312,7 @@ var zotLook = Object.seal({
 			Object.assign(this._epubEnv(entry.dir), { annotations })
 		);
 		if (!html) return null;
-		await this._derivedCommit(entry, key);
+		await this._derivedCommit(entry, key, this._aboutFor("epub", attachment));
 		return html;
 	},
 
@@ -4232,7 +4387,7 @@ var zotLook = Object.seal({
 			this._closeProgress(progress);
 		}
 		if (!html) return null;
-		await this._derivedCommit(entry, key);
+		await this._derivedCommit(entry, key, this._aboutFor("epubsheet", attachment));
 		return html;
 	},
 
@@ -4370,7 +4525,7 @@ var zotLook = Object.seal({
 			return null;
 		}
 
-		await this._derivedCommit(entry, key);
+		await this._derivedCommit(entry, key, this._aboutFor("annotated", attachment));
 		return outputPath;
 	},
 

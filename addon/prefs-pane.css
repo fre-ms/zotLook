@@ -24,6 +24,43 @@
 #zotlook-prefs .zotlook-hint {
   color: GrayText;
 }
+/* Every kept preview as a row: the item, the kind, the size, the last use,
+   and a cross that deletes that one. The largest first, since the one worth
+   deleting is the one that surprised by its size. */
+#zotlook-prefs .zotlook-kept-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0 0;
+}
+#zotlook-prefs .zotlook-kept-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#zotlook-prefs .zotlook-kept-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#zotlook-prefs .zotlook-kept-kind,
+#zotlook-prefs .zotlook-kept-size,
+#zotlook-prefs .zotlook-kept-used {
+  flex: 0 0 auto;
+  color: GrayText;
+}
+#zotlook-prefs .zotlook-kept-size {
+  min-width: 5em;
+  text-align: right;
+}
+#zotlook-prefs .zotlook-kept-delete {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 0 6px;
+  margin: 0;
+}
 #zotlook-prefs .zotlook-order-list {
   border: 1px solid var(--fill-quinary, ThreeDShadow);
   border-radius: 5px;

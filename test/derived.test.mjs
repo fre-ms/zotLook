@@ -339,6 +339,50 @@ function session(disk, prefValues = {}, source = { size: 10, mtime: 5 }) {
   eq([...disk.files.keys()].filter(p => p.startsWith('/tmp/zt-cache/')).length, 0,
      'and leaves nothing of either behind');
 }
+// ── an entry records what it is about, and an item finds its own ──────
+// The directory's name says the file's; the item pane needs the item's.
+// So the commit writes the kind, the item and the attachment beside the
+// key, and an item's kept previews are the entries that name it
+{
+  const disk = makeDisk();
+  const { Q } = session(disk);
+  const paper = { key: 'ITEM0001', libraryID: 1, getDisplayTitle: () => 'A paper', isAttachment: () => false,
+                  getAttachments: () => [] };
+  const pdf = { key: 'ATT00011', parentItem: paper, attachmentFilename: 'a.pdf', isAttachment: () => true };
+  const other = { key: 'ATT00022', parentItem: { key: 'ITEM0002', getDisplayTitle: () => 'A book' },
+                  attachmentFilename: 'b.epub', isAttachment: () => true };
+  const one = await Q._derivedEntry('contactsheet_a.pdf', true);
+  await Q._derivedCommit(one, Q._tag() + '|k1', Q._aboutFor('contactsheet', pdf));
+  disk.files.set('/tmp/zt-cache/contactsheet_a.pdf/p1.jpg', { size: 5000, lastModified: 1 });
+  const two = await Q._derivedEntry('epubsheet_b.epub', true);
+  await Q._derivedCommit(two, Q._tag() + '|k2', Q._aboutFor('epubsheet', other));
+  disk.files.set('/tmp/zt-cache/epubsheet_b.epub/sheet.html', { size: 90000, lastModified: 1 });
+  const three = await Q._derivedEntry('collectionsheet_abc', true);
+  await Q._derivedCommit(three, Q._tag() + '|k3', Object.assign(Q._aboutFor('collectionsheet', null),
+    { itemKeys: ['ITEM0001', 'ITEM0002', 'ITEM0003'], attachmentKeys: ['ATT00011'], count: 3 }));
+  const legacy = await Q._derivedEntry('epub_old.epub', true);
+  await Q._derivedCommit(legacy, Q._tag() + '|k4');
+
+  const about = JSON.parse(disk.files.get('/tmp/zt-cache/contactsheet_a.pdf/.about').text);
+  eq([about.kind, about.itemKeys, about.attachmentKeys, about.title, about.libraryID],
+     ['contactsheet', ['ITEM0001'], ['ATT00011'], 'A paper', 1],
+     'the commit records the kind, the item, the attachment and the title');
+  const entries = await Q._keptEntries();
+  eq(entries.length, 4, 'every finished entry is listed, the one without a record included');
+  eq(entries.find((e) => e.dir.endsWith('epub_old.epub')).about, null, 'and that one has no record');
+  const mine = await Q._keptEntriesFor(paper);
+  eq(mine.map((e) => e.dir.split('/').pop()), ['contactsheet_a.pdf', 'collectionsheet_abc'],
+     'the paper\'s previews: its sheet and the collection sheet it is on, the larger first');
+  eq((await Q._keptEntriesFor(pdf)).map((e) => e.dir.split('/').pop()), ['contactsheet_a.pdf', 'collectionsheet_abc'],
+     'the attachment itself finds the same');
+  eq((await Q._keptEntriesFor({ key: 'ITEM0009', isAttachment: () => false, getAttachments: () => [] })).length, 0,
+     'an item with none finds none');
+  eq(await Q._keptLabel(mine[0]), 'Contact sheet', 'an entry is called by its kind');
+  eq(await Q._keptLabel(mine[1]), 'Collection sheet, 3 items', 'a collection sheet by its size in items');
+  eq(await Q._keptLabel(entries.find((e) => !e.about)), 'Preview', 'one without a record is a preview, no more');
+  ok(await Q._dropEntry(mine[0]), 'one entry can go alone');
+  eq((await Q._keptEntries()).length, 3, 'and the others stay');
+}
 {
   // Age-based, same story
   const disk = makeDisk();

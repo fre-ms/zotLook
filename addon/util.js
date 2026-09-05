@@ -435,6 +435,25 @@ var zotLookUtil = Object.freeze({
 	 * @returns {{path: string, fragment: string}|null} path without a leading
 	 *   slash, so it can be used as a zip entry name as it stands
 	 */
+	/**
+	 * Bytes as a person reads them — "1.5 GB", the unit joined by a
+	 * no-break space. For the settings pane's figure and the item pane's
+	 * list alike.
+	 */
+	formatBytes(bytes) {
+		let n = Number(bytes) || 0;
+		if (n < 1024) return n + "\u00a0B";
+		let units = ["kB", "MB", "GB", "TB"];
+		let value = n / 1024;
+		let unit = 0;
+		while (value >= 1024 && unit < units.length - 1) {
+			value /= 1024;
+			unit++;
+		}
+		return (value < 10 ? value.toFixed(1) : String(Math.round(value))) +
+			"\u00a0" + units[unit];
+	},
+
 	resolveRelativePath(url, baseDir) {
 		if (/^(https?:|data:|file:|mailto:|tel:|javascript:|#)/i.test(url)) {
 			return null;

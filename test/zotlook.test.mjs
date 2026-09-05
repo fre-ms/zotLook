@@ -973,7 +973,25 @@ const ok = (c,l)=>eq(!!c,true,l);
   for (const b of buttons) b.listeners.click({ preventDefault() {} });
   eq(opened, [['preview', [item]], ['sheet', [item]], ['window', [item]]], 'each does what its key would, for the item shown');
   registered.onRender({ doc: { createElement: (t) => el(t) }, body, item });
-  eq(body.children.length, 1, 'rendered again, the body holds one row, not two');
+  eq(body.children.length, 2, 'rendered again, the body holds one row of buttons and one box of kept previews, not four');
+
+  // under the buttons, the kept previews of the item, each with a cross
+  const kept = [{ dir: '/c/contactsheet_a', bytes: 5000, about: { kind: 'contactsheet' } },
+                { dir: '/c/epub_a', bytes: 1.5 * 1024 * 1024 * 1024, about: { kind: 'epub' } }];
+  Q._keptEntriesFor = async () => kept.slice();
+  const dropped = [];
+  Q._dropEntry = async (entry) => { dropped.push(entry.dir); kept.splice(kept.indexOf(entry), 1); return true; };
+  registered.onRender({ doc: { createElement: (t) => el(t) }, body, item });
+  await new Promise((r) => setTimeout(r, 10));
+  const box = body.children[1];
+  eq(box.children.length, 2, 'two kept previews, two rows');
+  eq(box.children.map((r) => r.children[0].textContent), ['Contact sheet\u00a0·\u00a04.9\u00a0kB'.replace(/\u00a0·\u00a0/, ' · '), 'EPUB preview · 1.5\u00a0GB'],
+     'each named by its kind, with its size');
+  eq(box.children[1].children[1].attrs['aria-label'], 'Delete this preview', 'and a cross that says what it does');
+  await box.children[1].children[1].listeners.click({ preventDefault() {} });
+  await new Promise((r) => setTimeout(r, 10));
+  eq(dropped, ['/c/epub_a'], 'the cross deletes that one entry');
+  eq(box.children.length, 1, 'and the row is gone, the other stays');
   Q._unregisterItemPaneSection();
   eq(unregistered, ['zotlook-actions'], 'and it goes at shutdown');
 }
