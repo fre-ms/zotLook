@@ -33,6 +33,11 @@ pref("extensions.zotlook.contactSheetColumns", 5);
 // of an EPUB alike.
 pref("extensions.zotlook.contactSheetContents", true);
 pref("extensions.zotlook.contactSheetAnnotations", true);
+// Whether a menu stays open after an entry was followed, so that the next
+// entry is a click or an Enter away — separately for the mouse and for the
+// keyboard. Off, the menu folds on the jump.
+pref("extensions.zotlook.contactSheetMenuMouse", true);
+pref("extensions.zotlook.contactSheetMenuKeyboard", true);
 
 // The size the sheet's own window was last left at, put back when the next
 // one opens. 0 leaves it to Zotero's viewer, which sizes to its minimum.

@@ -1765,6 +1765,8 @@ var zotLook = Object.seal({
 		let maxPages = this._maxContactSheetPages();
 		let showToc = this._pref("contactSheetContents", true);
 		let showAnnotations = this._pref("contactSheetAnnotations", true);
+		let menuMouse = this._pref("contactSheetMenuMouse", true) !== false;
+		let menuKeyboard = this._pref("contactSheetMenuKeyboard", true) !== false;
 
 		// Named after the source rather than after what is rendered, so the
 		// sheet keeps one name whether or not annotations were drawn in, and
@@ -1797,6 +1799,8 @@ var zotLook = Object.seal({
 				showAnnotations
 					? "list:" + (this._annotationSignature(chosen.item) || "none")
 					: "no-list",
+				(menuMouse ? "mouse-stays" : "mouse-closes"),
+				(menuKeyboard ? "keys-stay" : "keys-close"),
 			].join("|")
 			: null;
 
@@ -1877,6 +1881,8 @@ var zotLook = Object.seal({
 					annotations: showAnnotations
 						? this._pdfAnnotations(chosen.item)
 						: [],
+					menuMouse: menuMouse,
+					menuKeyboard: menuKeyboard,
 				})
 			);
 
@@ -4095,6 +4101,8 @@ var zotLook = Object.seal({
 		let annotations = this._epubAnnotations(attachment);
 		let showToc = this._pref("contactSheetContents", true);
 		let showAnnotations = this._pref("contactSheetAnnotations", true);
+		let menuMouse = this._pref("contactSheetMenuMouse", true) !== false;
+		let menuKeyboard = this._pref("contactSheetMenuKeyboard", true) !== false;
 		let key = keep
 			? [
 				this._tag(),
@@ -4103,6 +4111,8 @@ var zotLook = Object.seal({
 				this._annotationKeyPart(attachment, "epubAnnotations"),
 				showToc ? "contents" : "no-contents",
 				showAnnotations ? "list" : "no-list",
+				menuMouse ? "mouse-stays" : "mouse-closes",
+				menuKeyboard ? "keys-stay" : "keys-close",
 			].join("|")
 			: null;
 
@@ -4138,6 +4148,8 @@ var zotLook = Object.seal({
 					readerLink: this._readerLink(attachment),
 					showToc,
 					showAnnotations,
+					menuMouse,
+					menuKeyboard,
 				})
 			);
 		} finally {

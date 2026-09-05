@@ -34,6 +34,9 @@ The sheet in its own Zotero window can search and answers the keyboard.
   language of the rest of the sheet. On Linux, where the window manager
   draws the title bar, the window came back taller by that bar each time it
   opened; fixed.
+- A menu stays open after an entry was followed, by mouse and by keyboard
+  alike, so that the next entry is a click or an Enter away; two settings
+  fold it on the jump instead.
 - An annotation in the sheet's menu opens the reader at the annotation
   itself, by its own link or with o in the window.
 - The sheet is dark where the system is dark.

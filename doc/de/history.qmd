@@ -37,6 +37,9 @@ Tastatur.
   Einstellungen setzen. Sein Titel spricht die Sprache des übrigen Bogens.
   Unter Linux, wo der Fensterverwalter die Titelleiste zeichnet, kam das
   Fenster bei jedem Öffnen um diese Leiste höher zurück; behoben.
+- Ein Menü bleibt offen, nachdem einem Eintrag gefolgt wurde, mit Maus wie
+  Tastatur, damit der nächste Eintrag einen Klick oder ein Enter entfernt
+  ist; zwei Einstellungen lassen es stattdessen zuklappen.
 - Eine Annotation im Menü des Bogens öffnet den Reader an der Annotation
   selbst, über einen eigenen Link oder im Fenster mit o.
 - Der Bogen ist dunkel, wo das System dunkel ist.

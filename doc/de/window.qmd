@@ -68,7 +68,10 @@ zeigt den Wert und lässt ihn auch tippen. Das Kürzel ist
 In jeder Ecke ein Knopf: das Inhaltsverzeichnis des Dokuments, aus der Outline
 des PDFs gelesen, und seine Annotationen in Lesereihenfolge mit Zitat,
 Kommentar und Seite. Ein Klick auf einen Eintrag holt die Seite gerahmt in die
-Mitte des Fensters. Eine Annotation trägt außerdem den Link **Im Reader
+Mitte des Fensters; das Menü bleibt dabei offen, damit der nächste Eintrag
+einen Klick entfernt ist, denn die Menüs sind zum Orientieren da. Wer es
+lieber zuklappen lässt, stellt das in den Einstellungen um, für Maus und
+Tastatur getrennt. Eine Annotation trägt außerdem den Link **Im Reader
 öffnen**: Er öffnet den Reader nicht nur auf der Seite, sondern an der
 Annotation selbst, markiert. Beides gibt es auch in der Systemvorschau; im
 Fenster lassen sich die Menüs zusätzlich mit der Tastatur bedienen.
@@ -120,7 +123,7 @@ Der Rahmen ist ein Cursor:
 | **Enter** | rahmt die nächste Seite, beim ersten Druck die erste, oder mit einer Suche den nächsten Treffer; **Umschalt+Enter** geht zurück |
 | **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche gehen links und rechts trefferweise, auf und ab zur nächsten Zeile darüber oder darunter, die einen Treffer hat |
 | **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
-| **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** geht zur Seite des Eintrags, **o** öffnet bei einer Annotation den Reader an ihr, derselbe Buchstabe schließt das Menü |
+| **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** geht zur Seite des Eintrags und lässt das Menü offen, **o** öffnet bei einer Annotation den Reader an ihr, derselbe Buchstabe schließt das Menü |
 | **Ziffern** | landen im Seitenfeld, wo Enter die Seite rahmt; **Strg+G** führt auch so hinein |
 | **Buchstaben** | landen im Suchfeld und suchen sofort; **Strg+F** oder **/** führen auch so hinein. Die vier Befehlsbuchstaben warten eine Drittelsekunde: Folgt ein weiterer Buchstabe, wird ein Suchwort daraus, sonst läuft der Befehl |
 | **+** / **−** | eine Spalte mehr oder weniger, sofort; die Vorgabe in den Einstellungen bleibt |

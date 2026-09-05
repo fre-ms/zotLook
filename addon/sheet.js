@@ -39,6 +39,12 @@ var zotLookSheet = {
 	 * Only same-page fragments: a page tile's link goes to the reader and
 	 * must stay a real navigation.
 	 *
+	 * The menu the entry sits in stays open afterwards, so that the next
+	 * entry is a click away — the menus are for finding one's way about a
+	 * document, and one place is rarely the last. The sheet says otherwise
+	 * in data-zl-menu-mouse="close" on its root, from the preference, and
+	 * then the menu folds on the jump.
+	 *
 	 * The reader links get one thing done for them too. Zotero's viewer
 	 * window runs an actor that takes every click whose target is the
 	 * anchor itself and hands the address to the system — for an http
@@ -72,7 +78,11 @@ var zotLookSheet = {
 		"  var marked = document.querySelector('.zl-current');",
 		"  if (marked) marked.classList.remove('zl-current');",
 		"  target.classList.add('zl-current');",
-		"  target.scrollIntoView({ block: 'start' });",
+		"  if (target.scrollIntoView) target.scrollIntoView({ block: 'start' });",
+		"  if (document.documentElement.getAttribute('data-zl-menu-mouse') === 'close') {",
+		"    var menu = link.closest('details.zl-toc, details.zl-annotations');",
+		"    if (menu) menu.removeAttribute('open');",
+		"  }",
 		"});",
 		"</script>",
 		"",
@@ -704,10 +714,16 @@ var zotLookSheet = {
 				highlight(menu, 0);
 			}
 		};
-		// Following an entry is the click, which the jump script answers;
-		// the menu closes so that the page it went to can be seen. Enter
-		// goes to the page; o, where the entry has a link into the reader
-		// — an annotation's — goes there instead, to the annotation itself
+		// Following an entry is the click, which the jump script answers.
+		// The menu stays open, the entry still highlighted, so that the
+		// arrows go on to the next one and Enter follows that — unless the
+		// sheet says data-zl-menu-keyboard="close" on its root, from the
+		// preference; then the menu folds so that the page can be seen.
+		// Enter goes to the page; o, where the entry has a link into the
+		// reader — an annotation's — goes there instead, to the annotation
+		// itself, and the window goes with it
+		let menuStays = () =>
+			document.documentElement.getAttribute("data-zl-menu-keyboard") !== "close";
 		let follow = (toReader) => {
 			let menu = openMenu();
 			if (!menu) return false;
@@ -720,7 +736,7 @@ var zotLookSheet = {
 				if (into) link = into;
 			}
 			click(link);
-			closeMenu(menu);
+			if (toReader || !menuStays()) closeMenu(menu);
 			return true;
 		};
 
@@ -1282,6 +1298,21 @@ var zotLookSheet = {
 		);
 	},
 
+	/**
+	 * What the root element says about the menus: whether they stay open
+	 * after an entry is followed by the mouse and by the keyboard. "stay"
+	 * unless the spec says false; the scripts read the attributes.
+	 *
+	 * @param {{menuMouse?: boolean, menuKeyboard?: boolean}} spec
+	 */
+	menuAttrs(spec) {
+		let word = (v) => (v === false ? "close" : "stay");
+		return (
+			' data-zl-menu-mouse="' + word(spec && spec.menuMouse) +
+			'" data-zl-menu-keyboard="' + word(spec && spec.menuKeyboard) + '"'
+		);
+	},
+
 	/** The id a page's tile carries, the same on both sides of a link. */
 	tileId(page) {
 		return "p" + page;
@@ -1390,6 +1421,9 @@ var zotLookSheet = {
 	 * @param {Array<{page: number, height: number, label?: string}>} spec.pages
 	 *   Rendered pages, in order; label is the printed page number where
 	 *   the document has one. A page the renderer could not draw is absent.
+	 * @param {boolean} [spec.menuMouse] Whether a menu stays open after a
+	 *   click on an entry; false folds it. Likewise
+	 * @param {boolean} [spec.menuKeyboard] for Enter on an entry.
 	 * @param {number} spec.columns Grid columns.
 	 * @param {number} spec.width Rendered pixel width of a thumbnail.
 	 * @param {string} spec.imageDir Directory name the thumbnails live in.
@@ -1514,7 +1548,7 @@ var zotLookSheet = {
 
 		return (
 			"<!DOCTYPE html>\n" +
-			"<html>\n<head>\n" +
+			"<html" + this.menuAttrs(spec) + ">\n<head>\n" +
 			'<meta charset="UTF-8">\n' +
 			"<title>" + this.escape(this.TITLE) + "</title>\n" +
 			"<style>\n" +
@@ -1555,6 +1589,9 @@ var zotLookSheet = {
 	 *   finds it by
 	 * @param {number} spec.columns
 	 * @param {number} spec.width pixels the pictures were rendered at
+	 * @param {boolean} [spec.menuMouse] as on the page sheet; the collection
+	 *   sheet has no menus, but its root says the same
+	 * @param {boolean} [spec.menuKeyboard] likewise
 	 */
 	collectionHtml(spec) {
 		let tiles = spec.tiles || [];
@@ -1596,7 +1633,7 @@ var zotLookSheet = {
 		}
 		return (
 			"<!DOCTYPE html>\n" +
-			"<html>\n<head>\n" +
+			"<html" + this.menuAttrs(spec) + ">\n<head>\n" +
 			'<meta charset="UTF-8">\n' +
 			"<title>" + this.escape(this.COLLECTION_TITLE) + "</title>\n" +
 			"<style>\n" +

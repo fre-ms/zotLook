@@ -107,6 +107,12 @@ Annotationen, jeder Eintrag ein Sprung zu seiner Seite. Aus, ist der Bogen das
 Raster allein. Anders als die beiden Einstellungen darüber gelten diese auch
 für die Seitenübersicht eines Buches.
 
+**Menü nach einem Klick auf einen Eintrag offen lassen** und **Menü nach
+Enter auf einem Eintrag offen lassen** (Vorgabe beide an): Nach einem Sprung
+zu einer Seite bleibt das Menü offen, damit der nächste Eintrag einen Klick
+oder ein Enter entfernt ist. Ohne Häkchen klappt es beim Sprung zu, damit die
+Seite frei zu sehen ist; Maus und Tastatur lassen sich getrennt einstellen.
+
 **Ohne Systemvorschau den Bogen im Fenster öffnen** (Vorgabe an): Antwortet
 keine Systemvorschau auf die Leertaste, weil Sushi fehlt oder QuickLook nicht
 läuft, öffnet sich stattdessen [der Bogen in seinem Fenster](window.qmd).

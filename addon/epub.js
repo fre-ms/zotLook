@@ -1163,6 +1163,10 @@ var zotLookEpub = Object.seal({
 		// The search field and the two scripts the sheet module writes for
 		// the PDF sheet: hidden and inert in a preview panel, alive in the
 		// sheet's own window. The tiles are the text, so no JSON is needed.
+		// The menus' staying, from the preferences, as the PDF sheet says it
+		let word = (v) => (v === false ? "close" : "stay");
+		out.documentElement.setAttribute("data-zl-menu-mouse", word(env.menuMouse));
+		out.documentElement.setAttribute("data-zl-menu-keyboard", word(env.menuKeyboard));
 		let tilesHere = out.querySelectorAll("div.epub-page-label");
 		let range = tilesHere.length
 			? tilesHere[0].textContent.trim() + "–" + tilesHere[tilesHere.length - 1].textContent.trim()

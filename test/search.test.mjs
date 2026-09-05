@@ -153,7 +153,8 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   opened = [];
   press('Enter');
   eq(opened, ['#p4'], 'Enter follows the highlighted entry');
-  ok(!toc.hasAttribute('open'), 'and the menu closes behind it');
+  ok(toc.hasAttribute('open'), 'and the menu stays open, the next entry an arrow away');
+  eq(toc.querySelector('a.zl-menu-current').textContent, 'Four', 'with the entry still highlighted');
 
   press('a'); await later();
   const ann = doc.querySelector('details.zl-annotations');
@@ -179,7 +180,6 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   opened = [];
   press('Enter');
   eq(opened, ['#p5'], 'Enter on an annotation goes to its page');
-  press('a'); await later();
   opened = [];
   press('o'); await later();
   eq(opened, ['zotero://open-pdf/library/items/ABCD1234?annotation=K5'],
@@ -445,6 +445,37 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   search.value = ''; search.dispatchEvent(new Event('input'));
   press('ä');
   eq(search.value, 'ä', 'an umlaut is a letter too');
+}
+
+// ── the menus fold on the jump where the preferences say so ───────────
+{
+  const html8 = S.html({
+    pages: [1, 2, 3].map((n) => ({ page: n, height: 700 })),
+    columns: 3, width: 500, imageDir: 'pages', pageCount: 3,
+    toc: [{ title: 'One', page: 1, level: 0 }, { title: 'Two', page: 2, level: 0 }],
+    menuMouse: false, menuKeyboard: false,
+  });
+  ok(html8.includes('<html data-zl-menu-mouse="close" data-zl-menu-keyboard="close">'), 'the root says what the menus do');
+  const doc = new DOMParser().parseFromString(html8, 'text/html');
+  const script = S.JUMP_SCRIPT.replace(/^<script>\s*/, '').replace(/<\/script>\s*$/, '');
+  new Function('document', script)(doc);
+  S.sheetRuntime(doc, LABELS);
+  const press = (key, extra = {}) =>
+    doc.body.dispatchEvent(Object.assign(new Event('keydown', { bubbles: true, cancelable: true }), { key, ...extra }));
+  const toc = doc.querySelector('details.zl-toc');
+  press('c'); await later();
+  ok(toc.hasAttribute('open'), 'c opens the contents');
+  press('Enter');
+  ok(!toc.hasAttribute('open'), 'Enter follows and, so set, folds the menu');
+  toc.setAttribute('open', '');
+  const link = toc.querySelectorAll('a')[1];
+  const real = new Event('click', { bubbles: true, cancelable: true });
+  Object.assign(real, { button: 0, metaKey: false, ctrlKey: false, shiftKey: false });
+  link.dispatchEvent(real);
+  ok(doc.querySelectorAll('.page')[1].classList.contains('zl-current'), 'a click jumps to the page');
+  ok(!toc.hasAttribute('open'), 'and, so set, folds the menu too');
+  const html9 = S.html({ pages: [{ page: 1, height: 700 }], columns: 1, width: 500, imageDir: 'pages', pageCount: 1 });
+  ok(html9.includes('<html data-zl-menu-mouse="stay" data-zl-menu-keyboard="stay">'), 'unsaid, both stay');
 }
 
 console.log(fail ? `\n${fail} FAILURES` : '\nall assertions passed');
