@@ -7,13 +7,17 @@ keyboard — and beside each a timeline of what it sent, and when::
     12.345<TAB>key<TAB>Ctrl+Alt+Space
     15.010<TAB>type<TAB>Tasten
     17.400<TAB>click<TAB>
+    19.250<TAB>click<TAB><TAB>1395,895
 
 This puts the takes one after the other, each behind its title card, and
 shows every key from the timeline as a chip at the bottom of the frame for
 as long as it is pressed — until the next key, or a good two seconds. On
 macOS no key-display tool sees a scripted keystroke, so this is where the
 keys come from; on Windows Keyviz does, and --no-chips leaves the keys to
-the take. Clicks and scrolls are left to the pointer tool of the platform.
+the take. A click that names its place — a fourth column, x,y in points
+of the window — gets a ring there for a moment: on Linux no pointer tool
+sees a scripted click either. Clicks without a place, and scrolls, are
+left to the pointer tool of the platform.
 
     script/screencast-post.py build/screencast --prefix macos --out asset/screenshot
 
@@ -44,6 +48,8 @@ FONTS = [
     ("C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf"),
 ]
 CHIP_SECONDS = 2.2
+RING_SECONDS = 0.6
+RING_DIAMETER = 64      # points of the 1512-point window
 TITLES = {
     "en": ("mouse navigation", "keyboard navigation"),
     "de": ("Navigation mit der Maus", "Navigation mit der Tastatur"),
@@ -69,19 +75,25 @@ def font(size, bold=False):
 
 
 def read_timeline(path):
+    """(seconds, kind, label, place) per line; the place is (x, y) when the
+    line has a fourth column, else None."""
     events = []
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         parts = line.split("\t")
         if len(parts) < 3:
             continue
-        events.append((float(parts[0]), parts[1], parts[2]))
+        place = None
+        if len(parts) > 3 and "," in parts[3]:
+            x, y = parts[3].split(",", 1)
+            place = (float(x), float(y))
+        events.append((float(parts[0]), parts[1], parts[2], place))
     return events
 
 
 def chips(events):
     """(start, end, label) for every key or typed text, each ending with the
     next chip or after CHIP_SECONDS, whichever is first."""
-    shown = [(t, kind, label) for t, kind, label in events if kind in ("key", "type")]
+    shown = [(t, kind, label) for t, kind, label, _place in events if kind in ("key", "type")]
     out = []
     for i, (t, kind, label) in enumerate(shown):
         end = t + CHIP_SECONDS
@@ -90,6 +102,24 @@ def chips(events):
         text = label if kind == "key" else "„" + label + "“"
         out.append((t, end, text))
     return out
+
+
+def rings(events):
+    """(start, end, x, y) for every click that names its place."""
+    return [(t, t + RING_SECONDS, place[0], place[1])
+            for t, kind, _label, place in events if kind == "click" and place]
+
+
+def ring_image(scale):
+    """The ring a click leaves: the sheet's yellow, with a dark rim so it
+    stands on white and on the dark chips alike."""
+    d = int(RING_DIAMETER * scale)
+    stroke = max(2, int(4 * scale))
+    img = Image.new("RGBA", (d + 4, d + 4), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.ellipse((1, 1, d + 2, d + 2), outline=(20, 24, 30, 110), width=stroke + 2)
+    draw.ellipse((2, 2, d + 1, d + 1), outline=(245, 184, 65, 235), width=stroke)
+    return img
 
 
 def chip_image(text, scale):
@@ -154,9 +184,10 @@ def take_with_chips(take, timeline, out, width, height, work, offset=0.0, with_c
     """One take, halved to `width`, with its chips overlaid — or without
     them, for a take whose keys were drawn on screen as it was recorded."""
     scale = width / 1512
+    timeline_events = read_timeline(timeline)
     events = []
     if with_chips:
-        events = [(a + offset, b + offset, t) for a, b, t in chips(read_timeline(timeline))]
+        events = [(a + offset, b + offset, t) for a, b, t in chips(timeline_events)]
     inputs = ["-i", str(take)]
     filters = [f"[0:v]scale={width}:{height}:flags=lanczos,fps={FPS},format=yuv420p[v0]"]
     last = "v0"
@@ -170,6 +201,19 @@ def take_with_chips(take, timeline, out, width, height, work, offset=0.0, with_c
         filters.append(
             f"[{last}][{i + 1}:v]overlay={x}:{y}:enable='between(t,{start:.3f},{end:.3f})'[v{i + 1}]")
         last = f"v{i + 1}"
+    # The rings, one input for all of them, laid at each click's place
+    clicks = [(a + offset, b + offset, x, y) for a, b, x, y in rings(timeline_events)]
+    if clicks:
+        png = work / f"ring-{take.stem}.png"
+        ring_image(scale).save(png)
+        n = len(inputs) // 2
+        inputs += ["-i", str(png)]
+        for j, (start, end, x, y) in enumerate(clicks):
+            tag = f"r{j}"
+            filters.append(
+                f"[{last}][{n}:v]overlay={int(x * scale)}-w/2:{int(y * scale)}-h/2"
+                f":enable='between(t,{start:.3f},{end:.3f})'[{tag}]")
+            last = tag
     cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y"] + inputs + [
         "-filter_complex", ";".join(filters), "-map", f"[{last}]",
         "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-an", str(out)]
