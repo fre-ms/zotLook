@@ -8,6 +8,12 @@ description: >-
 **zotLook** ist ein Vorschau-Plugin für den quelloffenen Literaturmanager
 [**Zotero**](https://www.zotero.org/). Es hat drei Stufen.
 
+1. **Vorschau des Anhangs** in der Systemvorschau — Leertaste.
+2. **Kontaktbogen** aller Seiten eines PDF oder paginierten EPUB, ebenfalls in
+   der Systemvorschau — Strg+Umschalt+Leertaste.
+3. **Derselbe Bogen in einem eigenen Zotero-Fenster**, auf allen Systemen
+   gleich, mit Suche, Seitenfeld und Tastaturbedienung — Strg+Alt+Leertaste.
+
 **Die erste Stufe:** Es **zeigt den Anhang eines Zotero-Eintrags in
 einer Vorschau**, sobald Sie die **Leertaste** drücken — so, wie ein Dateimanager
 es tut. zotLook reicht den Anhang dafür an die Vorschau durch, die das

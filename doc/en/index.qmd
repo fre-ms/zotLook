@@ -8,6 +8,12 @@ description: >-
 **zotLook** is a preview plugin for the open-source reference manager
 [**Zotero**](https://www.zotero.org/). It has three tiers.
 
+1. **A preview of the attachment** in the system preview — Space.
+2. **A contact sheet** of every page of a PDF or a paginated EPUB, in the
+   system preview as well — Ctrl+Shift+Space.
+3. **The same sheet in a Zotero window of its own**, the same on every
+   system, with a search, a page field and the keyboard — Ctrl+Alt+Space.
+
 **The first tier:** it **shows the attachment of a Zotero item in a
 preview** when you press **Space**, the way a file manager does. zotLook hands the
 attachment to the preview the operating system offers:
