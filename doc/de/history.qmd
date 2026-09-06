@@ -83,6 +83,9 @@ Tastatur.
 - Römische Zahlen getippt landen im Seitenfeld wie Ziffern, auf einem Bogen
   mit römisch gezählten Seiten; ein Wort aus denselben Buchstaben geht
   weiter in die Suche.
+- Die Seitenübersicht eines Buches ohne gedruckte Seiten ist allein der
+  Hinweis; bisher wurden daneben alle Bilder des Buches ausgepackt und
+  behalten, Megabytes für eine Hinweisseite.
 - Im Sammlungsbogen zeigt ein Buch ohne PDF seinen Umschlag und ein Bild
   sich selbst; ein Bogen legt höchstens 200 Einträge aus und sagt es an, die
   Zahl ist einstellbar.

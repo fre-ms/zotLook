@@ -11,10 +11,10 @@ description: >-
 1. [**Vorschau des Anhangs**](#erste-stufe) in der Systemvorschau — *Leertaste*.
 2. [**Kontaktbogen**](#zweite-stufe) aller Seiten eines PDF oder paginierten EPUB, ebenfalls in
    der Systemvorschau — *Strg+Umschalt+Leertaste*.
-3. [**Derselbe Bogen in einem eigenen Zotero-Fenster**](#dritte-stufe), auf allen Systemen
-   gleich, mit Suche, Seitenfeld und Tastaturbedienung — *Strg+Alt+Leertaste*.
+3. [**Derselbe Bogen in einem eigenen Zotero-Fenster**](#dritte-stufe), **auf allen Systemen
+   gleich, mit Suche, Seitenfeld und Tastaturbedienung** — *Strg+Alt+Leertaste*.
 
-[**Die erste Stufe:**]{#erste-stufe} Es **zeigt den Anhang eines Zotero-Eintrags in
+[**Die erste Stufe:**]{#erste-stufe} zotLook **zeigt den Anhang eines Zotero-Eintrags in
 einer Vorschau**, sobald Sie die *Leertaste* drücken — so, wie ein Dateimanager
 es tut. zotLook reicht den Anhang dafür an die Vorschau durch, die das
 Betriebssystem anbietet:
@@ -33,7 +33,11 @@ mit der Systemvorschau dar. **Das hilft vor allem bei umfangreichen Dokumenten w
 Vorschau des Betriebssystems zeigt zwar jede Seite, aber immer nur eine bzw.
 wenige auf einmal. Schaltflächen im Vorschau-Fenster bieten das
 Inhaltsverzeichnis und eine Liste der Annotationen zur Navigation an, und
-**ein Klick auf eine Seite öffnet sie im Zotero-Reader**. Das Erzeugen eines
+**ein Klick auf eine Seite öffnet sie im Zotero-Reader**.
+
+**Der Kontaktbogen kann bei Bedarf auch in einem Browser Ihrer Wahl geöffnet werden**, denn es handelt sich um eine HTML-Seite.
+
+Das Erzeugen eines
 Kontaktbogens kann einige Sekunden dauern; eine Verlaufsanzeige nennt dabei die
 Seite, für die zotLook gerade die Vorschau generiert.
 

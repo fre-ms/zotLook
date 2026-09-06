@@ -1151,6 +1151,16 @@ var zotLookEpub = Object.seal({
 		// tree that has since moved.
 		await this._attachPageMarks(zip, pkg, sections);
 
+		// A book with no printed pages gets the notice and nothing else —
+		// decided here, before a single style is collected or a picture
+		// written out. Deciding it after the walk, as this once did, wrote
+		// every asset of the book beside a page that shows none of them:
+		// megabytes kept for a notice.
+		if (!sections.some((s) => (s.marks || []).some((m) => m.label))) {
+			this.log("No printed page numbers in this book");
+			return this._sheetNotice(out, title);
+		}
+
 		let seenCssUrls = new Set();
 		let seenInlineCss = new Set();
 		let written = new Map();

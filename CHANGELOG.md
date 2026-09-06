@@ -74,6 +74,9 @@ The sheet in its own Zotero window can search and answers the keyboard.
 - Roman numerals typed land in the page field as digits do, on a sheet whose
   pages are numbered in roman; a word of the same letters still goes to the
   search.
+- The page overview of a book without printed pages is the notice alone;
+  before, every picture of the book was unpacked and kept beside it,
+  megabytes for a notice.
 - On the collection sheet a book without a PDF shows its cover and a
   picture itself; a sheet lays out 200 items at most and says so, the
   number a setting.

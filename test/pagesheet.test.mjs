@@ -14,6 +14,7 @@
 // page and needs its own <p> around it.
 import fs from 'node:fs';
 import os from 'node:os';
+import path from 'node:path';
 import { openZip, openBook, extractEntry, plugin, makeBook } from './book.mjs';
 
 const { zotLookEpub: E, zotLookUtil: U, zotLookCfi: C } = plugin;
@@ -351,9 +352,11 @@ const PAGED = [
 // Which is most of them. Nothing here can invent a pagination, and a sheet of
 // arbitrary slices would be worse than none — so the sheet says so.
 {
-  const { out, doc } = await sheetOf({});
+  const { out, doc } = await sheetOf({ sharedImage: true });
   ok(out, 'a book with no page marks still produces a sheet, not a failure');
   eq(tiles(doc).length, 0, 'with no tiles in it');
+  eq(fs.readdirSync(path.dirname(out)), ['sheet.html'],
+     'and nothing beside it: no picture of the book is written out for a notice');
   const notice = doc.querySelector('div.epub-sheet-notice');
   ok(notice, 'and a notice instead');
   ok(/no printed page numbers/i.test(notice.textContent),
