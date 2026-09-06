@@ -77,6 +77,9 @@ The sheet in its own Zotero window can search and answers the keyboard.
 - Roman numerals typed land in the page field as digits do, on a sheet whose
   pages are numbered in roman; a word of the same letters still goes to the
   search.
+- "o" opens the framed page in the reader with the contents menu open too;
+  before, it only jumped to the tile a second time there, since a contents
+  entry carries no reader link of its own.
 - The page overview of a book without printed pages is the notice alone;
   before, every picture of the book was unpacked and kept beside it,
   megabytes for a notice.

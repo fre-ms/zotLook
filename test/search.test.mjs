@@ -156,6 +156,16 @@ ok(html.includes('(document, {"pages":"pages","none":"No matches","gotoNone":"No
   ok(toc.hasAttribute('open'), 'and the menu stays open, the next entry an arrow away');
   eq(toc.querySelector('a.zl-menu-current').textContent, 'Four', 'with the entry still highlighted');
 
+  // o after a contents jump opens the framed page in the reader: the entry
+  // carries no reader link of its own, so o must not merely jump again. The
+  // frame is on page 4, where Enter just put it
+  opened = [];
+  press('o'); await later();
+  eq(opened.length, 1, 'o with the contents menu open opens exactly one thing');
+  ok(/^zotero:\/\/open-pdf/.test(opened[0]),
+     'and it is the reader for the framed page, not another jump to the tile: ' + opened[0]);
+  ok(toc.hasAttribute('open'), 'and leaves the menu as it was');
+
   press('a'); await later();
   const ann = doc.querySelector('details.zl-annotations');
   ok(ann.hasAttribute('open'), 'a opens the annotations');

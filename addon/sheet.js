@@ -846,10 +846,16 @@ var zotLookSheet = {
 			let link = entries(menu)[menuAt];
 			if (!link) return false;
 			if (toReader) {
+				// o means: open the framed page in the reader. An annotation
+				// entry carries its own reader link, opening the page at the
+				// annotation; a contents entry carries only a jump to the
+				// tile, so o falls back to opening the framed page (open()),
+				// rather than jumping to it a second time
 				let scope = link.parentNode;
 				let into = scope && scope.querySelector
 					? scope.querySelector("a.zl-annotation-open") : null;
-				if (into) link = into;
+				if (!into) return false;
+				link = into;
 			}
 			click(link);
 			if (toReader || !menuStays()) closeMenu(menu);

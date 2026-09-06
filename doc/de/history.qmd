@@ -83,6 +83,9 @@ Tastatur.
 - Römische Zahlen getippt landen im Seitenfeld wie Ziffern, auf einem Bogen
   mit römisch gezählten Seiten; ein Wort aus denselben Buchstaben geht
   weiter in die Suche.
+- „o" öffnet die gerahmte Seite im Reader auch bei offenem
+  Inhaltsverzeichnis; bisher sprang es dort nur ein zweites Mal zur Kachel,
+  weil ein Inhaltseintrag keinen eigenen Reader-Link trägt.
 - Die Seitenübersicht eines Buches ohne gedruckte Seiten ist allein der
   Hinweis; bisher wurden daneben alle Bilder des Buches ausgepackt und
   behalten, Megabytes für eine Hinweisseite.
