@@ -8,14 +8,14 @@ description: >-
 **zotLook** ist ein Vorschau-Plugin für den quelloffenen Literaturmanager
 [**Zotero**](https://www.zotero.org/). Es hat drei Stufen.
 
-1. **Vorschau des Anhangs** in der Systemvorschau — Leertaste.
-2. **Kontaktbogen** aller Seiten eines PDF oder paginierten EPUB, ebenfalls in
-   der Systemvorschau — Strg+Umschalt+Leertaste.
-3. **Derselbe Bogen in einem eigenen Zotero-Fenster**, auf allen Systemen
-   gleich, mit Suche, Seitenfeld und Tastaturbedienung — Strg+Alt+Leertaste.
+1. [**Vorschau des Anhangs**](#erste-stufe) in der Systemvorschau — *Leertaste*.
+2. [**Kontaktbogen**](#zweite-stufe) aller Seiten eines PDF oder paginierten EPUB, ebenfalls in
+   der Systemvorschau — *Strg+Umschalt+Leertaste*.
+3. [**Derselbe Bogen in einem eigenen Zotero-Fenster**](#dritte-stufe), auf allen Systemen
+   gleich, mit Suche, Seitenfeld und Tastaturbedienung — *Strg+Alt+Leertaste*.
 
-**Die erste Stufe:** Es **zeigt den Anhang eines Zotero-Eintrags in
-einer Vorschau**, sobald Sie die **Leertaste** drücken — so, wie ein Dateimanager
+[**Die erste Stufe:**]{#erste-stufe} Es **zeigt den Anhang eines Zotero-Eintrags in
+einer Vorschau**, sobald Sie die *Leertaste* drücken — so, wie ein Dateimanager
 es tut. zotLook reicht den Anhang dafür an die Vorschau durch, die das
 Betriebssystem anbietet:
 
@@ -26,7 +26,7 @@ Betriebssystem anbietet:
 [Was diese Vorschau-Programme anzeigen können](platforms.qmd#welche-formate-wo-angezeigt-werden), kann somit auch zotLook anzeigen.
 Wenn Sie [die Funktionalität der Vorschau-Programme durch Plugins erweitern](platforms.qmd#die-vorschau-erweitern), erweitern Sie damit auch die Funktionalität von zotLook.
 
-**Die zweite Stufe:** Mit **Strg+Umschalt+Leertaste** erzeugt zotLook einen
+[**Die zweite Stufe:**]{#zweite-stufe} Mit *Strg+Umschalt+Leertaste* erzeugt zotLook einen
 **Kontaktbogen** von PDF-Dateien und paginierten EPUBs — ein Übersichtsraster
 über alle Seiten, **dessen Spaltenzahl sich einstellen lässt** — und stellt ihn
 mit der Systemvorschau dar. **Das hilft vor allem bei umfangreichen Dokumenten wie Büchern**, denn die
@@ -37,7 +37,7 @@ Inhaltsverzeichnis und eine Liste der Annotationen zur Navigation an, und
 Kontaktbogens kann einige Sekunden dauern; eine Verlaufsanzeige nennt dabei die
 Seite, für die zotLook gerade die Vorschau generiert.
 
-**Die dritte Stufe:** **Strg+Alt+Leertaste** öffnet den **Kontaktbogen in einem
+[**Die dritte Stufe:**]{#dritte-stufe} *Strg+Alt+Leertaste* öffnet den **Kontaktbogen in einem
 eigenen Zotero-Fenster**. Das hat fünf Vorteile:
 
 - Der Funktionsumfang wächst um eine **Suche** über alle Seiten (rechts oben)
@@ -50,7 +50,7 @@ eigenen Zotero-Fenster**. Das hat fünf Vorteile:
   eine Seite im Reader öffnet, was Sushis Vorschau unter Linux nicht kann.
 - Der Bogen **lässt sich vollständig über die Tastatur bedienen**.
 - Er ist **unabhängig von externen Programmen** und springt daher auch für die
-  Leertaste ein, falls auf dem Betriebssystem keine Vorschau installiert ist.
+  *Leertaste* ein, falls auf dem Betriebssystem keine Vorschau installiert ist.
 
 **Der Kontaktbogen in Zoteros eigenem Fenster bietet also den vollen
 Funktionsumfang auf allen Plattformen** und ist dabei völlig eigenständig.
@@ -130,20 +130,20 @@ ohne dass Sie sich darum kümmern müssen.
 ::: {.callout-note}
 zotLook installiert sich **neben** Guillaume Chaprons Zotero7QuickLook, nicht
 darüber — die beiden tragen verschiedene Plugin-Kennungen. Wenn Sie beide haben,
-schalten Sie eines ab, sonst wird die Leertaste doppelt beansprucht.
+schalten Sie eines ab, sonst wird die *Leertaste* doppelt beansprucht.
 :::
 
 ## Schnellstart mit zotLook
 
-Wählen Sie einen Eintrag und drücken Sie die **Leertaste**. Handelt es sich um einen
+Wählen Sie einen Eintrag und drücken Sie die *Leertaste*. Handelt es sich um einen
 Elterneintrag statt um einen Anhang, sucht zotLook einen Anhang aus — ein PDF vor
 einem EPUB und ein EPUB vor allem anderen. Diese
-[Reihenfolge lässt sich ändern](settings.qmd). Ein zweites Mal **Leertaste**
-oder **Escape** schließt die Vorschau wieder.
+[Reihenfolge lässt sich ändern](settings.qmd). Ein zweites Mal *Leertaste*
+oder *Escape* schließt die Vorschau wieder.
 
-**Umschalt+Leertaste** zeigt stattdessen die Notizen des Eintrags als Seite.
+*Umschalt+Leertaste* zeigt stattdessen die Notizen des Eintrags als Seite.
 
-**Strg+Umschalt+Leertaste** erzeugt einen *Kontaktbogen*: jede Seite eines PDFs
+*Strg+Umschalt+Leertaste* erzeugt einen *Kontaktbogen*: jede Seite eines PDFs
 als Miniatur in einem scrollbaren Raster. Ein Klick auf eine Seite öffnet sie im
 Zotero-Reader. Bei langen Dokumenten dauert das einige Sekunden, und das Plugin
 sagt es, während es arbeitet.
@@ -203,7 +203,7 @@ richtig ansehen, ohne es zu öffnen.*
   drei Systeme lassen sich frei in der Größe ziehen, und der dargestellte Inhalt
   skaliert mit.
 - **Unabhängig von der Seitenleiste**, die dafür nicht geöffnet sein muss.
-- **Alles auf einmal.** **Strg+Umschalt+Leertaste** erzeugt einen
+- **Alles auf einmal.** *Strg+Umschalt+Leertaste* erzeugt einen
   *Kontaktbogen*: einen kompakten Überblick über alle Seiten eines PDFs. Führt
   ein Buch eine gedruckte Paginierung mit, gilt das auch für EPUB.
 - **In wenigen Griffen zum gesuchten Abschnitt.** Die EPUB-Vorschau hält
@@ -220,7 +220,7 @@ richtig ansehen, ohne es zu öffnen.*
   Betriebssystems kann, kann auch zotLook. Die Seite
   [Plattformen](platforms.qmd) beschreibt, was die Systeme von Haus aus zeigen —
   [erweitern lässt sich das noch erheblich](platforms.qmd#die-vorschau-erweitern).
-- **Eine Taste, und wieder weg.** Leertaste zum Ansehen, Leertaste oder Escape
+- **Eine Taste, und wieder weg.** *Leertaste* zum Ansehen, *Leertaste* oder *Escape*
   zum Schließen. Kein Tab, der aufgeht, und keiner, der zugemacht werden muss.
 
 zotLook und Zoteros eigene Vorschau beantworten also verschiedene Fragen — *Was

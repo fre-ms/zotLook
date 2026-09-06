@@ -8,14 +8,14 @@ description: >-
 **zotLook** is a preview plugin for the open-source reference manager
 [**Zotero**](https://www.zotero.org/). It has three tiers.
 
-1. **A preview of the attachment** in the system preview — Space.
-2. **A contact sheet** of every page of a PDF or a paginated EPUB, in the
-   system preview as well — Ctrl+Shift+Space.
-3. **The same sheet in a Zotero window of its own**, the same on every
-   system, with a search, a page field and the keyboard — Ctrl+Alt+Space.
+1. [**A preview of the attachment**](#first-tier) in the system preview — *Space*.
+2. [**A contact sheet**](#second-tier) of every page of a PDF or a paginated EPUB, in the
+   system preview as well — *Ctrl+Shift+Space*.
+3. [**The same sheet in a Zotero window of its own**](#third-tier), the same on every
+   system, with a search, a page field and the keyboard — *Ctrl+Alt+Space*.
 
-**The first tier:** it **shows the attachment of a Zotero item in a
-preview** when you press **Space**, the way a file manager does. zotLook hands the
+[**The first tier:**]{#first-tier} it **shows the attachment of a Zotero item in a
+preview** when you press *Space*, the way a file manager does. zotLook hands the
 attachment to the preview the operating system offers:
 
 - [**Quick Look**](https://en.wikipedia.org/wiki/Quick_Look) on **macOS**,
@@ -24,7 +24,7 @@ attachment to the preview the operating system offers:
 
 [Whatever those can show](platforms.qmd#which-formats-appear-where), zotLook can therefore show as well. And if you [extend a preview program with plugins](platforms.qmd#extending-the-preview), you extend what zotLook can do with it.
 
-**The second tier:** **Ctrl+Shift+Space** builds a **contact sheet** of a PDF
+[**The second tier:**]{#second-tier} *Ctrl+Shift+Space* builds a **contact sheet** of a PDF
 or a paginated EPUB — a grid of every page, **its column count adjustable** —
 and shows it in the system preview. **That helps most with long documents such as books**,
 because the system's preview will show you every page but only one or two at
@@ -33,7 +33,7 @@ annotations for navigation, and **a click on a page opens it in Zotero's
 reader**. Building a sheet can take a few seconds; a progress indicator names
 the page zotLook is currently rendering.
 
-**The third tier:** **Ctrl+Alt+Space** opens the **contact sheet in a Zotero
+[**The third tier:**]{#third-tier} *Ctrl+Alt+Space* opens the **contact sheet in a Zotero
 window of its own**. That has five advantages:
 
 - The sheet gains a **search** across every page (top right) and a **page
@@ -44,7 +44,7 @@ window of its own**. That has five advantages:
   window is Zotero's own — the click that opens a page in the reader included,
   which Sushi's preview on Linux cannot do.
 - The sheet **can be driven from the keyboard alone**.
-- It is **independent of external programs**, and so it stands in for Space
+- It is **independent of external programs**, and so it stands in for *Space*
   where the operating system has no preview installed.
 
 **The contact sheet in Zotero's own window therefore offers the full range of
@@ -122,19 +122,19 @@ without being asked.
 ::: {.callout-note}
 zotLook installs beside Guillaume Chapron's Zotero7QuickLook rather than over
 it — the two carry different plugin IDs. If you have both, disable one, or the
-Space key will be claimed twice.
+*Space* key will be claimed twice.
 :::
 
 ## Getting started with zotLook
 
-Select an item and press **Space**. If the item is a parent rather than an
+Select an item and press *Space*. If the item is a parent rather than an
 attachment, zotLook picks one of its attachments — a PDF before an EPUB, and
 an EPUB before anything else. You can [change that order](settings.qmd). Press
-**Space** again, or **Escape**, to dismiss the preview.
+*Space* again, or *Escape*, to dismiss the preview.
 
-**Shift+Space** previews the item's notes instead, rendered as a page.
+*Shift+Space* previews the item's notes instead, rendered as a page.
 
-**Ctrl+Shift+Space** builds a *contact sheet*: every page of a PDF as a
+*Ctrl+Shift+Space* builds a *contact sheet*: every page of a PDF as a
 thumbnail in a scrollable grid. Clicking a page opens it in Zotero's reader at
 that page. A button in each corner opens the document's contents and its
 annotations, and an entry brings its page to the middle of the sheet. On a long
@@ -189,7 +189,7 @@ properly without opening it.*
 - **Far larger — and as large as you like.** The preview windows of all three
   systems can be dragged to any size, and what they show scales with them.
 - **Independent of the item pane**, which does not have to be open for it.
-- **All of it at once.** **Ctrl+Shift+Space** builds a *contact sheet*: a
+- **All of it at once.** *Ctrl+Shift+Space* builds a *contact sheet*: a
   compact overview of every page of a PDF. Where a book carries a printed
   pagination, the same holds for an EPUB.
 - **To the passage you want in a couple of moves.** An EPUB preview keeps its
@@ -206,7 +206,7 @@ properly without opening it.*
   zotLook can show. [Platforms](platforms.qmd) describes what each system
   manages on its own — and
   [that can be extended considerably](platforms.qmd#extending-the-preview).
-- **One key, and gone again.** Space to look, Space or Escape to dismiss. No tab
+- **One key, and gone again.** *Space* to look, *Space* or *Escape* to dismiss. No tab
   is opened and none has to be closed.
 
 So zotLook and Zotero's own preview answer different questions — *what is this?*
