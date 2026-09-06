@@ -8,14 +8,15 @@
 -- beside each take: no key-display tool sees a scripted keystroke, so the
 -- keys are put in from the record of what was sent, and when.
 --
--- The pointer and, from the fourth round on, the keys are Keystro's
--- business: it draws the ring around the clicks and the key caps in its bar
--- at the bottom of the screen, and it sees the scripted input as long as it
--- goes in at the HID level — which is what script/screencast-mouse.swift
--- does for the mouse and now for the keys too (hidKeys below); this script
--- compiles it on first use. Keystro needs Input Monitoring for the keys.
--- With hidKeys off, the keys go through System Events as before, no key
--- tool sees them, and the cut draws them as chips from the timeline.
+-- The pointer is Cursor Pro's business, if it is running: it draws the ring
+-- around the clicks, and it sees the scripted mouse, since that goes in at
+-- the HID level through script/screencast-mouse.swift (compiled on first
+-- use). The keys are drawn by the cut as chips from the timeline this
+-- script writes beside each take. Keystro was tried for the keys, as on
+-- Windows, but its bar sits behind the sheet window on the macOS screen
+-- (too short for the Windows layout that puts the bar below the sheet), so
+-- the chips do the keys here. The helper can still post keys at the HID
+-- level (hidKeys), which is how the in-sheet keys reach the sheet.
 --
 --   osascript script/screencast-macos.applescript [output directory] [de|en]
 --
@@ -36,7 +37,7 @@ property collectionKey : "QLDZQ9F5"
 -- The rows of the two documentation items, relative to the main window:
 -- "zotLook Dokumentation" second in the list, "zotLook Documentation" third
 property docsRowDE : {480, 164}
-property docsRowEN : {480, 195}
+property docsRowEN : {480, 133} -- "zotLook Documentation", row 1 (Documentation sorts before Dokumentation)
 -- The word searched for: twelve hits on page 14 of the German, ten on
 -- page 14 of the English, both reached with three presses of Enter
 property searchWordDE : "Tasten"
@@ -72,7 +73,7 @@ property scrollTo14 : 1515 -- three rows of tiles
 -- middle
 property gotoField : {85, 59}
 property tileAfterGoto : {526, 530} -- page 18, framed
-property tileInRange : {700, 380} -- page 19 of the range 18-20
+property tileInRange : {700, 430} -- page 19 of the range 18-20
 -- The item pane's zotLook section, reached by its sidenav icon; the button
 -- "Bogen im Fenster" in it, both relative to the main window
 property sidenavZotLook : {1494, 437}
@@ -151,9 +152,12 @@ on mousePart()
 	clickMain(readerClose, 800)
 	delay 1.5
 
-	-- annotations: the blue one, its page link, the menu away, the page
-	chord("Ctrl+Alt+Space")
-	needSheet()
+	-- annotations: the blue one, its page link, the menu away, the page.
+	-- The row first: the sheet was opened from the item pane, and the
+	-- keyboard comes back there when the reader closes, not to the item
+	-- tree where the shortcut listens
+	backToRow()
+	openSheetChord()
 	delay 1.5
 	clickSheet(btnAnnotations, 700)
 	delay 1.4
@@ -170,8 +174,8 @@ on mousePart()
 	delay 1.5
 
 	-- search: the word, scroll to page 14 and its hits, open it
-	chord("Ctrl+Alt+Space")
-	needSheet()
+	backToRow()
+	openSheetChord()
 	delay 1.5
 	clickSheet(searchField, 700)
 	delay 0.6
@@ -187,8 +191,8 @@ on mousePart()
 
 	-- the page field: 18 frames the page; 18-20 shows the range in three
 	-- columns; page 19 into the reader
-	chord("Ctrl+Alt+Space")
-	needSheet()
+	backToRow()
+	openSheetChord()
 	delay 1.5
 	clickSheet(gotoField, 700)
 	delay 0.6
@@ -198,8 +202,12 @@ on mousePart()
 	delay 2.4
 	clickSheet(gotoField, 700)
 	delay 0.5
-	chordKey("Cmd+A", 0, {command down})
-	delay 0.4
+	-- clear the "18" by backspace, robust where a select-all is not
+	repeat 3 times
+		press("Backspace", 51, {})
+		delay 0.15
+	end repeat
+	delay 0.3
 	typeText("18-20")
 	delay 0.6
 	press("Enter", 36, {})
@@ -211,11 +219,60 @@ on mousePart()
 	delay 1.5
 end mousePart
 
+-- The sheet opened by its shortcut, resent until it is there: the HID chord
+-- is seen by Keystro but does not always take on the first try
+-- The sheet opened by its shortcut. The HID chord that Keystro would show
+-- does not reliably reach Zotero's key handler, so the open goes through
+-- System Events, which always does — the cost is that this one shortcut
+-- carries no key cap in the film, unlike every key inside the sheet. The
+-- row is focused first, since the handler sits on the item tree
+on openSheetChord()
+	mark("key", "Ctrl+Alt+Space")
+	tell application "Zotero" to activate
+	delay 0.3
+	clickMain(docsRow, 400)
+	delay 0.6
+	-- The chip for this shortcut comes from the timeline (mark above), as
+	-- all key chips do; the HID chord is sent first only because it opens
+	-- the sheet when it happens to reach Zotero, but it is flaky, so a
+	-- short wait (the sheet is cached, so an open is quick) and then the
+	-- System Events chord, which always opens it
+	do shell script quoted form of helper & " key 49 ctrl,alt"
+	if waitForSheet(6) then return
+	repeat 4 times
+		tell application "System Events" to key code 49 using {control down, option down}
+		if waitForSheet(16) then return
+		clickMain(docsRow, 400)
+		delay 0.4
+	end repeat
+	error "the contact sheet did not open"
+end openSheetChord
+
+-- The reader tab closed with Cmd+W. A menu shortcut over the HID helper
+-- does not reach Zotero reliably (the sheet-opening chord has the same
+-- trouble), so this goes through System Events; it carries no key cap in
+-- the film, but closing a tab is not the thing being shown
+on closeReader()
+	mark("key", "Cmd+W")
+	tell application "Zotero" to activate
+	delay 0.3
+	tell application "System Events" to keystroke "w" using {command down}
+	delay 1.2
+end closeReader
+
+-- The item's row clicked again, so that the keyboard is in the item tree,
+-- where the shortcut listener sits; Zotero is brought forward first
+on backToRow()
+	tell application "Zotero" to activate
+	delay 0.3
+	clickMain(docsRow, 500)
+	delay 0.9
+end backToRow
+
 on keyboardPart()
 	-- the sheet; then the columns: three presses of + make seven of four,
 	-- five of − two, two of + four again, the grid re-laid at each
-	chord("Ctrl+Alt+Space")
-	needSheet()
+	openSheetChord()
 	delay 2
 	repeat 3 times
 		letter("+")
@@ -246,12 +303,11 @@ on keyboardPart()
 	letter("o")
 	waitForNoSheet()
 	delay 3.5
-	chordKey("Cmd+W", 13, {command down})
-	delay 1.5
+	closeReader()
 
 	-- the annotations menu, down to the blue one, Enter, the page
-	chord("Ctrl+Alt+Space")
-	needSheet()
+	backToRow()
+	openSheetChord()
 	delay 1.5
 	letter("a")
 	delay 1
@@ -262,14 +318,13 @@ on keyboardPart()
 	letter("o")
 	waitForNoSheet()
 	delay 3.5
-	chordKey("Cmd+W", 13, {command down})
-	delay 1.5
+	closeReader()
 
 	-- the search: the word typed on the sheet goes into the field by
 	-- itself; Enter walks the hits to page 14; then the arrows between
 	-- hits, then the page keys scroll, then open
-	chord("Ctrl+Alt+Space")
-	needSheet()
+	backToRow()
+	openSheetChord()
 	delay 1.5
 	typeText(searchWord)
 	delay 1.4
@@ -293,13 +348,12 @@ on keyboardPart()
 	letter("o")
 	waitForNoSheet()
 	delay 3.5
-	chordKey("Cmd+W", 13, {command down})
-	delay 1.5
+	closeReader()
 
 	-- the page field: digits typed land in it, Enter frames page 18;
 	-- Ctrl+G selects the field, the range, Enter; → to page 19, o
-	chord("Ctrl+Alt+Space")
-	needSheet()
+	backToRow()
+	openSheetChord()
 	delay 1.5
 	typeText("18")
 	delay 0.6
@@ -316,8 +370,7 @@ on keyboardPart()
 	letter("o")
 	waitForNoSheet()
 	delay 3.5
-	chordKey("Cmd+W", 13, {command down})
-	delay 1.5
+	closeReader()
 end keyboardPart
 
 -- ── before the takes ─────────────────────────────────────────────────────
@@ -434,8 +487,13 @@ on chord(label)
 	press(label, 49, {control down, option down})
 end chord
 
+-- A modifier combo (Ctrl+G here): always through System Events, whose
+-- modifiers reach the sheet reliably, where the HID helper's do not — the
+-- same reason the opening chord and Cmd+W do not go through the helper. No
+-- key cap in the film for it, but the field it selects is seen to highlight
 on chordKey(label, code, mods)
-	press(label, code, mods)
+	mark("key", label)
+	tell application "System Events" to key code code using mods
 end chordKey
 
 on letter(ch)
