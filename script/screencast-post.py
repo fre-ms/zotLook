@@ -32,6 +32,7 @@ Wants ffmpeg with libx264 and libvpx, and Pillow for the chips.
 """
 
 import argparse
+import re
 import shutil
 import subprocess
 import sys
@@ -65,6 +66,23 @@ GIF_WIDTH = 900
 GIF_FPS = 8
 
 
+# The modifier symbols — ⌘ ⌥ ⌃ ⇧ ⌫ ↩ — are not in Arial; these fonts have them
+SYMBOL_FONTS = [
+    "/System/Library/Fonts/Apple Symbols.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "C:/Windows/Fonts/seguisym.ttf",
+]
+
+
+def symbol_font(size):
+    for path in SYMBOL_FONTS:
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    return font(size)
+
+
 def font(size, bold=False):
     for regular, heavy in FONTS:
         try:
@@ -90,8 +108,68 @@ def read_timeline(path):
     return events
 
 
-def chips(events):
-    """(start, end, label) for every key or typed text, each ending with the
+# ── the key caps ─────────────────────────────────────────────────────
+# Drawn after Keystro's caps, so that the three platforms look alike: a
+# dark frame with a lighter face, a plain key as one large letter, a
+# modifier with its symbol top right and its name bottom left. Keystro
+# itself cannot draw a scripted key on macOS (it shows only what comes from
+# the keyboard device), and on Linux nothing draws keys at all — the cut
+# draws them everywhere, and Keystro (Sushi's counterpart on Linux has
+# none) is left to draw the clicks.
+CAP_H = 46            # a cap's height, in points of the 1512-wide window
+CAP_MIN_W = 46
+CAP_GAP = 12
+CAP_RIM = 4           # the dark frame around the lighter face
+CAP_BOTTOM = 112      # the caps' lower edge above the window's bottom edge
+CAP_FRAME = (33, 32, 32, 235)
+CAP_FACE = (72, 72, 72, 235)
+
+# A modifier or special key: (symbol, name); the symbol is macOS's, the
+# other platforms show the name alone
+MODIFIERS = {
+    "ctrl": ("⌃", "ctrl"), "control": ("⌃", "ctrl"),
+    "alt": ("⌥", "alt"), "option": ("⌥", "option"),
+    "cmd": ("⌘", "command"), "command": ("⌘", "command"), "meta": ("⌘", "command"),
+    "shift": ("⇧", "Shift"),
+    "enter": ("↩", "enter"), "return": ("↩", "return"),
+    "backspace": ("⌫", "delete"), "delete": ("⌦", "delete"),
+    "space": ("", "Space"), "tab": ("⇥", "tab"), "escape": ("⎋", "esc"),
+    "page down": ("⇟", "page down"), "page up": ("⇞", "page up"),
+}
+# The names the other platforms give the same keys
+MODIFIER_NAMES = {
+    "win": {"option": "Alt", "alt": "Alt", "command": "Win", "delete": "Backspace", "enter": "Enter"},
+    "linux": {"option": "Alt", "alt": "Alt", "command": "Super", "delete": "Backspace", "enter": "Enter"},
+}
+
+
+def caps_of(kind, label, platform):
+    """The caps one timeline entry stands for: a chord split at its plus
+    signs, a typed word one cap per character. Each cap is (symbol, name,
+    plain) — plain caps carry one large label, the others symbol and name."""
+    out = []
+    if kind == "type":
+        for ch in label:
+            out.append(("", ch.upper() if ch.isalpha() else ch, True))
+        return out
+    parts = [p for p in re.split(r"\+(?!$)", label) if p] if label != "+" else ["+"]
+    for part in parts:
+        key = part.strip().lower()
+        if key in MODIFIERS:
+            symbol, name = MODIFIERS[key]
+            if platform != "mac":
+                symbol = ""
+                name = MODIFIER_NAMES.get(platform, {}).get(name, name)
+            out.append((symbol, name, key == "space"))
+        elif len(part) == 1:
+            out.append(("", part.upper() if part.isalpha() else part, True))
+        else:
+            out.append(("", part, True))
+    return out
+
+
+def chips(events, platform="mac"):
+    """(start, end, caps) for every key or typed text, each ending with the
     next chip or after CHIP_SECONDS, whichever is first."""
     shown = [(t, kind, label) for t, kind, label, _place in events if kind in ("key", "type")]
     out = []
@@ -99,8 +177,7 @@ def chips(events):
         end = t + CHIP_SECONDS
         if i + 1 < len(shown):
             end = min(end, shown[i + 1][0])
-        text = label if kind == "key" else "„" + label + "“"
-        out.append((t, end, text))
+        out.append((t, end, caps_of(kind, label, platform)))
     return out
 
 
@@ -122,19 +199,50 @@ def ring_image(scale):
     return img
 
 
-def chip_image(text, scale):
-    """A rounded dark chip with the key's name, at the video's scale
-    (scale 1 = the 1512-point window)."""
-    size = int(36 * scale)
-    f = font(size)
-    pad_x, pad_y = int(26 * scale), int(14 * scale)
+def cap_image(symbol, name, plain, scale):
+    """One cap: the frame, the face, and the label — one large character
+    for a plain key, symbol top right and name bottom left otherwise."""
+    h = int(CAP_H * scale)
+    rim = max(2, int(CAP_RIM * scale))
     probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
-    x0, y0, x1, y1 = probe.textbbox((0, 0), text, font=f)
-    w, h = x1 - x0 + 2 * pad_x, y1 - y0 + 2 * pad_y
+    if plain:
+        f = font(int(24 * scale))
+        x0, y0, x1, y1 = probe.textbbox((0, 0), name, font=f)
+        w = max(int(CAP_MIN_W * scale), x1 - x0 + int(30 * scale))
+        img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        d = ImageDraw.Draw(img)
+        d.rounded_rectangle((0, 0, w - 1, h - 1), radius=int(10 * scale), fill=CAP_FRAME)
+        d.rounded_rectangle((rim, rim, w - 1 - rim, h - 1 - rim), radius=int(7 * scale), fill=CAP_FACE)
+        d.text(((w - (x1 - x0)) / 2 - x0, (h - (y1 - y0)) / 2 - y0), name, font=f, fill=(255, 255, 255, 255))
+        return img
+    fn = font(int(13 * scale))
+    fs = symbol_font(int(15 * scale))
+    nx0, ny0, nx1, ny1 = probe.textbbox((0, 0), name, font=fn)
+    sx0, sy0, sx1, sy1 = probe.textbbox((0, 0), symbol, font=fs) if symbol else (0, 0, 0, 0)
+    w = max(int(CAP_MIN_W * scale), (nx1 - nx0) + int(26 * scale), (sx1 - sx0) + int(26 * scale))
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle((0, 0, w - 1, h - 1), radius=h // 2, fill=(20, 24, 30, 215))
-    d.text((pad_x - x0, pad_y - y0), text, font=f, fill=(255, 255, 255, 255))
+    d.rounded_rectangle((0, 0, w - 1, h - 1), radius=int(10 * scale), fill=CAP_FRAME)
+    d.rounded_rectangle((rim, rim, w - 1 - rim, h - 1 - rim), radius=int(7 * scale), fill=CAP_FACE)
+    if symbol:
+        d.text((w - (sx1 - sx0) - int(10 * scale) - sx0, int(6 * scale) - sy0), symbol, font=fs, fill=(255, 255, 255, 255))
+        d.text((int(10 * scale) - nx0, h - (ny1 - ny0) - int(8 * scale) - ny0), name, font=fn, fill=(255, 255, 255, 255))
+    else:
+        d.text(((w - (nx1 - nx0)) / 2 - nx0, (h - (ny1 - ny0)) / 2 - ny0), name, font=fn, fill=(255, 255, 255, 255))
+    return img
+
+
+def chip_image(caps, scale):
+    """The caps of one chip side by side, as Keystro lays them out."""
+    images = [cap_image(sym, name, plain, scale) for sym, name, plain in caps]
+    gap = int(CAP_GAP * scale)
+    w = sum(i.width for i in images) + gap * (len(images) - 1)
+    h = max(i.height for i in images)
+    img = Image.new("RGBA", (max(w, 1), h), (0, 0, 0, 0))
+    x = 0
+    for i in images:
+        img.paste(i, (x, 0), i)
+        x += i.width + gap
     return img
 
 
@@ -180,24 +288,24 @@ def probe(path):
     return int(w), int(h), duration
 
 
-def take_with_chips(take, timeline, out, width, height, work, offset=0.0, with_chips=True):
+def take_with_chips(take, timeline, out, width, height, work, offset=0.0, with_chips=True, platform="mac"):
     """One take, halved to `width`, with its chips overlaid — or without
     them, for a take whose keys were drawn on screen as it was recorded."""
     scale = width / 1512
     timeline_events = read_timeline(timeline)
     events = []
     if with_chips:
-        events = [(a + offset, b + offset, t) for a, b, t in chips(timeline_events)]
+        events = [(a + offset, b + offset, t) for a, b, t in chips(timeline_events, platform)]
     inputs = ["-i", str(take)]
     filters = [f"[0:v]scale={width}:{height}:flags=lanczos,fps={FPS},format=yuv420p[v0]"]
     last = "v0"
-    for i, (start, end, text) in enumerate(events):
-        img = chip_image(text, scale)
+    for i, (start, end, caps) in enumerate(events):
+        img = chip_image(caps, scale)
         png = work / f"chip-{take.stem}-{i}.png"
         img.save(png)
         inputs += ["-i", str(png)]
         x = f"(W-w)/2"
-        y = f"H-h-{int(60 * scale)}"
+        y = f"H-h-{int(CAP_BOTTOM * scale)}"
         filters.append(
             f"[{last}][{i + 1}:v]overlay={x}:{y}:enable='between(t,{start:.3f},{end:.3f})'[v{i + 1}]")
         last = f"v{i + 1}"
@@ -281,10 +389,13 @@ def main():
                     help="which take the GIF shows (default: the mouse)")
     ap.add_argument("--gif-seconds", type=float, default=None,
                     help="end the GIF after so many seconds of its take (default: the whole take)")
+    ap.add_argument("--platform", choices=["mac", "win", "linux"], default=None,
+                    help="how the caps name the modifiers (default: from the prefix)")
     ap.add_argument("--no-chips", action="store_true",
                     help="draw no key chips: the keys are already in the picture, as Keyviz puts them there on Windows")
     args = ap.parse_args()
     crop = tuple(int(v) for v in args.crop.split(",")) if args.crop else GIF_CROP
+    platform = args.platform or ("win" if args.prefix.startswith("windows") else "linux" if args.prefix.startswith("linux") else "mac")
 
     if not shutil.which("ffmpeg"):
         sys.exit("ffmpeg is not on the PATH")
@@ -309,7 +420,7 @@ def main():
             title_clip(title, card, width, height, work, frame_of(takes[part][0], 0.2, work))
             clip = work / f"{part}-take.mp4"
             take_with_chips(takes[part][0], takes[part][1], clip, width, height, work, args.offset,
-                            with_chips=not args.no_chips)
+                            with_chips=not args.no_chips, platform=platform)
             parts += [card, clip]
             clips[part] = clip
         mp4 = args.out / f"{args.prefix}-screencast.mp4"
