@@ -48,11 +48,19 @@ func glide(to target: CGPoint, ms: Int) {
     post(.mouseMoved, target)
 }
 
+// A click as a mouse makes it: the down and the up carry a click count of
+// one, as a real button does. Without it a key-display tool took the
+// events for the start of a drag and showed no key after them
 func click(_ p: CGPoint, right: Bool) {
     usleep(150_000)
-    post(right ? .rightMouseDown : .leftMouseDown, p, right ? .right : .left)
-    usleep(80_000)
-    post(right ? .rightMouseUp : .leftMouseUp, p, right ? .right : .left)
+    for down in [true, false] {
+        let type: CGEventType = right ? (down ? .rightMouseDown : .rightMouseUp) : (down ? .leftMouseDown : .leftMouseUp)
+        let e = CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: p, mouseButton: right ? .right : .left)
+        e?.setIntegerValueField(.mouseEventClickState, value: 1)
+        e?.setDoubleValueField(.mouseEventPressure, value: down ? 1 : 0)
+        e?.post(tap: .cghidEventTap)
+        if down { usleep(80_000) }
+    }
 }
 
 func scroll(points: Int) {
