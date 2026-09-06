@@ -8,10 +8,14 @@
 -- beside each take: no key-display tool sees a scripted keystroke, so the
 -- keys are put in from the record of what was sent, and when.
 --
--- The pointer is Cursor Pro's business, if it is running: it draws the ring
--- around the pointer and the clicks, and it does see the scripted mouse,
--- since that goes in at the HID level through script/screencast-mouse.swift,
--- which this script compiles on first use.
+-- The pointer and, from the fourth round on, the keys are Keystro's
+-- business: it draws the ring around the clicks and the key caps in its bar
+-- at the bottom of the screen, and it sees the scripted input as long as it
+-- goes in at the HID level — which is what script/screencast-mouse.swift
+-- does for the mouse and now for the keys too (hidKeys below); this script
+-- compiles it on first use. Keystro needs Input Monitoring for the keys.
+-- With hidKeys off, the keys go through System Events as before, no key
+-- tool sees them, and the cut draws them as chips from the timeline.
 --
 --   osascript script/screencast-macos.applescript [output directory] [de|en]
 --
@@ -63,6 +67,19 @@ property tileAfterContents : {873, 442} -- page 11, framed after the jump
 property tileAfterAnnotation : {526, 442} -- page 6, likewise
 property tileAfterSearch : {526, 297} -- page 14, after the scroll
 property scrollTo14 : 1515 -- three rows of tiles
+-- The page field, top left; page 18 framed by it sits in the second row
+-- seen; the range 18-20 fills the window in three columns, page 19 in the
+-- middle
+property gotoField : {85, 59}
+property tileAfterGoto : {526, 530} -- page 18, framed
+property tileInRange : {700, 380} -- page 19 of the range 18-20
+-- The item pane's zotLook section, reached by its sidenav icon; the button
+-- "Bogen im Fenster" in it, both relative to the main window
+property sidenavZotLook : {1494, 437}
+property btnSheetInWindow : {1231, 196}
+-- Keys through the HID helper, so that Keystro shows them; off, through
+-- System Events, and the cut draws chips
+property hidKeys : true
 
 global helper, timeline, t0, outDir, mainPos, lang, docsRow, searchWord, entryBlueAnnotation, linkSeite6
 
@@ -111,10 +128,13 @@ end run
 -- ── the two takes ────────────────────────────────────────────────────────
 
 on mousePart()
-	-- the item, then the sheet
+	-- the item; then the sheet by the mouse alone: the zotLook section of
+	-- the item pane, reached by its sidenav icon, and its button
 	clickMain(docsRow, 500)
 	delay 1
-	chord("Ctrl+Alt+Space")
+	clickMain(sidenavZotLook, 700)
+	delay 1.2
+	clickMain(btnSheetInWindow, 700)
 	needSheet()
 	delay 1.5
 
@@ -164,13 +184,56 @@ on mousePart()
 	delay 3.5
 	clickMain(readerClose, 800)
 	delay 1.5
+
+	-- the page field: 18 frames the page; 18-20 shows the range in three
+	-- columns; page 19 into the reader
+	chord("Ctrl+Alt+Space")
+	needSheet()
+	delay 1.5
+	clickSheet(gotoField, 700)
+	delay 0.6
+	typeText("18")
+	delay 0.6
+	press("Enter", 36, {})
+	delay 2.4
+	clickSheet(gotoField, 700)
+	delay 0.5
+	chordKey("Cmd+A", 0, {command down})
+	delay 0.4
+	typeText("18-20")
+	delay 0.6
+	press("Enter", 36, {})
+	delay 2.6
+	clickSheet(tileInRange, 800)
+	waitForNoSheet()
+	delay 3.5
+	clickMain(readerClose, 800)
+	delay 1.5
 end mousePart
 
 on keyboardPart()
-	-- the sheet; the contents menu, down to "2. Was es kann", Enter follows
+	-- the sheet; then the columns: three presses of + make seven of four,
+	-- five of − two, two of + four again, the grid re-laid at each
 	chord("Ctrl+Alt+Space")
 	needSheet()
 	delay 2
+	repeat 3 times
+		letter("+")
+		delay 0.9
+	end repeat
+	delay 0.8
+	repeat 5 times
+		letter("-")
+		delay 0.9
+	end repeat
+	delay 1.2
+	repeat 2 times
+		letter("+")
+		delay 0.9
+	end repeat
+	delay 1.4
+
+	-- the contents menu, down to "2. Was es kann", Enter follows
 	letter("c")
 	delay 1
 	repeat 8 times
@@ -202,13 +265,12 @@ on keyboardPart()
 	chordKey("Cmd+W", 13, {command down})
 	delay 1.5
 
-	-- the search: into the field, the word, Enter walks the hits to page 14;
-	-- then the arrows between hits, then the page keys scroll, then open
+	-- the search: the word typed on the sheet goes into the field by
+	-- itself; Enter walks the hits to page 14; then the arrows between
+	-- hits, then the page keys scroll, then open
 	chord("Ctrl+Alt+Space")
 	needSheet()
 	delay 1.5
-	chordKey("Ctrl+F", 3, {control down})
-	delay 0.6
 	typeText(searchWord)
 	delay 1.4
 	repeat 3 times
@@ -228,6 +290,29 @@ on keyboardPart()
 	delay 2.2
 	press("Page Up", 116, {})
 	delay 2
+	letter("o")
+	waitForNoSheet()
+	delay 3.5
+	chordKey("Cmd+W", 13, {command down})
+	delay 1.5
+
+	-- the page field: digits typed land in it, Enter frames page 18;
+	-- Ctrl+G selects the field, the range, Enter; → to page 19, o
+	chord("Ctrl+Alt+Space")
+	needSheet()
+	delay 1.5
+	typeText("18")
+	delay 0.6
+	press("Enter", 36, {})
+	delay 2.4
+	chordKey("Ctrl+G", 5, {control down})
+	delay 0.6
+	typeText("18-20")
+	delay 0.6
+	press("Enter", 36, {})
+	delay 2.6
+	arrow("Right")
+	delay 1.4
 	letter("o")
 	waitForNoSheet()
 	delay 3.5
@@ -317,12 +402,33 @@ end mark
 
 on press(label, code, mods)
 	mark("key", label)
-	if (count of mods) is 0 then
+	if hidKeys then
+		do shell script quoted form of helper & " key " & code & " " & modsSpec(mods)
+	else if (count of mods) is 0 then
 		tell application "System Events" to key code code
 	else
 		tell application "System Events" to key code code using mods
 	end if
 end press
+
+-- The modifiers as the helper spells them: the AppleScript constants have
+-- no name of their own, so they are told apart by comparison
+on modsSpec(mods)
+	set spec to ""
+	repeat with m in mods
+		if m is control down then
+			set spec to spec & "ctrl,"
+		else if m is option down then
+			set spec to spec & "alt,"
+		else if m is shift down then
+			set spec to spec & "shift,"
+		else if m is command down then
+			set spec to spec & "cmd,"
+		end if
+	end repeat
+	if spec is "" then return "none"
+	return spec
+end modsSpec
 
 on chord(label)
 	press(label, 49, {control down, option down})
@@ -334,7 +440,11 @@ end chordKey
 
 on letter(ch)
 	mark("key", ch)
-	tell application "System Events" to keystroke ch
+	if hidKeys then
+		do shell script "SCREENCAST_LAYOUT=de " & quoted form of helper & " type " & quoted form of ch
+	else
+		tell application "System Events" to keystroke ch
+	end if
 end letter
 
 on arrow(direction)
@@ -351,7 +461,11 @@ end arrow
 
 on typeText(txt)
 	mark("type", txt)
-	tell application "System Events" to keystroke txt
+	if hidKeys then
+		do shell script "SCREENCAST_LAYOUT=de " & quoted form of helper & " type " & quoted form of txt
+	else
+		tell application "System Events" to keystroke txt
+	end if
 end typeText
 
 -- ── the mouse ────────────────────────────────────────────────────────────

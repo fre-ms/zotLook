@@ -247,16 +247,20 @@ def webm(src, out):
         "-c:v", "libvpx-vp9", "-crf", "36", "-b:v", "0", "-row-mt", "1", "-an", str(out)])
 
 
-def gif(src, out, width, work, crop):
+def gif(src, out, width, work, crop, seconds=None):
+    # seconds ends the GIF early: the README's loop need not carry every
+    # scene, and a take that grew a scene grows past what a README should
+    # load
     scale = width / 1512
     x, y, w, h = (int(v * scale) for v in crop)
     vf = f"crop={w}:{h}:{x}:{y},fps={GIF_FPS},scale={GIF_WIDTH}:-1:flags=lanczos"
+    until = ["-t", f"{seconds:.2f}"] if seconds else []
     palette = work / "palette.png"
     subprocess.check_call([
-        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src),
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *until, "-i", str(src),
         "-vf", vf + ",palettegen=max_colors=128:stats_mode=diff", str(palette)])
     subprocess.check_call([
-        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src), "-i", str(palette),
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *until, "-i", str(src), "-i", str(palette),
         "-lavfi", vf + "[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle",
         "-loop", "0", str(out)])
 
@@ -275,6 +279,8 @@ def main():
                     help="seconds added to every timeline entry, for a recording that started later than the timeline assumed")
     ap.add_argument("--gif-take", default="mouse", choices=["mouse", "keyboard", "both"],
                     help="which take the GIF shows (default: the mouse)")
+    ap.add_argument("--gif-seconds", type=float, default=None,
+                    help="end the GIF after so many seconds of its take (default: the whole take)")
     ap.add_argument("--no-chips", action="store_true",
                     help="draw no key chips: the keys are already in the picture, as Keyviz puts them there on Windows")
     args = ap.parse_args()
@@ -310,7 +316,7 @@ def main():
         concat(parts, mp4)
         webm(mp4, args.out / f"{args.prefix}-screencast.webm")
         gif_src = mp4 if args.gif_take == "both" else clips[args.gif_take]
-        gif(gif_src, args.out / f"{args.prefix}-screencast.gif", width, work, crop)
+        gif(gif_src, args.out / f"{args.prefix}-screencast.gif", width, work, crop, args.gif_seconds)
         for name in ("mp4", "webm", "gif"):
             p = args.out / f"{args.prefix}-screencast.{name}"
             print(f"{p}  {p.stat().st_size / 1e6:.1f} MB")
