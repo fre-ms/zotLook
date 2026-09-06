@@ -8,8 +8,8 @@ description: >-
 **zotLook** ist ein Plugin für den quelloffenen Literaturmanager
 [**Zotero**](https://www.zotero.org/). Es hat drei Stufen.
 
-**Die erste Stufe:** Es zeigt den Anhang des ausgewählten Zotero-Eintrags in
-einer Vorschau, sobald Sie die **Leertaste** drücken — so, wie ein Dateimanager
+**Die erste Stufe:** Es **zeigt den Anhang eines Zotero-Eintrags in
+einer Vorschau**, sobald Sie die **Leertaste** drücken — so, wie ein Dateimanager
 es tut. zotLook reicht den Anhang dafür an die Vorschau durch, die das
 Betriebssystem anbietet:
 
@@ -20,10 +20,10 @@ Betriebssystem anbietet:
 [Was diese Vorschau-Programme anzeigen können](platforms.qmd#welche-formate-wo-angezeigt-werden), kann somit auch zotLook anzeigen.
 Wenn Sie [die Funktionalität der Vorschau-Programme durch Plugins erweitern](platforms.qmd#die-vorschau-erweitern), erweitern Sie damit auch die Funktionalität von zotLook.
 
-**Die zweite Stufe:** Mit **Strg+Umschalt+Leertaste** erzeugt zotLook
-**Kontaktbögen** von PDF-Dateien — ein Übersichtsraster über alle Seiten, dessen
-Spaltenzahl sich einstellen lässt — und stellt sie mit derselben Systemvorschau
-dar. **Das hilft vor allem bei umfangreichen Dokumenten wie Büchern**, denn die
+**Die zweite Stufe:** Mit **Strg+Umschalt+Leertaste** erzeugt zotLook einen
+**Kontaktbogen** von PDF-Dateien und paginierten EPUBs — ein Übersichtsraster
+über alle Seiten, **dessen Spaltenzahl sich einstellen lässt** — und stellt ihn
+mit der Systemvorschau dar. **Das hilft vor allem bei umfangreichen Dokumenten wie Büchern**, denn die
 Vorschau des Betriebssystems zeigt zwar jede Seite, aber immer nur eine bzw.
 wenige auf einmal. Schaltflächen im Vorschau-Fenster bieten das
 Inhaltsverzeichnis und eine Liste der Annotationen zur Navigation an, und
@@ -36,7 +36,7 @@ eigenen Zotero-Fenster**. Das hat vier Vorteile:
 
 - Der Funktionsumfang wächst um eine **Suche** über alle Seiten (rechts oben)
   und ein **Seitenfeld** (links oben), das eine Seite oder einen Seitenbereich
-  aufschlägt.
+  aufschlägt; Plus und Minus ändern die Spaltenzahl sofort.
 - Erscheinungsbild und Funktionalität sind **auf allen Plattformen
   einheitlich**, weil das Fenster Zoteros eigenes ist — auch der Klick, der
   eine Seite im Reader öffnet, was Sushis Vorschau unter Linux nicht kann.

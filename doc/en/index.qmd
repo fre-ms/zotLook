@@ -8,8 +8,8 @@ description: >-
 **zotLook** is a plugin for the open-source reference manager
 [**Zotero**](https://www.zotero.org/). It has three tiers.
 
-**The first tier:** it previews the attachment of the selected Zotero item
-when you press **Space**, the way a file manager does. zotLook hands the
+**The first tier:** it **shows the attachment of a Zotero item in a
+preview** when you press **Space**, the way a file manager does. zotLook hands the
 attachment to the preview the operating system offers:
 
 - [**Quick Look**](https://en.wikipedia.org/wiki/Quick_Look) on **macOS**,
@@ -19,8 +19,8 @@ attachment to the preview the operating system offers:
 [Whatever those can show](platforms.qmd#which-formats-appear-where), zotLook can therefore show as well. And if you [extend a preview program with plugins](platforms.qmd#extending-the-preview), you extend what zotLook can do with it.
 
 **The second tier:** **Ctrl+Shift+Space** builds a **contact sheet** of a PDF
-— a grid of every page, its column count adjustable — and shows it in that
-same system preview. **That helps most with long documents such as books**,
+or a paginated EPUB — a grid of every page, **its column count adjustable** —
+and shows it in the system preview. **That helps most with long documents such as books**,
 because the system's preview will show you every page but only one or two at
 a time. Buttons in the preview window offer the contents and a list of the
 annotations for navigation, and **a click on a page opens it in Zotero's
@@ -31,7 +31,8 @@ the page zotLook is currently rendering.
 window of its own**. That has four advantages:
 
 - The sheet gains a **search** across every page (top right) and a **page
-  field** (top left) that opens a page or a range of pages.
+  field** (top left) that opens a page or a range of pages; plus and minus
+  change the column count on the spot.
 - Its look and its behaviour are **the same on every platform**, because the
   window is Zotero's own — the click that opens a page in the reader included,
   which Sushi's preview on Linux cannot do.
