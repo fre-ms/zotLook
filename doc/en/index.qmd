@@ -5,7 +5,7 @@ description: >-
   Preview, search and navigate attachments in Zotero – with one keystroke, on macOS, Linux and Windows. What it is, what it needs, and how to install it.
 ---
 
-**zotLook** is a plugin for the open-source reference manager
+**zotLook** is a preview plugin for the open-source reference manager
 [**Zotero**](https://www.zotero.org/). It has three tiers.
 
 **The first tier:** it **shows the attachment of a Zotero item in a
@@ -28,11 +28,12 @@ reader**. Building a sheet can take a few seconds; a progress indicator names
 the page zotLook is currently rendering.
 
 **The third tier:** **Ctrl+Alt+Space** opens the **contact sheet in a Zotero
-window of its own**. That has four advantages:
+window of its own**. That has five advantages:
 
 - The sheet gains a **search** across every page (top right) and a **page
-  field** (top left) that opens a page or a range of pages; plus and minus
-  change the column count on the spot.
+  field** (top left) that opens a page or a range of pages.
+- The column count of the sheet's grid can be **changed on the spot with the
+  plus and minus keys**.
 - Its look and its behaviour are **the same on every platform**, because the
   window is Zotero's own — the click that opens a page in the reader included,
   which Sushi's preview on Linux cannot do.

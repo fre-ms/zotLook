@@ -5,7 +5,7 @@ description: >-
   Anhänge in Zotero ansehen, durchsuchen und durchblättern – mit einem Tastendruck, unter macOS, Linux und Windows. Was es ist, was es braucht und wie man es installiert.
 ---
 
-**zotLook** ist ein Plugin für den quelloffenen Literaturmanager
+**zotLook** ist ein Vorschau-Plugin für den quelloffenen Literaturmanager
 [**Zotero**](https://www.zotero.org/). Es hat drei Stufen.
 
 **Die erste Stufe:** Es **zeigt den Anhang eines Zotero-Eintrags in
@@ -32,11 +32,13 @@ Kontaktbogens kann einige Sekunden dauern; eine Verlaufsanzeige nennt dabei die
 Seite, für die zotLook gerade die Vorschau generiert.
 
 **Die dritte Stufe:** **Strg+Alt+Leertaste** öffnet den **Kontaktbogen in einem
-eigenen Zotero-Fenster**. Das hat vier Vorteile:
+eigenen Zotero-Fenster**. Das hat fünf Vorteile:
 
 - Der Funktionsumfang wächst um eine **Suche** über alle Seiten (rechts oben)
   und ein **Seitenfeld** (links oben), das eine Seite oder einen Seitenbereich
-  aufschlägt; Plus und Minus ändern die Spaltenzahl sofort.
+  aufschlägt.
+- Die Spaltenzahl des Kontaktbogen-Rasters kann über die **Plus- und
+  Minus-Tasten dynamisch angepasst** werden.
 - Erscheinungsbild und Funktionalität sind **auf allen Plattformen
   einheitlich**, weil das Fenster Zoteros eigenes ist — auch der Klick, der
   eine Seite im Reader öffnet, was Sushis Vorschau unter Linux nicht kann.
