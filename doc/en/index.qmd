@@ -6,10 +6,11 @@ description: >-
 ---
 
 **zotLook** is a plugin for the open-source reference manager
-[**Zotero**](https://www.zotero.org/). It has three tiers. The first: it
-previews the attachment of the selected Zotero item when you press **Space**,
-the way a file manager does. zotLook carries no viewer of its own for that; it
-drives the preview the system already has:
+[**Zotero**](https://www.zotero.org/). It has three tiers.
+
+**The first tier:** it previews the attachment of the selected Zotero item
+when you press **Space**, the way a file manager does. zotLook hands the
+attachment to the preview the operating system offers:
 
 - [**Quick Look**](https://en.wikipedia.org/wiki/Quick_Look) on **macOS**,
 - [**GNOME Sushi**](https://gitlab.gnome.org/GNOME/sushi) on **Linux**,
@@ -17,20 +18,31 @@ drives the preview the system already has:
 
 [Whatever those can show](platforms.qmd#which-formats-appear-where), zotLook can therefore show as well. And if you [extend a preview program with plugins](platforms.qmd#extending-the-preview), you extend what zotLook can do with it.
 
-The second tier: **Ctrl+Shift+Space** builds a **contact sheet** of a PDF — a
-grid of every page, its column count adjustable — and puts it into that same
-system preview. **That helps most with long documents such as books**, because
-the system's preview will show you every page but only one or two at a time. A
-button in each corner opens the contents and the annotations, and **a click on
-a page opens it in Zotero's reader**. Building one can take a few seconds; a
-progress indicator names the page zotLook is currently rendering.
+**The second tier:** **Ctrl+Shift+Space** builds a **contact sheet** of a PDF
+— a grid of every page, its column count adjustable — and shows it in that
+same system preview. **That helps most with long documents such as books**,
+because the system's preview will show you every page but only one or two at
+a time. Buttons in the preview window offer the contents and a list of the
+annotations for navigation, and **a click on a page opens it in Zotero's
+reader**. Building a sheet can take a few seconds; a progress indicator names
+the page zotLook is currently rendering.
 
-The third tier: **Ctrl+Alt+Space** opens the same sheet in a **Zotero window
-of its own**. That is the tier on which everything the sheet can do works, and
-works the same on all three systems, because the window is Zotero's own: a
-search across every page, control from the keyboard alone, the menus, and the
-click that opens the reader everywhere — on Linux too, where Sushi's preview
-cannot. [The sheet in a window](window.qmd) has a page of its own.
+**The third tier:** **Ctrl+Alt+Space** opens the **contact sheet in a Zotero
+window of its own**. That has four advantages:
+
+- The sheet gains a **search** across every page (top right) and a **page
+  field** (top left) that opens a page or a range of pages.
+- Its look and its behaviour are **the same on every platform**, because the
+  window is Zotero's own — the click that opens a page in the reader included,
+  which Sushi's preview on Linux cannot do.
+- The sheet **can be driven from the keyboard alone**.
+- It is **independent of external programs**, and so it stands in for Space
+  where the operating system has no preview installed.
+
+**The contact sheet in Zotero's own window therefore offers the full range of
+functions on every platform**, and does so entirely on its own. For that
+universality, [the sheet in a window](window.qmd) has a page of its own in
+this documentation.
 
 What sets zotLook apart, besides previewing on **every platform**, is that
 **Zotero's annotations become part of the preview** — in the system's preview

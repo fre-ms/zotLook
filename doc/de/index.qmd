@@ -6,11 +6,12 @@ description: >-
 ---
 
 **zotLook** ist ein Plugin für den quelloffenen Literaturmanager
-[**Zotero**](https://www.zotero.org/). Es hat drei Stufen. Die erste: Es zeigt
-den Anhang des ausgewählten Zotero-Eintrags in einer Vorschau, sobald Sie die
-**Leertaste** drücken — so, wie ein Dateimanager es tut. zotLook bringt dafür
-keinen eigenen Betrachter mit, sondern steuert die Vorschau an, die das System
-bereits hat:
+[**Zotero**](https://www.zotero.org/). Es hat drei Stufen.
+
+**Die erste Stufe:** Es zeigt den Anhang des ausgewählten Zotero-Eintrags in
+einer Vorschau, sobald Sie die **Leertaste** drücken — so, wie ein Dateimanager
+es tut. zotLook reicht den Anhang dafür an die Vorschau durch, die das
+Betriebssystem anbietet:
 
 - [**Quick Look**](https://en.wikipedia.org/wiki/Quick_Look) unter **macOS**,
 - [**GNOME Sushi**](https://gitlab.gnome.org/GNOME/sushi) unter **Linux**,
@@ -19,22 +20,34 @@ bereits hat:
 [Was diese Vorschau-Programme anzeigen können](platforms.qmd#welche-formate-wo-angezeigt-werden), kann somit auch zotLook anzeigen.
 Wenn Sie [die Funktionalität der Vorschau-Programme durch Plugins erweitern](platforms.qmd#die-vorschau-erweitern), erweitern Sie damit auch die Funktionalität von zotLook.
 
-Die zweite Stufe: Mit **Strg+Umschalt+Leertaste** erzeugt zotLook
+**Die zweite Stufe:** Mit **Strg+Umschalt+Leertaste** erzeugt zotLook
 **Kontaktbögen** von PDF-Dateien — ein Übersichtsraster über alle Seiten, dessen
-Spaltenzahl sich einstellen lässt — und legt sie in dieselbe Systemvorschau.
-**Das hilft vor allem bei umfangreichen Dokumenten wie Büchern**, denn die
+Spaltenzahl sich einstellen lässt — und stellt sie mit derselben Systemvorschau
+dar. **Das hilft vor allem bei umfangreichen Dokumenten wie Büchern**, denn die
 Vorschau des Betriebssystems zeigt zwar jede Seite, aber immer nur eine bzw.
-wenige auf einmal. Ein Knopf in jeder Ecke öffnet das Inhaltsverzeichnis und
-die Annotationen, und **ein Klick auf eine Seite öffnet sie im Zotero-Reader**.
-Das Erzeugen kann einige Sekunden dauern; eine Verlaufsanzeige nennt dabei die
+wenige auf einmal. Schaltflächen im Vorschau-Fenster bieten das
+Inhaltsverzeichnis und eine Liste der Annotationen zur Navigation an, und
+**ein Klick auf eine Seite öffnet sie im Zotero-Reader**. Das Erzeugen eines
+Kontaktbogens kann einige Sekunden dauern; eine Verlaufsanzeige nennt dabei die
 Seite, für die zotLook gerade die Vorschau generiert.
 
-Die dritte Stufe: **Strg+Alt+Leertaste** öffnet denselben Bogen in einem
-**eigenen Zotero-Fenster**. Das ist die Stufe, auf der alles geht, was der Bogen
-kann, und zwar auf allen drei Systemen gleich, weil das Fenster Zoteros eigenes
-ist: Suche über alle Seiten, Bedienung ganz mit der Tastatur, die Menüs, und der
-Klick, der überall den Reader öffnet — auch unter Linux, wo Sushis Vorschau
-das nicht kann. [Der Bogen im Fenster](window.qmd) hat eine eigene Seite.
+**Die dritte Stufe:** **Strg+Alt+Leertaste** öffnet den **Kontaktbogen in einem
+eigenen Zotero-Fenster**. Das hat vier Vorteile:
+
+- Der Funktionsumfang wächst um eine **Suche** über alle Seiten (rechts oben)
+  und ein **Seitenfeld** (links oben), das eine Seite oder einen Seitenbereich
+  aufschlägt.
+- Erscheinungsbild und Funktionalität sind **auf allen Plattformen
+  einheitlich**, weil das Fenster Zoteros eigenes ist — auch der Klick, der
+  eine Seite im Reader öffnet, was Sushis Vorschau unter Linux nicht kann.
+- Der Bogen **lässt sich vollständig über die Tastatur bedienen**.
+- Er ist **unabhängig von externen Programmen** und springt daher auch für die
+  Leertaste ein, falls auf dem Betriebssystem keine Vorschau installiert ist.
+
+**Der Kontaktbogen in Zoteros eigenem Fenster bietet also den vollen
+Funktionsumfang auf allen Plattformen** und ist dabei völlig eigenständig.
+Wegen dieser Universalität hat der [Kontaktbogen im Fenster](window.qmd) eine
+eigene Seite in der Dokumentation.
 
 Eine Besonderheit von zotLook ist neben der **plattformübergreifenden Vorschau**,
 dass **Zotero-Annotationen Bestandteil der Vorschau** werden — in der
