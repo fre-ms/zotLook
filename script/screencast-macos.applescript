@@ -8,15 +8,14 @@
 -- beside each take: no key-display tool sees a scripted keystroke, so the
 -- keys are put in from the record of what was sent, and when.
 --
--- The pointer is Cursor Pro's business, if it is running: it draws the ring
--- around the clicks, and it sees the scripted mouse, since that goes in at
--- the HID level through script/screencast-mouse.swift (compiled on first
--- use). The keys are drawn by the cut as chips from the timeline this
--- script writes beside each take. Keystro was tried for the keys, as on
--- Windows, but its bar sits behind the sheet window on the macOS screen
--- (too short for the Windows layout that puts the bar below the sheet), so
--- the chips do the keys here. The helper can still post keys at the HID
--- level (hidKeys), which is how the in-sheet keys reach the sheet.
+-- The pointer is Keystro's business: it draws the ring around the clicks,
+-- and it sees the scripted mouse, since that goes in at the HID level
+-- through script/screencast-mouse.swift (compiled on first use). The keys
+-- are drawn by the cut, as caps after Keystro's own, from the timeline
+-- this script writes beside each take: Keystro shows only what comes from
+-- the keyboard device, never a scripted key. So for a take Keystro runs
+-- with its "Keystrokes" and "Sounds" switched off (menu bar icon) and its
+-- "Cursor Overlay" on; the drehbuch has the measurements behind this.
 --
 --   osascript script/screencast-macos.applescript [output directory] [de|en]
 --
