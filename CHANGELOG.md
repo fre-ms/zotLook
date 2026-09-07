@@ -6,7 +6,7 @@ with. This text is the source of the release notes on GitHub and of
 `CHANGELOG.md` in the repository. Versions are the plugin's own; a date is
 the day the release was published.
 
-## 1.6.0 — 2026-09-05
+## 1.7.0 — 2026-09-07
 
 The sheet in its own Zotero window can search and answers the keyboard.
 

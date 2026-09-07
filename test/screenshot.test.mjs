@@ -51,8 +51,11 @@ for (const platform of PLATFORMS) {
       ok(fs.existsSync(base + ext), `${lang}: the screencast exists as ${ext}`);
     }
     ok(kb('.gif') < 5120, `${lang}: the GIF is under 5 MB (${kb('.gif')} KB)`);
-    ok(kb('.mp4') < 8192 && kb('.webm') < 8192,
-       `${lang}: the videos are under 8 MB (${kb('.mp4')} and ${kb('.webm')} KB)`);
+    // Four scenes a take since 1.7.0, and the columns before the keyboard
+    // take: near four minutes at 1512 wide, which eight megabytes no longer
+    // hold at the quality the tiles need
+    ok(kb('.mp4') < 12288 && kb('.webm') < 12288,
+       `${lang}: the videos are under 12 MB (${kb('.mp4')} and ${kb('.webm')} KB)`);
     ok(kb('.png') < 512, `${lang}: the poster is under 512 KB (${kb('.png')} KB)`);
     const page = fs.readFileSync(ROOT + `doc/${lang}/index.qmd`, 'utf8');
     ok(new RegExp(`<video[^>]*poster="asset/screenshot/macos-${lang}-screencast\\.png"`).test(page)
