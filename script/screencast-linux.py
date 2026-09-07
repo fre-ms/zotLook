@@ -33,11 +33,11 @@ window, the sheet window and each of its menus in --out, with their
 rectangles, for measuring the offsets below on a new machine.
 
 Wants: Zotero running under X11 in the language of the take, with zotLook
-1.6 or later, the sheet window shortcut at Ctrl+Alt+Space, four columns
+1.7 or later (the page field, the column keys, the menus that stay), the sheet window shortcut at Ctrl+Alt+Space, four columns
 and the window size kept at 1400 × 860; the collection "zotLook" holding
 "zotLook Dokumentation" with the German documentation PDF and its three
 annotations; xdotool, ffmpeg with x11grab and libx264, python3-xlib,
-Pillow. During the roughly four minutes the mouse and the keyboard are not
+Pillow. During the roughly five minutes the mouse and the keyboard are not
 yours.
 """
 
@@ -97,7 +97,21 @@ TILE_AFTER_CONTENTS = (873, 468)    # page 11, framed in the middle after the ju
 TILE_AFTER_ANNOTATION = (526, 468)  # page 6, likewise
 TILE_AFTER_SEARCH = (526, 490)      # page 14 after the scroll, with its twelve hits
 SCROLL_TO_14 = 10                   # wheel notches down, 138 px each
+# The page field in the sheet's top left corner, and the tiles the two
+# entries frame: 18 alone, then 19 within the range 18-20 shown in three
+# columns
+GOTO_FIELD = (85, 110)
+TILE_AFTER_GOTO = (526, 540)        # page 18, framed
+TILE_IN_RANGE = (700, 420)          # page 19 of the range 18-20, three columns
+# The first opening of the mouse take goes through the item pane: its
+# sidenav icon for zotLook, then the section's button "Bogen im Fenster"
+SIDENAV_ZOTLOOK = (1494, 406)        # the coloured grid in the sidenav
+BTN_SHEET_IN_WINDOW = (1234, 193)     # "Bogen im Fenster" in the zotLook section
 SHEET_TITLES = ("Kontaktbogen", "Contact Sheet", "Sammlungsbogen", "Collection Sheet")
+# The window's title while the sheet is still being laid out — a first
+# opening after an update of the plugin or a change of language takes a
+# while, and a second shortcut meanwhile would close it
+SHEET_LOADING = ("Kontaktbogen wird aufgebaut …", "Laying out the contact sheet…")
 
 # x11grab has its first frame a moment after the launch; the timeline
 # counts from then
@@ -239,6 +253,25 @@ def sheet_window():
     return None
 
 
+def sheet_building():
+    return bool(windows(r"^(" + "|".join(re.escape(t) for t in SHEET_LOADING) + r")$"))
+
+
+def wait_sheet_patiently(idle_seconds, building_seconds=180):
+    """True once the sheet window is there. Gives up after idle_seconds
+    without a window, but keeps waiting as long as one is being laid out."""
+    idle = 0.0; building = 0.0
+    while idle < idle_seconds and building < building_seconds:
+        if sheet_window():
+            return True
+        time.sleep(0.5)
+        if sheet_building():
+            building += 0.5; idle = 0.0
+        else:
+            idle += 0.5
+    return bool(sheet_window())
+
+
 def need_sheet_id():
     for _ in range(8):
         wid = sheet_window()
@@ -348,9 +381,12 @@ def chord():
     press("Ctrl+Alt+Space", "ctrl+alt+space")
 
 
+KEYSYMS = {"+": "plus", "-": "minus", "=": "equal"}
+
+
 def letter(ch):
     mark("key", ch)
-    xdo("key", ch)
+    xdo("key", KEYSYMS.get(ch, ch))
 
 
 ARROWS = {"Down": ("↓", "Down"), "Up": ("↑", "Up"), "Left": ("←", "Left"), "Right": ("→", "Right")}
@@ -507,6 +543,30 @@ def close_reader_tabs():
         press("Ctrl+W", "ctrl+w"); time.sleep(0.9)
 
 
+def back_to_row(lang):
+    """The item's row clicked again, so that the keyboard is in the item
+    tree, where the shortcut listener sits; after an opening from the item
+    pane and after every closing of the reader it is somewhere else."""
+    activate(main_window())
+    click_main(DOCS_ROW[lang], 500); time.sleep(0.9)
+
+
+def open_sheet_chord(lang):
+    """The sheet by its shortcut, one cap in the film; the row is clicked
+    and the chord repeated until the sheet is there."""
+    mark("key", "Ctrl+Alt+Space")
+    for _ in range(4):
+        xdo("keydown", "ctrl", "keydown", "alt", "key", "space", "keyup", "alt", "keyup", "ctrl")
+        if wait_sheet_patiently(8):
+            return
+        click_main(DOCS_ROW[lang], 400); time.sleep(0.4)
+    raise RuntimeError("the contact sheet did not open")
+
+
+def close_reader():
+    press("Ctrl+W", "ctrl+w"); time.sleep(1.2)
+
+
 # ── before the takes ─────────────────────────────────────────────────────
 
 def prepare(lang, stage):
@@ -519,18 +579,24 @@ def prepare(lang, stage):
     activate(m)
     place(m, MAIN_ORIGIN, MAIN_SIZE)
     time.sleep(1)
+    # A sheet window left over from an earlier run would be closed by the
+    # shortcut instead of opened
+    if sheet_window():
+        activate(sheet_window()); xdo("key", "Escape"); wait_no_sheet(); time.sleep(0.5)
     close_reader_tabs()
     wait_items()
     time.sleep(1)
     if stage == "probe":
         shot(m, f"probe-main-{lang}.png")
     # The first shortcut after a zotero://select has been seen to do
-    # nothing; the row is clicked and the shortcut sent until the sheet is there
+    # nothing; the row is clicked and the shortcut sent until the sheet is
+    # there — and a sheet still being laid out is waited for, not sent for
+    # again
     for _ in range(4):
         click_main(DOCS_ROW[lang], 300)
         time.sleep(0.8)
         chord()
-        if wait_sheet(20):
+        if wait_sheet_patiently(10):
             break
     if not sheet_window():
         raise RuntimeError("the contact sheet did not open")
@@ -562,6 +628,16 @@ def prepare(lang, stage):
         shot(need_sheet_id(), f"probe-sheet-search-{lang}.png")
         scroll_sheet(SCROLL_TO_14); time.sleep(1)
         shot(need_sheet_id(), f"probe-sheet-scrolled-{lang}.png")
+        # the page field: 18 framed, then the range 18-20 in three columns
+        click_sheet(GOTO_FIELD, 400); type_text("18"); time.sleep(0.6)
+        press("Enter", "Return"); time.sleep(2.4)
+        shot(need_sheet_id(), f"probe-sheet-goto-{lang}.png")
+        click_sheet(GOTO_FIELD, 400); time.sleep(0.5)
+        for _ in range(3):
+            press("Backspace", "BackSpace"); time.sleep(0.15)
+        time.sleep(0.3); type_text("18-20"); time.sleep(0.6)
+        press("Enter", "Return"); time.sleep(2.6)
+        shot(need_sheet_id(), f"probe-sheet-range-{lang}.png")
     # The warm-up ends the way the takes do: a page into the reader, whose
     # tab is then closed
     press("Enter", "Return"); time.sleep(0.8)
@@ -575,21 +651,39 @@ def prepare(lang, stage):
     # that begins with the shortcut needs it in the item list, so the row is
     # clicked once more, before the recording
     click_main(DOCS_ROW[lang], 300); time.sleep(0.8)
+    if stage == "probe":
+        # the item pane with its sidenav, and the zotLook section once the
+        # icon is known; the row again at the end, for the keyboard
+        time.sleep(0.6)
+        shot(main_window(), f"probe-pane-{lang}.png")
+        if SIDENAV_ZOTLOOK != (0, 0):
+            click_main(SIDENAV_ZOTLOOK, 400); time.sleep(1.2)
+            shot(main_window(), f"probe-pane-zotlook-{lang}.png")
+            click_main(DOCS_ROW[lang], 300); time.sleep(0.8)
 
 
 # ── the two takes ────────────────────────────────────────────────────────
 
 def mouse_part(lang):
+    # the item; then the sheet by the mouse alone: the zotLook section of
+    # the item pane, reached by its sidenav icon, and its button
     click_main(DOCS_ROW[lang], 500); time.sleep(1)
-    chord(); need_sheet(); time.sleep(1.5)
+    click_main(SIDENAV_ZOTLOOK, 700); time.sleep(1.2)
+    click_main(BTN_SHEET_IN_WINDOW, 700); need_sheet(); time.sleep(1.5)
 
+    # contents: "Was es kann", the menu away, the framed page into the reader
     click_sheet(BTN_CONTENTS, 700); time.sleep(1.4)
     click_sheet(ENTRY_WAS_ES_KANN[lang], 700); time.sleep(2.4)
     click_sheet(BTN_CONTENTS, 600); time.sleep(1.2)
     click_sheet(TILE_AFTER_CONTENTS, 800); wait_no_sheet(); wait_reader_page(); time.sleep(2.5)
     click_main(READER_CLOSE, 800); time.sleep(1.5)
 
-    chord(); need_sheet(); time.sleep(1.5)
+    # annotations: the blue one, its page link, the menu away, the page.
+    # The row first: the sheet was opened from the item pane, and the
+    # keyboard comes back there when the reader closes, not to the item
+    # tree where the shortcut listens
+    back_to_row(lang)
+    open_sheet_chord(lang); time.sleep(1.5)
     click_sheet(BTN_ANNOTATIONS, 700); time.sleep(1.4)
     click_sheet(ENTRY_BLUE_ANNOTATION[lang], 700); time.sleep(1.2)
     click_sheet(LINK_SEITE_6[lang], 500); time.sleep(2.4)
@@ -597,33 +691,70 @@ def mouse_part(lang):
     click_sheet(TILE_AFTER_ANNOTATION, 800); wait_no_sheet(); wait_reader_page(); time.sleep(2.5)
     click_main(READER_CLOSE, 800); time.sleep(1.5)
 
-    chord(); need_sheet(); time.sleep(1.5)
+    # search: the word, scroll to page 14 and its hits, open it
+    back_to_row(lang)
+    open_sheet_chord(lang); time.sleep(1.5)
     click_sheet(SEARCH_FIELD, 700); time.sleep(0.6)
     type_text(SEARCH_WORD[lang]); time.sleep(2)
     scroll_sheet(SCROLL_TO_14); time.sleep(2.2)
     click_sheet(TILE_AFTER_SEARCH, 800); wait_no_sheet(); wait_reader_page(); time.sleep(2.5)
     click_main(READER_CLOSE, 800); time.sleep(1.5)
 
+    # the page field: 18 frames the page; 18-20 shows the range in three
+    # columns; page 19 into the reader
+    back_to_row(lang)
+    open_sheet_chord(lang); time.sleep(1.5)
+    click_sheet(GOTO_FIELD, 700); time.sleep(0.6)
+    type_text("18"); time.sleep(0.6)
+    press("Enter", "Return"); time.sleep(2.4)
+    click_sheet(GOTO_FIELD, 700); time.sleep(0.5)
+    # clear the "18" by backspace, robust where a select-all is not
+    for _ in range(3):
+        press("Backspace", "BackSpace"); time.sleep(0.15)
+    time.sleep(0.3)
+    type_text("18-20"); time.sleep(0.6)
+    press("Enter", "Return"); time.sleep(2.6)
+    click_sheet(TILE_IN_RANGE, 800); wait_no_sheet(); wait_reader_page(); time.sleep(2.5)
+    click_main(READER_CLOSE, 800); time.sleep(1.5)
+
 
 def keyboard_part(lang):
-    chord(); need_sheet(); time.sleep(2)
+    # the sheet; then the columns: three presses of + make seven of four,
+    # five of − two, two of + four again, the grid re-laid at each
+    open_sheet_chord(lang); time.sleep(2)
+    for _ in range(3):
+        letter("+"); time.sleep(0.9)
+    time.sleep(0.8)
+    for _ in range(5):
+        letter("-"); time.sleep(0.9)
+    time.sleep(1.2)
+    for _ in range(2):
+        letter("+"); time.sleep(0.9)
+    time.sleep(1.4)
+
+    # the contents menu, down to "2. Was es kann", Enter follows
     letter("c"); time.sleep(1)
     for _ in range(8):
         arrow("Down"); time.sleep(0.35)
     time.sleep(0.6)
     press("Enter", "Return"); time.sleep(2.2)
     letter("o"); wait_no_sheet(); wait_reader_page(); time.sleep(2.5)
-    press("Ctrl+W", "ctrl+w"); time.sleep(1.5)
+    close_reader()
 
-    chord(); need_sheet(); time.sleep(1.5)
+    # the annotations menu, down to the blue one, Enter, the page
+    back_to_row(lang)
+    open_sheet_chord(lang); time.sleep(1.5)
     letter("a"); time.sleep(1)
     arrow("Down"); time.sleep(0.8)
     press("Enter", "Return"); time.sleep(2.2)
     letter("o"); wait_no_sheet(); wait_reader_page(); time.sleep(2.5)
-    press("Ctrl+W", "ctrl+w"); time.sleep(1.5)
+    close_reader()
 
-    chord(); need_sheet(); time.sleep(1.5)
-    press("Ctrl+F", "ctrl+f"); time.sleep(0.6)
+    # the search: the word typed on the sheet goes into the field by
+    # itself; Enter walks the hits to page 14; then the arrows between
+    # hits, then the page keys scroll, then open
+    back_to_row(lang)
+    open_sheet_chord(lang); time.sleep(1.5)
     type_text(SEARCH_WORD[lang]); time.sleep(1.4)
     for _ in range(3):
         press("Enter", "Return"); time.sleep(1)
@@ -635,7 +766,20 @@ def keyboard_part(lang):
     press("Page Down", "Next"); time.sleep(2.2)
     press("Page Up", "Prior"); time.sleep(2)
     letter("o"); wait_no_sheet(); wait_reader_page(); time.sleep(2.5)
-    press("Ctrl+W", "ctrl+w"); time.sleep(1.5)
+    close_reader()
+
+    # the page field: digits typed land in it, Enter frames page 18;
+    # Ctrl+G selects the field, the range, Enter; → to page 19, o
+    back_to_row(lang)
+    open_sheet_chord(lang); time.sleep(1.5)
+    type_text("18"); time.sleep(0.6)
+    press("Enter", "Return"); time.sleep(2.4)
+    press("Ctrl+G", "ctrl+g"); time.sleep(0.6)
+    type_text("18-20"); time.sleep(0.6)
+    press("Enter", "Return"); time.sleep(2.6)
+    arrow("Right"); time.sleep(1.4)
+    letter("o"); wait_no_sheet(); wait_reader_page(); time.sleep(2.5)
+    close_reader()
 
 
 # ── run ──────────────────────────────────────────────────────────────────
