@@ -28,19 +28,25 @@
 #       [-Out build\screencast] [-Lang de|en] [-Stage all|prepare|probe|mouse|keyboard|none]
 #
 # -Stage probe runs the warm-up only and leaves screenshots of the main
-# window, the sheet window and each of its menus in -Out, with their
-# rectangles, for measuring the offsets below on a new machine; -Stage none
+# window, the sheet window, each of its menus and the jump each entry
+# makes, the search, the page field with page 18 framed and with the range
+# 18-20, the reader, and the item pane with its zotLook section, in -Out
+# with their rectangles, for measuring the offsets below on a new machine
+# — the rows of the item list included, since a library may sort the
+# collection differently; -Stage none
 # only defines the functions, for dot-sourcing the script and trying the
 # steps one at a time.
 #
-# Wants: Zotero running in the language of the take, with zotLook from the
-# tree or the freshly built XPI, the sheet window shortcut at Ctrl+Alt+Space,
-# four columns; the collection "zotLook" holding "zotLook Dokumentation"
-# with the German documentation PDF and its three annotations; ffmpeg with
-# gdigrab and libx264. Keystro running: it sees the sent input and draws
-# the keys into its bar at the bottom of the screen and a ring around the
-# pointer at each click, so the cut runs with --no-chips. During the
-# roughly four minutes the mouse and the keyboard are not yours.
+# Wants: Zotero running in the language of the take, with zotLook 1.7 or
+# later (the page field, the column keys, the menus that stay, and o
+# opening the framed page with the contents menu open), the sheet window
+# shortcut at Ctrl+Alt+Space, four columns; the collection "zotLook"
+# holding both documentation PDFs with their three annotations each;
+# ffmpeg with gdigrab and libx264. Keystro running with "Keystroke" and
+# "Keystroke sounds" off and "Cursor" on: it draws a ring around the
+# pointer at each click, and the keys come from the cut as caps, the same
+# on every platform. During the roughly eight minutes the mouse and the
+# keyboard are not yours.
 
 param(
     [string]$Out = "",
@@ -67,18 +73,27 @@ if (-not $Ffmpeg -or -not (Test-Path $Ffmpeg)) { throw "ffmpeg not found; pass -
 
 $collectionKey = "QLDZQ9F5"
 # The rows of the two documentation items in the collection, as an offset
-# from the main window's client origin; "zotLook Dokumentation" first,
-# "zotLook Documentation" second. Measured with -Stage probe
-$docsRow = @{ de = @(600, 219); en = @(600, 191) }   # third and second row of the list
+# from the main window's client origin. This library sorts the collection
+# by creator, and the logo item comes first: "zotLook Documentation" is
+# the second row, "zotLook Dokumentation" the third, in either language.
+# A library sorted by title has them first and second. Measured with
+# -Stage probe — always
+$docsRow = @{ de = @(600, 219); en = @(600, 191) }
 $searchWord = @{ de = "Tasten"; en = "keys" }
 $readerClose = @(400, 55)          # the reader tab's close button, main window
 $readerSidebarToggle = @(23, 93)   # the reader toolbar's sidebar button, main window
+# The item pane: zotLook's icon in its sidenav, which scrolls to the
+# zotLook section, and the section's button "Bogen im Fenster" / "Sheet in
+# a window" — both in the main window; (0, 0) until measured, and the
+# probe then only photographs the pane
+$sidenavZotLook = @(1494, 406)
+$btnSheetInWindow = @(1234, 193)
 
 # The main window is 1512 × 949 like the macOS take's, so that the cut's
 # crop applies unchanged; it stands 204 px in from the left of the 1920 px
-# screen and 47 px down, so that Keystro's key bar — the bottom 76 px of
-# the screen above the taskbar, its keys centred — lies along the bottom
-# of the frame, centred
+# screen and 47 px down. That was for Keystro's key bar along the bottom
+# of the frame; the keys are drawn by the cut now, and Keystro shows its
+# ring alone, but the place does no harm
 $mainOrigin = @(204, 47)
 $mainSize = @(1512, 949)
 # The sheet window: the viewer remembers the place, zotLook the size
@@ -90,14 +105,20 @@ $sheetSize = @(1400, 860)
 $btnContents = @(1340, 819)
 $btnAnnotations = @(96, 819)
 $searchField = @(1264, 104)
+$gotoField = @(85, 104)             # the page field, top left
 $entryWasEsKann = @(1150, 543)
 $entryBlueAnnotation = @{ de = @(219, 718); en = @(219, 707) }
 $linkSeite6 = @{ de = @(79, 718); en = @(79, 717) }
 $tileAfterContents = @(873, 467)
 $tileAfterAnnotation = @(527, 467)
 $tileAfterSearch = @(527, 480)
+$tileGoto18 = @(526, 540)           # page 18 framed after the page field
+$tileInRange = @(700, 420)          # page 19 of the range 18-20, three columns
 $scrollTo14 = -14              # wheel notches, about 104 px each; negative scrolls down
 $sheetTitles = @("Kontaktbogen", "Contact Sheet")
+# The window the plugin puts up while the sheet is laid out: it begins
+# with the same word, and a shortcut sent while it stands would close it
+$loadingTitles = @("Kontaktbogen wird aufgebaut", "Laying out the contact sheet")
 
 # ── Win32 ────────────────────────────────────────────────────────────────
 
@@ -178,7 +199,7 @@ Add-Type -AssemblyName System.Drawing
 
 $VK = @{ Space = 0x20; Enter = 0x0D; Escape = 0x1B; Left = 0x25; Up = 0x26; Right = 0x27; Down = 0x28;
          PageUp = 0x21; PageDown = 0x22; Ctrl = 0x11; Alt = 0x12; Shift = 0x10;
-         a = 0x41; c = 0x43; f = 0x46; o = 0x4F; w = 0x57 }
+         Backspace = 0x08; Tab = 0x09; a = 0x41; c = 0x43; f = 0x46; g = 0x47; o = 0x4F; w = 0x57 }
 
 # ── windows ──────────────────────────────────────────────────────────────
 
@@ -270,11 +291,29 @@ function Hide-Reader-Sidebar {
         Click-Main $readerSidebarToggle 300; Start-Sleep -Milliseconds 800
     }
 }
+function Loading-Window {
+    $all = @(Find-Windows zotero | Where-Object { $t = $_.Title; @($loadingTitles | Where-Object { $t -like "$_*" }).Count -gt 0 })
+    if ($all.Count) { return $all[0] }
+    return $null
+}
+# The sheet, waited for as long as it is being laid out: a first layout
+# with a fresh plugin, or after a change of language, has taken longer
+# than any fixed wait, and a shortcut resent into it closed the window
+function Wait-Sheet-Patiently([int]$seconds) {
+    $deadline = [DateTime]::UtcNow.AddSeconds($seconds); $limit = [DateTime]::UtcNow.AddSeconds(180)
+    while ([DateTime]::UtcNow -lt $limit) {
+        if (Sheet-Window) { return $true }
+        if (Loading-Window) { $deadline = [DateTime]::UtcNow.AddSeconds($seconds) }
+        elseif ([DateTime]::UtcNow -gt $deadline) { return $false }
+        Start-Sleep -Milliseconds 500
+    }
+    return $false
+}
 function Wait-Sheet([int]$halfSeconds) {
     for ($i = 0; $i -lt $halfSeconds; $i++) { if (Sheet-Window) { return $true }; Start-Sleep -Milliseconds 500 }
     return $false
 }
-function Need-Sheet { if (-not (Wait-Sheet 60)) { throw "the contact sheet did not open" } }
+function Need-Sheet { if (-not (Wait-Sheet-Patiently 30)) { throw "the contact sheet did not open" } }
 function Wait-NoSheet {
     for ($i = 0; $i -lt 40; $i++) { if (-not (Sheet-Window)) { return }; Start-Sleep -Milliseconds 500 }
     throw "the contact sheet did not close"
@@ -396,6 +435,30 @@ function Press([string]$label, [int]$vk, [int[]]$mods = @()) {
     [array]::Reverse($mods); foreach ($m in $mods) { [SC]::Key($m, $true) }
 }
 function Chord { Press "Ctrl+Alt+Space" $VK.Space @($VK.Ctrl, $VK.Alt) }
+function Chord-Unmarked {
+    foreach ($m in @($VK.Ctrl, $VK.Alt)) { [SC]::Key($m, $false) }
+    [SC]::Key($VK.Space, $false); Start-Sleep -Milliseconds 40; [SC]::Key($VK.Space, $true)
+    foreach ($m in @($VK.Alt, $VK.Ctrl)) { [SC]::Key($m, $true) }
+}
+# The keyboard back in the item tree, where the shortcut listener sits:
+# after an opening from the item pane and after every closing of the
+# reader it is somewhere else
+function Back-To-Row {
+    Activate (Main-Window).Handle
+    Click-Main $docsRow[$Lang] 500; Start-Sleep -Milliseconds 900
+}
+# The sheet by its shortcut, one cap in the film; the row is clicked and
+# the chord repeated until the sheet is there
+function Open-Sheet-Chord {
+    Mark "key" "Ctrl+Alt+Space"
+    for ($try = 0; $try -lt 4; $try++) {
+        Chord-Unmarked
+        if (Wait-Sheet-Patiently 8) { return }
+        Click-Main $docsRow[$Lang] 400; Start-Sleep -Milliseconds 400
+    }
+    throw "the contact sheet did not open"
+}
+function Close-Reader { Press "Ctrl+W" $VK.w @($VK.Ctrl); Start-Sleep -Seconds 1.2 }
 function Letter([string]$ch) { Mark "key" $ch; [SC]::Char([char]$ch) }
 function Arrow([string]$dir) {
     # the glyphs as code points: Windows PowerShell 5.1 reads a file without
@@ -447,6 +510,10 @@ function Prepare {
     Start-Sleep -Seconds 3
     $main = Main-Window
     if (-not $main) { throw "no Zotero main window" }
+    # a sheet window an earlier run left standing would be closed by the
+    # shortcut instead of opened
+    $left = Sheet-Window
+    if ($left) { Activate $left.Handle; Press "Escape" $VK.Escape; Start-Sleep -Seconds 1 }
     Activate $main.Handle
     Place-Window $main.Handle $mainOrigin $mainSize
     Start-Sleep -Seconds 1
@@ -460,7 +527,7 @@ function Prepare {
         Click-Main $docsRow[$Lang] 300
         Start-Sleep -Milliseconds 800
         Press "Ctrl+Alt+Space" $VK.Space @($VK.Ctrl, $VK.Alt)
-        if (Wait-Sheet 20) { break }
+        if (Wait-Sheet-Patiently 10) { break }
     }
     if (-not (Sheet-Window)) { throw "the contact sheet did not open" }
     Start-Sleep -Seconds 2
@@ -470,20 +537,36 @@ function Prepare {
         Shot (Sheet-Handle) "probe-sheet-$Lang.png"
         # the menus open, for measuring their entries
         Click-Sheet $btnContents 400; Start-Sleep -Seconds 1.2; Shot (Sheet-Handle) "probe-sheet-contents-$Lang.png"
-        Click-Sheet $btnContents 300; Start-Sleep -Milliseconds 800
+        Click-Sheet $entryWasEsKann 400; Start-Sleep -Seconds 2
+        Click-Sheet $btnContents 300; Start-Sleep -Seconds 1
+        Shot (Sheet-Handle) "probe-sheet-after-contents-$Lang.png"
         Click-Sheet $btnAnnotations 400; Start-Sleep -Seconds 1.2; Shot (Sheet-Handle) "probe-sheet-annotations-$Lang.png"
         Click-Sheet $entryBlueAnnotation[$Lang] 400; Start-Sleep -Seconds 1; Shot (Sheet-Handle) "probe-sheet-annotation-open-$Lang.png"
-        Click-Sheet $btnAnnotations 300; Start-Sleep -Milliseconds 800
+        Click-Sheet $linkSeite6[$Lang] 400; Start-Sleep -Seconds 2
+        Click-Sheet $btnAnnotations 300; Start-Sleep -Seconds 1
+        Shot (Sheet-Handle) "probe-sheet-after-annotation-$Lang.png"
         # the search and the scroll to the page with the most hits
         Click-Sheet $searchField 400; Type-Text $searchWord[$Lang]; Start-Sleep -Seconds 1.5
         Shot (Sheet-Handle) "probe-sheet-search-$Lang.png"
         Scroll-Sheet $scrollTo14; Start-Sleep -Seconds 1
         Shot (Sheet-Handle) "probe-sheet-scrolled-$Lang.png"
+        # the page field: 18 framed, then the range 18-20 in three columns
+        Click-Sheet $gotoField 400; Type-Text "18"; Start-Sleep -Milliseconds 600
+        Press "Enter" $VK.Enter; Start-Sleep -Seconds 2.4
+        Shot (Sheet-Handle) "probe-sheet-goto-$Lang.png"
+        Click-Sheet $gotoField 400; Start-Sleep -Milliseconds 500
+        for ($i = 0; $i -lt 3; $i++) { Press "Backspace" $VK.Backspace; Start-Sleep -Milliseconds 150 }
+        Start-Sleep -Milliseconds 300; Type-Text "18-20"; Start-Sleep -Milliseconds 600
+        Press "Enter" $VK.Enter; Start-Sleep -Seconds 2.6
+        Shot (Sheet-Handle) "probe-sheet-range-$Lang.png"
     }
     # The warm-up ends the way the takes do: a page into the reader, whose
     # tab is then closed
     Press "Enter" $VK.Enter; Start-Sleep -Milliseconds 800
-    Letter "o"; Wait-NoSheet; Start-Sleep -Seconds 2
+    # a step to the right first: after the probe's range there is no
+    # framed page for o to open, and the arrow frames one
+    Arrow Right; Start-Sleep -Milliseconds 800
+    Letter "o"; Wait-NoSheet; Wait-ReaderPage; Start-Sleep -Seconds 1
     Hide-Reader-Sidebar
     if ($Stage -eq "probe") { Shot (Main-Window).Handle "probe-reader-$Lang.png" }
     Press "Ctrl+W" $VK.w @($VK.Ctrl); Start-Sleep -Seconds 1
@@ -492,21 +575,38 @@ function Prepare {
     # that begins with the shortcut needs it in the item list, so the row is
     # clicked once more, before the recording
     Click-Main $docsRow[$Lang] 300; Start-Sleep -Milliseconds 800
+    if ($Stage -eq "probe") {
+        # the item pane with its sidenav, and the zotLook section once the
+        # icon is known; the row again at the end, for the keyboard
+        Start-Sleep -Milliseconds 600
+        Shot (Main-Window).Handle "probe-pane-$Lang.png"
+        if ($sidenavZotLook[1] -ne 0) {
+            Click-Main $sidenavZotLook 400; Start-Sleep -Seconds 1.2
+            Shot (Main-Window).Handle "probe-pane-zotlook-$Lang.png"
+            Click-Main $docsRow[$Lang] 300; Start-Sleep -Milliseconds 800
+        }
+    }
 }
 
 # ── the two takes ────────────────────────────────────────────────────────
 
 function Mouse-Part {
+    # the item; then the sheet by the mouse alone: the zotLook section of
+    # the item pane, reached by its sidenav icon, and its button
     Click-Main $docsRow[$Lang] 500; Start-Sleep -Seconds 1
-    Chord; Need-Sheet; Start-Sleep -Seconds 1.5
+    Click-Main $sidenavZotLook 700; Start-Sleep -Seconds 1.2
+    Click-Main $btnSheetInWindow 700; Need-Sheet; Start-Sleep -Seconds 1.5
 
+    # contents: "Was es kann", the menu away, the framed page into the reader
     Click-Sheet $btnContents 700; Start-Sleep -Seconds 1.4
     Click-Sheet $entryWasEsKann 700; Start-Sleep -Seconds 2.4
     Click-Sheet $btnContents 600; Start-Sleep -Seconds 1.2
     Click-Sheet $tileAfterContents 800; Wait-NoSheet; Wait-ReaderPage; Start-Sleep -Seconds 2.5
     Click-Main $readerClose 800; Start-Sleep -Seconds 1.5
 
-    Chord; Need-Sheet; Start-Sleep -Seconds 1.5
+    # annotations: the blue one, its page link, the menu away, the page
+    Back-To-Row
+    Open-Sheet-Chord; Start-Sleep -Seconds 1.5
     Click-Sheet $btnAnnotations 700; Start-Sleep -Seconds 1.4
     Click-Sheet $entryBlueAnnotation[$Lang] 700; Start-Sleep -Seconds 1.2
     Click-Sheet $linkSeite6[$Lang] 500; Start-Sleep -Seconds 2.4
@@ -514,32 +614,65 @@ function Mouse-Part {
     Click-Sheet $tileAfterAnnotation 800; Wait-NoSheet; Wait-ReaderPage; Start-Sleep -Seconds 2.5
     Click-Main $readerClose 800; Start-Sleep -Seconds 1.5
 
-    Chord; Need-Sheet; Start-Sleep -Seconds 1.5
+    # search: the word, scroll to page 14 and its hits, open it
+    Back-To-Row
+    Open-Sheet-Chord; Start-Sleep -Seconds 1.5
     Click-Sheet $searchField 700; Start-Sleep -Milliseconds 600
     Type-Text $searchWord[$Lang]; Start-Sleep -Seconds 2
     Scroll-Sheet $scrollTo14; Start-Sleep -Seconds 2.2
     Click-Sheet $tileAfterSearch 800; Wait-NoSheet; Wait-ReaderPage; Start-Sleep -Seconds 2.5
     Click-Main $readerClose 800; Start-Sleep -Seconds 1.5
+
+    # the page field: 18 frames the page; 18-20 shows the range in three
+    # columns; page 19 into the reader
+    Back-To-Row
+    Open-Sheet-Chord; Start-Sleep -Seconds 1.5
+    Click-Sheet $gotoField 700; Start-Sleep -Milliseconds 600
+    Type-Text "18"; Start-Sleep -Milliseconds 600
+    Press "Enter" $VK.Enter; Start-Sleep -Seconds 2.4
+    Click-Sheet $gotoField 700; Start-Sleep -Milliseconds 500
+    # clear the "18" by backspace, robust where a select-all is not
+    for ($i = 0; $i -lt 3; $i++) { Press "Backspace" $VK.Backspace; Start-Sleep -Milliseconds 150 }
+    Start-Sleep -Milliseconds 300
+    Type-Text "18-20"; Start-Sleep -Milliseconds 600
+    Press "Enter" $VK.Enter; Start-Sleep -Seconds 2.6
+    Click-Sheet $tileInRange 800; Wait-NoSheet; Wait-ReaderPage; Start-Sleep -Seconds 2.5
+    Click-Main $readerClose 800; Start-Sleep -Seconds 1.5
 }
 
 function Keyboard-Part {
-    Chord; Need-Sheet; Start-Sleep -Seconds 2
+    # the sheet; then the columns: three presses of + make seven of four,
+    # five of - two, two of + four again, the grid re-laid at each
+    Open-Sheet-Chord; Start-Sleep -Seconds 2
+    for ($i = 0; $i -lt 3; $i++) { Letter "+"; Start-Sleep -Milliseconds 900 }
+    Start-Sleep -Milliseconds 800
+    for ($i = 0; $i -lt 5; $i++) { Letter "-"; Start-Sleep -Milliseconds 900 }
+    Start-Sleep -Seconds 1.2
+    for ($i = 0; $i -lt 2; $i++) { Letter "+"; Start-Sleep -Milliseconds 900 }
+    Start-Sleep -Seconds 1.4
+
+    # the contents menu, down to "2. Was es kann", Enter follows
     Letter "c"; Start-Sleep -Seconds 1
     for ($i = 0; $i -lt 8; $i++) { Arrow Down; Start-Sleep -Milliseconds 350 }
     Start-Sleep -Milliseconds 600
     Press "Enter" $VK.Enter; Start-Sleep -Seconds 2.2
     Letter "o"; Wait-NoSheet; Wait-ReaderPage; Start-Sleep -Seconds 2.5
-    Press "Ctrl+W" $VK.w @($VK.Ctrl); Start-Sleep -Seconds 1.5
+    Close-Reader
 
-    Chord; Need-Sheet; Start-Sleep -Seconds 1.5
+    # the annotations menu, down to the blue one, Enter, the page
+    Back-To-Row
+    Open-Sheet-Chord; Start-Sleep -Seconds 1.5
     Letter "a"; Start-Sleep -Seconds 1
     Arrow Down; Start-Sleep -Milliseconds 800
     Press "Enter" $VK.Enter; Start-Sleep -Seconds 2.2
     Letter "o"; Wait-NoSheet; Wait-ReaderPage; Start-Sleep -Seconds 2.5
-    Press "Ctrl+W" $VK.w @($VK.Ctrl); Start-Sleep -Seconds 1.5
+    Close-Reader
 
-    Chord; Need-Sheet; Start-Sleep -Seconds 1.5
-    Press "Ctrl+F" $VK.f @($VK.Ctrl); Start-Sleep -Milliseconds 600
+    # the search: the word typed on the sheet goes into the field by
+    # itself; Enter walks the hits to page 14; then the arrows between
+    # hits, then the page keys scroll, then open
+    Back-To-Row
+    Open-Sheet-Chord; Start-Sleep -Seconds 1.5
     Type-Text $searchWord[$Lang]; Start-Sleep -Seconds 1.4
     for ($i = 0; $i -lt 3; $i++) { Press "Enter" $VK.Enter; Start-Sleep -Seconds 1 }
     Start-Sleep -Milliseconds 600
@@ -550,7 +683,21 @@ function Keyboard-Part {
     Press "Page Down" $VK.PageDown; Start-Sleep -Seconds 2.2
     Press "Page Up" $VK.PageUp; Start-Sleep -Seconds 2
     Letter "o"; Wait-NoSheet; Wait-ReaderPage; Start-Sleep -Seconds 2.5
-    Press "Ctrl+W" $VK.w @($VK.Ctrl); Start-Sleep -Seconds 1.5
+    Close-Reader
+
+    # the page field: digits typed land in it, Enter frames page 18;
+    # Ctrl+G selects the field, the range, Enter; the right arrow to page
+    # 19, o
+    Back-To-Row
+    Open-Sheet-Chord; Start-Sleep -Seconds 1.5
+    Type-Text "18"; Start-Sleep -Milliseconds 600
+    Press "Enter" $VK.Enter; Start-Sleep -Seconds 2.4
+    Press "Ctrl+G" $VK.g @($VK.Ctrl); Start-Sleep -Milliseconds 600
+    Type-Text "18-20"; Start-Sleep -Milliseconds 600
+    Press "Enter" $VK.Enter; Start-Sleep -Seconds 2.6
+    Arrow Right; Start-Sleep -Seconds 1.4
+    Letter "o"; Wait-NoSheet; Wait-ReaderPage; Start-Sleep -Seconds 2.5
+    Close-Reader
 }
 
 # ── run ──────────────────────────────────────────────────────────────────
