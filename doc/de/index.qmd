@@ -33,10 +33,9 @@ mit der Systemvorschau dar. **Das hilft vor allem bei umfangreichen Dokumenten w
 Vorschau des Betriebssystems zeigt zwar jede Seite, aber immer nur eine bzw.
 wenige auf einmal. Schaltflächen im Vorschau-Fenster bieten das
 Inhaltsverzeichnis und eine Liste der Annotationen zur Navigation an, und
-**ein Klick auf eine Seite öffnet sie im Zotero-Reader**. Der Bogen ist eine
-HTML-Seite und lässt sich aus dem
-[Cache-Ordner](settings.qmd#zwischengespeicherte-vorschauen) heraus auch in
-einem Browser Ihrer Wahl öffnen. Das Erzeugen eines Kontaktbogens kann einige
+**ein Klick auf eine Seite öffnet sie im Zotero-Reader**. **Der Kontaktbogen
+kann bei Bedarf auch in einem Browser Ihrer Wahl geöffnet werden**, denn es
+handelt sich um eine HTML-Seite. Das Erzeugen eines Kontaktbogens kann einige
 Sekunden dauern; eine Verlaufsanzeige nennt dabei die Seite, für die zotLook
 gerade die Vorschau generiert.
 

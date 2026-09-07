@@ -30,10 +30,9 @@ and shows it in the system preview. **That helps most with long documents such a
 because the system's preview will show you every page but only one or two at
 a time. Buttons in the preview window offer the contents and a list of the
 annotations for navigation, and **a click on a page opens it in Zotero's
-reader**. The sheet is an HTML page and can be opened from the
-[cache folder](settings.qmd#kept-previews) in a browser of your choice as
-well. Building a sheet can take a few seconds; a progress indicator names the
-page zotLook is currently rendering.
+reader**. **The contact sheet can also be opened in a browser of your
+choice**, since it is an HTML page. Building a sheet can take a few seconds; a
+progress indicator names the page zotLook is currently rendering.
 
 [**The third tier:**]{#third-tier} *Ctrl+Alt+Space* opens the **contact sheet in a Zotero
 window of its own**. That has five advantages:
