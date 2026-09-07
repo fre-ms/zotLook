@@ -33,13 +33,12 @@ mit der Systemvorschau dar. **Das hilft vor allem bei umfangreichen Dokumenten w
 Vorschau des Betriebssystems zeigt zwar jede Seite, aber immer nur eine bzw.
 wenige auf einmal. Schaltflächen im Vorschau-Fenster bieten das
 Inhaltsverzeichnis und eine Liste der Annotationen zur Navigation an, und
-**ein Klick auf eine Seite öffnet sie im Zotero-Reader**.
-
-**Der Kontaktbogen kann bei Bedarf auch in einem Browser Ihrer Wahl geöffnet werden**, denn es handelt sich um eine HTML-Seite.
-
-Das Erzeugen eines
-Kontaktbogens kann einige Sekunden dauern; eine Verlaufsanzeige nennt dabei die
-Seite, für die zotLook gerade die Vorschau generiert.
+**ein Klick auf eine Seite öffnet sie im Zotero-Reader**. Der Bogen ist eine
+HTML-Seite und lässt sich aus dem
+[Cache-Ordner](settings.qmd#zwischengespeicherte-vorschauen) heraus auch in
+einem Browser Ihrer Wahl öffnen. Das Erzeugen eines Kontaktbogens kann einige
+Sekunden dauern; eine Verlaufsanzeige nennt dabei die Seite, für die zotLook
+gerade die Vorschau generiert.
 
 [**Die dritte Stufe:**]{#dritte-stufe} *Strg+Alt+Leertaste* öffnet den **Kontaktbogen in einem
 eigenen Zotero-Fenster**. Das hat fünf Vorteile:
@@ -139,30 +138,28 @@ schalten Sie eines ab, sonst wird die *Leertaste* doppelt beansprucht.
 
 ## Schnellstart mit zotLook
 
-Wählen Sie einen Eintrag und drücken Sie die *Leertaste*. Handelt es sich um einen
-Elterneintrag statt um einen Anhang, sucht zotLook einen Anhang aus — ein PDF vor
-einem EPUB und ein EPUB vor allem anderen. Diese
-[Reihenfolge lässt sich ändern](settings.qmd). Ein zweites Mal *Leertaste*
-oder *Escape* schließt die Vorschau wieder.
+Wählen Sie einen Eintrag und drücken Sie …
 
-*Umschalt+Leertaste* zeigt stattdessen die Notizen des Eintrags als Seite.
-
-*Strg+Umschalt+Leertaste* erzeugt einen *Kontaktbogen*: jede Seite eines PDFs
-als Miniatur in einem scrollbaren Raster. Ein Klick auf eine Seite öffnet sie im
-Zotero-Reader. Bei langen Dokumenten dauert das einige Sekunden, und das Plugin
-sagt es, während es arbeitet.
-In jeder Ecke öffnet ein Knopf das Inhaltsverzeichnis des Dokuments und seine
-Annotationen; ein Eintrag holt seine Seite in die Mitte des Bogens.
-
-Ein EPUB bekommt ebenfalls einen, sofern es geht. Ein umfließendes Buch hat
-keine eigenen Seiten, aber eines, das neben einer gedruckten Ausgabe erscheint,
-führt deren Paginierung meist mit — und wo das der Fall ist, schneidet zotLook
-das Buch an diesen Marken und zeigt es Seite für Seite, jede Kachel mit einem
-Weg zurück in den Reader. Ein Buch ohne solche Marken sagt das, statt
-willkürliche Abschnitte zu zeigen.
-
-Liegt die Datei nur in der Cloud und nicht auf diesem Rechner, lädt zotLook sie
-zuerst herunter, statt zu melden, sie fehle.
+- *Leertaste*: zotLook zeigt den Anhang in der **Vorschau des Betriebssystems**.
+  Bei einem Elterneintrag wählt es einen seiner Anhänge aus, ein PDF vor einem
+  EPUB und ein EPUB vor allem anderen; die
+  [Reihenfolge lässt sich ändern](settings.qmd). Ein zweites Mal *Leertaste*
+  oder *Escape* schließt die Vorschau wieder.
+- *Umschalt+Leertaste* zeigt die **Notizen** des Eintrags als Seite.
+- *Strg+Umschalt+Leertaste* erzeugt einen **Kontaktbogen**: jede Seite eines
+  PDFs oder eines paginierten EPUBs als Miniatur in einem scrollbaren Raster.
+  Ein Klick auf eine Seite öffnet sie im Zotero-Reader. Unten rechts öffnet
+  eine Schaltfläche das Inhaltsverzeichnis des Dokuments, unten links die
+  Liste seiner Annotationen; ein Klick auf einen Eintrag holt die Seite in die
+  Mitte des Bogens und rahmt sie gelb. Bei langen Dokumenten dauert das
+  Erzeugen einige Sekunden; das Plugin nennt dabei die Seite, an der es
+  gerade arbeitet. Liegt die Datei nur in der Cloud und nicht auf diesem
+  Rechner, lädt zotLook sie zuerst herunter.
+- *Strg+Alt+Leertaste* öffnet denselben **Kontaktbogen in einem eigenen
+  Zotero-Fenster**. Zu Inhaltsverzeichnis und Annotationen kommen dort eine
+  Suche (oben rechts) und ein Seitenfeld (oben links), alles lässt sich mit
+  der Tastatur bedienen, und das Fenster verhält sich in Funktionsumfang und
+  Bedienung auf allen Plattformen gleich.
 
 ## Wie die Annotationen in die Vorschau kommen
 

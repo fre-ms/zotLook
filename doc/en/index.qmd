@@ -30,8 +30,10 @@ and shows it in the system preview. **That helps most with long documents such a
 because the system's preview will show you every page but only one or two at
 a time. Buttons in the preview window offer the contents and a list of the
 annotations for navigation, and **a click on a page opens it in Zotero's
-reader**. Building a sheet can take a few seconds; a progress indicator names
-the page zotLook is currently rendering.
+reader**. The sheet is an HTML page and can be opened from the
+[cache folder](settings.qmd#kept-previews) in a browser of your choice as
+well. Building a sheet can take a few seconds; a progress indicator names the
+page zotLook is currently rendering.
 
 [**The third tier:**]{#third-tier} *Ctrl+Alt+Space* opens the **contact sheet in a Zotero
 window of its own**. That has five advantages:
@@ -127,27 +129,26 @@ it — the two carry different plugin IDs. If you have both, disable one, or the
 
 ## Getting started with zotLook
 
-Select an item and press *Space*. If the item is a parent rather than an
-attachment, zotLook picks one of its attachments — a PDF before an EPUB, and
-an EPUB before anything else. You can [change that order](settings.qmd). Press
-*Space* again, or *Escape*, to dismiss the preview.
+Select an item and press …
 
-*Shift+Space* previews the item's notes instead, rendered as a page.
-
-*Ctrl+Shift+Space* builds a *contact sheet*: every page of a PDF as a
-thumbnail in a scrollable grid. Clicking a page opens it in Zotero's reader at
-that page. A button in each corner opens the document's contents and its
-annotations, and an entry brings its page to the middle of the sheet. On a long
-document the sheet takes a few seconds and says so while it works.
-
-An EPUB gets one too, where it can. A reflowable book has no pages of its own,
-but one published beside a print edition usually carries that edition's
-pagination along with it — and where it does, zotLook cuts the book at those
-marks and shows it a page at a time, each tile linking back into the reader. A
-book carrying none says so rather than showing arbitrary slices.
-
-If the file is stored in the cloud and not on this machine, zotLook downloads it
-first rather than reporting that it is missing.
+- *Space*: zotLook shows the attachment in the **system's preview**. For a
+  parent item it picks one of its attachments, a PDF before an EPUB and an
+  EPUB before anything else; you can [change that order](settings.qmd). Press
+  *Space* again, or *Escape*, to dismiss the preview.
+- *Shift+Space* shows the item's **notes** as a page.
+- *Ctrl+Shift+Space* builds a **contact sheet**: every page of a PDF or of a
+  paginated EPUB as a thumbnail in a scrollable grid. A click on a page opens
+  it in Zotero's reader. Bottom right, a button opens the document's
+  contents, bottom left the list of its annotations; a click on an entry
+  brings its page to the middle of the sheet and frames it in yellow. On a
+  long document the sheet takes a few seconds to build; the plugin names the
+  page it is working on meanwhile. If the file is stored in the cloud and not
+  on this machine, zotLook downloads it first.
+- *Ctrl+Alt+Space* opens the same **contact sheet in a Zotero window of its
+  own**. Beside the contents and the annotations there are a search (top
+  right) and a page field (top left), everything can be driven from the
+  keyboard, and the window behaves the same on every platform, in what it
+  offers and in how it is used.
 
 ## How the annotations get into the preview
 
