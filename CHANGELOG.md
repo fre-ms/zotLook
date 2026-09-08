@@ -39,6 +39,10 @@ The sheet in its own Zotero window can search and answers the keyboard.
 - The sheet is dark where the system is dark.
 - Where no system preview answers Space, the sheet opens in its window
   instead; a setting turns that off.
+- On GNOME under X11 Sushi's preview window now stands above the Zotero
+  window: zotLook names its main window to Sushi, and the preview becomes a
+  transient of it rather than being put half behind it by the guard against
+  focus stealing. Under Wayland there is no handle for that.
 - A page field in the window's top left corner, Ctrl+G, takes a page number
   and frames the page — the printed number first, where the PDF labels its
   pages, and the tiles show those numbers too. A range, 12–18, shows those

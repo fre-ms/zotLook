@@ -36,6 +36,13 @@ It need not be running: zotLook reaches it over D-Bus, and D-Bus starts it on
 demand. It works outside GNOME as long as the service is installed and a session
 bus is running.
 
+Under X11 zotLook names its main window to Sushi, and the preview becomes a
+transient of it: the window manager keeps it above Zotero and lets it take the
+focus. Under Wayland Zotero runs natively and has no window handle a plugin
+could pass on; there GNOME's guard against focus stealing can put the preview
+behind the Zotero window. Where the mouse does not help, a shell extension
+that gives the focus to windows demanding attention does.
+
 One habit of the desktop carries over: the moment the preview opens, GNOME
 hands it the keyboard, exactly as when Files opens it. From then on the window
 answers its own keys — **Space**, **Escape** or **q** close it — and zotLook's

@@ -59,6 +59,52 @@ const on = (platform, prefValues = {}) => {
   eq(plan.holdsProcess, false, 'the request returns at once, so nothing is tracked');
 }
 {
+  // With Zotero's window to name, the second interface is asked, which makes
+  // the preview a transient of that window — above it, and allowed the
+  // focus; the first interface rides along for a Sushi too old to know it
+  const Q = on('Linux');
+  Q._x11WindowHandle = () => 'x11:2a00035';
+  const plan = await Q._previewCommand(['/a/paper.pdf']);
+  ok(plan.arguments.includes('org.gnome.NautilusPreviewer2.ShowFile'),
+     'the second interface');
+  const at = plan.arguments.indexOf('string:file:///a/paper.pdf');
+  eq(plan.arguments[at + 1], 'string:x11:2a00035', 'with the window as a handle');
+  eq(plan.arguments[at + 2], 'boolean:true', 'and the flag after it');
+  ok(plan.fallback, 'the first interface is kept for a Sushi without the second');
+  ok(plan.fallback.arguments.includes('org.gnome.NautilusPreviewer.ShowFile'), 'by name');
+  eq(plan.fallback.arguments[plan.fallback.arguments.indexOf('string:file:///a/paper.pdf') + 1], 'int32:0',
+     'with no window, as before');
+  eq(plan.fallback.sushiShows, true, 'and it too puts a window up');
+  // Without a handle — Wayland, or a lookup that failed — the first
+  // interface is asked outright
+  Q._x11WindowHandle = () => null;
+  const bare = await Q._previewCommand(['/a/paper.pdf']);
+  ok(bare.arguments.includes('org.gnome.NautilusPreviewer.ShowFile'), 'no handle: the first interface');
+  eq(bare.fallback, undefined, 'and nothing to fall back to');
+}
+{
+  // An old Sushi refuses the method; the request goes out again the old way
+  const launched = [];
+  const { zotLook: Q } = loadPlugin({
+    zotero: { isMac: false, isLinux: true, isWin: false },
+    ChromeUtils: { importESModule: () => ({ Subprocess: {
+      call: async (o) => { launched.push(o.arguments); const old = o.arguments.includes('org.gnome.NautilusPreviewer2.ShowFile'); return {
+        stderr: { readString: async () => old ? 'Error org.freedesktop.DBus.Error.UnknownMethod: No such method' : '' },
+        wait: async () => ({ exitCode: old ? 1 : 0 }), kill(){} }; } } }) },
+  });
+  Q._ensureSushiMonitor = () => {};
+  Q._x11WindowHandle = () => 'x11:2a00035';
+  let reports = 0;
+  Q._writeFailureReport = async () => { reports++; };
+  eq(await Q._deliver(await Q._previewCommand(['/a/paper.pdf'])), true, 'delivered in the end');
+  eq(launched.length, 2, 'in two requests');
+  ok(launched[0].includes('org.gnome.NautilusPreviewer2.ShowFile'), 'the second interface first');
+  ok(launched[1].includes('org.gnome.NautilusPreviewer.ShowFile'), 'then the first');
+  eq(reports, 0, 'and no failure was reported for the refusal');
+  eq(Q._sushiShown, true, 'the preview is believed showing');
+  eq(Q._previewerAbsent, false, 'and Sushi is not taken for missing');
+}
+{
   // dbus-send is not at /usr/bin everywhere, so PATH decides when it can
   const { zotLook: Q } = loadPlugin({
     zotero: { isMac: false, isLinux: true, isWin: false },

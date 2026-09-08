@@ -36,6 +36,13 @@ Sushi muss nicht laufen: zotLook erreicht es über D-Bus, und D-Bus startet es
 bei Bedarf. Es funktioniert auch außerhalb von GNOME, solange der Dienst
 installiert ist und ein Sitzungsbus läuft.
 
+Unter X11 nennt zotLook Sushi dabei sein Hauptfenster, und die Vorschau wird
+dessen Transient: Der Fensterverwalter hält sie über Zotero und lässt ihr den
+Fokus. Unter Wayland läuft Zotero nativ und hat kein Fenster-Handle, das ein
+Plugin weitergeben könnte; dort kann GNOMEs Schutz vor Fokusklau die Vorschau
+hinter das Zotero-Fenster stellen. Hilft die Maus nicht, hilft eine Shell-
+Erweiterung, die Fenstern mit „verlangt Aufmerksamkeit“ den Fokus gibt.
+
 Eine Gewohnheit des Desktops wandert mit: Sobald die Vorschau öffnet, gibt
 GNOME ihr die Tastatur — genau wie beim Öffnen aus Dateien heraus. Von da an
 beantwortet das Fenster seine eigenen Tasten — **Leertaste**, **Escape** oder

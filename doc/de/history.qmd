@@ -45,6 +45,10 @@ Tastatur.
 - Der Bogen ist dunkel, wo das System dunkel ist.
 - Wo keine Systemvorschau auf die Leertaste antwortet, öffnet sich
   stattdessen der Bogen im Fenster; eine Einstellung schaltet das ab.
+- Unter GNOME mit X11 steht Sushis Vorschaufenster jetzt über dem Zotero-
+  Fenster: zotLook nennt Sushi sein Hauptfenster, und die Vorschau wird dessen
+  Transient, statt vom Schutz vor Fokusklau halb dahinter gestellt zu werden.
+  Unter Wayland gibt es kein Handle dafür.
 - Ein Seitenfeld links oben im Fenster, Strg+G, nimmt eine Seitenzahl und
   rahmt die Seite — zuerst die gedruckte Zahl, wo das PDF seine Seiten
   beschriftet, und die Kacheln zeigen diese Zahlen ebenfalls. Ein Bereich,

@@ -3586,8 +3586,13 @@ var zotLook = Object.seal({
 						filePaths.length + ", the arrows show the rest"
 				);
 			}
-			return {
-				command: await this._dbusSend(),
+			let command = await this._dbusSend();
+			let uri = PathUtils.toFileURI(filePaths[0]);
+			// The flag closes a preview already showing this file: what a
+			// toggle wants, and what a switch must not do
+			let flag = replace ? "boolean:false" : "boolean:true";
+			let showFile = (method, parent) => ({
+				command,
 				arguments: [
 					"--session",
 					// --print-reply is not here for its output. Without it
@@ -3604,16 +3609,29 @@ var zotLook = Object.seal({
 					"--reply-timeout=" + this.PREVIEW_REPLY_TIMEOUT_MS,
 					"--dest=org.gnome.NautilusPreviewer",
 					"/org/gnome/NautilusPreviewer",
-					"org.gnome.NautilusPreviewer.ShowFile",
-					"string:" + PathUtils.toFileURI(filePaths[0]),
-					"int32:0",
-					// The flag closes a preview already showing this file:
-					// what a toggle wants, and what a switch must not do
-					replace ? "boolean:false" : "boolean:true",
+					method,
+					"string:" + uri,
+					parent,
+					flag,
 				],
 				holdsProcess: false,
 				sushiShows: true,
-			};
+			});
+			// Sushi's first interface takes an X window id and, since 46,
+			// does nothing with it; its second takes a window handle and
+			// makes the preview a transient of that window. With a handle
+			// the window manager keeps the preview above Zotero and lets it
+			// take the focus; without, GNOME's guard against focus stealing
+			// stacks the new window just below the active one, half hidden
+			// behind Zotero. The first interface stays the way where there
+			// is no handle — under Wayland — and the fallback where Sushi
+			// is too old to have the second.
+			let handle = this._x11WindowHandle();
+			let first = showFile("org.gnome.NautilusPreviewer.ShowFile", "int32:0");
+			if (!handle) return first;
+			let second = showFile("org.gnome.NautilusPreviewer2.ShowFile", "string:" + handle);
+			second.fallback = first;
+			return second;
 		}
 
 		if (Zotero.isWin) {
@@ -3686,7 +3704,10 @@ var zotLook = Object.seal({
 				arguments: plan.arguments,
 				stderr: "pipe",
 			});
-			accepted = await this._awaitPreviewRequest(proc);
+			let outcome = await this._awaitPreviewRequest(proc, plan);
+			// A request refused by name is made again the older way
+			if (outcome === "again") return this._deliver(plan.fallback);
+			accepted = outcome;
 		} catch (e) {
 			this.log("Failed to launch the preview: " + e);
 		}
@@ -3764,6 +3785,60 @@ var zotLook = Object.seal({
 	},
 
 	/**
+	 * Zotero's main window as a handle Sushi can be told about: "x11:" and
+	 * the window's X id in hex, the form the desktop portals use. Null
+	 * where there is none — under Wayland, where Zotero runs natively and
+	 * only its toolkit could export a handle, which Gecko does not offer —
+	 * or where the lookup fails; the caller then goes without.
+	 *
+	 * The id is read from the widget: nsIBaseWindow gives the GdkWindow as
+	 * a pointer, printed — the one Gecko draws into, a child of the
+	 * toplevel — and GDK's own gdk_window_get_toplevel and
+	 * gdk_x11_window_get_xid give the X window the window manager knows,
+	 * through ctypes, as the Windows pipe is written. Only asked under X11
+	 * (or XWayland), where that GdkWindow is an X11 one; the graphics info
+	 * says which protocol the windows speak.
+	 */
+	_x11WindowHandle() {
+		try {
+			let win = Zotero.getMainWindow && Zotero.getMainWindow();
+			if (!win || !win.docShell) return null;
+			let gfx = Components.classes["@mozilla.org/gfx/info;1"]
+				.getService(Components.interfaces.nsIGfxInfo);
+			let protocol = String(gfx.windowProtocol || "");
+			if (protocol !== "x11" && protocol !== "xwayland") {
+				this.log("No X11 window handle for Sushi: the windows speak " + (protocol || "an unknown protocol"));
+				return null;
+			}
+			let base = win.docShell.treeOwner
+				.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+				.getInterface(Components.interfaces.nsIBaseWindow);
+			let native = String(base.nativeHandle || "").trim();
+			if (!/^(0x)?[0-9a-f]+$/i.test(native) || /^(0x)?0+$/i.test(native)) return null;
+			let { ctypes } = ChromeUtils.importESModule("resource://gre/modules/ctypes.sys.mjs");
+			let gdk = ctypes.open("libgdk-3.so.0");
+			try {
+				let getToplevel = gdk.declare(
+					"gdk_window_get_toplevel", ctypes.default_abi, ctypes.voidptr_t, ctypes.voidptr_t
+				);
+				let getXid = gdk.declare(
+					"gdk_x11_window_get_xid", ctypes.default_abi, ctypes.unsigned_long, ctypes.voidptr_t
+				);
+				let toplevel = getToplevel(ctypes.voidptr_t(ctypes.UInt64(native)));
+				if (toplevel.isNull()) return null;
+				let xid = Number(String(getXid(toplevel)));
+				if (!Number.isFinite(xid) || xid <= 0) return null;
+				return "x11:" + xid.toString(16);
+			} finally {
+				gdk.close();
+			}
+		} catch (e) {
+			this.log("Could not tell Sushi Zotero's window: " + e);
+			return null;
+		}
+	},
+
+	/**
 	 * Where dbus-send is. Looked up on PATH rather than assumed at
 	 * /usr/bin/dbus-send, which is where Debian and Fedora put it but not
 	 * every distribution does. The conventional location remains the fallback,
@@ -3789,8 +3864,12 @@ var zotLook = Object.seal({
 	 * and the exit status is the only sign the plugin gets that the preview
 	 * service answered. Without this, every failure looks identical from the
 	 * outside: nothing happens.
+	 *
+	 * @returns {Promise<boolean|"again">} whether the request was taken —
+	 *   or "again", for a request the service refused by name, which the
+	 *   plan's fallback is to make in its stead
 	 */
-	async _awaitPreviewRequest(proc) {
+	async _awaitPreviewRequest(proc, plan) {
 		let complaint = "";
 		try {
 			complaint = (await proc.stderr.readString()) || "";
@@ -3805,6 +3884,15 @@ var zotLook = Object.seal({
 		}
 
 		complaint = complaint.trim();
+		// A Sushi from before its second interface refuses the method, not
+		// the request: the plan carries the first interface for that case
+		if (plan && plan.fallback && /UnknownMethod|UnknownInterface/.test(complaint)) {
+			this.log(
+				"Sushi has no NautilusPreviewer2 (exit " + exitCode + "): " +
+					"asking its first interface, without the window handle"
+			);
+			return "again";
+		}
 		this.log(
 			"The preview request was refused (exit " + exitCode + ")" +
 				(complaint ? ": " + complaint : "")
