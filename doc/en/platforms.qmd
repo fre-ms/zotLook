@@ -38,10 +38,12 @@ bus is running.
 
 Under X11 zotLook names its main window to Sushi, and the preview becomes a
 transient of it: the window manager keeps it above Zotero and lets it take the
-focus. Under Wayland Zotero runs natively and has no window handle a plugin
-could pass on; there GNOME's guard against focus stealing can put the preview
-behind the Zotero window. Where the mouse does not help, a shell extension
-that gives the focus to windows demanding attention does.
+focus. Without that, GNOME's guard against focus stealing put the second and
+every later preview half behind Zotero, because Sushi's window carries an
+older user timestamp than the Zotero window the shortcut was just pressed in.
+Under Wayland the question does not arise: there are no such timestamps there,
+Sushi asks for no activation token, and a window the window manager knows
+nothing about is given the focus.
 
 One habit of the desktop carries over: the moment the preview opens, GNOME
 hands it the keyboard, exactly as when Files opens it. From then on the window

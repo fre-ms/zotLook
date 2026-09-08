@@ -38,10 +38,12 @@ installiert ist und ein Sitzungsbus läuft.
 
 Unter X11 nennt zotLook Sushi dabei sein Hauptfenster, und die Vorschau wird
 dessen Transient: Der Fensterverwalter hält sie über Zotero und lässt ihr den
-Fokus. Unter Wayland läuft Zotero nativ und hat kein Fenster-Handle, das ein
-Plugin weitergeben könnte; dort kann GNOMEs Schutz vor Fokusklau die Vorschau
-hinter das Zotero-Fenster stellen. Hilft die Maus nicht, hilft eine Shell-
-Erweiterung, die Fenstern mit „verlangt Aufmerksamkeit“ den Fokus gibt.
+Fokus. Ohne das stellte GNOMEs Schutz vor Fokusklau die zweite und jede
+weitere Vorschau halb hinter Zotero, weil Sushis Fenster einen älteren
+Benutzerzeitstempel trägt als das Zotero-Fenster, in dem gerade das Kürzel
+gedrückt wurde. Unter Wayland stellt sich die Frage nicht: Dort gibt es keine
+solchen Zeitstempel, Sushi bittet um kein Aktivierungs-Token, und ein Fenster,
+über das der Fensterverwalter nichts weiß, bekommt den Fokus.
 
 Eine Gewohnheit des Desktops wandert mit: Sobald die Vorschau öffnet, gibt
 GNOME ihr die Tastatur — genau wie beim Öffnen aus Dateien heraus. Von da an
