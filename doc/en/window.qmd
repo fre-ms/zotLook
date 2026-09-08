@@ -121,24 +121,52 @@ once where it sits in the document.
 The system previews have no field, since they run no scripts; the sheet there
 is the same, minus the search.
 
+## With the mouse
+
+Everything on the sheet can be clicked: the two buttons in the lower corners,
+their entries, the search field, the page field and every tile. The mouse
+take of the screencast shows the sheet driven by the mouse — on macOS here;
+on the [other systems](platforms.qmd) the window is the same.
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-en-screencast.png" aria-label="The contact sheet in the Zotero window, driven by the mouse: contents, annotations, search and page field, every scene ending with a page in the reader">
+  <source src="asset/screenshot/macos-en-mouse.mp4" type="video/mp4">
+</video>
+```
+:::
+
 ## The keyboard
 
-The frame is a cursor:
+The same course without a mouse, in the keyboard take; plus and minus show
+the columns first:
 
-| Key | Does |
-|---|---|
-| **Enter** | frames the next page — the first, on the first press — or, with a search, the next hit; **Shift+Enter** goes back |
-| **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, left and right go hit by hit, and up and down to the nearest row above or below that has a hit |
-| **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it |
-| **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** goes to the entry's page and leaves the menu open, **o** on an annotation opens the reader at it, the same letter closes the menu |
-| **digits** | land in the page field, where Enter frames the page; **Ctrl+G** leads there as well |
-| **Backspace** | takes back what the page field asked for: page, range and frame; a second press empties the search. **Delete** likewise |
-| **letters** | land in the search field and search at once; **Ctrl+F** or **/** lead there as well. The four command letters wait a third of a second: another letter on their heels makes a search word, anything else runs the command |
-| **roman numerals** | on a sheet whose pages are numbered in roman, i, v, x, l, c, d and m wait that third of a second too: what was typed being a page of the sheet, "xiv", it lands in the page field as digits do; a word such as "mix" goes to the search |
-| **+** / **−** | one column more or fewer, on the spot; the default in the settings stays |
-| **p** | prints the sheet — the print dialogue is where it becomes a PDF |
-| **Page Up** / **Page Down** | scroll |
-| **Space**, **q**, **Escape** | close the window |
+::: {.content-visible when-format="html"}
+```{=html}
+<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-en-key-columns.png" aria-label="The contact sheet in the Zotero window, driven by the keyboard alone: plus and minus set the columns, c and a open the menus, a typed word searches, digits frame a page and a range fills the window">
+  <source src="asset/screenshot/macos-en-keyboard.mp4" type="video/mp4">
+</video>
+```
+:::
+
+The frame is a cursor. The table names every key and, where the take shows
+it, the clip:
+
+| Key | Does | In the picture |
+|---|---|---|
+| **Enter** | frames the next page — the first, on the first press — or, with a search, the next hit; **Shift+Enter** goes back | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-en-key-search.png" aria-label="A word typed, Enter three times: hit by hit"><source src="asset/screenshot/macos-en-key-search.mp4" type="video/mp4"></video> |
+| **Arrow keys** | move the frame across the grid, a row at a time up and down; with a search, left and right go hit by hit, and up and down to the nearest row above or below that has a hit | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-en-key-arrows.png" aria-label="The arrows between the hits of a search"><source src="asset/screenshot/macos-en-key-arrows.mp4" type="video/mp4"></video> |
+| **o**, or **Ctrl+Enter** | opens the framed page in the reader, as a click does, and the window closes behind it | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-en-key-open.png" aria-label="o opens the framed page in the reader and the window closes"><source src="asset/screenshot/macos-en-key-open.mp4" type="video/mp4"></video> |
+| **c** / **a** | open the contents or the annotations; the arrows walk the entries, **Enter** goes to the entry's page and leaves the menu open, **o** on an annotation opens the reader at it, the same letter closes the menu | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-en-key-contents.png" aria-label="c opens the contents, the arrows walk, Enter jumps to the page, o opens it"><source src="asset/screenshot/macos-en-key-contents.mp4" type="video/mp4"></video><br><video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-en-key-annotations.png" aria-label="a opens the annotations, Enter jumps to the page, o opens the reader at the annotation"><source src="asset/screenshot/macos-en-key-annotations.mp4" type="video/mp4"></video> |
+| **digits** | land in the page field, where Enter frames the page; **Ctrl+G** leads there as well | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-en-key-page.png" aria-label="18 and Enter frame page 18"><source src="asset/screenshot/macos-en-key-page.mp4" type="video/mp4"></video><br><video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-en-key-range.png" aria-label="Ctrl+G, 18-20 and Enter show the range in three columns, the arrow moves to page 19"><source src="asset/screenshot/macos-en-key-range.mp4" type="video/mp4"></video> |
+| **Backspace** | takes back what the page field asked for: page, range and frame; a second press empties the search. **Delete** likewise |  |
+| **letters** | land in the search field and search at once; **Ctrl+F** or **/** lead there as well. The four command letters wait a third of a second: another letter on their heels makes a search word, anything else runs the command |  |
+| **roman numerals** | on a sheet whose pages are numbered in roman, i, v, x, l, c, d and m wait that third of a second too: what was typed being a page of the sheet, "xiv", it lands in the page field as digits do; a word such as "mix" goes to the search |  |
+| **+** / **−** | one column more or fewer, on the spot; the default in the settings stays | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-en-key-columns.png" aria-label="Plus three times, minus five times, plus twice: the grid is laid out afresh each time"><source src="asset/screenshot/macos-en-key-columns.mp4" type="video/mp4"></video> |
+| **p** | prints the sheet — the print dialogue is where it becomes a PDF |  |
+| **Page Up** / **Page Down** | scroll | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-en-key-pages.png" aria-label="Page Down and Page Up scroll the sheet"><source src="asset/screenshot/macos-en-key-pages.mp4" type="video/mp4"></video> |
+| **Space**, **q**, **Escape** | close the window |  |
+: {tbl-colwidths="[16,44,40]"}
 
 In the search field a letter is typing, and the left and right arrows move
 the caret; the up and down arrows work there as they do outside it. Enter

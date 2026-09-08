@@ -57,6 +57,16 @@ for (const platform of PLATFORMS) {
     ok(kb('.mp4') < 12288 && kb('.webm') < 12288,
        `${lang}: the videos are under 12 MB (${kb('.mp4')} and ${kb('.webm')} KB)`);
     ok(kb('.png') < 512, `${lang}: the poster is under 512 KB (${kb('.png')} KB)`);
+    // the takes on their own and the key scenes, for the window page
+    for (const part of ['mouse', 'keyboard']) {
+      const f = `${base.replace(/-screencast$/, '')}-${part}.mp4`;
+      ok(fs.existsSync(f) && fs.statSync(f).size < 8 * 1024 * 1024, `${lang}: the ${part} take stands on its own, under 8 MB`);
+    }
+    for (const scene of ['columns', 'contents', 'annotations', 'search', 'arrows', 'pages', 'page', 'range', 'open']) {
+      const f = `${base.replace(/-screencast$/, '')}-key-${scene}`;
+      ok(fs.existsSync(f + '.mp4') && fs.statSync(f + '.mp4').size < 1024 * 1024, `${lang}: the ${scene} clip exists, under 1 MB`);
+      ok(fs.existsSync(f + '.png'), `${lang}: with its poster`);
+    }
     const page = fs.readFileSync(ROOT + `doc/${lang}/index.qmd`, 'utf8');
     ok(new RegExp(`<video[^>]*poster="asset/screenshot/macos-${lang}-screencast\\.png"`).test(page)
        && new RegExp(`macos-${lang}-screencast\\.mp4`).test(page),

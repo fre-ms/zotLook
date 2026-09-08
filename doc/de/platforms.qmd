@@ -143,6 +143,48 @@ Das ist ein Zotero-Fenster statt der Systemanzeige — deshalb sieht es überall
 gleich aus, und deshalb funktionieren die Seitenverweise auch unter Linux, wo
 sie es in Sushi nicht können.
 
+Derselbe Ablauf, auf jedem System aufgenommen: Die drei Screencasts folgen
+einem Drehbuch, erst mit der Maus, dann mit der Tastatur. Was sich zwischen
+den Reitern ändert, ist die Umgebung des Fensters; der Bogen darin und seine
+Bedienung nicht.
+
+::: {.panel-tabset}
+
+### macOS
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video muted loop playsinline controls preload="none" width="100%" poster="asset/screenshot/macos-de-screencast.png" aria-label="Der Kontaktbogen im Zotero-Fenster unter macOS, erst mit der Maus, dann mit der Tastatur bedient">
+  <source src="asset/screenshot/macos-de-screencast.webm" type="video/webm">
+  <source src="asset/screenshot/macos-de-screencast.mp4" type="video/mp4">
+</video>
+```
+:::
+
+### Linux
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video muted loop playsinline controls preload="none" width="100%" poster="asset/screenshot/linux-de-screencast.png" aria-label="Der Kontaktbogen im Zotero-Fenster unter Linux, erst mit der Maus, dann mit der Tastatur bedient">
+  <source src="asset/screenshot/linux-de-screencast.webm" type="video/webm">
+  <source src="asset/screenshot/linux-de-screencast.mp4" type="video/mp4">
+</video>
+```
+:::
+
+### Windows
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video muted loop playsinline controls preload="none" width="100%" poster="asset/screenshot/windows-de-screencast.png" aria-label="Der Kontaktbogen im Zotero-Fenster unter Windows, erst mit der Maus, dann mit der Tastatur bedient">
+  <source src="asset/screenshot/windows-de-screencast.webm" type="video/webm">
+  <source src="asset/screenshot/windows-de-screencast.mp4" type="video/mp4">
+</video>
+```
+:::
+
+:::
+
 ### Wie groß die Fenster sind
 
 Nur das Zotero-Fenster des Bogens lässt sich in der Größe festlegen: Es

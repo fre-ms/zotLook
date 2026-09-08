@@ -127,24 +127,53 @@ hat, sieht im Bogen sofort, wo er im Dokument liegt.
 Die Systemvorschauen haben kein Feld, weil sie keine Skripte ausführen; der
 Bogen dort ist derselbe, nur ohne die Suche.
 
+## Mit der Maus
+
+Alles auf dem Bogen lässt sich anklicken: die beiden Knöpfe in den unteren
+Ecken, ihre Einträge, das Suchfeld, das Seitenfeld und jede Kachel. Der
+Maus-Take des Screencasts zeigt den Bogen so, wie er mit der Maus bedient
+wird — hier unter macOS; auf den [anderen Systemen](platforms.qmd) ist das
+Fenster dasselbe.
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-de-screencast.png" aria-label="Der Kontaktbogen im Zotero-Fenster, mit der Maus bedient: Inhaltsverzeichnis, Annotationen, Suche und Seitenfeld, jede Szene endet mit einer Seite im Reader">
+  <source src="asset/screenshot/macos-de-mouse.mp4" type="video/mp4">
+</video>
+```
+:::
+
 ## Die Tastatur
 
-Der Rahmen ist ein Cursor:
+Derselbe Ablauf ohne Maus, im Tastatur-Take; vorab zeigen Plus und Minus die
+Spalten:
 
-| Taste | Wirkung |
-|---|---|
-| **Enter** | rahmt die nächste Seite, beim ersten Druck die erste, oder mit einer Suche den nächsten Treffer; **Umschalt+Enter** geht zurück |
-| **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche gehen links und rechts trefferweise, auf und ab zur nächsten Zeile darüber oder darunter, die einen Treffer hat |
-| **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter |
-| **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** geht zur Seite des Eintrags und lässt das Menü offen, **o** öffnet bei einer Annotation den Reader an ihr, derselbe Buchstabe schließt das Menü |
-| **Ziffern** | landen im Seitenfeld, wo Enter die Seite rahmt; **Strg+G** führt auch so hinein |
-| **Rückschritt** (Backspace) | nimmt zurück, was das Seitenfeld verlangt hat: Seite, Bereich und Rahmen; ein zweiter Druck leert die Suche. **Entf** dasselbe |
-| **Buchstaben** | landen im Suchfeld und suchen sofort; **Strg+F** oder **/** führen auch so hinein. Die vier Befehlsbuchstaben warten eine Drittelsekunde: Folgt ein weiterer Buchstabe, wird ein Suchwort daraus, sonst läuft der Befehl |
-| **römische Zahlen** | auf einem Bogen mit römisch gezählten Seiten warten auch i, v, x, l, c, d und m diese Drittelsekunde: Ergibt das Getippte eine Seite des Bogens, „xiv“, landet es im Seitenfeld wie Ziffern; ein Wort wie „mix“ geht in die Suche |
-| **+** / **−** | eine Spalte mehr oder weniger, sofort; die Vorgabe in den Einstellungen bleibt |
-| **p** | druckt den Bogen — im Druckdialog wird daraus ein PDF |
-| **Bild auf** / **Bild ab** | blättern |
-| **Leertaste**, **q**, **Escape** | schließen das Fenster |
+::: {.content-visible when-format="html"}
+```{=html}
+<video autoplay muted loop playsinline controls width="100%" poster="asset/screenshot/macos-de-key-columns.png" aria-label="Der Kontaktbogen im Zotero-Fenster, allein mit der Tastatur bedient: Plus und Minus setzen die Spalten, c und a öffnen die Menüs, ein getipptes Wort sucht, Ziffern rahmen eine Seite und ein Bereich füllt das Fenster">
+  <source src="asset/screenshot/macos-de-keyboard.mp4" type="video/mp4">
+</video>
+```
+:::
+
+Der Rahmen ist ein Cursor. Die Tabelle nennt jede Taste, und wo der Take sie
+zeigt, den Ausschnitt dazu:
+
+| Taste | Wirkung | Im Bild |
+|---|---|---|
+| **Enter** | rahmt die nächste Seite, beim ersten Druck die erste, oder mit einer Suche den nächsten Treffer; **Umschalt+Enter** geht zurück | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-de-key-search.png" aria-label="Ein Wort getippt, dreimal Enter: von Treffer zu Treffer"><source src="asset/screenshot/macos-de-key-search.mp4" type="video/mp4"></video> |
+| **Pfeiltasten** | bewegen den Rahmen im Raster, auf und ab zeilenweise; mit einer Suche gehen links und rechts trefferweise, auf und ab zur nächsten Zeile darüber oder darunter, die einen Treffer hat | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-de-key-arrows.png" aria-label="Die Pfeile zwischen den Treffern einer Suche"><source src="asset/screenshot/macos-de-key-arrows.mp4" type="video/mp4"></video> |
+| **o** oder **Strg+Enter** | öffnet die gerahmte Seite im Reader, wie ein Klick, und das Fenster schließt sich dahinter | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-de-key-open.png" aria-label="o öffnet die gerahmte Seite im Reader, das Fenster schließt sich"><source src="asset/screenshot/macos-de-key-open.mp4" type="video/mp4"></video> |
+| **c** / **a** | öffnen Inhaltsverzeichnis oder Annotationen; die Pfeile wandern durch die Einträge, **Enter** geht zur Seite des Eintrags und lässt das Menü offen, **o** öffnet bei einer Annotation den Reader an ihr, derselbe Buchstabe schließt das Menü | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-de-key-contents.png" aria-label="c öffnet das Inhaltsverzeichnis, die Pfeile wandern, Enter springt zur Seite, o öffnet sie"><source src="asset/screenshot/macos-de-key-contents.mp4" type="video/mp4"></video><br><video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-de-key-annotations.png" aria-label="a öffnet die Annotationen, Enter springt zur Seite, o öffnet den Reader an der Annotation"><source src="asset/screenshot/macos-de-key-annotations.mp4" type="video/mp4"></video> |
+| **Ziffern** | landen im Seitenfeld, wo Enter die Seite rahmt; **Strg+G** führt auch so hinein | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-de-key-page.png" aria-label="18 und Enter rahmen Seite 18"><source src="asset/screenshot/macos-de-key-page.mp4" type="video/mp4"></video><br><video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-de-key-range.png" aria-label="Strg+G, 18-20 und Enter zeigen den Bereich in drei Spalten, der Pfeil wandert auf Seite 19"><source src="asset/screenshot/macos-de-key-range.mp4" type="video/mp4"></video> |
+| **Rückschritt** (Backspace) | nimmt zurück, was das Seitenfeld verlangt hat: Seite, Bereich und Rahmen; ein zweiter Druck leert die Suche. **Entf** dasselbe |  |
+| **Buchstaben** | landen im Suchfeld und suchen sofort; **Strg+F** oder **/** führen auch so hinein. Die vier Befehlsbuchstaben warten eine Drittelsekunde: Folgt ein weiterer Buchstabe, wird ein Suchwort daraus, sonst läuft der Befehl |  |
+| **römische Zahlen** | auf einem Bogen mit römisch gezählten Seiten warten auch i, v, x, l, c, d und m diese Drittelsekunde: Ergibt das Getippte eine Seite des Bogens, „xiv“, landet es im Seitenfeld wie Ziffern; ein Wort wie „mix“ geht in die Suche |  |
+| **+** / **−** | eine Spalte mehr oder weniger, sofort; die Vorgabe in den Einstellungen bleibt | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-de-key-columns.png" aria-label="Dreimal Plus, fünfmal Minus, zweimal Plus: das Raster setzt sich jedes Mal neu"><source src="asset/screenshot/macos-de-key-columns.mp4" type="video/mp4"></video> |
+| **p** | druckt den Bogen — im Druckdialog wird daraus ein PDF |  |
+| **Bild auf** / **Bild ab** | blättern | <video autoplay muted loop playsinline width="300" poster="asset/screenshot/macos-de-key-pages.png" aria-label="Bild ab und Bild auf blättern den Bogen"><source src="asset/screenshot/macos-de-key-pages.mp4" type="video/mp4"></video> |
+| **Leertaste**, **q**, **Escape** | schließen das Fenster |  |
+: {tbl-colwidths="[16,44,40]"}
 
 Im Suchfeld ist ein Buchstabe Tippen, und die Pfeile links und rechts bewegen
 die Schreibmarke; die Pfeile auf und ab wirken dort wie außerhalb. Enter geht

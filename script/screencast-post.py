@@ -373,6 +373,113 @@ def gif(src, out, width, work, crop, seconds=None):
         "-loop", "0", str(out)])
 
 
+# ── the takes on their own, and the keys one by one ──────────────────
+# For the documentation: each take as a file of its own, and short loops of
+# the keyboard take, one per key or key group, cut where the timeline says
+# the key fell. A scene runs from half a second before its first key to a
+# moment after its last, cropped to the sheet and its surroundings.
+SNIPPET_WIDTH = 720
+SNIPPET_LEAD = 0.5
+
+
+def _find(events, start, pred):
+    for i in range(start, len(events)):
+        if pred(events[i]):
+            return i
+    return None
+
+
+def key_scenes(events):
+    """(name, start, end) for the key scenes of the keyboard take, found by
+    the keys the screenplay lays down; a scene the take lacks is skipped."""
+    key = lambda label: (lambda e: e[1] == "key" and e[2] == label)
+    typed = lambda e: e[1] == "type"
+    scenes = []
+
+    def add(name, i0, i1, tail):
+        if i0 is not None and i1 is not None:
+            scenes.append((name, events[i0][0] - SNIPPET_LEAD, events[i1][0] + tail))
+
+    # the columns: from the first + to the key before the first c
+    plus = _find(events, 0, key("+"))
+    c = _find(events, plus or 0, key("c"))
+    if plus is not None and c is not None:
+        last = c - 1
+        while last > plus and events[last][1] != "key":
+            last -= 1
+        add("columns", plus, last, 1.6)
+    if c is not None:
+        add("contents", c, _find(events, c, key("o")), 1.8)
+    a = _find(events, (c or 0) + 1, key("a"))
+    if a is not None:
+        add("annotations", a, _find(events, a, key("o")), 1.8)
+    word = _find(events, (a or 0) + 1, lambda e: typed(e) and not e[2].replace("-", "").isdigit())
+    if word is not None:
+        enters = []
+        i = word
+        while len(enters) < 3:
+            i = _find(events, i + 1, key("Enter"))
+            if i is None:
+                break
+            enters.append(i)
+        if enters:
+            add("search", word, enters[-1], 1.6)
+            down = _find(events, enters[-1], key("↓"))
+            if down is not None:
+                add("arrows", down, _find(events, down, key("←")), 1.2)
+        pd = _find(events, word, key("Page Down"))
+        if pd is not None:
+            add("pages", pd, _find(events, pd, key("Page Up")), 1.8)
+    number = _find(events, (word or 0) + 1, lambda e: typed(e) and e[2].isdigit())
+    if number is not None:
+        add("page", number, _find(events, number, key("Enter")), 2.2)
+        g = _find(events, number, key("Ctrl+G"))
+        if g is not None:
+            add("range", g, _find(events, g, key("→")), 1.4)
+    last_o = None
+    for i, e in enumerate(events):
+        if e[1] == "key" and e[2] == "o":
+            last_o = i
+    if last_o is not None:
+        add("open", last_o, last_o, 3.0)
+    return scenes
+
+
+def snippet(src, out, poster, start, end, width, crop):
+    """One scene of a take as a short loop and its poster, cropped to the
+    sheet with its surroundings and scaled to SNIPPET_WIDTH."""
+    scale = width / 1512
+    x, y, w, h = (int(v * scale) for v in crop)
+    vf = f"crop={w}:{h}:{x}:{y},scale={SNIPPET_WIDTH}:-2:flags=lanczos"
+    subprocess.check_call([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-ss", f"{max(0, start):.3f}", "-t", f"{end - max(0, start):.3f}", "-i", str(src),
+        "-vf", vf + ",format=yuv420p", "-c:v", "libx264", "-preset", "slow", "-crf", "26",
+        "-an", "-movflags", "+faststart", str(out)])
+    subprocess.check_call([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-ss", f"{max(0, start) + 0.3:.3f}", "-i", str(src), "-frames:v", "1", "-vf", vf, str(poster)])
+
+
+def snippets(clip, timeline, prefix, out_dir, width, crop, offset=0.0):
+    events = [(t + offset, k, l, p) for t, k, l, p in read_timeline(timeline)]
+    made = []
+    for name, start, end in key_scenes(events):
+        mp4 = out_dir / f"{prefix}-key-{name}.mp4"
+        png = out_dir / f"{prefix}-key-{name}.png"
+        snippet(clip, mp4, png, start, end, width, crop)
+        made.append((name, mp4.stat().st_size / 1e6, end - start))
+    return made
+
+
+def take_file(clip, out):
+    """A take as a file of its own, at the delivery quality."""
+    subprocess.check_call([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(clip),
+        "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-an",
+        "-movflags", "+faststart", str(out)])
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("takes", type=Path, help="directory with <prefix>-mouse.mov/.tsv and <prefix>-keyboard.mov/.tsv")
@@ -391,6 +498,8 @@ def main():
                     help="end the GIF after so many seconds of its take (default: the whole take)")
     ap.add_argument("--platform", choices=["mac", "win", "linux"], default=None,
                     help="how the caps name the modifiers (default: from the prefix)")
+    ap.add_argument("--snippets", action="store_true",
+                    help="also write each take as <prefix>-mouse.mp4 / -keyboard.mp4 and the keyboard take's key scenes as <prefix>-key-<scene>.mp4 with posters")
     ap.add_argument("--no-chips", action="store_true",
                     help="draw no key chips: the keys are already in the picture, as Keyviz puts them there on Windows")
     args = ap.parse_args()
@@ -431,6 +540,13 @@ def main():
         for name in ("mp4", "webm", "gif"):
             p = args.out / f"{args.prefix}-screencast.{name}"
             print(f"{p}  {p.stat().st_size / 1e6:.1f} MB")
+        if args.snippets:
+            for part in ("mouse", "keyboard"):
+                p = args.out / f"{args.prefix}-{part}.mp4"
+                take_file(clips[part], p)
+                print(f"{p}  {p.stat().st_size / 1e6:.1f} MB")
+            for name, mb, secs in snippets(clips["keyboard"], takes["keyboard"][1], args.prefix, args.out, width, crop, args.offset):
+                print(f"{args.out / (args.prefix + '-key-' + name + '.mp4')}  {mb:.2f} MB  {secs:.1f} s")
     finally:
         if args.keep:
             print("intermediates in", work)

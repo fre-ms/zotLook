@@ -8,6 +8,9 @@ project:
     # the video's poster: Quarto copies what a page refers to by src,
     # and a poster attribute is not that
     - asset/screenshot/macos-en-screencast.png
+    - asset/screenshot/linux-en-screencast.png
+    - asset/screenshot/windows-en-screencast.png
+    - asset/screenshot/macos-en-key-*.png
 
 # en-GB, not a bare "en": it fixes the variant for spell-checkers, screen
 # readers and the PDF's hyphenation. The hreflang annotations stay at the

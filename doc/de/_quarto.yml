@@ -8,6 +8,9 @@ project:
     # the video's poster: Quarto copies what a page refers to by src,
     # and a poster attribute is not that
     - asset/screenshot/macos-de-screencast.png
+    - asset/screenshot/linux-de-screencast.png
+    - asset/screenshot/windows-de-screencast.png
+    - asset/screenshot/macos-de-key-*.png
 
 lang: de
 

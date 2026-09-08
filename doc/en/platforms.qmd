@@ -138,6 +138,48 @@ This one is a Zotero window rather than the system's panel, which is why it
 looks the same everywhere — and why the page links work on Linux, where they
 cannot in Sushi.
 
+The same course, recorded on each system: the three screencasts follow one
+screenplay, first with the mouse, then with the keyboard. What changes between
+the tabs is the window's surroundings; the sheet inside and its handling do
+not.
+
+::: {.panel-tabset}
+
+### macOS
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video muted loop playsinline controls preload="none" width="100%" poster="asset/screenshot/macos-en-screencast.png" aria-label="The contact sheet in the Zotero window on macOS, driven first by the mouse and then by the keyboard">
+  <source src="asset/screenshot/macos-en-screencast.webm" type="video/webm">
+  <source src="asset/screenshot/macos-en-screencast.mp4" type="video/mp4">
+</video>
+```
+:::
+
+### Linux
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video muted loop playsinline controls preload="none" width="100%" poster="asset/screenshot/linux-en-screencast.png" aria-label="The contact sheet in the Zotero window on Linux, driven first by the mouse and then by the keyboard">
+  <source src="asset/screenshot/linux-en-screencast.webm" type="video/webm">
+  <source src="asset/screenshot/linux-en-screencast.mp4" type="video/mp4">
+</video>
+```
+:::
+
+### Windows
+
+::: {.content-visible when-format="html"}
+```{=html}
+<video muted loop playsinline controls preload="none" width="100%" poster="asset/screenshot/windows-en-screencast.png" aria-label="The contact sheet in the Zotero window on Windows, driven first by the mouse and then by the keyboard">
+  <source src="asset/screenshot/windows-en-screencast.webm" type="video/webm">
+  <source src="asset/screenshot/windows-en-screencast.mp4" type="video/mp4">
+</video>
+```
+:::
+
+:::
+
 ### How large the windows are
 
 Only the sheet's Zotero window can be given a size: it keeps what it was
